@@ -4,9 +4,41 @@
         <servlet-name>NewServlet</servlet-name>
         <servlet-class>Controllers.NewServlet</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>AdminControllers</servlet-name>
+        <servlet-class>Controllers.admin.AdminControllers</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>CustomerController</servlet-name>
+        <servlet-class>Controllers.customer.CustomerController</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>GuestController</servlet-name>
+        <servlet-class>Controllers.guest.GuestController</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>StaffController</servlet-name>
+        <servlet-class>Controllers.staff.StaffController</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>NewServlet</servlet-name>
         <url-pattern>/NewServlet</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>AdminControllers</servlet-name>
+        <url-pattern>/AdminControllers</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>CustomerController</servlet-name>
+        <url-pattern>/CustomerController</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>GuestController</servlet-name>
+        <url-pattern>/GuestController</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>StaffController</servlet-name>
+        <url-pattern>/StaffController</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>
