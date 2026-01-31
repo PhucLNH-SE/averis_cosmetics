@@ -11,7 +11,7 @@ public class DBContext {
     public DBContext() {
         try {
             String url = "jdbc:sqlserver://localhost:1433;"
-                    + "databaseName=Glitzy;"
+                    + "databaseName=CosmeticShopDB_v3;"
                     + "user=sa;"
                     + "password=280205;"
                     + "encrypt=true;"
