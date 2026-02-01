@@ -1,79 +1,35 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
-package Model;
+package model;
 
-/**
- *
- * @author Admin
- */
-public class ProductVariant {
-    int variantId;
-    int productId;
-    String variantName;
-    int price;
-    int stock;
-    boolean status;
+import java.io.Serializable;
+import java.math.BigDecimal;
 
-    public ProductVariant() {
-    }
+public class ProductVariant implements Serializable {
+    private int variantId;
+    private int productId;
 
-    public ProductVariant(int variantId, int productId, String variantName, int price, int stock, boolean status) {
-        this.variantId = variantId;
-        this.productId = productId;
-        this.variantName = variantName;
-        this.price = price;
-        this.stock = stock;
-        this.status = status;
-    }
+    private String sku;
+    private BigDecimal price;
+    private int stock; // hoặc quantity tùy DB
+    private boolean status;
 
-    public int getVariantId() {
-        return variantId;
-    }
+    public ProductVariant() {}
 
-    public void setVariantId(int variantId) {
-        this.variantId = variantId;
-    }
+    // getters/setters
+    public int getVariantId() { return variantId; }
+    public void setVariantId(int variantId) { this.variantId = variantId; }
 
-    public int getProductId() {
-        return productId;
-    }
+    public int getProductId() { return productId; }
+    public void setProductId(int productId) { this.productId = productId; }
 
-    public void setProductId(int productId) {
-        this.productId = productId;
-    }
+    public String getSku() { return sku; }
+    public void setSku(String sku) { this.sku = sku; }
 
-    public String getVariantName() {
-        return variantName;
-    }
+    public BigDecimal getPrice() { return price; }
+    public void setPrice(BigDecimal price) { this.price = price; }
 
-    public void setVariantName(String variantName) {
-        this.variantName = variantName;
-    }
+    public int getStock() { return stock; }
+    public void setStock(int stock) { this.stock = stock; }
 
-    public int getPrice() {
-        return price;
-    }
-
-    public void setPrice(int price) {
-        this.price = price;
-    }
-
-    public int getStock() {
-        return stock;
-    }
-
-    public void setStock(int stock) {
-        this.stock = stock;
-    }
-
-    public boolean isStatus() {
-        return status;
-    }
-
-    public void setStatus(boolean status) {
-        this.status = status;
-    }
-    
+    public boolean isStatus() { return status; }
+    public void setStatus(boolean status) { this.status = status; }
 }
