@@ -27,17 +27,17 @@
     box-shadow: 0 8px 22px rgba(31,41,55,.06);
   }
 
-  /* ? g?p logo + ch? */
+  /* Brand section with logo */
   .brand{
         text-decoration: none;
     display:flex;
     align-items:center;
-    gap:10px;            /* ch?nh 6px n?u mu?n sát h?n */
-    min-width: 220px;    /* gi? kh?i trái ?n ??nh */
+    gap:10px;            /* adjust 6px if want closer */
+    min-width: 220px;    /* keep from shifting to fixed */
   }
 
   .brand img{
-    width:55px;          /* logo nh? l?i cho cân */
+    width:55px;          /* logo smaller to fit */
     height:55px;
     object-fit:contain;
     display:block;
@@ -86,7 +86,7 @@
     display:flex;
     align-items:center;
     gap:12px;
-    min-width: 260px;   /* gi? kh?i ph?i ?n ??nh */
+    min-width: 260px;   /* keep from shifting to fixed */
     justify-content:flex-end;
   }
 
@@ -119,14 +119,14 @@
   }
 
   .cart-img{
-    width:22px;        /* ? cart icon v?a ph?i */
+    width:22px;        /* for cart icon spacing */
     height:22px;
     display:block;
   }
 </style>
 
 <div class="topbar">
-  <!-- ? Brand: logo + AVERIS g?n nhau -->
+  <!-- Brand: logo + AVERIS together -->
   <a class="brand" href="<%=request.getContextPath()%>/">
     <img src="<%=request.getContextPath()%>/assets/img/Logo.png" alt="Averis Logo">
     <span class="brand-name">AVERIS</span>
@@ -135,7 +135,7 @@
   <div class="menu">
     <a href="<%=request.getContextPath()%>/">Home</a>
     <a href="<%=request.getContextPath()%>/products">Product</a>
-    <a href="<%=request.getContextPath()%>/introduce">Introduce</a>
+    <a href="<%=request.getContextPath()%>/introduce">About Us</a>
     <a href="<%=request.getContextPath()%>/contact">Contact</a>
   </div>
 

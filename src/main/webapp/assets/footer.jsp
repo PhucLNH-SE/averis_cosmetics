@@ -1,7 +1,7 @@
 <style>
   .footer{
     background:#faf8f5;
-    color:#111;            /* CH? ?EN */
+    color:#111;            /* TEXT COLOR */
     padding:40px 0;
     font-family: Arial, sans-serif;
   }
@@ -21,24 +21,24 @@
     margin-bottom:12px;
     font-size:14px;
     letter-spacing:.5px;
-    color:#111;            /* title ?en */
+    color:#111;            /* title color */
   }
 
   .f-text{
-    color:#111;            /* n?i dung ?en */
+    color:#111;            /* content color */
     font-size:13px;
     line-height:1.9;
   }
 
   .footer a{
-    color:#111;            /* link ?en */
+    color:#111;            /* link color */
     font-size:13px;
     line-height:1.9;
     text-decoration:none;
     transition: color .15s ease;
   }
   .footer a:hover{
-    color:#b45309;         /* hover cam ??t nh? (??i n?u mu?n) */
+    color:#b45309;         /* hover orange slightly (change if wanted) */
   }
 
   .footer ul{list-style:none; padding:0; margin:0;}
@@ -48,9 +48,9 @@
     width:92%;
     max-width:1200px;
     margin:22px auto 0;
-    border-top:1px solid rgba(0,0,0,.12);  /* line nh?t */
+    border-top:1px solid rgba(0,0,0,.12);  /* light line */
     padding-top:12px;
-    color:rgba(0,0,0,.65);                 /* ch? line xám ??m nh? */
+    color:rgba(0,0,0,.65);                 /* line text dark slightly */
     font-size:12px;
     display:flex;
     justify-content:space-between;
@@ -63,35 +63,35 @@
 </style>
 <footer class="footer">
   <div class="wrap">
-<div>
-      <div class="f-title">BLANC</div>
+    <div>
+      <div class="f-title">AVERIS COSMETICS</div>
       <div class="f-text">
-        H? kinh doanh BLANC<br>
+        Averis Cosmetics Business<br>
         Hotline: 0966434787<br>
-        Email: support@blanc.com
+        Email: support@averis.com
       </div>
     </div>
 
     <div>
-      <div class="f-title">H? tr?</div>
+      <div class="f-title">Support</div>
       <ul>
-        <li><a href="#">B?o m?t</a></li>
-        <li><a href="#">V?n chuy?n</a></li>
-        <li><a href="#">??i tr?</a></li>
+        <li><a href="#">Privacy Policy</a></li>
+        <li><a href="#">Shipping</a></li>
+        <li><a href="#">Returns</a></li>
       </ul>
     </div>
 
     <div>
-      <div class="f-title">H??ng d?n</div>
+      <div class="f-title">Guides</div>
       <ul>
-        <li><a href="#">Mua hàng</a></li>
-        <li><a href="#">Thanh toán</a></li>
-        <li><a href="#">Giao nh?n</a></li>
+        <li><a href="#">How to Buy</a></li>
+        <li><a href="#">Payment</a></li>
+        <li><a href="#">Delivery</a></li>
       </ul>
     </div>
 
     <div>
-      <div class="f-title">K?t n?i</div>
+      <div class="f-title">Connect</div>
       <div class="social">
         <a href="#" class="f-text">Facebook</a>
         <a href="#" class="f-text">Instagram</a>
@@ -100,7 +100,7 @@
   </div>
 
   <div class="line">
-    <div>© BLANC</div>
+    <div>&copy; Averis</div>
     <div>All rights reserved</div>
   </div>
 </footer>
