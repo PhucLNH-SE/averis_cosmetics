@@ -1,49 +1,26 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
-package Model;
+package model;
 
-/**
- *
- * @author Admin
- */
-public class Category {
-    int category;
-    String name;
-    boolean status;
+import java.io.Serializable;
 
-    public Category() {
-    }
+public class Category implements Serializable {
+    private int categoryId;
+    private String name;
+    private boolean status;
 
-    public Category(int category, String name, boolean status) {
-        this.category = category;
+    public Category() {}
+
+    public Category(int categoryId, String name, boolean status) {
+        this.categoryId = categoryId;
         this.name = name;
         this.status = status;
     }
 
-    public int getCategory() {
-        return category;
-    }
+    public int getCategoryId() { return categoryId; }
+    public void setCategoryId(int categoryId) { this.categoryId = categoryId; }
 
-    public void setCategory(int category) {
-        this.category = category;
-    }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
 
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public boolean isStatus() {
-        return status;
-    }
-
-    public void setStatus(boolean status) {
-        this.status = status;
-    }
-    
+    public boolean isStatus() { return status; }
+    public void setStatus(boolean status) { this.status = status; }
 }
