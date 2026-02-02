@@ -7,6 +7,7 @@ public class ProductVariant implements Serializable {
     private int variantId;
     private int productId;
 
+    private String variantName;
     private String sku;
     private BigDecimal price;
     private int stock; // hoặc quantity tùy DB
@@ -20,6 +21,9 @@ public class ProductVariant implements Serializable {
 
     public int getProductId() { return productId; }
     public void setProductId(int productId) { this.productId = productId; }
+
+    public String getVariantName() { return variantName; }
+    public void setVariantName(String variantName) { this.variantName = variantName; }
 
     public String getSku() { return sku; }
     public void setSku(String sku) { this.sku = sku; }

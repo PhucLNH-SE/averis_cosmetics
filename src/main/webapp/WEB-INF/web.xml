@@ -42,7 +42,7 @@
     </servlet-mapping>
     <welcome-file-list>
         <welcome-file>
-            GuestController
+            products
         </welcome-file>
     </welcome-file-list>
     <session-config>
