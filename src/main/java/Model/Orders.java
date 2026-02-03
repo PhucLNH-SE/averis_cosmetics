@@ -4,7 +4,7 @@
  */
 package Model;
 
-import java.io.Serializable;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
  *
  * @author Admin
  */
-public class Orders implements Serializable {
+public class Orders {
     private int orderId;                
     private int customerId;              
     private int addressId;              

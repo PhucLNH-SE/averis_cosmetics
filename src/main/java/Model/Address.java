@@ -4,13 +4,13 @@
  */
 package Model;
 
-import java.io.Serializable;
+
 
 /**
  *
  * @author Admin
  */
-public class Address implements Serializable {
+public class Address {
      private int addressId;        // address_id (NOT NULL)
     private int customerId;       // customer_id (NOT NULL)
     private String receiverName;  // receiver_name (NOT NULL)

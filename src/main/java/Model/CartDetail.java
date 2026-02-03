@@ -4,13 +4,13 @@
  */
 package Model;
 
-import java.io.Serializable;
+
 
 /**
  *
  * @author Admin
  */
-public class CartDetail implements Serializable {
+public class CartDetail {
     private int cartDetailId;  // cart_detail_id
     private int customerId;    // customer_id
     private int variantId;     // variant_id

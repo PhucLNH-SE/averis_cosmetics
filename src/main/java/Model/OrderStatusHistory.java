@@ -4,14 +4,14 @@
  */
 package Model;
 
-import java.io.Serializable;
+
 import java.time.LocalDateTime;
 
 /**
  *
  * @author Admin
  */
-public class OrderStatusHistory implements Serializable {
+public class OrderStatusHistory {
     private int historyId;            // history_id (NOT NULL)
     private int orderId;              // order_id (NOT NULL)
 

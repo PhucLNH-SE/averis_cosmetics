@@ -4,7 +4,7 @@
  */
 package Model;
 
-import java.io.Serializable;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
  *
  * @author Admin
  */
-public class Customer implements Serializable {
+public class Customer {
     private int customerId;               
     private String username;              
     private String fullName;                

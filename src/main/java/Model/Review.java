@@ -4,14 +4,14 @@
  */
 package Model;
 
-import java.io.Serializable;
+
 import java.time.LocalDateTime;
 
 /**
  *
  * @author Admin
  */
-public class Review implements Serializable {
+public class Review {
     private int reviewId;              // review_id (NOT NULL)
     private int customerId;            // customer_id (NOT NULL)
     private int productId;             // product_id (NOT NULL)

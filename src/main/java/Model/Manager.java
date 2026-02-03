@@ -4,13 +4,13 @@
  */
 package Model;
 
-import java.io.Serializable;
+
 
 /**
  *
  * @author Admin
  */
-public class Manager implements Serializable {
+public class Manager {
     private int managerId;        // manager_id (NOT NULL)
     private String fullName;      // full_name (NOT NULL)
     private String email;         // email (NOT NULL)

@@ -4,7 +4,7 @@
  */
 package Model;
 
-import java.io.Serializable;
+
 import java.math.BigDecimal;
 
 /**
@@ -12,7 +12,7 @@ import java.math.BigDecimal;
  * @author Admin
  */
 
-    public class OrderDetail implements Serializable {
+    public class OrderDetail {
     private int orderDetailId;       // order_detail_id (NOT NULL)
     private int orderId;             // order_id (NOT NULL)
     private int variantId;           // variant_id (NOT NULL)

@@ -1,9 +1,9 @@
 package model;
 
-import java.io.Serializable;
+
 import java.math.BigDecimal;
 
-public class ProductVariant implements Serializable {
+public class ProductVariant {
     private int variantId;
     private int productId;
 

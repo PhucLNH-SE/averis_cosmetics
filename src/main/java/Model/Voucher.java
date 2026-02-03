@@ -4,7 +4,7 @@
  */
 package Model;
 
-import java.io.Serializable;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
  *
  * @author Admin
  */
-public class Voucher implements Serializable {
+public class Voucher {
     private int voucherId;                 // voucher_id (NOT NULL)
     private String code;                   // code (NOT NULL)
     private String discountType;           // discount_type (NULL allowed)

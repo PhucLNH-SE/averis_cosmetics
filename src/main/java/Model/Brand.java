@@ -1,8 +1,8 @@
 package model;
 
-import java.io.Serializable;
 
-public class Brand implements Serializable {
+
+public class Brand {
     private int brandId;
     private String name;
     private boolean status;
