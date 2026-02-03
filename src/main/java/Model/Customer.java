@@ -7,6 +7,7 @@ package Model;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Date;
 
 /**
  *
@@ -20,7 +21,7 @@ public class Customer {
     private String password;               
 
     private String gender;                 
-    private LocalDate dateOfBirth;          
+    private Date dateOfBirth;          
 
     private Boolean status;                
     private Boolean emailVerified;         
@@ -31,22 +32,6 @@ public class Customer {
     private Boolean authTokenUsed;   
 
     public Customer() {
-    }
-
-    public Customer(int customerId, String username, String fullName, String email, String password, String gender, LocalDate dateOfBirth, Boolean status, Boolean emailVerified, String authToken, String authTokenType, LocalDateTime authTokenExpiredAt, Boolean authTokenUsed) {
-        this.customerId = customerId;
-        this.username = username;
-        this.fullName = fullName;
-        this.email = email;
-        this.password = password;
-        this.gender = gender;
-        this.dateOfBirth = dateOfBirth;
-        this.status = status;
-        this.emailVerified = emailVerified;
-        this.authToken = authToken;
-        this.authTokenType = authTokenType;
-        this.authTokenExpiredAt = authTokenExpiredAt;
-        this.authTokenUsed = authTokenUsed;
     }
 
     public int getCustomerId() {
@@ -97,11 +82,11 @@ public class Customer {
         this.gender = gender;
     }
 
-    public LocalDate getDateOfBirth() {
+    public Date getDateOfBirth() {
         return dateOfBirth;
     }
 
-    public void setDateOfBirth(LocalDate dateOfBirth) {
+    public void setDateOfBirth(Date dateOfBirth) {
         this.dateOfBirth = dateOfBirth;
     }
 
@@ -152,5 +137,22 @@ public class Customer {
     public void setAuthTokenUsed(Boolean authTokenUsed) {
         this.authTokenUsed = authTokenUsed;
     }
+
+    public Customer(int customerId, String username, String fullName, String email, String password, String gender, Date dateOfBirth, Boolean status, Boolean emailVerified, String authToken, String authTokenType, LocalDateTime authTokenExpiredAt, Boolean authTokenUsed) {
+        this.customerId = customerId;
+        this.username = username;
+        this.fullName = fullName;
+        this.email = email;
+        this.password = password;
+        this.gender = gender;
+        this.dateOfBirth = dateOfBirth;
+        this.status = status;
+        this.emailVerified = emailVerified;
+        this.authToken = authToken;
+        this.authTokenType = authTokenType;
+        this.authTokenExpiredAt = authTokenExpiredAt;
+        this.authTokenUsed = authTokenUsed;
+    }
+
     
 }
