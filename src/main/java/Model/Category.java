@@ -1,8 +1,8 @@
 package model;
 
-import java.io.Serializable;
 
-public class Category implements Serializable {
+
+public class Category {
     private int categoryId;
     private String name;
     private boolean status;
