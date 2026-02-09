@@ -7,11 +7,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import model.Brand;
-import model.Category;
-import model.Product;
-import model.ProductImage;
-import model.ProductVariant;
+import Model.Brand;
+import Model.Category;
+import Model.Product;
+import Model.ProductImage;
+import Model.ProductVariant;
 
 public class ProductDAO extends DBContext {
 

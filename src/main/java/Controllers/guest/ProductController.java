@@ -1,7 +1,7 @@
 package Controllers.guest;
 
 import DALs.ProductDAO;
-import model.Product;
+import Model.Product;
 import java.io.IOException;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
