@@ -10,12 +10,17 @@ public class ProductVariant implements Serializable {
     private String variantName;
     private String sku;
     private BigDecimal price;
-    private int stock; // hoặc quantity tùy DB
+    private int stock;
     private boolean status;
+
+    // --- CÁC TRƯỜNG MỚI THÊM (để hiển thị trong Cart) ---
+    private String productName; // Tên sản phẩm gốc (VD: Kem dưỡng ẩm A)
+    private String imageUrl;    // Đường dẫn ảnh đại diện
+    // ----------------------------------------------------
 
     public ProductVariant() {}
 
-    // getters/setters
+    // getters/setters cũ
     public int getVariantId() { return variantId; }
     public void setVariantId(int variantId) { this.variantId = variantId; }
 
@@ -36,4 +41,21 @@ public class ProductVariant implements Serializable {
 
     public boolean isStatus() { return status; }
     public void setStatus(boolean status) { this.status = status; }
+
+    // --- GETTER/SETTER CHO TRƯỜNG MỚI ---
+    public String getProductName() {
+        return productName;
+    }
+
+    public void setProductName(String productName) {
+        this.productName = productName;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
 }
