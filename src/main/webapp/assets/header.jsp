@@ -293,7 +293,19 @@
       <img class="cart-img" src="<%=request.getContextPath()%>/assets/img/Cart.png" alt="Cart">
     </a>
 
-    <a class="icon" href="<%=request.getContextPath()%>/profile">Login</a>
+    <% 
+        Object customerObj = session.getAttribute("customer"); 
+        if (customerObj != null) { 
+    %>
+        <a class="icon" href="<%=request.getContextPath()%>/profile">Welcome, <%= ((Model.Customer)customerObj).getUsername() %>!</a>
+        <a class="icon" href="<%=request.getContextPath()%>/logout">Logout</a>
+    <% 
+        } else { 
+    %>
+        <a class="icon" href="<%=request.getContextPath()%>/auth">Register/Login</a>
+    <% 
+        } 
+    %>
   </div>
 </div>
 
