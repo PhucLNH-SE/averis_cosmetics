@@ -225,7 +225,7 @@ public class AuthController extends HttpServlet {
     private String hashPassword(String password) {
         return BCrypt.hashpw(password, BCrypt.gensalt());
     }
-
+//hello test 2
     private boolean verifyPassword(String password, String hashedPassword) {
         return BCrypt.checkpw(password, hashedPassword);
     }
