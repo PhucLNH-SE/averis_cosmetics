@@ -3,9 +3,11 @@ package DALs;
 import Utils.DBContext;
 import Model.Customer;
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.sql.Types;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -152,5 +154,48 @@ public class CustomerDAO extends DBContext {
         }
         
         return false;
+    }
+     public boolean updateProfile(Customer c) {
+        String sql =
+            "UPDATE Customers " +
+            "SET username = ?, full_name = ?, email = ?, gender = ?, date_of_birth = ? " +
+            "WHERE customer_id = ?";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+
+            // NOT NULL theo table
+            ps.setString(1, c.getUsername());
+            ps.setString(2, c.getFullName());
+
+            // email NULL được
+            if (c.getEmail() == null || c.getEmail().trim().isEmpty()) {
+                ps.setNull(3, Types.NVARCHAR);
+            } else {
+                ps.setString(3, c.getEmail().trim());
+            }
+
+            // gender NULL được (varchar)
+            if (c.getGender() == null || c.getGender().trim().isEmpty()) {
+                ps.setNull(4, Types.VARCHAR);
+            } else {
+                ps.setString(4, c.getGender().trim());
+            }
+
+            // date_of_birth NULL được (date) - LocalDate
+            LocalDate dob = c.getDateOfBirth();
+            if (dob == null) {
+                ps.setNull(5, Types.DATE);
+            } else {
+                ps.setDate(5, Date.valueOf(dob));
+            }
+
+            ps.setInt(6, c.getCustomerId());
+
+            return ps.executeUpdate() > 0;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 }
