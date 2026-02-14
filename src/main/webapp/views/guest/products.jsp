@@ -14,11 +14,17 @@
         <div class="container">
             <h1 class="page-title">Product List</h1>
             
+            <c:if test="${searchKeyword != null}">
+                <div class="search-result-info">
+                    Found ${products.size()} product(s) for "${searchKeyword}"
+                </div>
+            </c:if>
+            
             <c:choose>
                 <c:when test="${not empty products and products.size() > 0}">
                     <div class="products-grid">
                         <c:forEach items="${products}" var="product">
-                            <a href="<%=request.getContextPath()%>/product/detail?id=${product.productId}" 
+                            <a href="<%=request.getContextPath()%>/products?id=${product.productId}" 
                                class="product-card">
                                 <c:choose>
                                     <c:when test="${not empty product.mainImage}">

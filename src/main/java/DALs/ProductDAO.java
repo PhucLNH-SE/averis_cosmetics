@@ -1,18 +1,17 @@
 package DALs;
 
 import Utils.DBContext;
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import model.Brand;
-import model.Category;
-import model.Product;
-import model.ProductImage;
-import model.ProductVariant;
+import Model.Brand;
+import Model.Category;
+import Model.Product;
+import Model.ProductImage;
+import Model.ProductVariant;
 
 public class ProductDAO extends DBContext {
 
@@ -251,5 +250,184 @@ public class ProductDAO extends DBContext {
 
         return null;
     }
+    
 
+    public List<Product> searchProducts(String keyword) {
+        List<Product> list = new ArrayList<>();
+
+        String sql =
+            "SELECT " +
+            "  p.product_id, p.name, p.description, p.status, " +
+            "  b.brand_id, b.name AS brand_name, b.status AS brand_status, " +
+            "  c.category_id, c.name AS category_name, c.status AS category_status, " +
+            "  pi.image_id, pi.image_url, pi.is_main " +
+            "FROM Product p " +
+            "JOIN Brand b ON p.brand_id = b.brand_id " +
+            "JOIN Category c ON p.category_id = c.category_id " +
+            "LEFT JOIN Product_Image pi ON p.product_id = pi.product_id " +
+            "WHERE p.name LIKE ? OR b.name LIKE ? OR c.name LIKE ? " +
+            "ORDER BY p.product_id DESC, pi.is_main DESC, pi.image_id ASC";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            String searchParam = "%" + keyword + "%";
+            ps.setString(1, searchParam);
+            ps.setString(2, searchParam);
+            ps.setString(3, searchParam);
+            
+            try (ResultSet rs = ps.executeQuery()) {
+                Map<Integer, Product> productMap = new HashMap<>();
+                
+                while (rs.next()) {
+                    int productId = rs.getInt("product_id");
+                    Product p = productMap.get(productId);
+                    
+                    if (p == null) {
+                        p = new Product();
+                        p.setProductId(productId);
+                        p.setName(rs.getString("name"));
+                        p.setDescription(rs.getString("description"));
+                        p.setStatus(rs.getBoolean("status"));
+                        
+                        Brand b = new Brand();
+                        b.setBrandId(rs.getInt("brand_id"));
+                        b.setName(rs.getString("brand_name"));
+                        b.setStatus(rs.getBoolean("brand_status"));
+                        p.setBrand(b);
+                        
+                        Category c = new Category();
+                        c.setCategoryId(rs.getInt("category_id"));
+                        c.setName(rs.getString("category_name"));
+                        c.setStatus(rs.getBoolean("category_status"));
+                        p.setCategory(c);
+                        
+                        // Fetch variants for this product
+                        p.setVariants(getProductVariants(productId));
+                        
+                        // Initialize images list
+                        p.setImages(new ArrayList<>());
+                        
+                        productMap.put(productId, p);
+                    }
+                    
+                    // Process image if exists
+                    int imageId = rs.getInt("image_id");
+                    if (!rs.wasNull()) {
+                        ProductImage img = new ProductImage();
+                        img.setImageId(imageId);
+                        img.setProductId(productId);
+                        img.setImage(rs.getString("image_url"));
+                        img.setMain(rs.getBoolean("is_main"));
+                        
+                        p.getImages().add(img);
+                        
+                        // Set main image if this is the main image
+                        if (rs.getBoolean("is_main") && p.getMainImage() == null) {
+                            p.setMainImage(rs.getString("image_url"));
+                        }
+                    }
+                }
+                
+                // Finalize main images for products that don't have one set
+                for (Product p : productMap.values()) {
+                    if (p.getMainImage() == null && !p.getImages().isEmpty()) {
+                        p.setMainImage(p.getImages().get(0).getImage());
+                    }
+                }
+                
+                list.addAll(productMap.values());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
+
+    public List<Product> searchProductsForAutoSuggest(String keyword) {
+        List<Product> list = new ArrayList<>();
+
+        String sql =
+            "SELECT TOP 10 " +  // Limit to top 10 results for auto-suggest
+            "  p.product_id, p.name, p.description, p.status, " +
+            "  b.brand_id, b.name AS brand_name, b.status AS brand_status, " +
+            "  c.category_id, c.name AS category_name, c.status AS category_status, " +
+            "  pi.image_id, pi.image_url, pi.is_main " +
+            "FROM Product p " +
+            "JOIN Brand b ON p.brand_id = b.brand_id " +
+            "JOIN Category c ON p.category_id = c.category_id " +
+            "LEFT JOIN Product_Image pi ON p.product_id = pi.product_id " +
+            "WHERE p.name LIKE ? OR b.name LIKE ? OR c.name LIKE ? " +
+            "ORDER BY p.product_id DESC, pi.is_main DESC, pi.image_id ASC";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            String searchParam = "%" + keyword + "%";
+            ps.setString(1, searchParam);
+            ps.setString(2, searchParam);
+            ps.setString(3, searchParam);
+            
+            try (ResultSet rs = ps.executeQuery()) {
+                Map<Integer, Product> productMap = new HashMap<>();
+                
+                while (rs.next()) {
+                    int productId = rs.getInt("product_id");
+                    Product p = productMap.get(productId);
+                    
+                    if (p == null) {
+                        p = new Product();
+                        p.setProductId(productId);
+                        p.setName(rs.getString("name"));
+                        p.setDescription(rs.getString("description"));
+                        p.setStatus(rs.getBoolean("status"));
+                        
+                        Brand b = new Brand();
+                        b.setBrandId(rs.getInt("brand_id"));
+                        b.setName(rs.getString("brand_name"));
+                        b.setStatus(rs.getBoolean("brand_status"));
+                        p.setBrand(b);
+                        
+                        Category c = new Category();
+                        c.setCategoryId(rs.getInt("category_id"));
+                        c.setName(rs.getString("category_name"));
+                        c.setStatus(rs.getBoolean("category_status"));
+                        p.setCategory(c);
+                        
+                        // Initialize images list
+                        p.setImages(new ArrayList<>());
+                        
+                        productMap.put(productId, p);
+                    }
+                    
+                    // Process image if exists
+                    int imageId = rs.getInt("image_id");
+                    if (!rs.wasNull()) {
+                        ProductImage img = new ProductImage();
+                        img.setImageId(imageId);
+                        img.setProductId(productId);
+                        img.setImage(rs.getString("image_url"));
+                        img.setMain(rs.getBoolean("is_main"));
+                        
+                        p.getImages().add(img);
+                        
+                        // Set main image if this is the main image
+                        if (rs.getBoolean("is_main") && p.getMainImage() == null) {
+                            p.setMainImage(rs.getString("image_url"));
+                        }
+                    }
+                }
+                
+                // Finalize main images for products that don't have one set
+                for (Product p : productMap.values()) {
+                    if (p.getMainImage() == null && !p.getImages().isEmpty()) {
+                        p.setMainImage(p.getImages().get(0).getImage());
+                    }
+                }
+                
+                list.addAll(productMap.values());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
 }

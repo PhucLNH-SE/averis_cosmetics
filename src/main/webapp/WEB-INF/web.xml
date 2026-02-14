@@ -13,6 +13,10 @@
         <servlet-class>Controllers.customer.CustomerController</servlet-class>
     </servlet>
     <servlet>
+        <servlet-name>AuthController</servlet-name>
+        <servlet-class>Controllers.customer.AuthController</servlet-class>
+    </servlet>
+    <servlet>
         <servlet-name>GuestController</servlet-name>
         <servlet-class>Controllers.guest.GuestController</servlet-class>
     </servlet>
@@ -33,12 +37,20 @@
         <url-pattern>/CustomerController</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
+        <servlet-name>AuthController</servlet-name>
+        <url-pattern>/auth</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
         <servlet-name>GuestController</servlet-name>
         <url-pattern>/GuestController</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>StaffController</servlet-name>
         <url-pattern>/StaffController</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>LogoutController</servlet-name>
+        <url-pattern>/logout</url-pattern>
     </servlet-mapping>
     <welcome-file-list>
         <welcome-file>

@@ -5,8 +5,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
 import model.CartItem;
-import model.ProductVariant;
-
+import Model.ProductVariant;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.HashMap;

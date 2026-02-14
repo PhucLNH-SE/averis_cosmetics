@@ -1,10 +1,13 @@
-package model;
+package Model;
 
-import java.io.Serializable;
+
 import java.util.ArrayList;
 import java.util.List;
-
-public class Product implements Serializable {
+import Model.Brand;
+import Model.Category;
+import Model.ProductImage;
+import Model.ProductVariant;
+public class Product {
     private int productId;
     private String name;
     private String description;

@@ -1,6 +1,7 @@
 package model;
 
 import java.math.BigDecimal;
+import Model.ProductVariant;
 
 public class CartItem {
 
