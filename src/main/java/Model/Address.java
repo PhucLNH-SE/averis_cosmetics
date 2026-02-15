@@ -107,5 +107,13 @@ public class Address {
     public void setIsDefault(Boolean isDefault) {
         this.isDefault = isDefault;
     }
+
+    public void setDefault(boolean isDefault) {
+        this.isDefault = isDefault;
+    }
+
+    public boolean isIsDefault() {
+        return this.isDefault != null ? this.isDefault : false;
+    }
     
 }

@@ -1,62 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <web-app version="5.0" xmlns="https://jakarta.ee/xml/ns/jakartaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/web-app_5_0.xsd">
-    <servlet>
-        <servlet-name>NewServlet</servlet-name>
-        <servlet-class>Controllers.NewServlet</servlet-class>
-    </servlet>
-    <servlet>
-        <servlet-name>AdminControllers</servlet-name>
-        <servlet-class>Controllers.admin.AdminControllers</servlet-class>
-    </servlet>
-    <servlet>
-        <servlet-name>CustomerController</servlet-name>
-        <servlet-class>Controllers.customer.CustomerController</servlet-class>
-    </servlet>
-    <servlet>
-        <servlet-name>AuthController</servlet-name>
-        <servlet-class>Controllers.customer.AuthController</servlet-class>
-    </servlet>
-    <servlet>
-        <servlet-name>GuestController</servlet-name>
-        <servlet-class>Controllers.guest.GuestController</servlet-class>
-    </servlet>
-    <servlet>
-        <servlet-name>StaffController</servlet-name>
-        <servlet-class>Controllers.staff.StaffController</servlet-class>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>NewServlet</servlet-name>
-        <url-pattern>/NewServlet</url-pattern>
-    </servlet-mapping>
-    <servlet-mapping>
-        <servlet-name>AdminControllers</servlet-name>
-        <url-pattern>/AdminControllers</url-pattern>
-    </servlet-mapping>
-    <servlet-mapping>
-        <servlet-name>CustomerController</servlet-name>
-        <url-pattern>/CustomerController</url-pattern>
-    </servlet-mapping>
-    <servlet-mapping>
-        <servlet-name>AuthController</servlet-name>
-        <url-pattern>/auth</url-pattern>
-    </servlet-mapping>
-    <servlet-mapping>
-        <servlet-name>GuestController</servlet-name>
-        <url-pattern>/GuestController</url-pattern>
-    </servlet-mapping>
-    <servlet-mapping>
-        <servlet-name>StaffController</servlet-name>
-        <url-pattern>/StaffController</url-pattern>
-    </servlet-mapping>
-    <servlet-mapping>
-        <servlet-name>LogoutController</servlet-name>
-        <url-pattern>/logout</url-pattern>
-    </servlet-mapping>
+    <!-- All servlets are mapped via @WebServlet annotations -->
+    <!-- All servlet mappings are handled by @WebServlet annotations -->
     <welcome-file-list>
         <welcome-file>
             products
         </welcome-file>
     </welcome-file-list>
+    <!-- Removed invalid AddressDAo servlet mapping -->
+    <!-- ViewAddressServlet mapping removed -->
+    <!-- Address controller mappings are handled by @WebServlet annotations -->
     <session-config>
         <session-timeout>
             30
