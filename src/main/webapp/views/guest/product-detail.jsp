@@ -163,19 +163,60 @@
                     currency: 'USD'
                 }).format(amount);
             }
-            
-            function addToCart(productId) {
-                // Get selected variant ID
-                const selectedVariant = document.querySelector('.variant-item.active');
-                let variantId = null;
-                if (selectedVariant) {
-                    variantId = selectedVariant.getAttribute('data-variant-id');
-                }
-                
-                alert('Add to cart functionality will be implemented in the next version!');
-                console.log('Product ID:', productId, 'Variant ID:', variantId);
-                // TODO: Implement add to cart with selected variant
-            }
+            // Add product to cart
+function addToCart(productId) {
+    // 1. Logic to retrieve variant ID (Keep original logic)
+    const selectedVariant = document.querySelector('.variant-item.active');
+    let variantId = null;
+    if (selectedVariant) {
+        variantId = selectedVariant.getAttribute('data-variant-id');
+    }
+
+    // 2. Check if a variant is selected
+    if (!variantId) {
+        alert('Please select a product option (Size/Color) before adding to cart!');
+        return;
+    }
+
+    // 3. Get quantity
+    const qtyInput = document.querySelector('input[name="quantity"]');
+    const quantity = qtyInput ? qtyInput.value : 1;
+
+    // 4. Send AJAX request
+    // FIXED: Replaced <%=request.getContextPath()%> with EL ${pageContext.request.contextPath}
+    const url = '${pageContext.request.contextPath}/cart';
+
+    // Prepare form data
+    const params = new URLSearchParams();
+    params.append('variantId', variantId);
+    params.append('quantity', quantity);
+    params.append('ajax', 'true');
+    params.append('action', 'add');
+
+    // Use fetch API
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
+        },
+        body: params
+    })
+    .then(response => response.text())
+    .then(data => {
+        // Update cart count in Header
+        const cartCountEl = document.getElementById('cartCount');
+        if (cartCountEl) {
+            cartCountEl.innerText = data;
+        }
+
+        // Success notification
+        alert('Product successfully added to cart!');
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred. Could not add to cart.');
+    });
+}
         </script>
     </body>
 </html>
