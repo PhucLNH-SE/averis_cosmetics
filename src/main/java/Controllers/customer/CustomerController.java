@@ -4,12 +4,15 @@
  */
 package Controllers.customer;
 
+import DALs.CustomerDAO;
+import Model.Customer;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
 /**
  *
@@ -55,7 +58,9 @@ public class CustomerController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        processRequest(request, response);
+        
+        // Xử lý xem profile
+        showProfilePage(request, response);
     }
 
     /**
@@ -69,7 +74,7 @@ public class CustomerController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        processRequest(request, response);
+        doGet(request, response);
     }
 
     /**
@@ -81,5 +86,27 @@ public class CustomerController extends HttpServlet {
     public String getServletInfo() {
         return "Short description";
     }// </editor-fold>
-
+    
+    private void showProfilePage(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        HttpSession session = request.getSession(false);
+        if (session == null || session.getAttribute("customer") == null) {
+            response.sendRedirect(request.getContextPath() + "/auth?action=login");
+            return;
+        }
+        Customer sessionCustomer = (Customer) session.getAttribute("customer");
+        CustomerDAO customerDAO = new CustomerDAO();
+        Customer customer = customerDAO.getCustomerById(sessionCustomer.getCustomerId());
+        if (customer != null) {
+            request.setAttribute("customer", customer);
+            session.setAttribute("customer", customer);
+        } else {
+            request.setAttribute("customer", sessionCustomer);
+        }
+        if (session.getAttribute("profileMessage") != null) {
+            request.setAttribute("profileMessage", session.getAttribute("profileMessage"));
+            session.removeAttribute("profileMessage");
+        }
+        request.getRequestDispatcher("/views/customer/profile.jsp").forward(request, response);
+    }
 }

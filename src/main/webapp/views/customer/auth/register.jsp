@@ -1,4 +1,5 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <!DOCTYPE html>
 <html>
 <head>
@@ -171,68 +172,61 @@
                 <p>Join us today to enjoy exclusive benefits</p>
             </div>
             
-            <%
-                String successMessage = (String) request.getAttribute("successMessage");
-                if (successMessage != null) {
-            %>
-                <div class="success-message"><%= successMessage %></div>
-            <%
-                }
-            %>
+            <c:if test="${not empty successMessage}">
+                <div class="success-message">${successMessage}</div>
+            </c:if>
             
-            <form id="registerForm" action="<%=request.getContextPath()%>/auth?action=register" method="post">
+            <form id="registerForm" action="${pageContext.request.contextPath}/auth?action=register" method="post">
                 <div class="form-group">
                     <label for="username">Username *</label>
-                    <input type="text" id="username" name="username" 
-                           value="<%= request.getParameter("username") != null ? request.getParameter("username") : "" %>"
-                           required minlength="3" maxlength="50">
-                    <span class="error-message" id="username-error"></span>
+                    <input type="text" id="username" name="username" value="${param.username}" required minlength="3" maxlength="50"
+                           class="${not empty errorUsername ? 'error' : ''}">
+                    <span class="error-message ${not empty errorUsername ? 'show' : ''}" id="username-error">${errorUsername}</span>
                 </div>
                 
                 <div class="form-group">
                     <label for="fullname">Full Name *</label>
-                    <input type="text" id="fullname" name="fullname"
-                           value="<%= request.getParameter("fullname") != null ? request.getParameter("fullname") : "" %>"
-                           required minlength="2" maxlength="100">
-                    <span class="error-message" id="fullname-error"></span>
+                    <input type="text" id="fullname" name="fullname" value="${param.fullname}" required minlength="2" maxlength="100"
+                           class="${not empty errorFullName ? 'error' : ''}">
+                    <span class="error-message ${not empty errorFullName ? 'show' : ''}" id="fullname-error">${errorFullName}</span>
                 </div>
                 
                 <div class="form-group">
                     <label for="email">Email (Optional)</label>
-                    <input type="email" id="email" name="email"
-                           value="<%= request.getParameter("email") != null ? request.getParameter("email") : "" %>">
-                    <span class="error-message" id="email-error"></span>
+                    <input type="email" id="email" name="email" value="${param.email}"
+                           class="${not empty errorEmail ? 'error' : ''}">
+                    <span class="error-message ${not empty errorEmail ? 'show' : ''}" id="email-error">${errorEmail}</span>
                 </div>
                 
                 <div class="form-group">
                     <label for="password">Password *</label>
-                    <input type="password" id="password" name="password" required minlength="6">
-                    <span class="error-message" id="password-error"></span>
+                    <input type="password" id="password" name="password" required minlength="6"
+                           class="${not empty errorPassword ? 'error' : ''}">
+                    <span class="error-message ${not empty errorPassword ? 'show' : ''}" id="password-error">${errorPassword}</span>
                 </div>
                 
                 <div class="form-group">
                     <label for="confirmPassword">Confirm Password *</label>
-                    <input type="password" id="confirmPassword" name="confirmPassword" required>
-                    <span class="error-message" id="confirmPassword-error"></span>
+                    <input type="password" id="confirmPassword" name="confirmPassword" required
+                           class="${not empty errorConfirmPassword ? 'error' : ''}">
+                    <span class="error-message ${not empty errorConfirmPassword ? 'show' : ''}" id="confirmPassword-error">${errorConfirmPassword}</span>
                 </div>
                 
                 <div class="form-group">
                     <label for="gender">Gender</label>
                     <select id="gender" name="gender">
                         <option value="">Select Gender</option>
-                        <option value="Male" <%= "Male".equals(request.getParameter("gender")) ? "selected" : "" %>>Male</option>
-                        <option value="Female" <%= "Female".equals(request.getParameter("gender")) ? "selected" : "" %>>Female</option>
-                        <option value="Other" <%= "Other".equals(request.getParameter("gender")) ? "selected" : "" %>>Other</option>
+                        <option value="Male" ${param.gender == 'Male' ? 'selected' : ''}>Male</option>
+                        <option value="Female" ${param.gender == 'Female' ? 'selected' : ''}>Female</option>
+                        <option value="Other" ${param.gender == 'Other' ? 'selected' : ''}>Other</option>
                     </select>
-                    <span class="error-message" id="gender-error"></span>
                 </div>
                 
                 <div class="form-group">
                     <label for="dateOfBirth">Date of Birth *</label>
-                    <input type="date" id="dateOfBirth" name="dateOfBirth"
-                           value="<%= request.getParameter("dateOfBirth") != null ? request.getParameter("dateOfBirth") : "" %>"
-                           required>
-                    <span class="error-message" id="dateOfBirth-error"></span>
+                    <input type="date" id="dateOfBirth" name="dateOfBirth" value="${param.dateOfBirth}" required
+                           class="${not empty errorDateOfBirth ? 'error' : ''}">
+                    <span class="error-message ${not empty errorDateOfBirth ? 'show' : ''}" id="dateOfBirth-error">${errorDateOfBirth}</span>
                 </div>
                 
                 <button type="submit" class="btn-register">Create Account</button>
@@ -246,44 +240,5 @@
     
     <%@include file="/assets/footer.jsp" %>
     
-    <script>
-        <%
-        String errorMessage = (String) request.getAttribute("errorMessage");
-        if (errorMessage != null) {
-            out.println("window.errorMessage = '" + errorMessage.replace("'", "\\'") + "';");
-        }
-        %>
-        
-        // Hiển thị lỗi từ server nếu có
-        if (window.errorMessage) {
-            showError(window.errorMessage);
-        }
-        
-        function showError(message) {
-            // Hiển thị lỗi tổng quát nếu không xác định được field cụ thể
-            const generalError = document.createElement('div');
-            generalError.className = 'error-message show';
-            generalError.style.cssText = 'background: #f8d7da; color: #721c24; padding: 12px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #dc3545;';
-            generalError.textContent = message;
-            document.querySelector('.auth-header').after(generalError);
-            
-            // Tự động ẩn sau 5 giây
-            setTimeout(() => {
-                generalError.remove();
-            }, 5000);
-        }
-        
-        // Giữ lại giá trị đã nhập khi có lỗi
-        document.getElementById('registerForm').addEventListener('submit', function(e) {
-            // Reset tất cả error states
-            document.querySelectorAll('.error-message').forEach(el => {
-                el.classList.remove('show');
-                el.textContent = '';
-            });
-            document.querySelectorAll('input, select').forEach(el => {
-                el.classList.remove('error');
-            });
-        });
-    </script>
 </body>
 </html>

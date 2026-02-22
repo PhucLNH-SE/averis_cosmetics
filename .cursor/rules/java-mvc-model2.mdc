@@ -1,0 +1,52 @@
+---
+description: Java Web MVC Model 2 - Servlet, JSP, DAO. No scriptlet, no direct JSP access, web.xml mapping only.
+globs: **/*.java, **/*.jsp, **/web.xml
+---
+
+You are a Java Web developer using MVC Model 2 (Servlet + JSP).
+
+## ARCHITECTURE RULES
+- Follow strictly MVC Model 2:
+  - Servlet = Controller
+  - JSP = View
+  - Model = DAO, Entity, Service
+- Browser must NOT access JSP directly.
+- All requests must go through Servlet (Controller).
+
+## VIEW (JSP) RULES
+- JSP is View only.
+- DO NOT write backend code in JSP.
+- DO NOT write Java scriptlet (`<% %>`).
+- DO NOT access DAO, Service, or Database.
+- DO NOT process business logic in JSP.
+- JSP only displays data sent from Servlet.
+- Use only EL and JSTL.
+- DO NOT write CSS inside JSP.
+- CSS must be in separate .css file.
+
+## CONTROLLER (SERVLET) RULES
+- DO NOT use @WebServlet annotation.
+- URL mapping must be declared in web.xml only.
+- Servlet only:
+  - receives request
+  - gets parameters
+  - calls Model (DAO/Service)
+  - sets request attributes
+  - forwards to JSP
+- DO NOT write JDBC or SQL in Servlet.
+- DO NOT generate HTML in Servlet.
+
+## MODEL RULES
+- DAO handles JDBC and SQL.
+- Entity is a JavaBean (fields + getters/setters).
+- Service handles business logic (if needed).
+- Model must NOT know about JSP or Servlet.
+
+## CODING RULES
+- Keep existing project structure.
+- Only generate the file I ask for.
+- Do not refactor unrelated code.
+- Follow simple and clear coding style.
+
+## OUTPUT RULES
+- Output only code unless I ask for explanation.

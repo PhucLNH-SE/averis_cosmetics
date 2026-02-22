@@ -21,7 +21,7 @@ public class Customer {
     private String password;               
 
     private String gender;                 
-    private Date dateOfBirth;          
+    private LocalDate dateOfBirth;          
 
     private Boolean status;                
     private Boolean emailVerified;         
@@ -82,11 +82,11 @@ public class Customer {
         this.gender = gender;
     }
 
-    public Date getDateOfBirth() {
+    public LocalDate getDateOfBirth() {
         return dateOfBirth;
     }
 
-    public void setDateOfBirth(Date dateOfBirth) {
+    public void setDateOfBirth(LocalDate dateOfBirth) {
         this.dateOfBirth = dateOfBirth;
     }
 
@@ -138,7 +138,7 @@ public class Customer {
         this.authTokenUsed = authTokenUsed;
     }
 
-    public Customer(int customerId, String username, String fullName, String email, String password, String gender, Date dateOfBirth, Boolean status, Boolean emailVerified, String authToken, String authTokenType, LocalDateTime authTokenExpiredAt, Boolean authTokenUsed) {
+    public Customer(int customerId, String username, String fullName, String email, String password, String gender, LocalDate dateOfBirth, Boolean status, Boolean emailVerified, String authToken, String authTokenType, LocalDateTime authTokenExpiredAt, Boolean authTokenUsed) {
         this.customerId = customerId;
         this.username = username;
         this.fullName = fullName;

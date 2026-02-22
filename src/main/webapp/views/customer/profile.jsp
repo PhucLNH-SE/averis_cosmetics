@@ -69,6 +69,33 @@
             text-decoration: none;
             color: white;
         }
+        
+        .btn-verify {
+            padding: 8px 16px;
+            background: #b45309;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .btn-verify:hover {
+            background: #92400e;
+        }
+        .info-value-email {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .email-status {
+            font-size: 13px;
+            padding: 2px 8px;
+            border-radius: 6px;
+        }
+        .status-verified { background: #d1fae5; color: #059669; }
+        .status-unverified { background: #fef3c7; color: #b45309; }
+        .verify-form-inline { display: inline; margin: 0; }
     </style>
 </head>
 <body>
@@ -96,10 +123,26 @@
                             <div class="info-label">Full Name:</div>
                             <div class="info-value">${customer.fullName}</div>
                         </div>
-                        <div class="info-row">
+                        <div class="info-row info-row-email">
                             <div class="info-label">Email:</div>
-                            <div class="info-value">${customer.email}</div>
+                            <div class="info-value info-value-email">
+                                <span>${customer.email != null ? customer.email : '—'}</span>
+                                <c:if test="${customer.email != null && !customer.email.isEmpty()}">
+                                    <span class="email-status ${customer.emailVerified ? 'status-verified' : 'status-unverified'}">${customer.emailVerified ? 'Đã xác thực' : 'Chưa xác thực'}</span>
+                                    <c:if test="${!customer.emailVerified}">
+                                        <form action="${pageContext.request.contextPath}/send-verify-email" method="post" class="verify-form-inline">
+                                            <button type="submit" class="btn-verify">Gửi email xác thực</button>
+                                        </form>
+                                    </c:if>
+                                </c:if>
+                            </div>
                         </div>
+                        <c:if test="${not empty profileMessage}">
+                            <div class="info-row">
+                                <div class="info-label"></div>
+                                <div class="info-value" style="color: #b45309;">${profileMessage}</div>
+                            </div>
+                        </c:if>
                         <div class="info-row">
                             <div class="info-label">Gender:</div>
                             <div class="info-value">${customer.gender}</div>
