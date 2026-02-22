@@ -284,11 +284,17 @@
                 position: static; /* Hết sticky */
             }
         }
+        .header-wrapper {
+            width: 100%;
+            flex-shrink: 0;
+        }
     </style>
 </head>
 <body>
 
-    <jsp:include page="/assets/header.jsp" />
+    <div class="header-wrapper">
+        <jsp:include page="/assets/header.jsp" />
+    </div>
 
     <div class="cart-container">
         

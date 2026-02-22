@@ -24,6 +24,22 @@
         <servlet-name>StaffController</servlet-name>
         <servlet-class>Controllers.staff.StaffController</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>CartServlet</servlet-name>
+        <servlet-class>Controllers.customer.CartServlet</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>LogoutController</servlet-name>
+        <servlet-class>Controllers.customer.LogoutController</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>VerifyEmailServlet</servlet-name>
+        <servlet-class>Controllers.customer.VerifyEmailServlet</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>SendVerifyEmailServlet</servlet-name>
+        <servlet-class>Controllers.customer.SendVerifyEmailServlet</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>NewServlet</servlet-name>
         <url-pattern>/NewServlet</url-pattern>
@@ -49,8 +65,24 @@
         <url-pattern>/StaffController</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
+        <servlet-name>CartServlet</servlet-name>
+        <url-pattern>/cart</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>CartServlet</servlet-name>
+        <url-pattern>/cart-update</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
         <servlet-name>LogoutController</servlet-name>
         <url-pattern>/logout</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>VerifyEmailServlet</servlet-name>
+        <url-pattern>/verify-email</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>SendVerifyEmailServlet</servlet-name>
+        <url-pattern>/send-verify-email</url-pattern>
     </servlet-mapping>
     <welcome-file-list>
         <welcome-file>

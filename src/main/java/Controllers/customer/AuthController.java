@@ -1,8 +1,16 @@
 package Controllers.customer;
 
+import DALs.CartDetailDAO;
 import DALs.CustomerDAO;
+import DALs.ProductDAO;
+import Model.CartItem;
+import Model.CartDetail;
 import Model.Customer;
+import Model.ProductVariant;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -85,50 +93,46 @@ public class AuthController extends HttpServlet {
         String gender = request.getParameter("gender");
         String dateOfBirthStr = request.getParameter("dateOfBirth");
 
-        // Validate dữ liệu đầu vào
-        String errorMessage = validateRegistrationData(username, fullName, email, password, confirmPassword, dateOfBirthStr);
-        if (errorMessage != null) {
-            request.setAttribute("errorMessage", errorMessage);
+        if (!validateRegistrationData(request, username, fullName, email, password, confirmPassword, dateOfBirthStr)) {
             request.getRequestDispatcher("/views/customer/auth/register.jsp").forward(request, response);
             return;
         }
 
-        // Kiểm tra xem username hoặc email đã tồn tại chưa
-        if (customerDAO.checkUsernameExists(username)) {
-            request.setAttribute("errorMessage", "Username already exists. Please choose another one.");
+        if (customerDAO.checkUsernameExists(username.trim())) {
+            request.setAttribute("errorUsername", "Username already exists. Please choose another one.");
             request.getRequestDispatcher("/views/customer/auth/register.jsp").forward(request, response);
             return;
         }
 
         if (email != null && !email.trim().isEmpty() && customerDAO.checkEmailExists(email.trim())) {
-            request.setAttribute("errorMessage", "Email already registered. Please use another email.");
+            request.setAttribute("errorEmail", "Email already registered. Please use another email.");
             request.getRequestDispatcher("/views/customer/auth/register.jsp").forward(request, response);
             return;
         }
 
-        // Chuyển đổi ngày sinh
         LocalDate dateOfBirth = LocalDate.parse(dateOfBirthStr);
 
-        // Tạo đối tượng Customer mới
         Customer customer = new Customer();
-        customer.setUsername(username);
-        customer.setFullName(fullName);
+        customer.setUsername(username.trim());
+        customer.setFullName(fullName.trim());
         customer.setEmail(email != null && !email.trim().isEmpty() ? email.trim() : null);
-        customer.setPassword(hashPassword(password)); // Mã hóa mật khẩu
-        customer.setGender(gender);
+        customer.setPassword(hashPassword(password));
+        customer.setGender(gender != null && !gender.trim().isEmpty() ? gender.trim() : null);
         customer.setDateOfBirth(dateOfBirth);
-        customer.setStatus(true); // Mặc định kích hoạt tài khoản
-        customer.setEmailVerified(email != null && !email.trim().isEmpty()); // Chỉ verified nếu có email
+        customer.setStatus(true);
+        customer.setEmailVerified(false);
 
-        // Thêm khách hàng vào cơ sở dữ liệu
         boolean isRegistered = customerDAO.insertCustomer(customer);
 
         if (isRegistered) {
-            // Đăng ký thành công, chuyển hướng đến trang đăng nhập
-            request.setAttribute("successMessage", "Registration successful! Please log in.");
+            String successMessage = "Registration successful! Please log in.";
+            if (customer.getEmail() != null && !customer.getEmail().isEmpty()) {
+                successMessage = "Registration successful! Please log in. You can verify your email from Profile after logging in.";
+            }
+            request.setAttribute("successMessage", successMessage);
             request.getRequestDispatcher("/views/customer/auth/login.jsp").forward(request, response);
         } else {
-            request.setAttribute("errorMessage", "Registration failed. Please try again.");
+            request.setAttribute("errorUsername", "Registration failed. Please try again.");
             request.getRequestDispatcher("/views/customer/auth/register.jsp").forward(request, response);
         }
     }
@@ -143,13 +147,22 @@ public class AuthController extends HttpServlet {
         Customer customer = customerDAO.getCustomerByUsername(username);
 
         if (customer != null && verifyPassword(password, customer.getPassword())) {
-            // Đăng nhập thành công
             if (customer.getStatus()) {
-                // Lưu thông tin người dùng vào session
                 HttpSession session = request.getSession();
                 session.setAttribute("customer", customer);
-                
-                // Chuyển hướng về trang chủ hoặc trang trước đó
+
+                CartDetailDAO cartDetailDAO = new CartDetailDAO();
+                ProductDAO productDAO = new ProductDAO();
+                Map<Integer, CartItem> cart = new HashMap<>();
+                List<CartDetail> details = cartDetailDAO.getByCustomerId(customer.getCustomerId());
+                for (CartDetail d : details) {
+                    ProductVariant v = productDAO.getVariantById(d.getVariantId());
+                    if (v != null) {
+                        cart.put(d.getVariantId(), new CartItem(v, d.getQuantity()));
+                    }
+                }
+                session.setAttribute("cart", cart);
+
                 String redirectUrl = (String) request.getSession().getAttribute("redirectAfterLogin");
                 if (redirectUrl != null) {
                     request.getSession().removeAttribute("redirectAfterLogin");
@@ -167,55 +180,51 @@ public class AuthController extends HttpServlet {
         }
     }
 
-    private String validateRegistrationData(String username, String fullName, String email, 
+    private boolean validateRegistrationData(HttpServletRequest request, String username, String fullName, String email,
             String password, String confirmPassword, String dateOfBirthStr) {
-        
+        boolean valid = true;
         if (username == null || username.trim().isEmpty()) {
-            return "Username is required.";
+            request.setAttribute("errorUsername", "Username is required.");
+            valid = false;
+        } else if (username.trim().length() < 3) {
+            request.setAttribute("errorUsername", "Username must be at least 3 characters long.");
+            valid = false;
         }
-        
-        if (username.length() < 3) {
-            return "Username must be at least 3 characters long.";
-        }
-        
         if (fullName == null || fullName.trim().isEmpty()) {
-            return "Full name is required.";
+            request.setAttribute("errorFullName", "Full name is required.");
+            valid = false;
+        } else if (fullName.trim().length() < 2) {
+            request.setAttribute("errorFullName", "Full name must be at least 2 characters long.");
+            valid = false;
         }
-        
-        if (fullName.length() < 2) {
-            return "Full name must be at least 2 characters long.";
-        }
-        
-        // Email không bắt buộc - có thể để trống
         if (email != null && !email.trim().isEmpty() && !isValidEmail(email)) {
-            return "Please enter a valid email address.";
+            request.setAttribute("errorEmail", "Please enter a valid email address.");
+            valid = false;
         }
-        
-        // Bỏ kiểm tra isValidEmail khi email là null hoặc trống
-        
         if (password == null || password.length() < 6) {
-            return "Password must be at least 6 characters long.";
+            request.setAttribute("errorPassword", "Password must be at least 6 characters long.");
+            valid = false;
         }
-        
-        if (!password.equals(confirmPassword)) {
-            return "Passwords do not match.";
+        if (password != null && confirmPassword != null && !password.equals(confirmPassword)) {
+            request.setAttribute("errorConfirmPassword", "Passwords do not match.");
+            valid = false;
         }
-        
         if (dateOfBirthStr == null || dateOfBirthStr.trim().isEmpty()) {
-            return "Date of birth is required.";
-        }
-        
-        try {
-            LocalDate dob = LocalDate.parse(dateOfBirthStr);
-            LocalDate now = LocalDate.now();
-            if (dob.isAfter(now)) {
-                return "Date of birth cannot be in the future.";
+            request.setAttribute("errorDateOfBirth", "Date of birth is required.");
+            valid = false;
+        } else {
+            try {
+                LocalDate dob = LocalDate.parse(dateOfBirthStr);
+                if (dob.isAfter(LocalDate.now())) {
+                    request.setAttribute("errorDateOfBirth", "Date of birth cannot be in the future.");
+                    valid = false;
+                }
+            } catch (Exception e) {
+                request.setAttribute("errorDateOfBirth", "Please enter a valid date of birth.");
+                valid = false;
             }
-        } catch (Exception e) {
-            return "Please enter a valid date of birth.";
         }
-        
-        return null;
+        return valid;
     }
 
     private boolean isValidEmail(String email) {

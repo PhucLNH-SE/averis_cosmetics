@@ -17,6 +17,9 @@
   }
 
   .topbar {
+    width: 100%;
+    box-sizing: border-box;
+    flex-shrink: 0;
     background: var(--surface);
     height: 70px;
     display: flex;
@@ -39,18 +42,18 @@
   }
 
   .brand img {
-    width: 55px;
-    /* logo smaller to fit */
-    height: 55px;
+    width: 48px;
+    height: 48px;
     object-fit: contain;
     display: block;
+    flex-shrink: 0;
   }
 
   .brand-name {
-    font-size: 42px;
-    letter-spacing: 6px;
+    font-size: 18px;
+    letter-spacing: 3px;
     font-weight: 800;
-    line-height: 1;
+    line-height: 1.2;
     color: var(--text);
     text-transform: uppercase;
   }
@@ -61,7 +64,7 @@
     font-weight: 700;
     text-transform: uppercase;
     font-size: 14px;
-    MARGIN-LEFT: 57PX;
+    margin-left: 24px;
   }
 
   .menu a {
@@ -296,13 +299,12 @@
           ${sessionScope.cart != null ? sessionScope.cart.size() : 0}
       </span>
     </a>
-    <a class="icon" href="<%=request.getContextPath()%>/profile">Login</a>
 
     <% 
         Object customerObj = session.getAttribute("customer"); 
         if (customerObj != null) { 
     %>
-        <a class="icon" href="<%=request.getContextPath()%>/profile">Welcome, <%= ((Model.Customer)customerObj).getUsername() %>!</a>
+        <a class="icon" href="<%=request.getContextPath()%>/CustomerController">Welcome, <%= ((Model.Customer)customerObj).getUsername() %>!</a>
         <a class="icon" href="<%=request.getContextPath()%>/logout">Logout</a>
     <% 
         } else { 
@@ -311,7 +313,7 @@
     <% 
         } 
     %>
-  </div>
+</div>
 </div>
 
 <script>

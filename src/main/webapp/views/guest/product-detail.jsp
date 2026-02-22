@@ -193,7 +193,6 @@ function addToCart(productId) {
     params.append('ajax', 'true');
     params.append('action', 'add');
 
-    // Use fetch API
     fetch(url, {
         method: 'POST',
         headers: {
@@ -201,16 +200,16 @@ function addToCart(productId) {
         },
         body: params
     })
-    .then(response => response.text())
-    .then(data => {
-        // Update cart count in Header
-        const cartCountEl = document.getElementById('cartCount');
-        if (cartCountEl) {
-            cartCountEl.innerText = data;
+    .then(response => {
+        if (response.status === 401) {
+            return response.text().then(loginUrl => {
+                window.location.href = loginUrl;
+            });
         }
-
-        // Success notification
-        alert('Product successfully added to cart!');
+        return response.text().then(data => {
+            const cartCountEl = document.getElementById('cartCount');
+            if (cartCountEl) cartCountEl.innerText = data;
+        });
     })
     .catch(error => {
         console.error('Error:', error);

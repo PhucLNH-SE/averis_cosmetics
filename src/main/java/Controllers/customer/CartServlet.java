@@ -1,20 +1,35 @@
 package Controllers.customer;
 
+import DALs.CartDetailDAO;
 import DALs.ProductDAO;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
-import model.CartItem;
+import Model.CartDetail;
+import Model.CartItem;
+import Model.Customer;
 import Model.ProductVariant;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-@WebServlet(urlPatterns = {"/cart", "/cart-update"})
 public class CartServlet extends HttpServlet {
 
-    ProductDAO dao = new ProductDAO();
+    ProductDAO productDAO = new ProductDAO();
+    CartDetailDAO cartDetailDAO = new CartDetailDAO();
+
+    private Map<Integer, CartItem> loadCartFromDb(int customerId) {
+        Map<Integer, CartItem> cart = new HashMap<>();
+        List<CartDetail> details = cartDetailDAO.getByCustomerId(customerId);
+        for (CartDetail d : details) {
+            ProductVariant v = productDAO.getVariantById(d.getVariantId());
+            if (v != null) {
+                cart.put(d.getVariantId(), new CartItem(v, d.getQuantity()));
+            }
+        }
+        return cart;
+    }
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -27,7 +42,12 @@ public class CartServlet extends HttpServlet {
 
         HttpSession session = request.getSession();
         Map<Integer, CartItem> cart = (Map<Integer, CartItem>) session.getAttribute("cart");
+        Customer customer = (Customer) session.getAttribute("customer");
 
+        if (customer != null && cart == null) {
+            cart = loadCartFromDb(customer.getCustomerId());
+            session.setAttribute("cart", cart);
+        }
         if (cart == null) cart = new HashMap<>();
 
         BigDecimal total = BigDecimal.ZERO;
@@ -57,44 +77,57 @@ public class CartServlet extends HttpServlet {
             return;
         }
 
+        HttpSession session = request.getSession();
+        Customer customer = (Customer) session.getAttribute("customer");
+        if (customer == null) {
+            session.setAttribute("redirectAfterLogin", request.getContextPath() + "/cart");
+            String loginUrl = request.getContextPath() + "/auth?action=login";
+            if ("true".equals(request.getParameter("ajax"))) {
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.setContentType("text/plain");
+                response.setCharacterEncoding("UTF-8");
+                response.getWriter().write(loginUrl);
+            } else {
+                response.sendRedirect(loginUrl);
+            }
+            return;
+        }
+
         try {
             int variantId = Integer.parseInt(vRaw);
             int quantity = qRaw != null ? Integer.parseInt(qRaw) : 1;
 
-            HttpSession session = request.getSession();
             Map<Integer, CartItem> cart = (Map<Integer, CartItem>) session.getAttribute("cart");
+            if (cart == null) cart = loadCartFromDb(customer.getCustomerId());
             if (cart == null) cart = new HashMap<>();
 
-            // ==========================================
-            // THAY ĐỔI Ở ĐÂY: DÙNG SWITCH-CASE
-            // ==========================================
             switch (action) {
                 case "update":
-                    // Logic cập nhật hoặc xóa
                     if (cart.containsKey(variantId)) {
                         if (quantity <= 0) {
-                            cart.remove(variantId); 
+                            cart.remove(variantId);
+                            cartDetailDAO.delete(customer.getCustomerId(), variantId);
                         } else {
-                            cart.get(variantId).setQuantity(quantity); 
+                            cart.get(variantId).setQuantity(quantity);
+                            cartDetailDAO.setQuantity(customer.getCustomerId(), variantId, quantity);
                         }
                     }
                     break;
 
                 case "add":
-                default: 
-                    // Logic thêm mới hoặc cộng dồn (Mặc định cũng vào đây)
-                    ProductVariant v = dao.getVariantById(variantId);
+                default:
+                    ProductVariant v = productDAO.getVariantById(variantId);
                     if (v != null) {
                         if (cart.containsKey(variantId)) {
                             CartItem item = cart.get(variantId);
-                            item.setQuantity(item.getQuantity() + quantity); 
+                            item.setQuantity(item.getQuantity() + quantity);
                         } else {
-                            cart.put(variantId, new CartItem(v, quantity)); 
+                            cart.put(variantId, new CartItem(v, quantity));
                         }
+                        cartDetailDAO.addOrUpdate(customer.getCustomerId(), variantId, quantity);
                     }
                     break;
             }
-            // ==========================================
 
             session.setAttribute("cart", cart);
 

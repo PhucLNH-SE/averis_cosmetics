@@ -2,14 +2,15 @@ package DALs;
 
 import Utils.DBContext;
 import Model.Customer;
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 public class CustomerDAO extends DBContext {
+
+    private static final String TYPE_EMAIL_VERIFY = "EMAIL_VERIFY";
 
     public Customer getCustomerByUsername(String username) {
         String sql = "SELECT * FROM Customers WHERE username = ?";
@@ -152,5 +153,60 @@ public class CustomerDAO extends DBContext {
         }
         
         return false;
+    }
+
+    public Customer getCustomerByAuthToken(String token, String type) {
+        if (token == null || type == null) return null;
+        String sql = "SELECT * FROM Customers WHERE auth_token = ? AND auth_token_type = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, token);
+            ps.setString(2, type);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapResultSetToCustomer(rs);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public void updateAuthTokenForVerification(int customerId, String token, java.time.LocalDateTime expiredAt) {
+        String sql = "UPDATE Customers SET auth_token = ?, auth_token_type = ?, auth_token_expired_at = ?, auth_token_used = 0 WHERE customer_id = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, token);
+            ps.setString(2, TYPE_EMAIL_VERIFY);
+            ps.setObject(3, expiredAt);
+            ps.setInt(4, customerId);
+            ps.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void setEmailVerified(int customerId) {
+        String sql = "UPDATE Customers SET email_verified = 1, auth_token_used = 1, auth_token = NULL, auth_token_type = NULL, auth_token_expired_at = NULL WHERE customer_id = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, customerId);
+            ps.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public Customer getCustomerById(int customerId) {
+        String sql = "SELECT * FROM Customers WHERE customer_id = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, customerId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapResultSetToCustomer(rs);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }
