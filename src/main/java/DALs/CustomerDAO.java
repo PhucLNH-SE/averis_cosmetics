@@ -2,9 +2,11 @@ package DALs;
 
 import Utils.DBContext;
 import Model.Customer;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.sql.Types;
 import java.time.LocalDateTime;
 import java.time.LocalDate;
 
@@ -209,4 +211,48 @@ public class CustomerDAO extends DBContext {
         }
         return null;
     }
+      public boolean updateProfile(Customer customer) {
+
+    String sql =
+        "UPDATE Customers " +
+        "SET full_name = ?, email = ?, gender = ?, date_of_birth = ? " +
+        "WHERE customer_id = ?";
+
+    try (PreparedStatement ps = connection.prepareStatement(sql)) {
+
+        // full_name (NOT NULL)
+        ps.setString(1, customer.getFullName());
+
+        // email (NULL được)
+        if (customer.getEmail() == null || customer.getEmail().trim().isEmpty()) {
+            ps.setNull(2, Types.NVARCHAR);
+        } else {
+            ps.setString(2, customer.getEmail().trim());
+        }
+
+        // gender (NULL được)
+        if (customer.getGender() == null || customer.getGender().trim().isEmpty()) {
+            ps.setNull(3, Types.VARCHAR);
+        } else {
+            ps.setString(3, customer.getGender().trim());
+        }
+
+        // date_of_birth (NULL được)
+        LocalDate dob = customer.getDateOfBirth();
+        if (dob == null) {
+            ps.setNull(4, Types.DATE);
+        } else {
+            ps.setDate(4, Date.valueOf(dob));
+        }
+
+        // WHERE
+        ps.setInt(5, customer.getCustomerId());
+
+        return ps.executeUpdate() > 0;
+
+    } catch (Exception e) {
+        e.printStackTrace();
+        return false;
+    }
+}
 }
