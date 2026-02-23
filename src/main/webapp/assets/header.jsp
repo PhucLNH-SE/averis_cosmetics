@@ -348,6 +348,22 @@
         searchDropdown.style.display = 'none';
       }, 200);
     });
+
+    searchInput.addEventListener('keydown', function(event) {
+      if (event.key !== 'Enter') {
+        return;
+      }
+
+      event.preventDefault();
+      const keyword = this.value.trim();
+
+      if (keyword === '') {
+        window.location.href = '<%=request.getContextPath()%>/products';
+        return;
+      }
+
+      window.location.href = '<%=request.getContextPath()%>/products?keyword=' + encodeURIComponent(keyword);
+    });
     
     function fetchSuggestions(keyword) {
       // Set a custom header to identify AJAX request

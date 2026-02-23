@@ -93,9 +93,7 @@
         <url-pattern>/send-verify-email</url-pattern>
     </servlet-mapping>
     <welcome-file-list>
-        <welcome-file>
-            products
-        </welcome-file>
+        <welcome-file>views/common/home.jsp</welcome-file>
     </welcome-file-list>
     <session-config>
         <session-timeout>
