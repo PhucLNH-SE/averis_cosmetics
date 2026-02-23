@@ -40,6 +40,10 @@
         <servlet-name>SendVerifyEmailServlet</servlet-name>
         <servlet-class>Controllers.customer.SendVerifyEmailServlet</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>AddressServlet</servlet-name>
+        <servlet-class>Controllers.customer.AddressServlet</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>NewServlet</servlet-name>
         <url-pattern>/NewServlet</url-pattern>
@@ -91,6 +95,10 @@
     <servlet-mapping>
         <servlet-name>SendVerifyEmailServlet</servlet-name>
         <url-pattern>/send-verify-email</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>AddressServlet</servlet-name>
+        <url-pattern>/address</url-pattern>
     </servlet-mapping>
     <welcome-file-list>
         <welcome-file>views/common/home.jsp</welcome-file>

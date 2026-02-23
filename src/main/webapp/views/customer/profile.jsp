@@ -6,197 +6,6 @@
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <title>Profile - Averis Cosmetics</title>
         <link rel="stylesheet" href="<%=request.getContextPath()%>/assets/css/style.css">
-        <style>
-            .account-sidebar{
-                width:260px;
-            }
-
-            .account-card{
-                background:#fff;
-                border:1px solid #f1e8dd;
-                border-radius:14px;
-                padding:20px 18px 18px;
-                box-shadow:0 8px 22px rgba(31,41,55,.06);
-            }
-
-            .account-avatar{
-                display:flex;
-                justify-content:center;
-                margin-bottom:16px;
-            }
-
-            .avatar-circle{
-                width:72px;
-                height:72px;
-                border-radius:50%;
-                background:#e5e7eb;
-            }
-
-            .account-menu{
-                list-style:none;
-                padding:0;
-                margin:0 0 18px 0;
-            }
-
-            .account-menu li{
-                margin-bottom:10px;
-            }
-
-            .account-menu a{
-                display:block;
-                padding:8px 10px;
-                border-radius:8px;
-                color:#374151;
-                text-decoration:none;
-                font-weight:500;
-            }
-
-            .account-menu a:hover{
-                background:#f3f4f6;
-                text-decoration:none;
-            }
-
-            .account-menu a.active{
-                color:#7c3aed;
-                background:#f5f3ff;
-                font-weight:600;
-            }
-
-            .account-logout{
-                display:block;
-                margin-top:6px;
-                padding:10px 0;
-                text-align:center;
-                background:#dc2626;
-                color:#fff;
-                border-radius:8px;
-                text-decoration:none;
-                font-weight:600;
-            }
-
-            .account-logout:hover{
-                background:#b91c1c;
-                color:#fff;
-                text-decoration:none;
-            }
-
-
-            .profile-container {
-                width: 100%;
-                max-width: 900px;
-                margin: 0;   /* QUAN TRỌNG */
-                padding: 30px;
-                border: 1px solid #e9e2d8;
-                border-radius: 12px;
-                background: white;
-                box-shadow: 0 8px 22px rgba(31, 41, 55, .06);
-            }
-
-            .profile-header {
-                text-align: center;
-                margin-bottom: 30px;
-                border-bottom: 1px solid #e9e2d8;
-                padding-bottom: 20px;
-            }
-
-            .profile-header h2 {
-                color: #1f2937;
-                margin: 0;
-                font-size: 28px;
-            }
-
-            .profile-info {
-                margin-bottom: 30px;
-            }
-
-            .info-row {
-                display: flex;
-                margin-bottom: 15px;
-                padding-bottom: 15px;
-                border-bottom: 1px solid #f3f4f6;
-            }
-
-            .info-label {
-                font-weight: 600;
-                color: #1f2937;
-                width: 150px;
-                flex-shrink: 0;
-            }
-
-            .info-value {
-                flex-grow: 1;
-                color: #6b7280;
-            }
-
-            .btn-logout {
-                display: inline-block;
-                padding: 10px 20px;
-                background: #b45309;
-                color: white;
-                text-decoration: none;
-                border-radius: 8px;
-                font-weight: 600;
-                transition: background 0.3s ease;
-            }
-
-            .btn-logout:hover {
-                background: #92400e;
-                text-decoration: none;
-                color: white;
-            }
-
-            .btn-verify {
-                padding: 8px 16px;
-                background: #b45309;
-                color: white;
-                border: none;
-                border-radius: 8px;
-                font-weight: 600;
-                cursor: pointer;
-            }
-            .btn-verify:hover {
-                background: #92400e;
-            }
-            .info-value-email {
-                display: flex;
-                align-items: center;
-                gap: 12px;
-                flex-wrap: wrap;
-            }
-            .email-status {
-                font-size: 13px;
-                padding: 2px 8px;
-                border-radius: 6px;
-            }
-            .btn-edit-profile{
-                display: inline-block;
-                padding: 10px 26px;
-                background: #dc2626;
-                color: #fff;
-                border-radius: 8px;
-                text-decoration: none;
-                font-weight: 600;
-                transition: background .2s;
-            }
-
-            .btn-edit-profile:hover{
-                background: #b91c1c;
-                color: #fff;
-                text-decoration: none;
-            }
-            .status-verified {
-                background: #d1fae5;
-                color: #059669;
-            }
-            .status-unverified {
-                background: #fef3c7;
-                color: #b45309;
-            }
-            .verify-form-inline {
-                display: inline;
-                margin: 0;
-            }
-        </style>
     </head>
     <body>
         <%@include file="/assets/header.jsp" %>
@@ -337,8 +146,67 @@
 
 
                         <c:when test="${tab == 'address'}">
-                            <h2>Address</h2>
-                            <p>Trang address – bạn làm nội dung ở đây.</p>
+                            <div class="address-container">
+                                <div class="address-header">
+                                    <h2>My Addresses</h2>
+                                    <a href="${pageContext.request.contextPath}/address?action=add" class="btn btn-primary">
+                                        <i class="fas fa-plus"></i> Add New Address
+                                    </a>
+                                </div>
+                                
+                                <c:if test="${not empty profileMessage}">
+                                    <div class="alert alert-info">${profileMessage}</div>
+                                </c:if>
+                                
+                                <div class="address-list">
+                                    <c:choose>
+                                        <c:when test="${empty addresses}">
+                                            <div class="no-address">
+                                                <p>You don't have any addresses yet.</p>
+                                                <a href="${pageContext.request.contextPath}/address?action=add" class="btn btn-primary">Add Your First Address</a>
+                                            </div>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <div class="row">
+                                                <c:forEach items="${addresses}" var="addr">
+                                                    <div class="col-md-6 mb-4">
+                                                        <div class="address-card ${addr.isDefault ? 'default' : ''}">
+                                                            <div class="address-card-header">
+                                                                <h5>
+                                                                    ${addr.receiverName}
+                                                                    <c:if test="${addr.isDefault}">
+                                                                        <span class="badge bg-primary">Default</span>
+                                                                    </c:if>
+                                                                </h5>
+                                                                <div class="address-actions">
+                                                                    <c:if test="${!addr.isDefault}">
+                                                                        <a href="${pageContext.request.contextPath}/address?action=setdefault&id=${addr.addressId}" 
+                                                                           class="btn btn-sm btn-outline-primary">
+                                                                            Set Default
+                                                                        </a>
+                                                                    </c:if>
+                                                                    <a href="${pageContext.request.contextPath}/address?action=edit&id=${addr.addressId}" 
+                                                                       class="btn btn-sm btn-outline-secondary">Edit</a>
+                                                                    <a href="${pageContext.request.contextPath}/address?action=delete&id=${addr.addressId}" 
+                                                                       class="btn btn-sm btn-outline-danger" 
+                                                                       onclick="return confirm('Are you sure you want to delete this address?')">
+                                                                        Delete
+                                                                    </a>
+                                                                </div>
+                                                            </div>
+                                                            <div class="address-card-body">
+                                                                <p><i class="fas fa-phone"></i> ${addr.phone}</p>
+                                                                <p><i class="fas fa-map-marker-alt"></i> ${addr.streetAddress}</p>
+                                                                <p>${addr.ward}, ${addr.district}, ${addr.province}</p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </c:forEach>
+                                            </div>
+                                        </c:otherwise>
+                                    </c:choose>
+                                </div>
+                            </div>
                         </c:when>
 
 
