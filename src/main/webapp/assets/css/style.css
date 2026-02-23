@@ -518,6 +518,89 @@ body {
     display: block;
 }
 
+/* About Us page styles */
+.hero-section {
+    background: linear-gradient(135deg, #f5f7fa 0%, #e4edf9 100%);
+    padding: 80px 0;
+    text-align: center;
+}
+
+.hero-section h1 {
+    font-size: 2.5rem;
+    color: #b45309;
+    margin-bottom: 20px;
+}
+
+.hero-section p {
+    font-size: 1.2rem;
+    max-width: 800px;
+    margin: 0 auto;
+    color: #555;
+}
+
+.section-padding {
+    padding: 60px 0;
+}
+
+.section-title {
+    text-align: center;
+    margin-bottom: 40px;
+    color: #b45309;
+    font-size: 2rem;
+}
+
+.why-choose-us {
+    background-color: #fafafa;
+}
+
+.feature-card {
+    background: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    text-align: center;
+    margin-bottom: 20px;
+    transition: transform 0.3s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+}
+
+.feature-icon {
+    font-size: 2.5rem;
+    color: #b45309;
+    margin-bottom: 15px;
+}
+
+.team-section {
+    text-align: center;
+}
+
+.team-image {
+    max-width: 100%;
+    height: auto;
+    border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+}
+
+.team-placeholder {
+    text-align: center;
+    padding: 50px;
+    background: #f8f9fa;
+    border-radius: 10px;
+}
+
+.team-placeholder h4 {
+    margin-top: 0;
+    color: #333;
+}
+
+.team-placeholder p {
+    color: #666;
+    margin-bottom: 0;
+}
+
 /* Footer styles */
 .footer {
     background: #faf8f5;
