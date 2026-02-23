@@ -158,9 +158,7 @@
                     </div>
                     
                     <div>
-                               <a href="<%=request.getContextPath()%>/CustomerController?action=edit" class="btn-primary">Edit Profile</a>
                         <a href="<%=request.getContextPath()%>/logout" class="btn-logout">Logout</a>
-                        
                     </div>
                 </c:when>
                 <c:otherwise>
