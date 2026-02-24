@@ -21,13 +21,10 @@
                 <div class="profile-card__body">
                     <form action="${pageContext.request.contextPath}/CustomerController?action=edit" method="post">
                         <div class="form-grid">
-                         
+
 
                             <label>Full name:</label>
                             <input type="text" name="fullName" value="${customer.fullName}" required />
-
-                            <label>Email:</label>
-                            <input type="email" name="email" value="${customer.email}" />
 
                             <label>Gender:</label>
                             <select name="gender" class="gender-wide">
