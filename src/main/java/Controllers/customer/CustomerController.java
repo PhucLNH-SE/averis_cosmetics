@@ -5,7 +5,10 @@
 package Controllers.customer;
 
 import DALs.CustomerDAO;
+import DALs.AddressDAO;
 import Model.Customer;
+import Model.Address;
+import java.util.List;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
@@ -41,13 +44,20 @@ private void showProfilePage(HttpServletRequest request, HttpServletResponse res
         request.setAttribute("customer", sessionCustomer);
     }
 
+    // Handle address tab
+    String tab = request.getParameter("tab");
+    if ("address".equals(tab)) {
+        AddressDAO addressDAO = new AddressDAO();
+        List<Address> addresses = addressDAO.getAddressesByCustomerId(customer.getCustomerId());
+        request.setAttribute("addresses", addresses);
+    }
+
     if (session.getAttribute("profileMessage") != null) {
         request.setAttribute("profileMessage", session.getAttribute("profileMessage"));
         session.removeAttribute("profileMessage");
     }
 
-
-    request.setAttribute("tab", request.getParameter("tab"));
+    request.setAttribute("tab", tab);
 
     request.getRequestDispatcher("/views/customer/profile.jsp")
            .forward(request, response);
