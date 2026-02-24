@@ -9,6 +9,7 @@ import java.sql.Statement;
 import java.sql.Types;
 import java.time.LocalDateTime;
 import java.time.LocalDate;
+import org.mindrot.jbcrypt.BCrypt;
 
 public class CustomerDAO extends DBContext {
 
@@ -248,5 +249,48 @@ public class CustomerDAO extends DBContext {
     e.printStackTrace();
     return false;
 }
+}
+      public boolean updatePassword(int customerId, String newPassword) {
+
+    String sql =
+        "UPDATE Customers " +
+        "SET password = ? " +
+        "WHERE customer_id = ?";
+
+    try (PreparedStatement ps = connection.prepareStatement(sql)) {
+
+       
+        String hashed = BCrypt.hashpw(newPassword, BCrypt.gensalt());
+
+        ps.setString(1, hashed);
+        ps.setInt(2, customerId);
+
+        return ps.executeUpdate() > 0;
+
+    } catch (Exception e) {
+        e.printStackTrace();
+        return false;
+    }
+}
+      
+      public String getPasswordByCustomerId(int customerId) {
+
+    String sql = "SELECT password FROM Customers WHERE customer_id = ?";
+
+    try (PreparedStatement ps = connection.prepareStatement(sql)) {
+
+        ps.setInt(1, customerId);
+
+        ResultSet rs = ps.executeQuery();
+
+        if (rs.next()) {
+            return rs.getString("password");
+        }
+
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+
+    return null;
 }
 }
