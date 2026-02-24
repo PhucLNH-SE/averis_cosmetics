@@ -69,7 +69,7 @@ private void showProfilePage(HttpServletRequest request, HttpServletResponse res
             throws ServletException, IOException {
 
         String fullName = request.getParameter("fullName");
-        String email = request.getParameter("email");
+
         String gender = request.getParameter("gender");
         String dobStr = request.getParameter("dateOfBirth");
 
@@ -97,7 +97,7 @@ private void showProfilePage(HttpServletRequest request, HttpServletResponse res
 
        
         customer.setFullName(fullName.trim());
-        customer.setEmail((email == null || email.isBlank()) ? null : email.trim());
+
         customer.setGender((gender == null || gender.isBlank()) ? null : gender.trim());
         customer.setDateOfBirth(dob);
 
