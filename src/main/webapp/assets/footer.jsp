@@ -100,7 +100,7 @@
   </div>
 
   <div class="line">
-    <div>&copy; Averis</div>
+    <div>&copy; Averis</diva
     <div>All rights reserved</div>
   </div>
 </footer>
