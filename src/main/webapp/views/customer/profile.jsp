@@ -218,10 +218,47 @@
 
 
 
-                        <c:when test="${tab == 'password'}">
-                            <h2>Change password</h2>
-                            <p>Trang change password – bạn làm form ở đây.</p>
-                        </c:when>
+<c:when test="${tab == 'password'}">
+     <form action="${pageContext.request.contextPath}/CustomerController?action=changePassword"
+              method="post">
+   
+                  
+                    <div class="profile-card__header">
+                        <h2>Change Password</h2>
+                    </div>
+   
+                  <c:if test="${not empty error}">
+                        <div class="alert alert-danger">
+                            ${error}
+                        </div>
+                    </c:if>
+                    <div class="profile-card__body">
+                        <div class="form-grid">
+                  
+                            <label>Old password</label>
+                            <input type="password" name="oldPassword">
+
+                            <label>New password</label>
+                            <input type="password" name="newPassword">
+
+                            <label>Confirm password</label>
+                            <input type="password" name="confirmPassword">
+                        </div>
+                         <c:if test="${not empty profileMessage}">
+    <div class="alert alert-success">
+        ${profileMessage}
+    </div>
+</c:if>
+                  
+                    <div class="btns">
+                        <button type="submit">Save</button>
+                        <a class="linkbtn" href="${pageContext.request.contextPath}/CustomerController?action=view">Cancel</a>
+                    </div>
+
+                </div> 
+       
+    </form>
+</c:when>
 
                     </c:choose>
 

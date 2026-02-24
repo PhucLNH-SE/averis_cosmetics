@@ -17,6 +17,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.time.LocalDate;
+import org.mindrot.jbcrypt.BCrypt;
 
 /**
  *
@@ -24,44 +25,44 @@ import java.time.LocalDate;
  */
 public class CustomerController extends HttpServlet {
 
-private void showProfilePage(HttpServletRequest request, HttpServletResponse response)
-        throws ServletException, IOException {
+    private void showProfilePage(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
 
-    HttpSession session = request.getSession(false);
-    if (session == null || session.getAttribute("customer") == null) {
-        response.sendRedirect(request.getContextPath() + "/auth?action=login");
-        return;
+        HttpSession session = request.getSession(false);
+        if (session == null || session.getAttribute("customer") == null) {
+            response.sendRedirect(request.getContextPath() + "/auth?action=login");
+            return;
+        }
+
+        Customer sessionCustomer = (Customer) session.getAttribute("customer");
+        CustomerDAO customerDAO = new CustomerDAO();
+        Customer customer = customerDAO.getCustomerById(sessionCustomer.getCustomerId());
+
+        if (customer != null) {
+            request.setAttribute("customer", customer);
+            session.setAttribute("customer", customer);
+        } else {
+            request.setAttribute("customer", sessionCustomer);
+        }
+
+        // Handle address tab
+        String tab = request.getParameter("tab");
+        if ("address".equals(tab)) {
+            AddressDAO addressDAO = new AddressDAO();
+            List<Address> addresses = addressDAO.getAddressesByCustomerId(customer.getCustomerId());
+            request.setAttribute("addresses", addresses);
+        }
+
+        if (session.getAttribute("profileMessage") != null) {
+            request.setAttribute("profileMessage", session.getAttribute("profileMessage"));
+            session.removeAttribute("profileMessage");
+        }
+
+        request.setAttribute("tab", tab);
+
+        request.getRequestDispatcher("/views/customer/profile.jsp")
+                .forward(request, response);
     }
-
-    Customer sessionCustomer = (Customer) session.getAttribute("customer");
-    CustomerDAO customerDAO = new CustomerDAO();
-    Customer customer = customerDAO.getCustomerById(sessionCustomer.getCustomerId());
-
-    if (customer != null) {
-        request.setAttribute("customer", customer);
-        session.setAttribute("customer", customer);
-    } else {
-        request.setAttribute("customer", sessionCustomer);
-    }
-
-    // Handle address tab
-    String tab = request.getParameter("tab");
-    if ("address".equals(tab)) {
-        AddressDAO addressDAO = new AddressDAO();
-        List<Address> addresses = addressDAO.getAddressesByCustomerId(customer.getCustomerId());
-        request.setAttribute("addresses", addresses);
-    }
-
-    if (session.getAttribute("profileMessage") != null) {
-        request.setAttribute("profileMessage", session.getAttribute("profileMessage"));
-        session.removeAttribute("profileMessage");
-    }
-
-    request.setAttribute("tab", tab);
-
-    request.getRequestDispatcher("/views/customer/profile.jsp")
-           .forward(request, response);
-}
 
     private void showEditForm(HttpServletRequest request,
             HttpServletResponse response,
@@ -105,7 +106,6 @@ private void showProfilePage(HttpServletRequest request, HttpServletResponse res
             }
         }
 
-       
         customer.setFullName(fullName.trim());
 
         customer.setGender((gender == null || gender.isBlank()) ? null : gender.trim());
@@ -124,6 +124,88 @@ private void showProfilePage(HttpServletRequest request, HttpServletResponse res
                     .forward(request, response);
         }
     }
+
+   private void changePassword(HttpServletRequest request,
+        HttpServletResponse response,
+        Customer customer) throws ServletException, IOException {
+
+    String oldPassword = request.getParameter("oldPassword");
+    String newPassword = request.getParameter("newPassword");
+    String confirmPassword = request.getParameter("confirmPassword");
+
+    // luôn set tab
+    request.setAttribute("tab", "password");
+
+    if (oldPassword == null || oldPassword.isBlank()
+            || newPassword == null || newPassword.isBlank()
+            || confirmPassword == null || confirmPassword.isBlank()) {
+
+        request.setAttribute("error", "Vui lòng nhập đầy đủ thông tin.");
+        request.getRequestDispatcher("/views/customer/profile.jsp")
+                .forward(request, response);
+        return;
+    }
+
+    if (newPassword.length() < 6) {
+        request.setAttribute("error", "Mật khẩu mới phải có ít nhất 6 ký tự.");
+        request.getRequestDispatcher("/views/customer/profile.jsp")
+                .forward(request, response);
+        return;
+    }
+
+    CustomerDAO dao = new CustomerDAO();
+
+    String currentHash = dao.getPasswordByCustomerId(customer.getCustomerId());
+
+    if (currentHash == null) {
+        request.setAttribute("error", "Không lấy được mật khẩu hiện tại.");
+        request.getRequestDispatcher("/views/customer/profile.jsp")
+                .forward(request, response);
+        return;
+    }
+
+    if (!BCrypt.checkpw(oldPassword, currentHash)) {
+        request.setAttribute("error", "Mật khẩu cũ không đúng.");
+        request.getRequestDispatcher("/views/customer/profile.jsp")
+                .forward(request, response);
+        return;
+    }
+
+    if (BCrypt.checkpw(newPassword, currentHash)) {
+        request.setAttribute("error", "Mật khẩu mới không được trùng mật khẩu cũ.");
+        request.getRequestDispatcher("/views/customer/profile.jsp")
+                .forward(request, response);
+        return;
+    }
+
+    if (!newPassword.equals(confirmPassword)) {
+        request.setAttribute("error", "Mật khẩu xác nhận không khớp.");
+        request.getRequestDispatcher("/views/customer/profile.jsp")
+                .forward(request, response);
+        return;
+    }
+
+    boolean ok = dao.updatePassword(
+            customer.getCustomerId(),
+            newPassword
+    );
+
+
+
+if (ok) {
+    request.setAttribute("profileMessage", "Đổi mật khẩu thành công.");
+    request.setAttribute("tab", "password");
+
+    request.getRequestDispatcher("/views/customer/profile.jsp")
+            .forward(request, response);
+} else {
+    request.setAttribute("error", "Đổi mật khẩu thất bại.");
+    request.setAttribute("tab", "password");
+
+    request.getRequestDispatcher("/views/customer/profile.jsp")
+            .forward(request, response);
+}
+}
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -176,9 +258,12 @@ private void showProfilePage(HttpServletRequest request, HttpServletResponse res
             case "edit":
                 updateProfile(request, response, customer);
                 break;
-
+            case "changePassword":
+                changePassword(request, response, customer);
+                break;
             default:
                 response.sendError(HttpServletResponse.SC_BAD_REQUEST);
         }
     }
+
 }
