@@ -1,10 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <web-app version="5.0" xmlns="https://jakarta.ee/xml/ns/jakartaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/web-app_5_0.xsd">
     <servlet>
-        <servlet-name>NewServlet</servlet-name>
-        <servlet-class>Controllers.NewServlet</servlet-class>
-    </servlet>
-    <servlet>
         <servlet-name>AdminControllers</servlet-name>
         <servlet-class>Controllers.admin.AdminControllers</servlet-class>
     </servlet>
@@ -25,8 +21,8 @@
         <servlet-class>Controllers.staff.StaffController</servlet-class>
     </servlet>
     <servlet>
-        <servlet-name>CartServlet</servlet-name>
-        <servlet-class>Controllers.customer.CartServlet</servlet-class>
+        <servlet-name>CartController</servlet-name>
+        <servlet-class>Controllers.customer.CartController</servlet-class>
     </servlet>
     <servlet>
         <servlet-name>LogoutController</servlet-name>
@@ -44,10 +40,8 @@
         <servlet-name>AddressServlet</servlet-name>
         <servlet-class>Controllers.customer.AddressServlet</servlet-class>
     </servlet>
-    <servlet-mapping>
-        <servlet-name>NewServlet</servlet-name>
-        <url-pattern>/NewServlet</url-pattern>
-    </servlet-mapping>
+    
+    
     <servlet-mapping>
         <servlet-name>AdminControllers</servlet-name>
         <url-pattern>/AdminControllers</url-pattern>
@@ -69,6 +63,10 @@
         <url-pattern>/introduce</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
+    <servlet-name>GuestController</servlet-name>
+    <url-pattern>/home</url-pattern>
+</servlet-mapping>
+    <servlet-mapping>
         <servlet-name>GuestController</servlet-name>
         <url-pattern>/contact</url-pattern>
     </servlet-mapping>
@@ -77,11 +75,11 @@
         <url-pattern>/StaffController</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
-        <servlet-name>CartServlet</servlet-name>
+        <servlet-name>CartController</servlet-name>
         <url-pattern>/cart</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
-        <servlet-name>CartServlet</servlet-name>
+        <servlet-name>CartController</servlet-name>
         <url-pattern>/cart-update</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
@@ -100,9 +98,12 @@
         <servlet-name>AddressServlet</servlet-name>
         <url-pattern>/address</url-pattern>
     </servlet-mapping>
-    <welcome-file-list>
-        <welcome-file>views/common/home.jsp</welcome-file>
-    </welcome-file-list>
+    
+<welcome-file-list>
+    <welcome-file>home</welcome-file>
+</welcome-file-list>
+    
+    
     <session-config>
         <session-timeout>
             30

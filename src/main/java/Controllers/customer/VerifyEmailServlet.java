@@ -72,6 +72,6 @@ public class VerifyEmailServlet extends HttpServlet {
             session.setAttribute("cart", cart);
             session.setAttribute("profileMessage", "Email của bạn đã được xác thực thành công.");
         }
-        response.sendRedirect(request.getContextPath() + "/CustomerController");
+        response.sendRedirect(request.getContextPath() + "/CustomerController?action=view&tab=profile");
     }
 }

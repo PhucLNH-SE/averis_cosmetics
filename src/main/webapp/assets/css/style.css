@@ -1,5 +1,12 @@
 /* Main styles for the cosmetics shop website */
-
+:root {
+    --bg: #ffffff;
+    --text: #111827;
+    --surface: #ffffff;
+    --border: #e5e7eb;
+    --accent: #b45309;
+    --muted: #6b7280;
+}
 /* Products page styles */
 .container {
     margin: 0px 24px;
@@ -510,7 +517,6 @@ body {
     padding: 0 24px;
     border-bottom: 1px solid var(--border);
     box-shadow: 0 8px 22px rgba(31, 41, 55, .06);
-    margin: 0 0px 20px 0px;
 }
 
 .brand {
@@ -798,7 +804,6 @@ textarea.form-control {
     color: #111;
     padding: 40px 0;
     font-family: Arial, sans-serif;
-    margin: 20px 10px 0 10px;
 }
 
 .footer .wrap {
@@ -1487,4 +1492,147 @@ textarea.form-control {
 
 .info-row-email {
     align-items: center;
+}
+
+/* ===== AUTH (LOGIN / REGISTER) ===== */
+
+.auth-page {
+    background: #ffffff;
+    padding: 0;
+}
+
+/* Card */
+.auth-container {
+    max-width: 480px;
+    margin: 20px auto;
+    padding: 40px 45px;
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08);
+}
+
+/* Header */
+.auth-header {
+    text-align: center;
+    margin-bottom: 35px;
+}
+
+.auth-header h2 {
+    margin: 0 0 8px;
+    font-size: 30px;
+    font-weight: 700;
+    color: #1f2937;
+}
+
+.auth-header p {
+    margin: 0;
+    font-size: 15px;
+    color: #6b7280;
+}
+
+/* Form */
+.auth-container .form-group {
+    margin-bottom: 22px;
+}
+
+.auth-container .form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    color: #374151;
+}
+
+/* Input + Select + Date đồng bộ */
+.auth-container input,
+.auth-container select {
+    width: 100%;
+    padding: 13px 15px;
+    border: 1.8px solid #e5e7eb;
+    border-radius: 10px;
+    font-size: 15px;
+    background: #f9fafb;
+    transition: all 0.25s ease;
+}
+
+.auth-container input:focus,
+.auth-container select:focus {
+    outline: none;
+    border-color: #f59e0b;
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.15);
+}
+
+/* Buttons */
+.btn-login,
+.btn-register {
+    width: 100%;
+    padding: 14px;
+    background: #b45309;
+    color: #ffffff;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    margin-top: 10px;
+}
+
+.btn-login:hover,
+.btn-register:hover {
+    background: #92400e;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(180, 83, 9, 0.25);
+}
+
+/* Links */
+.auth-links {
+    text-align: center;
+    margin-top: 28px;
+    font-size: 14px;
+}
+
+.auth-links a {
+    color: #d97706;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.auth-links a:hover {
+    text-decoration: underline;
+}
+
+/* Messages */
+.success-message {
+    background: #ecfdf5;
+    color: #065f46;
+    padding: 12px 14px;
+    border-radius: 8px;
+    margin-bottom: 18px;
+    border-left: 4px solid #10b981;
+    font-size: 14px;
+}
+
+.error-message {
+    display: block;
+    color: #dc2626;
+    font-size: 13px;
+    margin-top: 6px;
+    font-weight: 500;
+}
+
+.field-error {
+    display: block;
+    color: #dc2626;
+    font-size: 12px;
+    margin-top: 4px;
+    font-weight: 500;
+}
+
+/* Input error state */
+.auth-container input.error,
+.auth-container select.error {
+    border-color: #dc2626;
+    background: #fef2f2;
 }
