@@ -29,19 +29,17 @@
         <servlet-class>Controllers.customer.LogoutController</servlet-class>
     </servlet>
     <servlet>
-        <servlet-name>VerifyEmailServlet</servlet-name>
-        <servlet-class>Controllers.customer.VerifyEmailServlet</servlet-class>
+        <servlet-name>VerifyEmailController</servlet-name>
+        <servlet-class>Controllers.customer.VerifyEmailController</servlet-class>
     </servlet>
     <servlet>
-        <servlet-name>SendVerifyEmailServlet</servlet-name>
-        <servlet-class>Controllers.customer.SendVerifyEmailServlet</servlet-class>
+        <servlet-name>SendVerifyEmailController</servlet-name>
+        <servlet-class>Controllers.customer.SendVerifyEmailController</servlet-class>
     </servlet>
     <servlet>
-        <servlet-name>AddressServlet</servlet-name>
-        <servlet-class>Controllers.customer.AddressServlet</servlet-class>
+        <servlet-name>AddressController</servlet-name>
+        <servlet-class>Controllers.customer.AddressController</servlet-class>
     </servlet>
-    
-    
     <servlet-mapping>
         <servlet-name>AdminControllers</servlet-name>
         <url-pattern>/AdminControllers</url-pattern>
@@ -63,9 +61,9 @@
         <url-pattern>/introduce</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
-    <servlet-name>GuestController</servlet-name>
-    <url-pattern>/home</url-pattern>
-</servlet-mapping>
+        <servlet-name>GuestController</servlet-name>
+        <url-pattern>/home</url-pattern>
+    </servlet-mapping>
     <servlet-mapping>
         <servlet-name>GuestController</servlet-name>
         <url-pattern>/contact</url-pattern>
@@ -87,23 +85,20 @@
         <url-pattern>/logout</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
-        <servlet-name>VerifyEmailServlet</servlet-name>
+        <servlet-name>VerifyEmailController</servlet-name>
         <url-pattern>/verify-email</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
-        <servlet-name>SendVerifyEmailServlet</servlet-name>
+        <servlet-name>SendVerifyEmailController</servlet-name>
         <url-pattern>/send-verify-email</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
-        <servlet-name>AddressServlet</servlet-name>
+        <servlet-name>AddressController</servlet-name>
         <url-pattern>/address</url-pattern>
     </servlet-mapping>
-    
-<welcome-file-list>
-    <welcome-file>home</welcome-file>
-</welcome-file-list>
-    
-    
+    <welcome-file-list>
+        <welcome-file>home</welcome-file>
+    </welcome-file-list>
     <session-config>
         <session-timeout>
             30

@@ -18,7 +18,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class VerifyEmailServlet extends HttpServlet {
+public class VerifyEmailController extends HttpServlet {
 
     private CustomerDAO customerDAO = new CustomerDAO();
 
