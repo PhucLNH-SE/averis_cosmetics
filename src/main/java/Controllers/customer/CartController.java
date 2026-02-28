@@ -14,7 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class CartServlet extends HttpServlet {
+public class CartController extends HttpServlet {
 
     ProductDAO productDAO = new ProductDAO();
     CartDetailDAO cartDetailDAO = new CartDetailDAO();
