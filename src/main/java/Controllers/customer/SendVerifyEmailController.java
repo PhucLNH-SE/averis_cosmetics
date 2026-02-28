@@ -11,7 +11,7 @@ import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.time.LocalDateTime;
 
-public class SendVerifyEmailServlet extends HttpServlet {
+public class SendVerifyEmailController extends HttpServlet {
 
     private CustomerDAO customerDAO = new CustomerDAO();
 
