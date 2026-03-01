@@ -106,6 +106,21 @@ public class CustomerDAO extends DBContext {
         return false;
     }
 
+    public boolean updateCustomerStatus(int customerId, boolean status) {
+        String sql = "UPDATE Customers SET status = ? WHERE customer_id = ?";
+        
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setBoolean(1, status);
+            ps.setInt(2, customerId);
+
+            int rowsAffected = ps.executeUpdate();
+            return rowsAffected > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
     private Customer mapResultSetToCustomer(ResultSet rs) throws Exception {
         Customer customer = new Customer();
         customer.setCustomerId(rs.getInt("customer_id"));

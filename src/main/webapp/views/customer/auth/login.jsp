@@ -84,7 +84,7 @@
  <div class="auth-links">
             <p>
                 
-                <a href="${pageContext.request.contextPath}/views/customer/forgetpassword.jsp">
+                <a href="${pageContext.request.contextPath}/ForgetPasswordController">
                     Forget Password
                 </a>
             </p>
