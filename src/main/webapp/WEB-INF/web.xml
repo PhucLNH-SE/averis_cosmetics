@@ -44,17 +44,13 @@
         <servlet-name>AddressController</servlet-name>
         <servlet-class>Controllers.customer.AddressController</servlet-class>
     </servlet>
-    <filter>
-        <filter-name>ManagerAuthFilter</filter-name>
-        <filter-class>Filters.ManagerAuthFilter</filter-class>
-    </filter>
     <servlet>
-        <servlet-name>BrandController</servlet-name>
-        <servlet-class>Controllers.admin.BrandController</servlet-class>
+        <servlet-name>ForgetPasswordController</servlet-name>
+        <servlet-class>Controllers.customer.ForgetPasswordController</servlet-class>
     </servlet>
     <servlet>
-        <servlet-name>CategoryController</servlet-name>
-        <servlet-class>Controllers.admin.CategoryController</servlet-class>
+        <servlet-name>ResetPasswordController</servlet-name>
+        <servlet-class>Controllers.customer.ResetPasswordController</servlet-class>
     </servlet>
     <servlet-mapping>
         <servlet-name>UserManagerController</servlet-name>
@@ -179,6 +175,14 @@
     <welcome-file-list>
         <welcome-file>home</welcome-file>
     </welcome-file-list>
+    <servlet-mapping>
+        <servlet-name>ForgetPasswordController</servlet-name>
+        <url-pattern>/ForgetPasswordController</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>ResetPasswordController</servlet-name>
+        <url-pattern>/ResetPasswordController</url-pattern>
+    </servlet-mapping>
     <session-config>
         <session-timeout>
             30
