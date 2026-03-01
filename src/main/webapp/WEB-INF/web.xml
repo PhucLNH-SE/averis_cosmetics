@@ -40,6 +40,10 @@
         <servlet-name>AddressController</servlet-name>
         <servlet-class>Controllers.customer.AddressController</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>BrandController</servlet-name>
+        <servlet-class>Controllers.admin.BrandController</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>AdminControllers</servlet-name>
         <url-pattern>/AdminControllers</url-pattern>
@@ -115,6 +119,14 @@
     <servlet-mapping>
         <servlet-name>AddressController</servlet-name>
         <url-pattern>/address</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>BrandController</servlet-name>
+        <url-pattern>/admin/brand</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>BrandController</servlet-name>
+        <url-pattern>/admin/manage-brand</url-pattern>
     </servlet-mapping>
     <welcome-file-list>
         <welcome-file>home</welcome-file>
