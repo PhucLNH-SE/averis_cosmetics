@@ -23,7 +23,7 @@ import org.mindrot.jbcrypt.BCrypt;
  *
  * @author lengu
  */
-public class CustomerController extends HttpServlet {
+public class ProfileController extends HttpServlet {
 
     private void showProfilePage(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
