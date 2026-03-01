@@ -397,23 +397,6 @@
 .variant-item:hover {
     border-color: #b45309;
 }
-
-/* Admin: Manage Category styles */
-
-
-.manage-card {
-    width: 100%;
-    max-width: 1100px;
-    margin: 0 auto;
-    border-radius: 12px !important;
-}
-
-@media (max-width: 576px) {
-    .action-btns .btn { min-width: 64px; font-size: 13px; }
-}
-
-
-
 .variant-item.active {
     border-color: #b45309;
     background: #fff8f0;
@@ -1630,31 +1613,4 @@ textarea.form-control {
     background-color: #2563eb !important;   /* EDIT + SAVE - xanh dương */
     border-color: #2563eb !important;
     color: #fff !important;
-}
-
-.manage-wrapper .btn-primary:hover {
-    background-color: #1d4ed8 !important;
-    border-color: #1d4ed8 !important;
-}
-
-.manage-wrapper .btn-danger {
-    background-color: #dc2626 !important;   /* DELETE - đỏ */
-    border-color: #dc2626 !important;
-    color: #fff !important;
-}
-
-.manage-wrapper .btn-danger:hover {
-    background-color: #b91c1c !important;
-    border-color: #b91c1c !important;
-}
-
-.manage-wrapper .btn-secondary {
-    background-color: #6b7280 !important;   /* CANCEL - xám */
-    border-color: #6b7280 !important;
-    color: #fff !important;
-}
-
-.manage-wrapper .btn-secondary:hover {
-    background-color: #4b5563 !important;
-    border-color: #4b5563 !important;
 }

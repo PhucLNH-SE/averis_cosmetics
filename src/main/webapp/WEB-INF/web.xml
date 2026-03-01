@@ -45,23 +45,23 @@
         <url-pattern>/AdminControllers</url-pattern>
     </servlet-mapping>
     <servlet>
-        <servlet-name>AdminCategoryController</servlet-name>
-        <servlet-class>Controllers.admin.AdminCategoryController</servlet-class>
+        <servlet-name>CatagoryController</servlet-name>
+        <servlet-class>Controllers.admin.CatagoryController</servlet-class>
     </servlet>
     <servlet-mapping>
-        <servlet-name>AdminCategoryController</servlet-name>
+        <servlet-name>CatagoryController</servlet-name>
         <url-pattern>/admin/manage-category</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
-        <servlet-name>AdminCategoryController</servlet-name>
+        <servlet-name>CatagoryController</servlet-name>
         <url-pattern>/admin/add-category</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
-        <servlet-name>AdminCategoryController</servlet-name>
+        <servlet-name>CatagoryController</servlet-name>
         <url-pattern>/admin/update-category</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
-        <servlet-name>AdminCategoryController</servlet-name>
+        <servlet-name>CatagoryController</servlet-name>
         <url-pattern>/admin/delete-category</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
