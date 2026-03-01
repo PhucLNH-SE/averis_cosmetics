@@ -13,7 +13,7 @@ public class BrandDAO extends DBContext {
     // Lấy tất cả brand
     public List<Brand> getAll() {
         List<Brand> brands = new ArrayList<>();
-        String sql = "SELECT brand_id, name, status FROM Brand ORDER BY brand_id DESC";
+        String sql = "SELECT brand_id, name, status FROM Brand ORDER BY brand_id ASC";
         try (PreparedStatement ps = connection.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {

@@ -1,166 +1,202 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manage Users</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css">
+    <link href="${pageContext.request.contextPath}/css/admin-brand.css" rel="stylesheet">
 </head>
-<body class="admin-users-body">
-<main class="admin-users-wrapper">
-    <section class="admin-users-header">
-        <div>
-            <h1>Quản lý người dùng</h1>
-            <p>Danh sách tài khoản user trong hệ thống</p>
+<body>
+    <div class="container py-4">
+        <!-- Header -->
+        <div class="page-header">
+            <div>
+                <h4>Manage Users</h4>
+                <p class="text-muted mb-0">List of users in the system</p>
+            </div>
+            <a href="${pageContext.request.contextPath}/views/admin/dashboard.jsp" class="btn btn-outline-secondary">
+                Back
+            </a>
         </div>
-        <a class="admin-users-back-btn" href="${pageContext.request.contextPath}/admin/dashboard">
-            <i class="bi bi-arrow-left"></i> Quay lại
-        </a>
-    </section>
 
-    <section class="admin-users-panel">
-        <div class="admin-users-table-wrap">
-            <table class="admin-users-table">
-                <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Username</th>
-                    <th>Họ tên</th>
-                    <th>Email</th>
-                    <th>Trạng thái</th>
-                    <th>Thao tác</th>
-                </tr>
-                </thead>
-                <tbody>
-                <c:choose>
-                    <c:when test="${empty users}">
-                        <tr>
-                            <td colspan="6" class="admin-users-empty">Không có user nào.</td>
-                        </tr>
-                    </c:when>
-                    <c:otherwise>
-                        <c:forEach var="user" items="${users}">
+        <!-- Alerts -->
+        <c:if test="${param.success == 'update'}">
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                User status updated successfully!
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        </c:if>
+        <c:if test="${param.error == 'updateFailed'}">
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                Failed to update user status!
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        </c:if>
+
+        <!-- Table Card -->
+        <div class="card table-card">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
                             <tr>
-                                <td>${user.customerId}</td>
-                                <td>${user.username}</td>
-                                <td>${user.fullName}</td>
-                                <td>${empty user.email ? '-' : user.email}</td>
-                                <td>
-                                    <span class="${user.status ? 'user-status-active' : 'user-status-inactive'}">
-                                        <i class="bi ${user.status ? 'bi-check-circle-fill' : 'bi-slash-circle-fill'}"></i>
-                                        ${user.status ? 'Hoạt động' : 'Đã khóa'}
-                                    </span>
-                                </td>
-                                <td>
-                                    <div class="admin-users-actions">
-                                        <button type="button"
-                                           class="admin-users-btn-detail"
-                                           data-id="${user.customerId}"
-                                           data-username="${user.username}"
-                                           data-fullname="${user.fullName}"
-                                           data-email="${empty user.email ? '-' : user.email}"
-                                           data-gender="${empty user.gender ? '-' : user.gender}"
-                                           data-dob="${empty user.dateOfBirth ? '-' : user.dateOfBirth}"
-                                           data-status="${user.status}"
-                                           data-verified="${user.emailVerified}"
-                                           onclick="openUserPopup(this)">
-                                            <i class="bi bi-eye"></i> Chi tiết
-                                        </button>
-                                        <form action="${pageContext.request.contextPath}/admin/update-user-status" method="post">
-                                            <input type="hidden" name="id" value="${user.customerId}">
-                                            <input type="hidden" name="status" value="${!user.status}">
-                                            <button type="submit" class="${user.status ? 'admin-users-btn-lock' : 'admin-users-btn-unlock'}">
-                                                <i class="bi ${user.status ? 'bi-lock' : 'bi-unlock'}"></i>
-                                                ${user.status ? 'Khóa' : 'Mở khóa'}
-                                            </button>
-                                        </form>
-                                    </div>
-                                </td>
+                                <th class="px-4">ID</th>
+                                <th>Username</th>
+                                <th>Full Name</th>
+                                <th>Email</th>
+                                <th>Status</th>
+                                <th class="text-end px-4">Actions</th>
                             </tr>
-                        </c:forEach>
-                    </c:otherwise>
-                </c:choose>
-                </tbody>
-            </table>
-        </div>
-    </section>
-</main>
-
-<div id="userDetailPopup" class="admin-popup-overlay" onclick="closeUserPopup(event)">
-    <div class="admin-popup-card">
-        <div class="admin-popup-head">
-            <h3>Chi tiết người dùng</h3>
-            <button type="button" class="admin-popup-close" onclick="closeUserPopup()">
-                <i class="bi bi-x-lg"></i>
-            </button>
-        </div>
-
-        <div class="admin-popup-body">
-            <div class="admin-popup-row"><label>ID</label><span id="popupUserId"></span></div>
-            <div class="admin-popup-row"><label>Username</label><span id="popupUsername"></span></div>
-            <div class="admin-popup-row"><label>Họ tên</label><span id="popupFullName"></span></div>
-            <div class="admin-popup-row"><label>Email</label><span id="popupEmail"></span></div>
-            <div class="admin-popup-row"><label>Giới tính</label><span id="popupGender"></span></div>
-            <div class="admin-popup-row"><label>Ngày sinh</label><span id="popupDob"></span></div>
-            <div class="admin-popup-row"><label>Email verified</label><span id="popupVerified"></span></div>
-            <div class="admin-popup-row"><label>Trạng thái</label><span id="popupStatus"></span></div>
-        </div>
-
-        <div class="admin-popup-actions">
-            <form action="${pageContext.request.contextPath}/admin/update-user-status" method="post">
-                <input type="hidden" id="popupFormUserId" name="id">
-                <input type="hidden" id="popupFormStatus" name="status">
-                <button type="submit" id="popupActionBtn" class="admin-users-btn-lock">
-                    <i class="bi bi-lock"></i> Khóa tài khoản
-                </button>
-            </form>
+                        </thead>
+                        <tbody>
+                            <c:forEach var="user" items="${users}">
+                                <tr>
+                                    <td class="px-4">${user.customerId}</td>
+                                    <td><strong>${user.username}</strong></td>
+                                    <td>${user.fullName}</td>
+                                    <td>${empty user.email ? '-' : user.email}</td>
+                                    <td>
+                                        <c:choose>
+                                            <c:when test="${user.status}">
+                                                <span class="status-active">Active</span>
+                                            </c:when>
+                                            <c:otherwise>
+                                                <span class="status-inactive">Locked</span>
+                                            </c:otherwise>
+                                        </c:choose>
+                                    </td>
+                                    <td class="text-end px-4">
+                                        <button type="button" class="btn btn-edit btn-sm text-white me-1" 
+                                                data-bs-toggle="modal" data-bs-target="#userDetailModal"
+                                                onclick="openUserDetail(${user.customerId}, '${user.username}', '${user.fullName}', '${empty user.email ? '-' : user.email}', '${empty user.gender ? '-' : user.gender}', '${empty user.dateOfBirth ? '-' : user.dateOfBirth}', ${user.status}, ${user.emailVerified})">
+                                            View
+                                        </button>
+                                        <button type="button" class="btn btn-delete btn-sm text-white"
+                                                data-bs-toggle="modal" data-bs-target="#lockModal"
+                                                onclick="openLockModal(${user.customerId}, '${user.username}', ${user.status})">
+                                            ${user.status ? 'Lock' : 'Unlock'}
+                                        </button>
+                                    </td>
+                                </tr>
+                            </c:forEach>
+                            <c:if test="${empty users}">
+                                <tr>
+                                    <td colspan="6" class="text-center empty-state">
+                                        <i class="bi bi-inbox d-block"></i>
+                                        No users found
+                                    </td>
+                                </tr>
+                            </c:if>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
-</div>
 
-<script>
-    function openUserPopup(button) {
-        var id = button.getAttribute('data-id');
-        var username = button.getAttribute('data-username');
-        var fullName = button.getAttribute('data-fullname');
-        var email = button.getAttribute('data-email');
-        var gender = button.getAttribute('data-gender');
-        var dob = button.getAttribute('data-dob');
-        var status = button.getAttribute('data-status') === 'true';
-        var verified = button.getAttribute('data-verified') === 'true';
+    <!-- User Detail Modal -->
+    <div class="modal fade" id="userDetailModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">User Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row mb-2">
+                        <div class="col-4 fw-bold">ID:</div>
+                        <div class="col-8" id="detailId"></div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-4 fw-bold">Username:</div>
+                        <div class="col-8" id="detailUsername"></div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-4 fw-bold">Full Name:</div>
+                        <div class="col-8" id="detailFullName"></div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-4 fw-bold">Email:</div>
+                        <div class="col-8" id="detailEmail"></div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-4 fw-bold">Gender:</div>
+                        <div class="col-8" id="detailGender"></div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-4 fw-bold">Date of Birth:</div>
+                        <div class="col-8" id="detailDob"></div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-4 fw-bold">Email Verified:</div>
+                        <div class="col-8" id="detailVerified"></div>
+                    </div>
+                    <div class="row">
+                        <div class="col-4 fw-bold">Status:</div>
+                        <div class="col-8" id="detailStatus"></div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
-        document.getElementById('popupUserId').textContent = id;
-        document.getElementById('popupUsername').textContent = username;
-        document.getElementById('popupFullName').textContent = fullName;
-        document.getElementById('popupEmail').textContent = email;
-        document.getElementById('popupGender').textContent = gender;
-        document.getElementById('popupDob').textContent = dob;
-        document.getElementById('popupVerified').textContent = verified ? 'Yes' : 'No';
-        document.getElementById('popupStatus').textContent = status ? 'Hoạt động' : 'Đã khóa';
-        document.getElementById('popupFormUserId').value = id;
-        document.getElementById('popupFormStatus').value = (!status).toString();
+    <!-- Lock/Unlock Confirmation Modal -->
+    <div class="modal fade" id="lockModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="lockModalTitle">Confirm Action</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form method="post" action="${pageContext.request.contextPath}/admin/update-user-status">
+                    <div class="modal-body">
+                        <input type="hidden" name="id" id="lockUserId">
+                        <input type="hidden" name="status" id="lockUserStatus">
+                        <p id="lockMessage"></p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-danger" id="lockConfirmBtn">Confirm</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
-        var btn = document.getElementById('popupActionBtn');
-        if (status) {
-            btn.className = 'admin-users-btn-lock';
-            btn.innerHTML = '<i class="bi bi-lock"></i> Khóa tài khoản';
-        } else {
-            btn.className = 'admin-users-btn-unlock';
-            btn.innerHTML = '<i class="bi bi-unlock"></i> Mở khóa tài khoản';
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function openUserDetail(id, username, fullName, email, gender, dob, status, verified) {
+            document.getElementById('detailId').textContent = id;
+            document.getElementById('detailUsername').textContent = username;
+            document.getElementById('detailFullName').textContent = fullName;
+            document.getElementById('detailEmail').textContent = email;
+            document.getElementById('detailGender').textContent = gender;
+            document.getElementById('detailDob').textContent = dob;
+            document.getElementById('detailVerified').textContent = verified ? 'Yes' : 'No';
+            document.getElementById('detailStatus').textContent = status ? 'Active' : 'Locked';
         }
 
-        document.getElementById('userDetailPopup').classList.add('show');
-    }
-
-    function closeUserPopup(event) {
-        if (!event || event.target.id === 'userDetailPopup') {
-            document.getElementById('userDetailPopup').classList.remove('show');
+        function openLockModal(userId, username, currentStatus) {
+            document.getElementById('lockUserId').value = userId;
+            document.getElementById('lockUserStatus').value = !currentStatus;
+            
+            if (currentStatus) {
+                document.getElementById('lockModalTitle').textContent = 'Lock User';
+                document.getElementById('lockMessage').innerHTML = 'Are you sure you want to lock user <strong>' + username + '</strong>?';
+                document.getElementById('lockConfirmBtn').textContent = 'Lock';
+            } else {
+                document.getElementById('lockModalTitle').textContent = 'Unlock User';
+                document.getElementById('lockMessage').innerHTML = 'Are you sure you want to unlock user <strong>' + username + '</strong>?';
+                document.getElementById('lockConfirmBtn').textContent = 'Unlock';
+            }
         }
-    }
-</script>
+    </script>
 </body>
 </html>
