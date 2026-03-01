@@ -44,6 +44,26 @@
         <servlet-name>AdminControllers</servlet-name>
         <url-pattern>/AdminControllers</url-pattern>
     </servlet-mapping>
+    <servlet>
+        <servlet-name>AdminCategoryController</servlet-name>
+        <servlet-class>Controllers.admin.AdminCategoryController</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>AdminCategoryController</servlet-name>
+        <url-pattern>/admin/manage-category</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>AdminCategoryController</servlet-name>
+        <url-pattern>/admin/add-category</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>AdminCategoryController</servlet-name>
+        <url-pattern>/admin/update-category</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>AdminCategoryController</servlet-name>
+        <url-pattern>/admin/delete-category</url-pattern>
+    </servlet-mapping>
     <servlet-mapping>
         <servlet-name>ProfileController</servlet-name>
         <url-pattern>/profile</url-pattern>
