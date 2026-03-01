@@ -9,6 +9,8 @@ import java.sql.Statement;
 import java.sql.Types;
 import java.time.LocalDateTime;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 import org.mindrot.jbcrypt.BCrypt;
 
 public class CustomerDAO extends DBContext {
@@ -212,6 +214,23 @@ public class CustomerDAO extends DBContext {
         }
         return null;
     }
+
+    public List<Customer> getAllCustomers() {
+        List<Customer> customers = new ArrayList<>();
+        String sql = "SELECT * FROM Customers ORDER BY customer_id DESC";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                customers.add(mapResultSetToCustomer(rs));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return customers;
+    }
+
       public boolean updateProfile(Customer customer) {
 
  
@@ -293,4 +312,16 @@ public class CustomerDAO extends DBContext {
 
     return null;
 }
+
+    public boolean updateCustomerStatus(int customerId, boolean status) {
+        String sql = "UPDATE Customers SET status = ? WHERE customer_id = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setBoolean(1, status);
+            ps.setInt(2, customerId);
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
 }

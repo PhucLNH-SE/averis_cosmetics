@@ -13,6 +13,10 @@
         <servlet-class>Controllers.customer.AuthController</servlet-class>
     </servlet>
     <servlet>
+        <servlet-name>ManagerAuthController</servlet-name>
+        <servlet-class>Controllers.common.ManagerAuthController</servlet-class>
+    </servlet>
+    <servlet>
         <servlet-name>GuestController</servlet-name>
         <servlet-class>Controllers.guest.GuestController</servlet-class>
     </servlet>
@@ -40,6 +44,10 @@
         <servlet-name>AddressController</servlet-name>
         <servlet-class>Controllers.customer.AddressController</servlet-class>
     </servlet>
+    <filter>
+        <filter-name>ManagerAuthFilter</filter-name>
+        <filter-class>Filters.ManagerAuthFilter</filter-class>
+    </filter>
     <servlet>
         <servlet-name>BrandController</servlet-name>
         <servlet-class>Controllers.admin.BrandController</servlet-class>
@@ -77,6 +85,10 @@
         <url-pattern>/auth</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
+        <servlet-name>ManagerAuthController</servlet-name>
+        <url-pattern>/manager-auth</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
         <servlet-name>GuestController</servlet-name>
         <url-pattern>/GuestController</url-pattern>
     </servlet-mapping>
@@ -95,6 +107,22 @@
     <servlet-mapping>
         <servlet-name>StaffController</servlet-name>
         <url-pattern>/StaffController</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>AdminControllers</servlet-name>
+        <url-pattern>/admin/dashboard</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>AdminControllers</servlet-name>
+        <url-pattern>/admin/manage-users</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>AdminControllers</servlet-name>
+        <url-pattern>/admin/update-user-status</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>StaffController</servlet-name>
+        <url-pattern>/staff/dashboard</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>CartController</servlet-name>
@@ -120,6 +148,30 @@
         <servlet-name>AddressController</servlet-name>
         <url-pattern>/address</url-pattern>
     </servlet-mapping>
+<!--    <filter-mapping>
+        <filter-name>ManagerAuthFilter</filter-name>
+        <url-pattern>/admin/*</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>ManagerAuthFilter</filter-name>
+        <url-pattern>/staff/*</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>ManagerAuthFilter</filter-name>
+        <url-pattern>/AdminControllers</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>ManagerAuthFilter</filter-name>
+        <url-pattern>/StaffController</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>ManagerAuthFilter</filter-name>
+        <url-pattern>/views/admin/*</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>ManagerAuthFilter</filter-name>
+        <url-pattern>/views/staff/*</url-pattern>
+    </filter-mapping>-->
     <servlet-mapping>
         <servlet-name>BrandController</servlet-name>
         <url-pattern>/admin/brand</url-pattern>
