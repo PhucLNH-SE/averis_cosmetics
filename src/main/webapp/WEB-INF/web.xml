@@ -48,9 +48,33 @@
         <filter-name>ManagerAuthFilter</filter-name>
         <filter-class>Filters.ManagerAuthFilter</filter-class>
     </filter>
+    <servlet>
+        <servlet-name>BrandController</servlet-name>
+        <servlet-class>Controllers.admin.BrandController</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>AdminControllers</servlet-name>
         <url-pattern>/AdminControllers</url-pattern>
+    </servlet-mapping>
+    <servlet>
+        <servlet-name>CatagoryController</servlet-name>
+        <servlet-class>Controllers.admin.CatagoryController</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>CatagoryController</servlet-name>
+        <url-pattern>/admin/manage-category</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>CatagoryController</servlet-name>
+        <url-pattern>/admin/add-category</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>CatagoryController</servlet-name>
+        <url-pattern>/admin/update-category</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>CatagoryController</servlet-name>
+        <url-pattern>/admin/delete-category</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>ProfileController</servlet-name>
@@ -148,6 +172,14 @@
         <filter-name>ManagerAuthFilter</filter-name>
         <url-pattern>/views/staff/*</url-pattern>
     </filter-mapping>-->
+    <servlet-mapping>
+        <servlet-name>BrandController</servlet-name>
+        <url-pattern>/admin/brand</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>BrandController</servlet-name>
+        <url-pattern>/admin/manage-brand</url-pattern>
+    </servlet-mapping>
     <welcome-file-list>
         <welcome-file>home</welcome-file>
     </welcome-file-list>
