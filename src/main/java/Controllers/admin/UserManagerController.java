@@ -1,39 +1,31 @@
 package Controllers.admin;
 
+import java.io.IOException;
+import java.util.List;
+
 import DALs.CustomerDAO;
 import Model.Customer;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.List;
 
-public class AdminControllers extends HttpServlet {
+public class UserManagerController extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        String action;
-        switch (request.getServletPath()) {
-            case "/admin/manage-users":
-                action = "manage-users";
-                break;
-            default:
-                action = request.getParameter("action");
-                break;
-        }
-        if (action == null) {
-            action = "dashboard";
-        }
+        String path = request.getServletPath();
 
-        switch (action) {
-            case "manage-users":
+        switch (path) {
+            case "/admin/dashboard":
+                request.getRequestDispatcher("/views/admin/dashboard.jsp").forward(request, response);
+                break;
+            case "/admin/manage-users":
                 showManageUsers(request, response);
                 break;
-            case "dashboard":
             default:
-                request.getRequestDispatcher("/views/admin/dashboard.jsp").forward(request, response);
+                response.sendError(HttpServletResponse.SC_NOT_FOUND);
                 break;
         }
     }
@@ -41,25 +33,15 @@ public class AdminControllers extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        String action;
-        switch (request.getServletPath()) {
-            case "/admin/update-user-status":
-                action = "update-user-status";
-                break;
-            default:
-                action = request.getParameter("action");
-                break;
-        }
-        if (action == null) {
-            action = "";
-        }
+        request.setCharacterEncoding("UTF-8");
+        String path = request.getServletPath();
 
-        switch (action) {
-            case "update-user-status":
+        switch (path) {
+            case "/admin/update-user-status":
                 updateUserStatus(request, response);
                 break;
             default:
-                doGet(request, response);
+                response.sendError(HttpServletResponse.SC_NOT_FOUND);
                 break;
         }
     }
@@ -76,23 +58,20 @@ public class AdminControllers extends HttpServlet {
             throws IOException {
         String idParam = request.getParameter("id");
         String statusParam = request.getParameter("status");
+
         if (idParam == null || statusParam == null) {
             response.sendRedirect(request.getContextPath() + "/admin/manage-users");
             return;
         }
 
-        int userId;
         try {
-            userId = Integer.parseInt(idParam);
+            int userId = Integer.parseInt(idParam);
+            boolean targetStatus = Boolean.parseBoolean(statusParam);
+            CustomerDAO customerDAO = new CustomerDAO();
+            customerDAO.updateCustomerStatus(userId, targetStatus);
+            response.sendRedirect(request.getContextPath() + "/admin/manage-users?success=update");
         } catch (NumberFormatException ex) {
-            response.sendRedirect(request.getContextPath() + "/admin/manage-users");
-            return;
+            response.sendRedirect(request.getContextPath() + "/admin/manage-users?error=updateFailed");
         }
-
-        boolean targetStatus = Boolean.parseBoolean(statusParam);
-        CustomerDAO customerDAO = new CustomerDAO();
-        customerDAO.updateCustomerStatus(userId, targetStatus);
-
-        response.sendRedirect(request.getContextPath() + "/admin/manage-users");
     }
 }

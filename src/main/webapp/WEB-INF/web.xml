@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <web-app version="5.0" xmlns="https://jakarta.ee/xml/ns/jakartaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/web-app_5_0.xsd">
     <servlet>
-        <servlet-name>AdminControllers</servlet-name>
-        <servlet-class>Controllers.admin.AdminControllers</servlet-class>
+        <servlet-name>UserManagerController</servlet-name>
+        <servlet-class>Controllers.admin.UserManagerController</servlet-class>
     </servlet>
     <servlet>
         <servlet-name>ProfileController</servlet-name>
@@ -52,28 +52,36 @@
         <servlet-name>BrandController</servlet-name>
         <servlet-class>Controllers.admin.BrandController</servlet-class>
     </servlet>
-    <servlet-mapping>
-        <servlet-name>AdminControllers</servlet-name>
-        <url-pattern>/AdminControllers</url-pattern>
-    </servlet-mapping>
     <servlet>
-        <servlet-name>CatagoryController</servlet-name>
-        <servlet-class>Controllers.admin.CatagoryController</servlet-class>
+        <servlet-name>CategoryController</servlet-name>
+        <servlet-class>Controllers.admin.CategoryController</servlet-class>
     </servlet>
     <servlet-mapping>
-        <servlet-name>CatagoryController</servlet-name>
+        <servlet-name>UserManagerController</servlet-name>
+        <url-pattern>/admin/dashboard</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>UserManagerController</servlet-name>
+        <url-pattern>/admin/manage-users</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>UserManagerController</servlet-name>
+        <url-pattern>/admin/update-user-status</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>CategoryController</servlet-name>
         <url-pattern>/admin/manage-category</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
-        <servlet-name>CatagoryController</servlet-name>
+        <servlet-name>CategoryController</servlet-name>
         <url-pattern>/admin/add-category</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
-        <servlet-name>CatagoryController</servlet-name>
+        <servlet-name>CategoryController</servlet-name>
         <url-pattern>/admin/update-category</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
-        <servlet-name>CatagoryController</servlet-name>
+        <servlet-name>CategoryController</servlet-name>
         <url-pattern>/admin/delete-category</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
@@ -107,18 +115,6 @@
     <servlet-mapping>
         <servlet-name>StaffController</servlet-name>
         <url-pattern>/StaffController</url-pattern>
-    </servlet-mapping>
-    <servlet-mapping>
-        <servlet-name>AdminControllers</servlet-name>
-        <url-pattern>/admin/dashboard</url-pattern>
-    </servlet-mapping>
-    <servlet-mapping>
-        <servlet-name>AdminControllers</servlet-name>
-        <url-pattern>/admin/manage-users</url-pattern>
-    </servlet-mapping>
-    <servlet-mapping>
-        <servlet-name>AdminControllers</servlet-name>
-        <url-pattern>/admin/update-user-status</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>StaffController</servlet-name>
