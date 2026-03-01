@@ -1207,26 +1207,26 @@ textarea.form-control {
         gap: 15px;
         text-align: center;
     }
-    
+
     .address-card-header {
         flex-direction: column;
         gap: 10px;
     }
-    
+
     .address-actions {
         width: 100%;
         justify-content: center;
     }
-    
+
     .address-card {
         margin-bottom: 15px;
     }
-    
+
     .address-form-container {
         margin: 20px;
         padding: 15px;
     }
-    
+
     .address-form-actions {
         flex-direction: column;
     }

@@ -153,11 +153,11 @@
                                         <i class="fas fa-plus"></i> Add New Address
                                     </a>
                                 </div>
-                                
+
                                 <c:if test="${not empty profileMessage}">
                                     <div class="alert alert-info">${profileMessage}</div>
                                 </c:if>
-                                
+
                                 <div class="address-list">
                                     <c:choose>
                                         <c:when test="${empty addresses}">
@@ -188,8 +188,7 @@
                                                                     <a href="${pageContext.request.contextPath}/address?action=edit&id=${addr.addressId}" 
                                                                        class="btn btn-sm btn-outline-secondary">Edit</a>
                                                                     <a href="${pageContext.request.contextPath}/address?action=delete&id=${addr.addressId}" 
-                                                                       class="btn btn-sm btn-outline-danger" 
-                                                                       onclick="return confirm('Are you sure you want to delete this address?')">
+                                                                       class="btn btn-sm btn-outline-danger">
                                                                         Delete
                                                                     </a>
                                                                 </div>
