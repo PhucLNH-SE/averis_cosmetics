@@ -26,12 +26,12 @@ public class SendVerifyEmailController extends HttpServlet {
         Customer customer = (Customer) session.getAttribute("customer");
         if (customer.getEmail() == null || customer.getEmail().trim().isEmpty()) {
             session.setAttribute("profileMessage", "Bạn chưa có email. Vui lòng cập nhật email trong profile.");
-            response.sendRedirect(request.getContextPath() + "/CustomerController?action=view&tab=profile");
+            response.sendRedirect(request.getContextPath() + "/profile?action=view&tab=profile");
             return;
         }
         if (Boolean.TRUE.equals(customer.getEmailVerified())) {
             session.setAttribute("profileMessage", "Email của bạn đã được xác thực.");
-            response.sendRedirect(request.getContextPath() + "/CustomerController?action=view&tab=profile");
+            response.sendRedirect(request.getContextPath() + "/profile?action=view&tab=profile");
             return;
         }
         String token = MailUtil.generateToken();
@@ -40,7 +40,7 @@ public class SendVerifyEmailController extends HttpServlet {
         String verifyLink = buildVerifyLink(request, token);
         MailUtil.sendVerificationEmail(customer.getEmail(), verifyLink);
         session.setAttribute("profileMessage", "Đã gửi email xác thực. Vui lòng kiểm tra hộp thư (và thư mục spam).");
-        response.sendRedirect(request.getContextPath() + "/CustomerController?action=view&tab=profile");
+        response.sendRedirect(request.getContextPath() + "/profile?action=view&tab=profile");
     }
 
     private String buildVerifyLink(HttpServletRequest request, String token) {

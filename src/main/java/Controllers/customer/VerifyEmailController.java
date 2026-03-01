@@ -59,19 +59,19 @@ public class VerifyEmailController extends HttpServlet {
         if (freshCustomer != null) {
             HttpSession session = request.getSession(true);
             session.setAttribute("customer", freshCustomer);
-            CartDetailDAO cartDetailDAO = new CartDetailDAO();
-            ProductDAO productDAO = new ProductDAO();
-            Map<Integer, CartItem> cart = new HashMap<>();
-            List<CartDetail> details = cartDetailDAO.getByCustomerId(freshCustomer.getCustomerId());
-            for (CartDetail d : details) {
-                ProductVariant v = productDAO.getVariantById(d.getVariantId());
-                if (v != null) {
-                    cart.put(d.getVariantId(), new CartItem(v, d.getQuantity()));
-                }
-            }
-            session.setAttribute("cart", cart);
+//            CartDetailDAO cartDetailDAO = new CartDetailDAO();
+//            ProductDAO productDAO = new ProductDAO();
+//            Map<Integer, CartItem> cart = new HashMap<>();
+//            List<CartDetail> details = cartDetailDAO.getByCustomerId(freshCustomer.getCustomerId());
+//            for (CartDetail d : details) {
+//                ProductVariant v = productDAO.getVariantById(d.getVariantId());
+//                if (v != null) {
+//                    cart.put(d.getVariantId(), new CartItem(v, d.getQuantity()));
+//                }
+//            }
+//            session.setAttribute("cart", cart);
             session.setAttribute("profileMessage", "Email của bạn đã được xác thực thành công.");
         }
-        response.sendRedirect(request.getContextPath() + "/CustomerController?action=view&tab=profile");
+        response.sendRedirect(request.getContextPath() + "/profile?action=view&tab=profile");
     }
 }

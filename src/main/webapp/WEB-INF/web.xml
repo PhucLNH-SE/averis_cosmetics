@@ -5,8 +5,8 @@
         <servlet-class>Controllers.admin.AdminControllers</servlet-class>
     </servlet>
     <servlet>
-        <servlet-name>CustomerController</servlet-name>
-        <servlet-class>Controllers.customer.CustomerController</servlet-class>
+        <servlet-name>ProfileController</servlet-name>
+        <servlet-class>Controllers.customer.ProfileController</servlet-class>
     </servlet>
     <servlet>
         <servlet-name>AuthController</servlet-name>
@@ -45,8 +45,8 @@
         <url-pattern>/AdminControllers</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
-        <servlet-name>CustomerController</servlet-name>
-        <url-pattern>/CustomerController</url-pattern>
+        <servlet-name>ProfileController</servlet-name>
+        <url-pattern>/profile</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>AuthController</servlet-name>

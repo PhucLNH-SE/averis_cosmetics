@@ -25,28 +25,28 @@
                                 <div class="info-value">${customer.username}</div>
                             </div>
                             <a class="${tab == null || tab == 'profile' ? 'active' : ''}"
-                               href="${pageContext.request.contextPath}/CustomerController?action=view&tab=profile">
+                               href="${pageContext.request.contextPath}/profile?action=view&tab=profile">
                                 Profile
                             </a>
                         </li>
 
                         <li>
                             <a class="${tab == 'address' ? 'active' : ''}"
-                               href="${pageContext.request.contextPath}/CustomerController?action=view&tab=address">
+                               href="${pageContext.request.contextPath}/profile?action=view&tab=address">
                                 Address
                             </a>
                         </li>
 
                         <li>
                             <a class="${tab == 'orders' ? 'active' : ''}"
-                               href="${pageContext.request.contextPath}/CustomerController?action=view&tab=orders">
+                               href="${pageContext.request.contextPath}/profile?action=view&tab=orders">
                                 My Orders
                             </a>
                         </li>
 
                         <li>
                             <a class="${tab == 'password' ? 'active' : ''}"
-                               href="${pageContext.request.contextPath}/CustomerController?action=view&tab=password">
+                               href="${pageContext.request.contextPath}/profile?action=view&tab=password">
                                 Change password
                             </a>
                         </li>
@@ -128,7 +128,7 @@
                                     </div>
 
                                     <div style="text-align:right; margin-top:20px;">
-                                        <a href="<%=request.getContextPath()%>/CustomerController?action=edit"
+                                        <a href="<%=request.getContextPath()%>/profile?action=edit"
                                            class="btn-edit-profile">
                                             Edit Profile
                                         </a>
@@ -219,7 +219,7 @@
 
 
 <c:when test="${tab == 'password'}">
-     <form action="${pageContext.request.contextPath}/CustomerController?action=changePassword"
+     <form action="${pageContext.request.contextPath}/profile?action=changePassword"
               method="post">
    
                   
@@ -252,7 +252,7 @@
                   
                     <div class="btns">
                         <button type="submit">Save</button>
-                        <a class="linkbtn" href="${pageContext.request.contextPath}/CustomerController?action=view">Cancel</a>
+                        <a class="linkbtn" href="${pageContext.request.contextPath}/profile?action=view">Cancel</a>
                     </div>
 
                 </div> 

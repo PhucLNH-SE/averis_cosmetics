@@ -304,7 +304,7 @@
         Object customerObj = session.getAttribute("customer"); 
         if (customerObj != null) { 
     %>
-        <a class="icon" href="<%=request.getContextPath()%>/CustomerController?action=view">Welcome, <%= ((Model.Customer)customerObj).getUsername() %>!</a>
+        <a class="icon" href="<%=request.getContextPath()%>/profile?action=view">Welcome, <%= ((Model.Customer)customerObj).getUsername() %>!</a>
         <a class="icon" href="<%=request.getContextPath()%>/logout">Logout</a>
     <% 
         } else { 
