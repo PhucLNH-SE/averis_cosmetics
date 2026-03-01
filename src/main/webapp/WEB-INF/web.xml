@@ -52,6 +52,14 @@
         <servlet-name>ResetPasswordController</servlet-name>
         <servlet-class>Controllers.customer.ResetPasswordController</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>BrandController</servlet-name>
+        <servlet-class>Controllers.admin.BrandController</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>CategoryController</servlet-name>
+        <servlet-class>Controllers.admin.CategoryController</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>UserManagerController</servlet-name>
         <url-pattern>/admin/dashboard</url-pattern>
