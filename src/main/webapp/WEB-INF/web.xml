@@ -40,6 +40,14 @@
         <servlet-name>AddressController</servlet-name>
         <servlet-class>Controllers.customer.AddressController</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>ForgetPasswordController</servlet-name>
+        <servlet-class>Controllers.customer.ForgetPasswordController</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>ResetPasswordController</servlet-name>
+        <servlet-class>Controllers.customer.ResetPasswordController</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>AdminControllers</servlet-name>
         <url-pattern>/AdminControllers</url-pattern>
@@ -99,6 +107,14 @@
     <welcome-file-list>
         <welcome-file>home</welcome-file>
     </welcome-file-list>
+    <servlet-mapping>
+        <servlet-name>ForgetPasswordController</servlet-name>
+        <url-pattern>/ForgetPasswordController</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>ResetPasswordController</servlet-name>
+        <url-pattern>/ResetPasswordController</url-pattern>
+    </servlet-mapping>
     <session-config>
         <session-timeout>
             30
