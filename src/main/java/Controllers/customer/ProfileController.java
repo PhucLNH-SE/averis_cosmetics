@@ -12,10 +12,15 @@ import java.util.List;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.http.Part;
+import java.io.File;
+import java.nio.file.Paths;
+import java.sql.SQLException;
 import java.time.LocalDate;
 import org.mindrot.jbcrypt.BCrypt;
 
@@ -23,8 +28,58 @@ import org.mindrot.jbcrypt.BCrypt;
  *
  * @author lengu
  */
+@MultipartConfig
 public class ProfileController extends HttpServlet {
+ private void changeAvatar(HttpServletRequest request,
+                          HttpServletResponse response)
+        throws ServletException, IOException {
 
+    Part part = request.getPart("avatar"); // name="avatar"
+
+
+    if (part == null || part.getSize() == 0) {
+        response.sendRedirect(request.getContextPath() + "/profile?action=view");
+        return;
+    }
+
+    // Lấy tên file gốc
+    String fileName = Paths.get(part.getSubmittedFileName())
+                           .getFileName()
+                           .toString();
+
+    // Thư mục lưu avatar
+    String uploadDir = getServletContext().getRealPath("/assets/avatar");
+
+    File dir = new File(uploadDir);
+    if (!dir.exists()) {
+        dir.mkdirs();
+    }
+
+    // Tạo tên file mới tránh trùng
+    String newFileName = System.currentTimeMillis() + "_" + fileName;
+
+    String fullPath = uploadDir + File.separator + newFileName;
+
+    // Lưu file
+    part.write(fullPath);
+
+    // Update DB
+    Customer c = (Customer) request.getSession().getAttribute("customer");
+
+    try {
+        CustomerDAO customerDAO = new CustomerDAO();
+        customerDAO.updateAvatar(c.getCustomerId(), newFileName);
+
+        // cập nhật lại session
+        c.setAvatar(newFileName);
+        request.getSession().setAttribute("customer", c);
+
+    } catch (SQLException e) {
+        throw new ServletException(e);
+    }
+
+    response.sendRedirect(request.getContextPath() + "/profile?action=view");
+}
     private void showProfilePage(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
@@ -250,6 +305,7 @@ if (ok) {
         Customer customer = (Customer) session.getAttribute("customer");
 
         String action = request.getParameter("action");
+    
         if (action == null) {
             action = "";
         }
@@ -261,6 +317,9 @@ if (ok) {
             case "changePassword":
                 changePassword(request, response, customer);
                 break;
+                case "changeAvatar":
+    changeAvatar(request, response);
+    break;
             default:
                 response.sendError(HttpServletResponse.SC_BAD_REQUEST);
         }

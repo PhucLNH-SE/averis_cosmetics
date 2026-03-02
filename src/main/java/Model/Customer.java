@@ -12,7 +12,11 @@ import java.time.LocalDateTime;
  *
  * @author Admin
  */
+
 public class Customer {
+    private String avatar;
+
+
     private int customerId;               
     private String username;              
     private String fullName;                
@@ -31,6 +35,31 @@ public class Customer {
     private Boolean authTokenUsed;   
 
     public Customer() {
+    }
+
+    public Customer(String avatar, int customerId, String username, String fullName, String email, String password, String gender, LocalDate dateOfBirth, Boolean status, Boolean emailVerified, String authToken, String authTokenType, LocalDateTime authTokenExpiredAt, Boolean authTokenUsed) {
+        this.avatar = avatar;
+        this.customerId = customerId;
+        this.username = username;
+        this.fullName = fullName;
+        this.email = email;
+        this.password = password;
+        this.gender = gender;
+        this.dateOfBirth = dateOfBirth;
+        this.status = status;
+        this.emailVerified = emailVerified;
+        this.authToken = authToken;
+        this.authTokenType = authTokenType;
+        this.authTokenExpiredAt = authTokenExpiredAt;
+        this.authTokenUsed = authTokenUsed;
+    }
+
+    public String getAvatar() {
+        return avatar;
+    }
+
+    public void setAvatar(String avatar) {
+        this.avatar = avatar;
     }
 
     public int getCustomerId() {
@@ -137,21 +166,6 @@ public class Customer {
         this.authTokenUsed = authTokenUsed;
     }
 
-    public Customer(int customerId, String username, String fullName, String email, String password, String gender, LocalDate dateOfBirth, Boolean status, Boolean emailVerified, String authToken, String authTokenType, LocalDateTime authTokenExpiredAt, Boolean authTokenUsed) {
-        this.customerId = customerId;
-        this.username = username;
-        this.fullName = fullName;
-        this.email = email;
-        this.password = password;
-        this.gender = gender;
-        this.dateOfBirth = dateOfBirth;
-        this.status = status;
-        this.emailVerified = emailVerified;
-        this.authToken = authToken;
-        this.authTokenType = authTokenType;
-        this.authTokenExpiredAt = authTokenExpiredAt;
-        this.authTokenUsed = authTokenUsed;
-    }
-
+  
     
 }

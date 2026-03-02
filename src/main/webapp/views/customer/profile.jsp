@@ -14,10 +14,30 @@
 
                 <div class="account-card">
 
-                    <div class="account-avatar">
-                        <div class="avatar-circle"></div>
-                    </div>
+<form action="${pageContext.request.contextPath}/profile"
+      method="post"
+      enctype="multipart/form-data">
 
+    <input type="hidden" name="action" value="changeAvatar">
+
+    <div class="account-avatar">
+        <label class="avatar-circle">
+
+            <!-- avatar hiện tại -->
+           <img id="avatarPreview"
+     src="${pageContext.request.contextPath}/assets/avatar/${empty sessionScope.customer.avatar ? 'default.png' : sessionScope.customer.avatar}"
+     style="width:100%;height:100%;border-radius:50%;object-fit:cover;">
+            <input type="file"
+                   id="avatarInput"
+                   name="avatar"
+                   accept="image/*"
+                   hidden
+                   onchange="this.form.submit()">
+
+        </label>
+    </div>
+
+</form>
                     <ul class="account-menu">
                         <li>
                             <div class="profile-header">
@@ -269,5 +289,22 @@
         </div>
 
         <%@include file="/assets/footer.jsp" %>
+            <script>
+const input = document.getElementById("avatarInput");
+const preview = document.getElementById("avatarPreview");
+
+input.addEventListener("change", function () {
+    const file = this.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function (e) {
+        preview.src = e.target.result;
+        preview.style.display = "block";
+    };
+    reader.readAsDataURL(file);
+});
+</script>
     </body>
+  
 </html>

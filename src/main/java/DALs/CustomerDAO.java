@@ -5,6 +5,7 @@ import Model.Customer;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.sql.Types;
@@ -15,7 +16,16 @@ import java.util.List;
 import org.mindrot.jbcrypt.BCrypt;
 
 public class CustomerDAO extends DBContext {
+public void updateAvatar(int customerId, String avatar) throws SQLException {
 
+    String sql = "UPDATE Customers SET avatar = ? WHERE customer_id = ?";
+
+    try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        ps.setString(1, avatar);
+        ps.setInt(2, customerId);
+        ps.executeUpdate();
+    }
+}
     private static final String TYPE_EMAIL_VERIFY = "EMAIL_VERIFY";
 
     public Customer getCustomerByUsername(String username) {
@@ -136,7 +146,7 @@ public class CustomerDAO extends DBContext {
         customer.setAuthTokenType(rs.getString("auth_token_type"));
         customer.setAuthTokenExpiredAt(rs.getObject("auth_token_expired_at", LocalDateTime.class));
         customer.setAuthTokenUsed(rs.getBoolean("auth_token_used"));
-
+        customer.setAvatar(rs.getString("avatar"));
         return customer;
     }
     
