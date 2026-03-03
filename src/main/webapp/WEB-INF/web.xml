@@ -25,6 +25,14 @@
         <servlet-class>Controllers.staff.StaffController</servlet-class>
     </servlet>
     <servlet>
+        <servlet-name>StaffBrandController</servlet-name>
+        <servlet-class>Controllers.staff.BrandController</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>StaffCategoryController</servlet-name>
+        <servlet-class>Controllers.staff.CategoryController</servlet-class>
+    </servlet>
+    <servlet>
         <servlet-name>CartController</servlet-name>
         <servlet-class>Controllers.customer.CartController</servlet-class>
     </servlet>
@@ -135,6 +143,14 @@
     <servlet-mapping>
         <servlet-name>StaffController</servlet-name>
         <url-pattern>/staff/dashboard</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>StaffBrandController</servlet-name>
+        <url-pattern>/staff/manage-brand</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>StaffCategoryController</servlet-name>
+        <url-pattern>/staff/manage-category</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>CartController</servlet-name>
