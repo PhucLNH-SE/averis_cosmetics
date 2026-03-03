@@ -84,19 +84,21 @@
             border-bottom: none;
         }
 
-        /* Ảnh sản phẩm placeholder */
+        /* Ảnh sản phẩm placeholder - ĐÃ ĐƯỢC FIX CỨNG SIZE 100x100 */
         .item-image {
             width: 100px;
+            min-width: 100px; /* Ép cứng chiều rộng tối thiểu */
             height: 100px;
-            background-color: var(--surface);
-            border-radius: 4px;
+            background-color: var(--bg);
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 10px;
             color: var(--muted);
             border: 1px solid var(--border);
-            overflow: hidden; /* Để ảnh bo góc theo khung */
+            overflow: hidden; 
+            flex-shrink: 0; /* CỰC KỲ QUAN TRỌNG: Ngăn flexbox tự động phóng to ảnh */
         }
 
         .item-details {
@@ -321,13 +323,15 @@
                         <div class="item-image">
                             <c:choose>
                                 <c:when test="${not empty entry.value.variant.imageUrl}">
-                                    <img src="${pageContext.request.contextPath}/assets/img/${entry.value.variant.imageUrl}" 
+                                    <c:set var="cartImgFolder" value="${entry.value.variant.imageUrl.contains('-') ? 'products/' : ''}" />
+                                    <img src="${pageContext.request.contextPath}/assets/img/${cartImgFolder}${entry.value.variant.imageUrl}" 
                                          alt="Product" 
-                                         style="width:100%; height:100%; object-fit:cover;">
+                                         style="width:100%; height:100%; object-fit:contain; padding: 5px;"
+                                         onerror="this.src='${pageContext.request.contextPath}/assets/img/default-product.jpg';">
                                 </c:when>
                                 <c:otherwise>
-                                    <img src="${pageContext.request.contextPath}/assets/img/Logo.png" alt="No Image" 
-                                         style="width:60%; height:60%; object-fit:contain; opacity:0.5;">
+                                    <img src="${pageContext.request.contextPath}/assets/img/default-product.jpg" alt="No Image" 
+                                         style="width:100%; height:100%; object-fit:contain; padding: 5px;">
                                 </c:otherwise>
                             </c:choose>
                         </div>
@@ -339,7 +343,7 @@
                                     <span style="color:var(--muted); font-weight:400;">(${entry.value.variant.variantName})</span>
                                 </a>
                                 <div class="item-price">
-                                    <fmt:formatNumber value="${entry.value.variant.price}" type="currency" currencySymbol="₫"/>
+                                    <fmt:formatNumber value="${entry.value.variant.price}" type="currency" currencySymbol="$"/>
                                 </div>
                             </div>
 
@@ -368,7 +372,7 @@
                         </div>
                         
                         <div style="font-weight:700; font-size:14px; align-self:flex-end; display:none;">
-                           <fmt:formatNumber value="${entry.value.subtotal}" type="currency" currencySymbol="₫"/>
+                           <fmt:formatNumber value="${entry.value.subtotal}" type="currency" currencySymbol="$"/>
                         </div>
                     </div>
                 </c:forEach>
@@ -377,16 +381,16 @@
             <div class="cart-sidebar">
                 <div class="summary-row">
                     <span>Tạm tính:</span>
-                    <span style="font-weight:600"><fmt:formatNumber value="${total}" type="currency" currencySymbol="₫"/></span>
+                    <span style="font-weight:600"><fmt:formatNumber value="${total}" type="currency" currencySymbol="$"/></span>
                 </div>
                 <div class="summary-row">
                     <span>Giảm giá:</span>
-                    <span>0₫</span>
+                    <span>$0.00</span>
                 </div>
                 
                 <div class="summary-total">
                     <span>Tổng cộng:</span>
-                    <span><fmt:formatNumber value="${total}" type="currency" currencySymbol="₫"/></span>
+                    <span><fmt:formatNumber value="${total}" type="currency" currencySymbol="$"/></span>
                 </div>
                 
                 <div style="text-align:right; font-size:12px; color:var(--muted); margin-top:5px;">
