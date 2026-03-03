@@ -5,7 +5,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Link không hợp lệ - Averis Cosmetics</title>
+    <title>Invalid Link - Averis Cosmetics</title>
 
     <link rel="stylesheet"
           href="${pageContext.request.contextPath}/assets/css/style.css">
@@ -18,27 +18,28 @@
     <div class="auth-container">
 
         <div class="auth-header">
-            <h2 style="color: #e74c3c;">Link không hợp lệ</h2>
-            <p>Link đặt lại mật khẩu đã hết hạn hoặc không tồn tại.</p>
+            <h2 style="color: #e74c3c;">Invalid link</h2>
+            <p>The password reset link is expired or does not exist.</p>
         </div>
 
         <div class="error-message" style="text-align: center; padding: 15px;">
-            Vui lòng thực hiện lại chức năng quên mật khẩu.
+            Please try the forgot password feature again.
         </div>
 
         <div class="auth-links">
             <p>
                 <a href="${pageContext.request.contextPath}/ForgetPasswordController">
-                    Gửi lại link đặt lại mật khẩu
+                    Resend password reset link
                 </a>
             </p>
             <p>
-                hoặc
+                or
                 <a href="${pageContext.request.contextPath}/auth">
-                    Đăng nhập
+                    Sign in
                 </a>
             </p>
         </div>
+
     </div>
 
     <%@include file="/assets/footer.jsp" %>

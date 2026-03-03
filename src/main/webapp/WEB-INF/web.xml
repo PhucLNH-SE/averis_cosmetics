@@ -60,6 +60,14 @@
         <servlet-name>CategoryController</servlet-name>
         <servlet-class>Controllers.admin.CategoryController</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>QuantityManagerController</servlet-name>
+        <servlet-class>Controllers.admin.QuantityManagerController</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>PQuantityManagerController</servlet-name>
+        <servlet-class>Controllers.admin.PQuantityManagerController</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>UserManagerController</servlet-name>
         <url-pattern>/admin/dashboard</url-pattern>
@@ -148,7 +156,7 @@
         <servlet-name>AddressController</servlet-name>
         <url-pattern>/address</url-pattern>
     </servlet-mapping>
-<!--    <filter-mapping>
+    <!--    <filter-mapping>
         <filter-name>ManagerAuthFilter</filter-name>
         <url-pattern>/admin/*</url-pattern>
     </filter-mapping>
@@ -190,6 +198,14 @@
     <servlet-mapping>
         <servlet-name>ResetPasswordController</servlet-name>
         <url-pattern>/ResetPasswordController</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>QuantityManagerController</servlet-name>
+        <url-pattern>/QuantityManagerController</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>PQuantityManagerController</servlet-name>
+        <url-pattern>/PQuantityManagerController</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>

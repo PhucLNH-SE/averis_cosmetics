@@ -64,7 +64,7 @@ public class ResetPasswordController extends HttpServlet {
         boolean ok = dao.updatePasswordByToken(token, newPassword);
 
         if (!ok) {
-            request.setAttribute("error", "Token không hợp lệ hoặc đã hết hạn.");
+            request.setAttribute("error", "The token is invalid or has expired.");
             request.getRequestDispatcher("/views/customer/resetpassword.jsp")
                     .forward(request, response);
             return;

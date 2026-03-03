@@ -42,7 +42,7 @@ public class ForgetPasswordController extends HttpServlet {
 
         if (c == null) {
             request.setAttribute("error",
-                    "Email không tồn tại hoặc chưa được xác thực.");
+                    "The email address does not exist or has not been verified.");
             request.getRequestDispatcher("/views/customer/forgetpassword.jsp")
                     .forward(request, response);
             return;
@@ -60,7 +60,7 @@ public class ForgetPasswordController extends HttpServlet {
 
             request.setAttribute(
                     "error",
-                    "Không thể tạo link reset. Vui lòng thử lại."
+                    "Unable to create a reset link. Please try again."
             );
             request.getRequestDispatcher("/views/customer/forgetpassword.jsp")
                     .forward(request, response);
@@ -76,7 +76,7 @@ public class ForgetPasswordController extends HttpServlet {
         MailUtil.sendResetPasswordEmail(email, link);
 
         request.setAttribute("msg",
-                "Vui lòng kiểm tra email để đặt lại mật khẩu.");
+                "Please check your email to reset your password.");
         request.getRequestDispatcher("/views/customer/forgetpassword.jsp")
                 .forward(request, response);
     }

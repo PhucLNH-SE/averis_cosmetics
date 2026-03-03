@@ -468,4 +468,77 @@ public class ProductDAO extends DBContext {
 
         return list;
     }
+    public List<ProductVariant> getAllProductQuantity() {
+
+        List<ProductVariant> list = new ArrayList<>();
+
+        String sql =
+            "SELECT  " +
+            "    pv.variant_id, " +
+                "    pv.variant_name, " +
+            "    p.product_id, " +
+            "    p.name AS product_name, " +
+            "    c.name AS category_name, " +
+            "    pi.image_url, " +
+            "    pv.price, " +
+            "    p.status, " +
+            "    pv.stock " +
+            "FROM Product p " +
+            "JOIN Category c  " +
+            "    ON p.category_id = c.category_id " +
+            "LEFT JOIN Product_Image pi  " +
+            "    ON p.product_id = pi.product_id  " +
+            "   AND pi.is_main = 1 " +
+            "JOIN Product_Variant pv  " +
+            "    ON p.product_id = pv.product_id";
+
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+
+                ProductVariant v = new ProductVariant();
+
+                v.setVariantId(rs.getInt("variant_id"));
+                v.setVariantName(rs.getString("variant_name"));
+                v.setProductId(rs.getInt("product_id"));
+
+                // 3 field bạn vừa thêm trong ProductVariant
+                v.setProductName(rs.getString("product_name"));
+                v.setCategoryName(rs.getString("category_name"));
+               String img = rs.getString("image_url");
+
+if (img != null && !img.startsWith("assets/")) {
+    img = "assets/img/" + img;
+}
+
+v.setImageUrl(img);
+
+                v.setPrice(rs.getBigDecimal("price"));
+                v.setStock(rs.getInt("stock"));
+                v.setStatus(rs.getBoolean("status"));
+
+                list.add(v);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
+    public void updateStock(int variantId, int stock) {
+
+    String sql = "UPDATE Product_Variant SET stock = ? WHERE variant_id = ?";
+
+    try {
+        PreparedStatement ps = connection.prepareStatement(sql);
+        ps.setInt(1, stock);
+        ps.setInt(2, variantId);
+        ps.executeUpdate();
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+}
 }
