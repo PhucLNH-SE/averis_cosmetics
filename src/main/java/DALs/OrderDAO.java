@@ -73,6 +73,11 @@ public class OrderDAO extends DBContext {
                     + "WHERE variant_id = ? AND stock >= ?";
 
             for (CartItem item : items) {
+                // Kiểm tra null cho variant và price
+                if (item.getVariant() == null || item.getVariant().getPrice() == null) {
+                    throw new SQLException("Thông tin sản phẩm không hợp lệ!");
+                }
+                
                 // 2a: Insert Order_Detail
                 psDetail = conn.prepareStatement(sqlDetail);
                 psDetail.setInt(1, orderId);
@@ -167,7 +172,12 @@ public class OrderDAO extends DBContext {
                     order.setPaymentStatus(rs.getString("payment_status"));
                     order.setOrderStatus(rs.getString("order_status"));
                     order.setTotalAmount(rs.getBigDecimal("total_amount"));
-                    order.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
+                    
+                    // Xử lý null cho created_at
+                    if (rs.getTimestamp("created_at") != null) {
+                        order.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
+                    }
+                    
                     if (rs.getTimestamp("paid_at") != null) {
                         order.setPaidAt(rs.getTimestamp("paid_at").toLocalDateTime());
                     }

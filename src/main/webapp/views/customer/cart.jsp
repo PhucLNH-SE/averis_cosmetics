@@ -300,7 +300,8 @@
         
         <c:if test="${empty cart}">
             <div class="cart-main empty-cart">
-                <div class="empty-icon">🛒</div> <h3>Giỏ hàng của bạn đang trống</h3>
+                <div class="empty-icon">🛒</div> 
+                <h3>Giỏ hàng của bạn đang trống</h3>
                 <p style="color: var(--muted); margin-bottom: 24px;">Hãy chọn thêm sản phẩm để mua sắm nhé.</p>
                 <a href="${pageContext.request.contextPath}/products" class="btn-checkout" style="width: 200px; margin: 0 auto; display: inline-block;">
                     Tiếp tục mua hàng

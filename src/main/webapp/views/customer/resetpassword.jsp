@@ -5,7 +5,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Đặt lại mật khẩu - Averis Cosmetics</title>
+    <title>Reset Password - Averis Cosmetics</title>
 
     <link rel="stylesheet"
           href="${pageContext.request.contextPath}/assets/css/style.css">
@@ -18,8 +18,8 @@
     <div class="auth-container">
 
         <div class="auth-header">
-            <h2>Đặt lại mật khẩu</h2>
-            <p>Nhập mật khẩu mới</p>
+            <h2>Reset Password</h2>
+            <p>Enter your new password</p>
         </div>
 
         <!-- ERROR MESSAGE -->
@@ -35,10 +35,10 @@
             <input type="hidden" name="token" value="${token}"/>
 
             <div class="form-group">
-                <label>Mật khẩu mới</label>
+                <label>New password</label>
                 <input type="password" 
                        name="password" 
-                       placeholder="Nhập mật khẩu mới"
+                       placeholder="Enter your new password"
                        required>
                 <c:if test="${not empty errors.errorPassword}">
                     <span class="field-error">${errors.errorPassword}</span>
@@ -46,10 +46,10 @@
             </div>
 
             <div class="form-group">
-                <label>Xác nhận mật khẩu</label>
+                <label>Confirm password</label>
                 <input type="password" 
                        name="confirmPassword" 
-                       placeholder="Nhập lại mật khẩu"
+                       placeholder="Re-enter your password"
                        required>
                 <c:if test="${not empty errors.errorConfirmPassword}">
                     <span class="field-error">${errors.errorConfirmPassword}</span>
@@ -57,7 +57,7 @@
             </div>
 
             <button type="submit" class="btn-login">
-                Đặt lại mật khẩu
+                Reset password
             </button>
 
         </form>
@@ -71,9 +71,9 @@
 
         <div class="auth-links">
             <p>
-                Quay lại đăng nhập?
+                Back to login?
                 <a href="${pageContext.request.contextPath}/auth">
-                    Đăng nhập
+                    Login
                 </a>
             </p>
         </div>

@@ -8,348 +8,48 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Thanh toán | Averis Cosmetics</title>
-    
-    <style>
-        :root {
-            --bg: #fff;
-            --surface: #faf8f5;
-            --border: #e9e2d8;
-            --text: #1f2937;
-            --muted: #6b7280;
-            --accent: #b45309;
-            --accent-hover: #92400e;
-            --danger: #dc2626;
-        }
-
-        body {
-            font-family: Arial, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-        }
-
-        .checkout-container {
-            width: 92%;
-            max-width: 1200px;
-            margin: 40px auto;
-            flex: 1;
-            display: flex;
-            gap: 30px;
-            align-items: flex-start;
-        }
-
-        /* --- CỘT TRÁI: THÔNG TIN --- */
-        .checkout-main {
-            flex: 1;
-        }
-
-        .checkout-section {
-            background: #fff;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 24px;
-            margin-bottom: 24px;
-        }
-
-        .section-title {
-            font-size: 18px;
-            font-weight: 700;
-            color: var(--text);
-            margin: 0 0 20px 0;
-            padding-bottom: 12px;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .section-title .number {
-            background: var(--accent);
-            color: white;
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-        }
-
-        /* Form elements */
-        .form-row {
-            display: flex;
-            gap: 16px;
-            margin-bottom: 16px;
-        }
-
-        .form-group {
-            flex: 1;
-        }
-
-        .form-group label {
-            display: block;
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--text);
-            margin-bottom: 6px;
-        }
-
-        .form-group input,
-        .form-group select,
-        .form-group textarea {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid var(--border);
-            border-radius: 4px;
-            font-size: 14px;
-            box-sizing: border-box;
-            transition: border-color 0.2s;
-        }
-
-        .form-group input:focus,
-        .form-group select:focus,
-        .form-group textarea:focus {
-            outline: none;
-            border-color: var(--accent);
-        }
-
-        /* Saved addresses */
-        .address-list {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .address-item {
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-            padding: 16px;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .address-item:hover {
-            border-color: var(--accent);
-            background: var(--surface);
-        }
-
-        .address-item.selected {
-            border-color: var(--accent);
-            background: #fff7ed;
-        }
-
-        .address-item input[type="radio"] {
-            margin-top: 4px;
-        }
-
-        .address-details {
-            flex: 1;
-        }
-
-        .address-name {
-            font-weight: 600;
-            color: var(--text);
-            margin-bottom: 4px;
-        }
-
-        .address-text {
-            font-size: 14px;
-            color: var(--muted);
-            line-height: 1.5;
-        }
-
-        .address-default {
-            display: inline-block;
-            font-size: 12px;
-            background: var(--accent);
-            color: white;
-            padding: 2px 8px;
-            border-radius: 4px;
-            margin-top: 8px;
-        }
-
-        /* Product list in checkout */
-        .product-item {
-            display: flex;
-            gap: 16px;
-            padding: 16px 0;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .product-item:last-child {
-            border-bottom: none;
-        }
-
-        .product-image {
-            width: 80px;
-            height: 80px;
-            background: var(--surface);
-            border-radius: 4px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            flex-shrink: 0;
-        }
-
-        .product-image img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .product-info {
-            flex: 1;
-        }
-
-        .product-name {
-            font-weight: 600;
-            color: var(--text);
-            margin-bottom: 4px;
-        }
-
-        .product-variant {
-            font-size: 13px;
-            color: var(--muted);
-            margin-bottom: 8px;
-        }
-
-        .product-qty {
-            font-size: 13px;
-            color: var(--muted);
-        }
-
-        .product-price {
-            font-weight: 700;
-            color: var(--text);
-            text-align: right;
-        }
-
-        /* --- CỘT PHẢI: TỔNG KẾT --- */
-        .checkout-sidebar {
-            width: 380px;
-            position: sticky;
-            top: 20px;
-            background: #fff;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 24px;
-        }
-
-        .summary-title {
-            font-size: 18px;
-            font-weight: 700;
-            margin-bottom: 20px;
-            padding-bottom: 12px;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .summary-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 12px;
-            font-size: 14px;
-            color: var(--text);
-        }
-
-        .summary-row.discount {
-            color: #16a34a;
-        }
-
-        .summary-total {
-            border-top: 1px solid var(--border);
-            padding-top: 16px;
-            margin-top: 16px;
-            font-weight: 700;
-            font-size: 20px;
-            color: var(--accent);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .btn-place-order {
-            display: block;
-            width: 100%;
-            background: var(--accent);
-            color: white;
-            text-align: center;
-            padding: 16px 0;
-            border-radius: 4px;
-            text-decoration: none;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-top: 24px;
-            transition: background 0.2s ease;
-            border: none;
-            cursor: pointer;
-            font-size: 15px;
-        }
-
-        .btn-place-order:hover {
-            background: var(--accent-hover);
-        }
-
-        .btn-back {
-            display: block;
-            text-align: center;
-            margin-top: 16px;
-            font-size: 14px;
-            color: var(--muted);
-            text-decoration: none;
-        }
-        
-        .btn-back:hover {
-            color: var(--accent);
-            text-decoration: underline;
-        }
-
-        .payment-method-placeholder {
-            padding: 20px;
-            background: var(--surface);
-            border-radius: 6px;
-            text-align: center;
-            color: var(--muted);
-            font-style: italic;
-        }
-
-        /* Responsive */
-        @media (max-width: 900px) {
-            .checkout-container {
-                flex-direction: column;
-            }
-            .checkout-sidebar {
-                width: 100%;
-                box-sizing: border-box;
-                position: static;
-            }
-            .form-row {
-                flex-direction: column;
-                gap: 12px;
-            }
-        }
-        
-        .header-wrapper {
-            width: 100%;
-            flex-shrink: 0;
-        }
-    </style>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/checkout.css">
 </head>
 <body>
+
+    <!-- Popup Thông báo -->
+    <div class="popup-overlay" id="resultPopup">
+        <div class="popup-content">
+            <div class="popup-icon" id="popupIcon">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                </svg>
+            </div>
+            <h2 class="popup-title" id="popupTitle">Thành công!</h2>
+            <p class="popup-message" id="popupMessage">
+                Đặt hàng thành công!
+            </p>
+            <a href="${pageContext.request.contextPath}/" class="popup-btn" id="popupBtn">
+                Quay về trang chủ
+            </a>
+        </div>
+    </div>
 
     <div class="header-wrapper">
         <jsp:include page="/assets/header.jsp" />
     </div>
 
     <div class="checkout-container">
-        <form method="POST" action="${pageContext.request.contextPath}/checkout">
+        <h1 class="page-title">Thanh toán</h1>
+        
+        <c:if test="${orderSuccess}">
+            <div class="checkout-section" style="text-align: center; padding: 40px;">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 60px; height: 60px; color: var(--success); margin-bottom: 16px;">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <h2 style="color: var(--success); margin-bottom: 8px;">Đơn hàng đã được đặt thành công!</h2>
+                <p style="color: var(--muted);">Cảm ơn bạn đã mua sắm tại Averis Cosmetics.</p>
+                <a href="${pageContext.request.contextPath}/home" class="popup-btn" style="display: inline-block; margin-top: 20px;">Về trang chủ</a>
+            </div>
+        </c:if>
+        
+        <c:if test="${!orderSuccess}">
+        <form method="POST" action="${pageContext.request.contextPath}/checkout" id="checkoutForm">
         
         <!-- CỘT TRÁI -->
         <div class="checkout-main">
@@ -473,14 +173,31 @@
                 <span>Phí vận chuyển:</span>
                 <span>Miễn phí</span>
             </div>
+            
+            <!-- Voucher Section -->
+            <div class="voucher-section">
+                <div class="voucher-label">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 14.25l6-6m4.5-3.493V21.75l-3.75-1.5-3.75 1.5-3.75-1.5-3.75 1.5V4.757c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0c1.1.128 1.907 1.077 1.907 2.185zM9.75 9h.008v.008H9.75V9zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm4.125 4.5h.008v.008h-.008V13.5zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+                    </svg>
+                    Mã giảm giá
+                </div>
+                <div class="voucher-input-group">
+                    <input type="text" name="voucherCode" id="voucherCode" placeholder="Nhập mã voucher">
+                    <button type="button" id="applyVoucherBtn">Áp dụng</button>
+                </div>
+            </div>
+            
             <div class="summary-row">
                 <span>Giảm giá:</span>
-                <span class="discount">0₫</span>
+                <span class="discount" id="discountAmount">0₫</span>
             </div>
+            
+            <div class="summary-divider"></div>
             
             <div class="summary-total">
                 <span>Tổng cộng:</span>
-                <span><fmt:formatNumber value="${total}" type="currency" currencySymbol="₫"/></span>
+                <span id="totalAmount"><fmt:formatNumber value="${total}" type="currency" currencySymbol="₫"/></span>
             </div>
             
             <div style="text-align:right; font-size:12px; color:var(--muted); margin-top:5px;">
@@ -492,52 +209,109 @@
             </button>
             
             <a href="${pageContext.request.contextPath}/cart" class="btn-back">
-                &larr; Quay về giỏ hàng
+                ← Quay về giỏ hàng
             </a>
         </div>
         </form>
+        </c:if>
 
     </div>
 
     <jsp:include page="/assets/footer.jsp" />
 
     <script>
+        // Auto-select default address on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check for order success - show popup
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('success') === 'true') {
+                const orderId = urlParams.get('orderId');
+                showPopup(true, 'Đặt hàng thành công!<br>Mã đơn hàng: #' + orderId);
+                // Remove query params to prevent showing again on refresh
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+            
+            // Check for error - show popup
+            if (urlParams.get('error')) {
+                const errorMsg = decodeURIComponent(urlParams.get('error'));
+                showPopup(false, errorMsg);
+                // Remove query params
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+
+            // Auto-select default address
+            const defaultAddress = document.querySelector('input[name="addressId"][checked]');
+            if (defaultAddress) {
+                const parentItem = defaultAddress.closest('.address-item');
+                if (parentItem) {
+                    parentItem.classList.add('selected');
+                }
+            } else {
+                const firstAddress = document.querySelector('input[name="addressId"]');
+                if (firstAddress) {
+                    firstAddress.checked = true;
+                    const parentItem = firstAddress.closest('.address-item');
+                    if (parentItem) {
+                        parentItem.classList.add('selected');
+                    }
+                }
+            }
+            
+            // Voucher apply button handler (UI only)
+            document.getElementById('applyVoucherBtn').addEventListener('click', function() {
+                const voucherCode = document.getElementById('voucherCode').value.trim();
+                if (!voucherCode) {
+                    showPopup(false, 'Vui lòng nhập mã voucher!');
+                    return;
+                }
+                showPopup(false, 'Chức năng voucher sẽ sớm được cập nhật!');
+            });
+        });
+        
         // Auto-select address when clicking on address item
         document.querySelectorAll('.address-item').forEach(item => {
             item.addEventListener('click', function(e) {
-                if (e.target.type !== 'radio') {
-                    const radio = this.querySelector('input[type="radio"]');
+                const radio = this.querySelector('input[type="radio"]');
+                if (radio) {
                     radio.checked = true;
                 }
-                // Update visual selection
                 document.querySelectorAll('.address-item').forEach(i => i.classList.remove('selected'));
                 this.classList.add('selected');
             });
         });
-
-        // Form submission handler
-        document.querySelector('form').addEventListener('submit', function(e) {
-            // Check if address is selected
-            const addressSelected = document.querySelector('input[name="addressId"]:checked');
-            if (!addressSelected) {
-                e.preventDefault();
-                alert('Vui lòng chọn địa chỉ giao hàng!');
-                return false;
+        
+        // Function to show popup
+        function showPopup(success, message) {
+            const popup = document.getElementById('resultPopup');
+            const icon = document.getElementById('popupIcon');
+            const title = document.getElementById('popupTitle');
+            const msg = document.getElementById('popupMessage');
+            const btn = document.getElementById('popupBtn');
+            
+            if (!popup) return;
+            
+            if (success) {
+                icon.classList.remove('error');
+                icon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>';
+                title.textContent = 'Đặt hàng thành công!';
+                btn.style.display = 'inline-block';
+                btn.textContent = 'Quay về trang chủ';
+                btn.onclick = null;
+            } else {
+                icon.classList.add('error');
+                icon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>';
+                title.textContent = 'Đặt hàng thất bại';
+                btn.style.display = 'inline-block';
+                btn.textContent = 'Đóng';
+                btn.onclick = function() {
+                    popup.classList.remove('show');
+                    return false;
+                };
             }
             
-            // Check if payment method is selected
-            const paymentSelected = document.querySelector('input[name="paymentMethod"]:checked');
-            if (!paymentSelected) {
-                e.preventDefault();
-                alert('Vui lòng chọn phương thức thanh toán!');
-                return false;
-            }
-            
-            console.log('Form submitting...');
-            console.log('addressId:', addressSelected.value);
-            console.log('paymentMethod:', paymentSelected.value);
-            return true;
-        });
+            msg.innerHTML = message;
+            popup.classList.add('show');
+        }
     </script>
 
 </body>

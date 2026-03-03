@@ -8,6 +8,7 @@ import DALs.CustomerDAO;
 import DALs.AddressDAO;
 import Model.Customer;
 import Model.Address;
+import Utils.ValidationUtil;
 import java.util.List;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -17,6 +18,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.time.LocalDate;
+import java.util.Map;
 import org.mindrot.jbcrypt.BCrypt;
 
 /**
@@ -86,7 +88,7 @@ public class ProfileController extends HttpServlet {
 
         if (fullName == null || fullName.isBlank()) {
 
-            request.setAttribute("error", " Full name không được để trống.");
+            request.setAttribute("error", " The full name cannot be left blank.");
             request.setAttribute("customer", customer);
             request.getRequestDispatcher("/views/customer/editprofile.jsp")
                     .forward(request, response);
@@ -98,7 +100,7 @@ public class ProfileController extends HttpServlet {
             try {
                 dob = LocalDate.parse(dobStr.trim());
             } catch (Exception ex) {
-                request.setAttribute("error", "Date of birth không đúng định dạng.");
+                request.setAttribute("error", "Date of birth is not in the correct format.");
                 request.setAttribute("customer", customer);
                 request.getRequestDispatcher("/views/customer/editprofile.jsp")
                         .forward(request, response);
@@ -118,7 +120,7 @@ public class ProfileController extends HttpServlet {
             request.getSession().setAttribute("customer", customer);
             response.sendRedirect(request.getContextPath() + "/CustomerController?action=view");
         } else {
-            request.setAttribute("error", "Cập nhật thất bại.");
+            request.setAttribute("error", "Update failed.");
             request.setAttribute("customer", customer);
             request.getRequestDispatcher("/views/customer/editPprofile.jsp")
                     .forward(request, response);
@@ -140,46 +142,50 @@ public class ProfileController extends HttpServlet {
             || newPassword == null || newPassword.isBlank()
             || confirmPassword == null || confirmPassword.isBlank()) {
 
-        request.setAttribute("error", "Vui lòng nhập đầy đủ thông tin.");
+        request.setAttribute("error", "Please enter all the required information.");
         request.getRequestDispatcher("/views/customer/profile.jsp")
                 .forward(request, response);
         return;
     }
 
-    if (newPassword.length() < 6) {
-        request.setAttribute("error", "Mật khẩu mới phải có ít nhất 6 ký tự.");
-        request.getRequestDispatcher("/views/customer/profile.jsp")
-                .forward(request, response);
-        return;
-    }
+   Map<String, String> errors =
+        ValidationUtil.validateResetPassword(newPassword, confirmPassword);
+
+if (!errors.isEmpty()) {
+    request.setAttribute("errors", errors);
+    request.setAttribute("tab", "password");
+    request.getRequestDispatcher("/views/customer/profile.jsp")
+            .forward(request, response);
+    return;
+}
 
     CustomerDAO dao = new CustomerDAO();
 
     String currentHash = dao.getPasswordByCustomerId(customer.getCustomerId());
 
     if (currentHash == null) {
-        request.setAttribute("error", "Không lấy được mật khẩu hiện tại.");
+        request.setAttribute("error", "Unable to retrieve the current password.");
         request.getRequestDispatcher("/views/customer/profile.jsp")
                 .forward(request, response);
         return;
     }
 
     if (!BCrypt.checkpw(oldPassword, currentHash)) {
-        request.setAttribute("error", "Mật khẩu cũ không đúng.");
+        request.setAttribute("error", "The old password is incorrect.");
         request.getRequestDispatcher("/views/customer/profile.jsp")
                 .forward(request, response);
         return;
     }
 
     if (BCrypt.checkpw(newPassword, currentHash)) {
-        request.setAttribute("error", "Mật khẩu mới không được trùng mật khẩu cũ.");
+        request.setAttribute("error", "The new password must not be the same as the old password.");
         request.getRequestDispatcher("/views/customer/profile.jsp")
                 .forward(request, response);
         return;
     }
 
     if (!newPassword.equals(confirmPassword)) {
-        request.setAttribute("error", "Mật khẩu xác nhận không khớp.");
+        request.setAttribute("error", "The verification password doesn't match.");
         request.getRequestDispatcher("/views/customer/profile.jsp")
                 .forward(request, response);
         return;
@@ -193,13 +199,13 @@ public class ProfileController extends HttpServlet {
 
 
 if (ok) {
-    request.setAttribute("profileMessage", "Đổi mật khẩu thành công.");
+    request.setAttribute("profileMessage", "Password changed successfully.");
     request.setAttribute("tab", "password");
 
     request.getRequestDispatcher("/views/customer/profile.jsp")
             .forward(request, response);
 } else {
-    request.setAttribute("error", "Đổi mật khẩu thất bại.");
+    request.setAttribute("error", "Password change failed.");
     request.setAttribute("tab", "password");
 
     request.getRequestDispatcher("/views/customer/profile.jsp")
