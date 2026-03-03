@@ -16,33 +16,81 @@ public class ProductVariant {
     // --- CÁC TRƯỜNG MỚI THÊM (để hiển thị trong Cart) ---
     private String productName; // Tên sản phẩm gốc (VD: Kem dưỡng ẩm A)
     private String imageUrl;    // Đường dẫn ảnh đại diện
+        private String categoryName;
     // ----------------------------------------------------
 
-    public ProductVariant() {}
+    public ProductVariant(int variantId, int productId, String variantName, String sku, BigDecimal price, int stock, boolean status, String productName, String imageUrl, String categoryName) {
+        this.variantId = variantId;
+        this.productId = productId;
+        this.variantName = variantName;
+        this.sku = sku;
+        this.price = price;
+        this.stock = stock;
+        this.status = status;
+        this.productName = productName;
+        this.imageUrl = imageUrl;
+        this.categoryName = categoryName;
+    }
 
-    // getters/setters cũ
-    public int getVariantId() { return variantId; }
-    public void setVariantId(int variantId) { this.variantId = variantId; }
+    public ProductVariant() {
+    }
 
-    public int getProductId() { return productId; }
-    public void setProductId(int productId) { this.productId = productId; }
+    public int getVariantId() {
+        return variantId;
+    }
 
-    public String getVariantName() { return variantName; }
-    public void setVariantName(String variantName) { this.variantName = variantName; }
+    public void setVariantId(int variantId) {
+        this.variantId = variantId;
+    }
 
-    public String getSku() { return sku; }
-    public void setSku(String sku) { this.sku = sku; }
+    public int getProductId() {
+        return productId;
+    }
 
-    public BigDecimal getPrice() { return price; }
-    public void setPrice(BigDecimal price) { this.price = price; }
+    public void setProductId(int productId) {
+        this.productId = productId;
+    }
 
-    public int getStock() { return stock; }
-    public void setStock(int stock) { this.stock = stock; }
+    public String getVariantName() {
+        return variantName;
+    }
 
-    public boolean isStatus() { return status; }
-    public void setStatus(boolean status) { this.status = status; }
+    public void setVariantName(String variantName) {
+        this.variantName = variantName;
+    }
 
-    // --- GETTER/SETTER CHO TRƯỜNG MỚI ---
+    public String getSku() {
+        return sku;
+    }
+
+    public void setSku(String sku) {
+        this.sku = sku;
+    }
+
+    public BigDecimal getPrice() {
+        return price;
+    }
+
+    public void setPrice(BigDecimal price) {
+        this.price = price;
+    }
+
+    public int getStock() {
+        return stock;
+    }
+
+    public void setStock(int stock) {
+        this.stock = stock;
+    }
+
+    public boolean isStatus() {
+        return status;
+    }
+
+    public void setStatus(boolean status) {
+        this.status = status;
+    }
+
     public String getProductName() {
         return productName;
     }
@@ -58,4 +106,13 @@ public class ProductVariant {
     public void setImageUrl(String imageUrl) {
         this.imageUrl = imageUrl;
     }
+
+    public String getCategoryName() {
+        return categoryName;
+    }
+
+    public void setCategoryName(String categoryName) {
+        this.categoryName = categoryName;
+    }
+
 }

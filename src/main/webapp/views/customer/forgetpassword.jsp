@@ -5,7 +5,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Quên mật khẩu - Averis Cosmetics</title>
+    <title>Forget Password - Averis Cosmetics</title>
 
     <link rel="stylesheet"
           href="${pageContext.request.contextPath}/assets/css/style.css">
@@ -18,8 +18,8 @@
     <div class="auth-container">
 
         <div class="auth-header">
-            <h2>Quên mật khẩu</h2>
-            <p>Nhập email để lấy lại mật khẩu</p>
+            <h2>Forget Password</h2>
+            <p>Enter your email to reset your password</p>
         </div>
 
         <!-- SUCCESS MESSAGE -->
@@ -29,22 +29,21 @@
             </div>
         </c:if>
 
-        <form action="${pageContext.request.contextPath}/ForgetPasswordController" 
+        <form action="${pageContext.request.contextPath}/ForgetPasswordController"
               method="post">
 
             <div class="form-group">
                 <label>Email</label>
-                <input type="email" 
-                       name="email" 
+                <input type="email"
+                       name="email"
                        value="${param.email}"
-                       placeholder="Nhập email của bạn"
+                       placeholder="Enter your email address"
                        required>
             </div>
 
             <button type="submit" class="btn-login">
-                Gửi link đặt lại mật khẩu
+                Send password reset link
             </button>
-
         </form>
 
         <!-- ERROR MESSAGE -->
@@ -56,12 +55,13 @@
 
         <div class="auth-links">
             <p>
-                Quay lại đăng nhập?
+                Back to login?
                 <a href="${pageContext.request.contextPath}/auth">
-                    Đăng nhập
+                    Sign in
                 </a>
             </p>
         </div>
+
     </div>
 
     <%@include file="/assets/footer.jsp" %>
