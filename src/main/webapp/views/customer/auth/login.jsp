@@ -81,7 +81,14 @@
                 </a>
             </p>
         </div>
-
+ <div class="auth-links">
+            <p>
+                
+                <a href="${pageContext.request.contextPath}/ForgetPasswordController">
+                    Forget Password
+                </a>
+            </p>
+        </div>
     </div>
 
     <%@include file="/assets/footer.jsp" %>

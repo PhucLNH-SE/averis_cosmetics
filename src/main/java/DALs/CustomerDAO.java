@@ -6,9 +6,12 @@ import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.sql.Timestamp;
 import java.sql.Types;
 import java.time.LocalDateTime;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 import org.mindrot.jbcrypt.BCrypt;
 
 public class CustomerDAO extends DBContext {
@@ -100,6 +103,21 @@ public class CustomerDAO extends DBContext {
             e.printStackTrace();
         }
         
+        return false;
+    }
+
+    public boolean updateCustomerStatus(int customerId, boolean status) {
+        String sql = "UPDATE Customers SET status = ? WHERE customer_id = ?";
+        
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setBoolean(1, status);
+            ps.setInt(2, customerId);
+
+            int rowsAffected = ps.executeUpdate();
+            return rowsAffected > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return false;
     }
 
@@ -212,6 +230,23 @@ public class CustomerDAO extends DBContext {
         }
         return null;
     }
+
+    public List<Customer> getAllCustomers() {
+        List<Customer> customers = new ArrayList<>();
+        String sql = "SELECT * FROM Customers ORDER BY customer_id DESC";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                customers.add(mapResultSetToCustomer(rs));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return customers;
+    }
+
       public boolean updateProfile(Customer customer) {
 
  
@@ -292,5 +327,107 @@ public class CustomerDAO extends DBContext {
     }
 
     return null;
+}
+    public Customer findByEmailAndVerified(String email) {
+
+    String sql = "SELECT * FROM Customers "
+               + "WHERE email = ? AND email_verified = 1";
+
+    try (PreparedStatement ps = connection.prepareStatement(sql)) {
+
+        ps.setString(1, email);
+
+        ResultSet rs = ps.executeQuery();
+
+        if (rs.next()) {
+
+            Customer c = new Customer();
+            c.setCustomerId(rs.getInt("customer_id"));
+            c.setEmail(rs.getString("email"));
+            c.setUsername(rs.getString("username"));
+          
+
+            return c;
+        }
+
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+
+    return null;
+}
+   public boolean saveResetPasswordToken(String email,
+                                      String token,
+                                      Timestamp expiredAt) {
+
+    String sql = "UPDATE Customers "
+            + "SET auth_token = ?, "
+            + "auth_token_type = 'PASSWORD_RESET', "
+            + "auth_token_expired_at = ?, "
+            + "auth_token_used = 0 "
+            + "WHERE email = ?";
+
+    try (PreparedStatement ps = connection.prepareStatement(sql)) {
+
+      
+        ps.setString(1, token);
+        ps.setTimestamp(2, expiredAt);
+        ps.setString(3, email);
+
+        return ps.executeUpdate() > 0;
+
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+
+    return false;
+}
+    public Customer findByResetToken(String token) {
+
+    String sql = "SELECT * FROM Customers "
+            + "WHERE auth_token = ? "
+            + "AND auth_token_type = 'PASSWORD_RESET' "
+            + "AND auth_token_used = 0 "
+            + "AND auth_token_expired_at > GETDATE()";
+
+    try (PreparedStatement ps = connection.prepareStatement(sql)) {
+
+        ps.setString(1, token);
+        ResultSet rs = ps.executeQuery();
+
+        if (rs.next()) {
+            Customer c = new Customer();
+            c.setCustomerId(rs.getInt("customer_id"));
+            return c;
+        }
+
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+
+    return null;
+}
+    public boolean updatePasswordByToken(String token, String newPassword) {
+
+    String hash = BCrypt.hashpw(newPassword, BCrypt.gensalt());
+
+    String sql = "UPDATE Customers SET password = ?, auth_token_used = 1 "
+            + "WHERE auth_token = ? "
+            + "AND auth_token_type = 'PASSWORD_RESET' "
+            + "AND auth_token_used = 0 "
+            + "AND auth_token_expired_at > GETDATE()";
+
+    try (PreparedStatement ps = connection.prepareStatement(sql)) {
+
+        ps.setString(1, hash);   
+        ps.setString(2, token);
+
+        return ps.executeUpdate() > 0;
+
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+
+    return false;
 }
 }
