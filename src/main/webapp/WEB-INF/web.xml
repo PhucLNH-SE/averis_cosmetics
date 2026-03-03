@@ -104,4 +104,13 @@
             30
         </session-timeout>
     </session-config>
+    <servlet>
+        <servlet-name>ManageProductController</servlet-name>
+        <servlet-class>Controllers.admin.ManageProductController</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>ManageProductController</servlet-name>
+        <url-pattern>/admin/manage-product</url-pattern>
+    </servlet-mapping>
 </web-app>

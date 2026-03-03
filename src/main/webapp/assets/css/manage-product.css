@@ -1,0 +1,48 @@
+/* Styling for Product Management Page */
+body { 
+    background-color: #f8f9fa; 
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+}
+
+.card { 
+    border: none; 
+    border-radius: 15px; 
+    box-shadow: 0 0 20px rgba(0,0,0,0.05); 
+}
+
+.table thead { 
+    background-color: #f8f9fa; 
+    border-bottom: 2px solid #dee2e6; 
+}
+
+.btn-success { 
+    background-color: #28a745; 
+    border: none; 
+}
+
+.btn-primary { 
+    background-color: #0d6efd; 
+    border: none; 
+}
+
+.btn-danger { 
+    background-color: #dc3545; 
+    border: none; 
+}
+
+.img-preview { 
+    width: 100px; 
+    height: 100px; 
+    object-fit: cover; 
+    border-radius: 8px; 
+    border: 1px solid #dee2e6; 
+    display: none; 
+    margin-top: 10px; 
+}
+
+.product-img-td { 
+    width: 50px; 
+    height: 50px; 
+    object-fit: cover; 
+    border-radius: 5px; 
+}

@@ -19,31 +19,28 @@
                     <!-- Hình ảnh sản phẩm -->
                     <div class="product-images">
                         <c:choose>
-                            <c:when test="${not empty product.images}">
-                                <!-- Nếu có hình ảnh trong database -->
-                                <img id="mainImage" class="main-image" 
-                                     src="<%=request.getContextPath()%>/assets/img/${product.mainImage}" 
-                                     alt="${product.name}">
-                                
-                                <div class="thumbnail-images">
-                                    <c:forEach items="${product.images}" var="img" varStatus="loop">
-                                        <img class="thumbnail ${loop.index == 0 ? 'active' : ''}" 
-                                             src="<%=request.getContextPath()%>/assets/img/${img.image}" 
-                                             alt="${product.name}" 
-                                             onclick="changeImage('${img.image}', this)">
-                                    </c:forEach>
-                                </div>
-                                <c:if test="${empty product.images}">
-                                    <div class="thumbnail-images">
-                                        <div class="default-image" style="width: 80px; height: 80px;"></div>
-                                    </div>
-                                </c:if>
-                            </c:when>
-                            <c:otherwise>
-                                <!-- Nếu không có hình ảnh, hiển thị hình ảnh mặc định -->
-                                <div class="main-image default-image"></div>
-                            </c:otherwise>
-                        </c:choose>
+    <c:when test="${not empty product.images}">
+        <c:set var="mainFolderPath" value="${product.mainImage.contains('-') ? 'products/' : ''}" />
+        <img id="mainImage" class="main-image" 
+             src="<%=request.getContextPath()%>/assets/img/${mainFolderPath}${product.mainImage}" 
+             alt="${product.name}"
+             onerror="this.src='<%=request.getContextPath()%>/assets/img/default-product.jpg';">
+        
+        <div class="thumbnail-images">
+            <c:forEach items="${product.images}" var="img" varStatus="loop">
+                <c:set var="thumbFolderPath" value="${img.image.contains('-') ? 'products/' : ''}" />
+                <img class="thumbnail ${loop.index == 0 ? 'active' : ''}" 
+                     src="<%=request.getContextPath()%>/assets/img/${thumbFolderPath}${img.image}" 
+                     alt="${product.name}" 
+                     onclick="changeImage('${thumbFolderPath}${img.image}', this)"
+                     onerror="this.style.display='none';">
+            </c:forEach>
+        </div>
+    </c:when>
+    <c:otherwise>
+        <img class="main-image" src="<%=request.getContextPath()%>/assets/img/default-product.jpg" alt="No image available">
+    </c:otherwise>
+</c:choose>
                     </div>
                     
                     <!-- Thông tin sản phẩm -->

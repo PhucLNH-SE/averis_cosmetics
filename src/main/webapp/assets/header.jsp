@@ -1,3 +1,4 @@
+<%@ page pageEncoding="UTF-8" %>
 <style>
   :root {
     --bg: #fff;
@@ -398,17 +399,23 @@
         item.className = 'search-item';
         item.href = '<%=request.getContextPath()%>/products?id=' + product.productId;
         
-        let imageUrl = '/assets/img/default-product.jpg'; // Default image
-        if (product.mainImage) {
-          imageUrl = '<%=request.getContextPath()%>/assets/img/' + product.mainImage;
-        } else if (product.images && product.images.length > 0 && product.images[0].image) {
-          imageUrl = '<%=request.getContextPath()%>/assets/img/' + product.images[0].image;
+        let imageUrl = '<%=request.getContextPath()%>/assets/img/default-product.jpg'; // Mặc định
+        
+        // --- LOGIC XỬ LÝ ẢNH MỚI/CŨ ---
+        let targetImage = product.mainImage || (product.images && product.images.length > 0 ? product.images[0].image : null);
+        
+        if (targetImage) {
+            let folder = targetImage.includes('-') ? 'products/' : '';
+            imageUrl = '<%=request.getContextPath()%>/assets/img/' + folder + targetImage;
         }
         
-        item.innerHTML = '<img src="' + imageUrl + '" alt="' + product.name + '" class="search-item-image" onerror="this.src=\'' + '<%=request.getContextPath()%>/assets/img/default-product.jpg' + '\';">' +
+        // --- CHỈNH LẠI CẤU TRÚC HTML CHO CHUẨN CSS ---
+        item.innerHTML = '<div class="search-item-image">' + 
+                            '<img src="' + imageUrl + '" alt="' + product.name + '" onerror="this.src=\'<%=request.getContextPath()%>/assets/img/default-product.jpg\';">' +
+                         '</div>' +
                          '<div class="search-item-info">' +
-                         '<div class="search-item-name">' + product.name + '</div>' +
-                         '<div class="search-item-brand">' + (product.brand ? product.brand.name : 'Unknown Brand') + '</div>' +
+                            '<div class="search-item-name">' + product.name + '</div>' +
+                            '<div class="search-item-brand">' + (product.brand ? product.brand.name : 'Unknown Brand') + '</div>' +
                          '</div>';
         
         searchDropdown.appendChild(item);
