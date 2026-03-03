@@ -8,6 +8,7 @@ import DALs.CustomerDAO;
 import DALs.AddressDAO;
 import Model.Customer;
 import Model.Address;
+import Utils.ValidationUtil;
 import java.util.List;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -22,6 +23,7 @@ import java.io.File;
 import java.nio.file.Paths;
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.util.Map;
 import org.mindrot.jbcrypt.BCrypt;
 
 /**
@@ -180,7 +182,7 @@ public class ProfileController extends HttpServlet {
         }
     }
 
-   private void changePassword(HttpServletRequest request,
+ private void changePassword(HttpServletRequest request,
         HttpServletResponse response,
         Customer customer) throws ServletException, IOException {
 
@@ -188,21 +190,24 @@ public class ProfileController extends HttpServlet {
     String newPassword = request.getParameter("newPassword");
     String confirmPassword = request.getParameter("confirmPassword");
 
-    // luôn set tab
     request.setAttribute("tab", "password");
 
-    if (oldPassword == null || oldPassword.isBlank()
-            || newPassword == null || newPassword.isBlank()
-            || confirmPassword == null || confirmPassword.isBlank()) {
-
-        request.setAttribute("error", "Vui lòng nhập đầy đủ thông tin.");
+    if (oldPassword == null || oldPassword.isBlank()) {
+        request.setAttribute("error", "Vui lòng nhập mật khẩu cũ.");
         request.getRequestDispatcher("/views/customer/profile.jsp")
                 .forward(request, response);
         return;
     }
 
-    if (newPassword.length() < 6) {
-        request.setAttribute("error", "Mật khẩu mới phải có ít nhất 6 ký tự.");
+    // ✅ dùng util để check mật khẩu mới
+    Map<String, String> errors =
+            ValidationUtil.validateResetPassword(newPassword, confirmPassword);
+
+    if (!errors.isEmpty()) {
+        // gộp lỗi lại cho đơn giản
+        request.setAttribute("error",
+                errors.values().iterator().next());
+
         request.getRequestDispatcher("/views/customer/profile.jsp")
                 .forward(request, response);
         return;
@@ -213,28 +218,23 @@ public class ProfileController extends HttpServlet {
     String currentHash = dao.getPasswordByCustomerId(customer.getCustomerId());
 
     if (currentHash == null) {
-        request.setAttribute("error", "Không lấy được mật khẩu hiện tại.");
+        request.setAttribute("error", "Unable to retrieve the current password.");
         request.getRequestDispatcher("/views/customer/profile.jsp")
                 .forward(request, response);
         return;
     }
 
+    // check mật khẩu cũ
     if (!BCrypt.checkpw(oldPassword, currentHash)) {
-        request.setAttribute("error", "Mật khẩu cũ không đúng.");
+        request.setAttribute("error", "The old password is incorrect.");
         request.getRequestDispatcher("/views/customer/profile.jsp")
                 .forward(request, response);
         return;
     }
 
+    // không cho trùng mật khẩu cũ
     if (BCrypt.checkpw(newPassword, currentHash)) {
-        request.setAttribute("error", "Mật khẩu mới không được trùng mật khẩu cũ.");
-        request.getRequestDispatcher("/views/customer/profile.jsp")
-                .forward(request, response);
-        return;
-    }
-
-    if (!newPassword.equals(confirmPassword)) {
-        request.setAttribute("error", "Mật khẩu xác nhận không khớp.");
+        request.setAttribute("error", "The new password must not be the same as the old password.");
         request.getRequestDispatcher("/views/customer/profile.jsp")
                 .forward(request, response);
         return;
@@ -245,21 +245,14 @@ public class ProfileController extends HttpServlet {
             newPassword
     );
 
-
-
-if (ok) {
-    request.setAttribute("profileMessage", "Đổi mật khẩu thành công.");
-    request.setAttribute("tab", "password");
-
-    request.getRequestDispatcher("/views/customer/profile.jsp")
-            .forward(request, response);
-} else {
-    request.setAttribute("error", "Đổi mật khẩu thất bại.");
-    request.setAttribute("tab", "password");
+    if (ok) {
+        request.setAttribute("profileMessage", "Password changed successfully.");
+    } else {
+        request.setAttribute("error", "Password change failed.");
+    }
 
     request.getRequestDispatcher("/views/customer/profile.jsp")
             .forward(request, response);
-}
 }
 
     @Override

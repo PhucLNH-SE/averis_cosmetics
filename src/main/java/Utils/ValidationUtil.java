@@ -90,14 +90,14 @@ public class ValidationUtil {
     Map<String, String> errors = new HashMap<>();
 
     if (password == null || password.trim().isEmpty()) {
-        errors.put("errorPassword", "Password is required.");
+        errors.put("errorPassword", "Password or confirm is required.");
     } else if (!password.matches(PASSWORD_REGEX)) {
         errors.put("errorPassword",
                 "Password must be at least 8 characters, include uppercase, lowercase, number and special character.");
     }
 
     if (confirmPassword == null || confirmPassword.trim().isEmpty()) {
-        errors.put("errorConfirmPassword", "Confirm password is required.");
+        errors.put("errorConfirmPassword", "Password or confirm is required.");
     } else if (!password.equals(confirmPassword)) {
         errors.put("errorConfirmPassword", "Passwords do not match.");
     }
