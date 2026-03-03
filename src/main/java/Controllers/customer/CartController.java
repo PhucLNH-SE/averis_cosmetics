@@ -44,7 +44,14 @@ public class CartController extends HttpServlet {
         Map<Integer, CartItem> cart = (Map<Integer, CartItem>) session.getAttribute("cart");
         Customer customer = (Customer) session.getAttribute("customer");
 
-        if (customer != null && cart == null) {
+        // If not logged in, redirect to login
+        if (customer == null) {
+            session.setAttribute("redirectAfterLogin", request.getContextPath() + "/cart");
+            response.sendRedirect(request.getContextPath() + "/auth?action=login");
+            return;
+        }
+
+        if (cart == null) {
             cart = loadCartFromDb(customer.getCustomerId());
             session.setAttribute("cart", cart);
         }
