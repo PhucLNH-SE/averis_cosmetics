@@ -9,16 +9,8 @@
     <title>Product Management - Averis Cosmetics</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        body { background-color: #f8f9fa; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        .card { border: none; border-radius: 15px; box-shadow: 0 0 20px rgba(0,0,0,0.05); }
-        .table thead { background-color: #f8f9fa; border-bottom: 2px solid #dee2e6; }
-        .btn-success { background-color: #28a745; border: none; }
-        .btn-primary { background-color: #0d6efd; border: none; }
-        .btn-danger { background-color: #dc3545; border: none; }
-        .img-preview { width: 100px; height: 100px; object-fit: cover; border-radius: 8px; border: 1px solid #dee2e6; display: none; margin-top: 10px; }
-        .product-img-td { width: 50px; height: 50px; object-fit: cover; border-radius: 5px; }
-    </style>
+    
+    <link rel="stylesheet" type="text/css" href="<%=request.getContextPath()%>/assets/css/manage-product.css">
 </head>
 <body>
     <div class="container-fluid py-4">
