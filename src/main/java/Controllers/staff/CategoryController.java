@@ -1,27 +1,24 @@
 package Controllers.staff;
 
+import java.io.IOException;
+import java.util.List;
+
+import DALs.CategoryDAO;
+import Model.Category;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.io.IOException;
 
-public class StaffController extends HttpServlet {
+public class CategoryController extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        String action = request.getParameter("action");
-        if (action == null) {
-            action = "dashboard";
-        }
-
-        switch (action) {
-            case "dashboard":
-            default:
-                request.getRequestDispatcher("/views/staff/dashboard.jsp").forward(request, response);
-                break;
-        }
+        CategoryDAO dao = new CategoryDAO();
+        List<Category> categories = dao.getAllCategories();
+        request.setAttribute("categories", categories);
+        request.getRequestDispatcher("/views/staff/manage-category.jsp").forward(request, response);
     }
 
     @Override

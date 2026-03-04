@@ -43,7 +43,7 @@
 
                         <div class="btns">
                             <button type="submit">Save</button>
-                            <a class="linkbtn" href="${pageContext.request.contextPath}/CustomerController?action=view">Cancel</a>
+                            <a class="linkbtn" href="${pageContext.request.contextPath}/profile?action=view">Cancel</a>
                         </div>
                     </form>
                 </div>

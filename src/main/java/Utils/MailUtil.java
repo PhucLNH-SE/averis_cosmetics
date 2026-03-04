@@ -66,4 +66,40 @@ public class MailUtil {
     public static String generateToken() {
         return UUID.randomUUID().toString().replace("-", "");
     }
+    public static void sendResetPasswordEmail(String toEmail, String resetLink) {
+
+    if (!loaded) {
+        System.out.println("MailUtil: mail.properties chưa cấu hình. Bỏ qua gửi mail.");
+        return;
+    }
+
+    try {
+        Session session = Session.getInstance(smtpProps, new Authenticator() {
+            @Override
+            protected PasswordAuthentication getPasswordAuthentication() {
+                return new PasswordAuthentication(from, password);
+            }
+        });
+
+        MimeMessage msg = new MimeMessage(session);
+        msg.setFrom(new InternetAddress(from, "Averis Cosmetics"));
+        msg.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
+        msg.setSubject("Đặt lại mật khẩu - Averis Cosmetics");
+
+        msg.setText(
+            "Xin chào,\n\n"
+          + "Bạn đã yêu cầu đặt lại mật khẩu.\n\n"
+          + "Vui lòng bấm vào link sau để đặt lại mật khẩu:\n\n"
+          + resetLink + "\n\n"
+          + "Link có hiệu lực 15 phút.\n\n"
+          + "Averis Cosmetics",
+            "UTF-8"
+        );
+
+        Transport.send(msg);
+
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+}
 }

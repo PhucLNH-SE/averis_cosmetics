@@ -104,4 +104,14 @@ public class CartDetailDAO extends DBContext {
             e.printStackTrace();
         }
     }
+    
+    public void deleteAll(int customerId) {
+        String sql = "DELETE FROM Cart_Detail WHERE customer_id = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, customerId);
+            ps.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 }
