@@ -70,12 +70,14 @@
                                class="product-card">
                                 <c:choose>
                                     <c:when test="${not empty product.mainImage}">
+                                        <c:set var="imageFolder" value="${product.mainImage.contains('-') ? 'products/' : ''}" />
                                         <img class="product-image"
-                                             src="<%=request.getContextPath()%>/assets/img/${product.mainImage}"
-                                             alt="${product.name}">
+                                             src="<%=request.getContextPath()%>/assets/img/${imageFolder}${product.mainImage}"
+                                             alt="${product.name}"
+                                             onerror="this.src='<%=request.getContextPath()%>/assets/img/default-product.jpg';">
                                     </c:when>
                                     <c:otherwise>
-                                        <div class="product-image default-image"></div>
+                                        <img class="product-image" src="<%=request.getContextPath()%>/assets/img/default-product.jpg" alt="No image">
                                     </c:otherwise>
                                 </c:choose>
 
