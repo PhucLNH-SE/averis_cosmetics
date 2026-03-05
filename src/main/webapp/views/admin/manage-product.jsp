@@ -47,8 +47,16 @@
                             <tr>
                                 <td class="fw-bold">${p.productId}</td>
                                 <td>
-                                    <c:set var="imagePath" value="${p.mainImage.contains('-') ? 'products/' : ''}${p.mainImage}" />
-                                    <img src="${pageContext.request.contextPath}/assets/img/${imagePath}" class="product-img-td border" onerror="this.src='${pageContext.request.contextPath}/assets/img/default-product.jpg';">
+                                    <c:choose>
+                                        <c:when test="${not empty p.mainImage}">
+                                            <img src="${pageContext.request.contextPath}/assets/img/${p.mainImage}" 
+                                                 class="product-img-td border" 
+                                                 onerror="this.src='${pageContext.request.contextPath}/assets/img/Logo.png';">
+                                        </c:when>
+                                        <c:otherwise>
+                                            <img src="${pageContext.request.contextPath}/assets/img/Logo.png" class="product-img-td border">
+                                        </c:otherwise>
+                                    </c:choose>
                                 </td>
                                 <td>${p.name}</td>
                                 <td>${p.category.name}</td>
@@ -72,15 +80,28 @@
                                 </td>
                                 <td class="text-center">
                                     <button class="btn btn-info btn-sm px-3 text-white me-1" 
-                                            onclick="openVariantModal('${p.productId}', '${p.name.replace("'", "\\'")}')">
+                                            data-id="${p.productId}" 
+                                            data-name="<c:out value='${p.name}' />"
+                                            onclick="openVariantModal(this)">
                                         <i class="fas fa-tags me-1"></i> Variants
                                     </button>
                                     
                                     <button class="btn btn-primary btn-sm px-3 me-1" 
-                                            onclick="openEditModal('${p.productId}', '${p.name.replace("'", "\\'")}', '${p.brand.brandId}', '${p.category.categoryId}', ${p.status}, '${p.description.replace("'", "\\'")}', '${imagePath}')">
+                                            data-id="${p.productId}" 
+                                            data-name="<c:out value='${p.name}' />"
+                                            data-brand="${p.brand.brandId}" 
+                                            data-category="${p.category.categoryId}" 
+                                            data-status="${p.status}" 
+                                            data-desc="<c:out value='${p.description}' />" 
+                                            data-image="${not empty p.mainImage ? p.mainImage : 'Logo.png'}"
+                                            onclick="openEditModal(this)">
                                         <i class="fas fa-edit me-1"></i> Edit
                                     </button>
-                                    <button class="btn btn-danger btn-sm px-3" onclick="openDeleteModal('${p.productId}', '${p.name.replace("'", "\\'")}')">
+
+                                    <button class="btn btn-danger btn-sm px-3" 
+                                            data-id="${p.productId}" 
+                                            data-name="<c:out value='${p.name}' />"
+                                            onclick="openDeleteModal(this)">
                                         <i class="fas fa-trash me-1"></i> Delete
                                     </button>
                                 </td>
@@ -150,7 +171,8 @@
                             <form action="manage-variant" method="post" class="row g-2 align-items-end">
                                 <input type="hidden" name="action" value="add">
                                 <input type="hidden" name="productId" id="addVarProductId">
-                                <input type="hidden" name="stock" value="100"> <div class="col-md-5">
+                                <input type="hidden" name="stock" value="100"> 
+                                <div class="col-md-5">
                                     <label class="small text-muted mb-1">Product Name (Ex: 50ml, Red)</label>
                                     <input type="text" name="variantName" class="form-control form-control-sm" required>
                                 </div>
@@ -166,8 +188,7 @@
                     </div>
 
                     <h6 class="fw-bold mb-3 text-secondary">Type List</h6>
-                    <div id="variantListContainer" class="bg-white p-3 rounded shadow-sm">
-                        </div>
+                    <div id="variantListContainer" class="bg-white p-3 rounded shadow-sm"></div>
                 </div>
             </div>
         </div>
@@ -319,12 +340,17 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        function openVariantModal(productId, productName) {
+        function openVariantModal(button) {
+            const productId = button.getAttribute('data-id');
+            const productName = button.getAttribute('data-name');
+
             document.getElementById('varModalProductName').innerText = productName;
-            document.getElementById('addVarProductId').value = productId; // Update ID cho form Add
+            document.getElementById('addVarProductId').value = productId;
             const variantHTML = document.getElementById('variants-data-' + productId).innerHTML;
             document.getElementById('variantListContainer').innerHTML = variantHTML;
-            new bootstrap.Modal(document.getElementById('variantModal')).show();
+            
+            const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('variantModal'));
+            modal.show();
         }
 
         function previewImage(input, previewId) {
@@ -339,25 +365,26 @@
             }
         }
 
-        function openEditModal(id, name, brandId, categoryId, status, desc, imagePath) {
-            document.getElementById('editId').value = id;
-            document.getElementById('editName').value = name;
-            document.getElementById('editBrand').value = brandId;
-            document.getElementById('editCategory').value = categoryId;
-            document.getElementById('editStatus').checked = status;
-            document.getElementById('editDesc').value = desc;
+        function openEditModal(button) {
+            document.getElementById('editId').value = button.getAttribute('data-id');
+            document.getElementById('editName').value = button.getAttribute('data-name');
+            document.getElementById('editBrand').value = button.getAttribute('data-brand');
+            document.getElementById('editCategory').value = button.getAttribute('data-category');
+            document.getElementById('editStatus').checked = button.getAttribute('data-status') === 'true';
+            document.getElementById('editDesc').value = button.getAttribute('data-desc');
             
             const basePath = "${pageContext.request.contextPath}/assets/img/";
-            document.getElementById('editImageDisplay').src = basePath + imagePath;
+            document.getElementById('editImageDisplay').src = basePath + button.getAttribute('data-image');
             
-            var editModal = new bootstrap.Modal(document.getElementById('editModal'));
+            const editModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('editModal'));
             editModal.show();
         }
 
-        function openDeleteModal(id, name) {
-            document.getElementById('deleteId').value = id;
-            document.getElementById('deleteName').innerText = name;
-            var deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+        function openDeleteModal(button) {
+            document.getElementById('deleteId').value = button.getAttribute('data-id');
+            document.getElementById('deleteName').innerText = button.getAttribute('data-name');
+            
+            const deleteModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('deleteModal'));
             deleteModal.show();
         }
     </script>
