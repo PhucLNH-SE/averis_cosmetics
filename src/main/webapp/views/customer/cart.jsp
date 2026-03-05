@@ -9,7 +9,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Giỏ hàng | Averis Cosmetics</title>
     
-    <link rel="stylesheet" type="text/css" href="<%=request.getContextPath()%>/assets/css/manageproductstyle.css">
+    <link rel="stylesheet" type="text/css" href="<%=request.getContextPath()%>/assets/css/cart.css">
 </head>
 <body>
 
@@ -42,18 +42,17 @@
                     <div class="cart-item">
                         <div class="item-image">
                             <c:choose>
-                                <c:when test="${not empty entry.value.variant.imageUrl}">
-                                    <c:set var="cartImgFolder" value="${entry.value.variant.imageUrl.contains('-') ? 'products/' : ''}" />
-                                    <img src="<%=request.getContextPath()%>/assets/img/${cartImgFolder}${entry.value.variant.imageUrl}" 
-                                         alt="Product" 
-                                         style="width:100%; height:100%; object-fit:contain; padding: 5px;"
-                                         onerror="this.src='<%=request.getContextPath()%>/assets/img/default-product.jpg';">
-                                </c:when>
-                                <c:otherwise>
-                                    <img src="<%=request.getContextPath()%>/assets/img/default-product.jpg" alt="No Image" 
-                                         style="width:100%; height:100%; object-fit:contain; padding: 5px;">
-                                </c:otherwise>
-                            </c:choose>
+    <c:when test="${not empty entry.value.variant.imageUrl}">
+        <img src="<%=request.getContextPath()%>/assets/img/${entry.value.variant.imageUrl}" 
+             alt="Product" 
+             style="width:100%; height:100%; object-fit:contain; padding: 5px;"
+             onerror="this.src='<%=request.getContextPath()%>/assets/img/Logo.png';">
+    </c:when>
+    <c:otherwise>
+        <img src="<%=request.getContextPath()%>/assets/img/Logo.png" alt="No Image" 
+             style="width:100%; height:100%; object-fit:contain; padding: 5px;">
+    </c:otherwise>
+</c:choose>
                         </div>
 
                         <div class="item-details">
