@@ -232,6 +232,9 @@ if (orderId > 0) {
 
     if ("COD".equalsIgnoreCase(paymentMethod)) {
 
+        // Deduct stock immediately for COD orders
+        orderDAO.deductStockAfterPayment(orderId);
+
         session.removeAttribute("cart");
         cartDetailDAO.deleteAll(customer.getCustomerId());
 
