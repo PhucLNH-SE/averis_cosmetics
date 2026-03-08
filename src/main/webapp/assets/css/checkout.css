@@ -829,3 +829,24 @@ body {
 @keyframes spin {
     to { transform: rotate(360deg); }
 }
+
+/* Alert Messages */
+.alert-error {
+    margin-top: 16px;
+    padding: 12px;
+    background: #fee2e2;
+    border: 1px solid #fecaca;
+    border-radius: 6px;
+    color: #dc2626;
+    font-size: 14px;
+}
+
+.alert-success {
+    margin-top: 16px;
+    padding: 12px;
+    background: #dcfce7;
+    border: 1px solid #bbf7d0;
+    border-radius: 6px;
+    color: #16a34a;
+    font-size: 14px;
+}

@@ -17,11 +17,16 @@
             <div class="popup-icon" id="popupIcon">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                </svg>
+                    </svg>
+                </div>
+                <h2 class="popup-title" id="popupTitle">Thành công!</h2>
+                <p class="popup-message" id="popupMessage">
+                    Đặt hàng thành công!
+                </p>
+                <a href="${pageContext.request.contextPath}/home" class="popup-btn" id="popupBtn">
+                    Quay về trang chủ
+                </a>
             </div>
-            <h2 class="popup-title" id="popupTitle">Thành công!</h2>
-            <p class="popup-message" id="popupMessage">Đặt hàng thành công!</p>
-            <a href="${pageContext.request.contextPath}/" class="popup-btn" id="popupBtn">Quay về trang chủ</a>
         </div>
     </div>
 
@@ -136,6 +141,16 @@
                                     </div>
                                 </div>
                             </label>
+                                                          <!-- MOMO -->
+                                <label class="address-item">
+                                    <input type="radio" name="paymentMethod" value="MOMO">
+                                    <div class="address-details">
+                                        <div class="address-name">Thanh toán qua ví MoMo</div>
+                                        <div class="address-text">
+                                            Thanh toán nhanh chóng và an toàn qua ví MoMo.
+                                        </div>
+                                    </div>
+                                </label>
                         </div>
 
                         <c:if test="${not empty error}">
@@ -170,6 +185,7 @@
                                    value="${not empty appliedVoucherCode ? appliedVoucherCode : param.voucherCode}" readonly>
                             <button type="button" class="voucher-open-btn" id="openVoucherPopupBtn">Chọn voucher</button>
                         </div>
+
                     </div>
 
                     <div class="summary-row">
@@ -261,21 +277,21 @@
             }
 
             const defaultAddress = document.querySelector('input[name="addressId"][checked]');
-            if (defaultAddress) {
-                const parentItem = defaultAddress.closest('.address-item');
-                if (parentItem) {
-                    parentItem.classList.add('selected');
-                }
-            } else {
-                const firstAddress = document.querySelector('input[name="addressId"]');
-                if (firstAddress) {
-                    firstAddress.checked = true;
-                    const parentItem = firstAddress.closest('.address-item');
-                    if (parentItem) {
-                        parentItem.classList.add('selected');
-                    }
-                }
-            }
+if (defaultAddress) {
+    const parentItem = defaultAddress.closest('.address-item');
+    if (parentItem) {
+        parentItem.classList.add('selected');
+    }
+} else {
+    const firstAddress = document.querySelector('input[name="addressId"]');
+    if (firstAddress) {
+        firstAddress.checked = true;
+        const parentItem = firstAddress.closest('.address-item');
+        if (parentItem) {
+            parentItem.classList.add('selected');
+        }
+    }
+}
 
             initVoucherSelector();
         });

@@ -55,6 +55,7 @@ public class CheckoutController extends HttpServlet {
 
         String successParam = request.getParameter("success");
         String orderIdParam = request.getParameter("orderId");
+
         if ("true".equals(successParam) && orderIdParam != null) {
             request.setAttribute("orderSuccess", true);
             request.setAttribute("orderId", orderIdParam);
@@ -169,7 +170,8 @@ public class CheckoutController extends HttpServlet {
         String paymentMethod = request.getParameter("paymentMethod");
 
         if (addressIdStr == null || addressIdStr.trim().isEmpty()) {
-            response.sendRedirect(request.getContextPath() + "/checkout?error=" + URLEncoder.encode("Vui long chon dia chi giao hang!", "UTF-8"));
+            response.sendRedirect(request.getContextPath() + "/checkout?error="
+        + URLEncoder.encode("Vui lòng chọn địa chỉ giao hàng!", "UTF-8"));
             return;
         }
 
@@ -219,20 +221,38 @@ public class CheckoutController extends HttpServlet {
         }
 
         int orderId = orderDAO.placeOrder(customer.getCustomerId(), addressId, paymentMethod, finalTotal, items, voucherId, discountAmount);
-        if (orderId > 0) {
-            if (customerVoucherId != null) {
-                customerVoucherDAO.markVoucherUsed(customerVoucherId);
-            }
 
-            HttpSession session = request.getSession();
-            session.removeAttribute("cart");
-            session.setAttribute("cart", null);
-            cartDetailDAO.deleteAll(customer.getCustomerId());
-            response.sendRedirect(request.getContextPath() + "/checkout?success=true&orderId=" + orderId);
-            return;
-        }
+if (orderId > 0) {
 
-        response.sendRedirect(request.getContextPath() + "/checkout?error=" + URLEncoder.encode("Dat hang that bai! Vui long thu lai sau.", "UTF-8"));
+    if (customerVoucherId != null) {
+        customerVoucherDAO.markVoucherUsed(customerVoucherId);
+    }
+
+    HttpSession session = request.getSession();
+
+    if ("COD".equalsIgnoreCase(paymentMethod)) {
+
+        session.removeAttribute("cart");
+        cartDetailDAO.deleteAll(customer.getCustomerId());
+
+        response.sendRedirect(
+                request.getContextPath() + "/checkout?success=true&orderId=" + orderId
+        );
+
+    } else if ("MOMO".equalsIgnoreCase(paymentMethod)) {
+
+        response.sendRedirect(
+                request.getContextPath() + "/momo-payment?orderId=" + orderId
+        );
+    }
+
+    return;
+}
+
+response.sendRedirect(
+        request.getContextPath() + "/checkout?error=" +
+        URLEncoder.encode("Dat hang that bai! Vui long thu lai sau.", "UTF-8")
+);
     }
 
     private Map<Integer, CartItem> buildCartWithDetails(Map<Integer, CartItem> cart) {

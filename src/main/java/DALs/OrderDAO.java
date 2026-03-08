@@ -23,11 +23,11 @@ public class OrderDAO extends DBContext {
         Connection conn = null;
         PreparedStatement psOrder = null;
         PreparedStatement psDetail = null;
-        PreparedStatement psStock = null;
         ResultSet rs = null;
 
         try {
             conn = this.connection;
+
             if (conn == null) {
                 return -1;
             }
@@ -37,6 +37,7 @@ public class OrderDAO extends DBContext {
             String sqlOrder = "INSERT INTO Orders (customer_id, address_id, voucher_id, discount_amount, payment_method, payment_status, order_status, total_amount) "
                     + "VALUES (?, ?, ?, ?, ?, 'PENDING', 'CREATED', ?)";
             psOrder = conn.prepareStatement(sqlOrder, Statement.RETURN_GENERATED_KEYS);
+
             psOrder.setInt(1, customerId);
             psOrder.setInt(2, addressId);
             if (voucherId == null) {
@@ -50,7 +51,9 @@ public class OrderDAO extends DBContext {
             psOrder.executeUpdate();
 
             int orderId = -1;
+
             rs = psOrder.getGeneratedKeys();
+
             if (rs.next()) {
                 orderId = rs.getInt(1);
             }
@@ -93,6 +96,7 @@ public class OrderDAO extends DBContext {
                 } catch (SQLException ignored) {
                 }
             }
+
             e.printStackTrace();
             return -1;
 
@@ -103,17 +107,20 @@ public class OrderDAO extends DBContext {
                 } catch (SQLException ignored) {
                 }
             }
-            closeResources(rs, psOrder, psDetail, psStock);
+
+            closeResources(rs, psOrder, psDetail);
         }
     }
 
     private void closeResources(ResultSet rs, PreparedStatement... stmts) {
+
         if (rs != null) {
             try {
                 rs.close();
             } catch (SQLException ignored) {
             }
         }
+
         for (PreparedStatement ps : stmts) {
             if (ps != null) {
                 try {
@@ -125,12 +132,19 @@ public class OrderDAO extends DBContext {
     }
 
     public Orders getOrderById(int orderId) {
+
         String sql = "SELECT * FROM Orders WHERE order_id = ?";
+
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
+
             ps.setInt(1, orderId);
+
             try (ResultSet rs = ps.executeQuery()) {
+
                 if (rs.next()) {
+
                     Orders order = new Orders();
+
                     order.setOrderId(rs.getInt("order_id"));
                     order.setCustomerId(rs.getInt("customer_id"));
                     order.setAddressId(rs.getInt("address_id"));
@@ -147,12 +161,91 @@ public class OrderDAO extends DBContext {
                     if (rs.getTimestamp("paid_at") != null) {
                         order.setPaidAt(rs.getTimestamp("paid_at").toLocalDateTime());
                     }
+
                     return order;
                 }
             }
+
         } catch (Exception e) {
             e.printStackTrace();
         }
+
         return null;
+    }
+
+    public boolean updatePaymentSuccess(int orderId) {
+
+        Connection conn = null;
+
+        try {
+
+            conn = this.connection;
+
+            conn.setAutoCommit(false);
+
+            String sql = "UPDATE Orders SET payment_status = 'SUCCESS', paid_at = GETDATE() WHERE order_id = ?";
+
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+
+                ps.setInt(1, orderId);
+                ps.executeUpdate();
+            }
+
+            deductStockAfterPayment(orderId);
+
+            conn.commit();
+
+            return true;
+
+        } catch (Exception e) {
+
+            try {
+                if (conn != null) conn.rollback();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    public boolean updatePaymentFailed(int orderId) {
+
+        String sql = "UPDATE Orders SET payment_status = 'FAILED' WHERE order_id = ?";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+
+            ps.setInt(1, orderId);
+
+            return ps.executeUpdate() > 0;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    public boolean deductStockAfterPayment(int orderId) {
+
+        String sql = "UPDATE Product_Variant "
+                + "SET stock = stock - od.quantity "
+                + "FROM Product_Variant pv "
+                + "JOIN Order_Detail od ON pv.variant_id = od.variant_id "
+                + "WHERE od.order_id = ? AND pv.stock >= od.quantity";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+
+            ps.setInt(1, orderId);
+
+            return ps.executeUpdate() > 0;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
     }
 }
