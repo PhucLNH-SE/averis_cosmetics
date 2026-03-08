@@ -87,6 +87,8 @@
     <servlet>
         <servlet-name>ManageOrderController</servlet-name>
         <servlet-class>Controllers.staff.ManageOrderController</servlet-class>
+    </servlet>
+    <servlet>
         <servlet-name>VoucherController</servlet-name>
         <servlet-class>Controllers.admin.VoucherController</servlet-class>
     </servlet>
@@ -214,7 +216,7 @@
         <servlet-name>CustomerVoucherController</servlet-name>
         <url-pattern>/my-voucher</url-pattern>
     </servlet-mapping>
-<!--    <filter-mapping>
+<!--<filter-mapping>
         <filter-name>ManagerAuthFilter</filter-name>
         <url-pattern>/admin/*</url-pattern>
     </filter-mapping>
@@ -237,7 +239,7 @@
     <filter-mapping>
         <filter-name>ManagerAuthFilter</filter-name>
         <url-pattern>/views/staff/*</url-pattern>
-    </filter-mapping>
+    </filter-mapping>-->
     <servlet-mapping>
         <servlet-name>BrandController</servlet-name>
         <url-pattern>/admin/brand</url-pattern>
