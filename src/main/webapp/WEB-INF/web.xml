@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <web-app version="5.0" xmlns="https://jakarta.ee/xml/ns/jakartaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/web-app_5_0.xsd">
+    <filter>
+        <filter-name>ManagerAuthFilter</filter-name>
+        <filter-class>Filters.ManagerAuthFilter</filter-class>
+    </filter>
     <servlet>
         <servlet-name>UserManagerController</servlet-name>
         <servlet-class>Controllers.admin.UserManagerController</servlet-class>
@@ -180,7 +184,7 @@
         <servlet-name>CheckoutController</servlet-name>
         <url-pattern>/checkout</url-pattern>
     </servlet-mapping>
-<!--    <filter-mapping>
+        <filter-mapping>
         <filter-name>ManagerAuthFilter</filter-name>
         <url-pattern>/admin/*</url-pattern>
     </filter-mapping>
@@ -203,7 +207,7 @@
     <filter-mapping>
         <filter-name>ManagerAuthFilter</filter-name>
         <url-pattern>/views/staff/*</url-pattern>
-    </filter-mapping>-->
+    </filter-mapping>
     <servlet-mapping>
         <servlet-name>BrandController</servlet-name>
         <url-pattern>/admin/brand</url-pattern>
@@ -231,6 +235,24 @@
         <servlet-name>PQuantityManagerController</servlet-name>
         <url-pattern>/PQuantityManagerController</url-pattern>
     </servlet-mapping>
+    <servlet>
+        <servlet-name>MomoPaymentController</servlet-name>
+        <servlet-class>Controllers.customer.MomoPaymentController</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>MomoPaymentController</servlet-name>
+        <url-pattern>/momo-payment</url-pattern>
+    </servlet-mapping>
+    <servlet>
+        <servlet-name>MomoReturnController</servlet-name>
+        <servlet-class>Controllers.customer.MomoReturnController</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>MomoReturnController</servlet-name>
+        <url-pattern>/momo-return</url-pattern>
+    </servlet-mapping>
+
+    
     <session-config>
         <session-timeout>
             30
@@ -240,7 +262,6 @@
         <servlet-name>ManageProductController</servlet-name>
         <servlet-class>Controllers.admin.ManageProductController</servlet-class>
     </servlet>
-
     <servlet-mapping>
         <servlet-name>ManageProductController</servlet-name>
         <url-pattern>/admin/manage-product</url-pattern>
