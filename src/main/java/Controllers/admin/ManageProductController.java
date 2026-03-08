@@ -61,7 +61,6 @@ public class ManageProductController extends HttpServlet {
         String name = request.getParameter("name");
         String desc = request.getParameter("description");
         
-        // Tránh lỗi NullPointerException khi gọi action="delete"
         int bid = 0;
         int cid = 0;
         boolean status = false;
@@ -76,35 +75,87 @@ public class ManageProductController extends HttpServlet {
             status = request.getParameter("status") != null;
         }
 
-        // 2. Xử lý file ảnh
+        // 2. Xử lý file ảnh (Đã nâng cấp: Lưu kép chống mất ảnh cực mạnh)
         String finalImageName = null;
-        try {
-            Part filePart = request.getPart("image");
-            if (filePart != null) {
-                String fileName = getFileName(filePart);
-                if (fileName != null && !fileName.isEmpty()) {
-                    String extension = fileName.substring(fileName.lastIndexOf("."));
-                    finalImageName = UUID.randomUUID().toString() + extension;
+        String contentType = request.getContentType();
+        
+        if (contentType != null && contentType.toLowerCase().startsWith("multipart/")) {
+            try {
+                Part filePart = request.getPart("image");
+                if (filePart != null && filePart.getSize() > 0) {
+                    String fileName = getFileName(filePart);
+                    if (fileName != null && !fileName.isEmpty()) {
+                        String extension = fileName.substring(fileName.lastIndexOf("."));
+                        finalImageName = UUID.randomUUID().toString() + extension;
 
-                    String savePath = request.getServletContext().getRealPath("/")
-                            + "assets" + File.separator
-                            + "img" + File.separator
-                            + "products" + File.separator;
+                        // --- BẮT ĐẦU ĐOẠN FIX ĐƯỜNG DẪN ---
+                        
+                        // Lấy đường dẫn thực tế của Server
+                        String realPath = request.getServletContext().getRealPath("/");
 
-                    File fileSaveDir = new File(savePath);
-                    if (!fileSaveDir.exists()) {
-                        fileSaveDir.mkdirs();
+                        // Đồng bộ toàn bộ dấu gạch chéo về dạng chuẩn "/"
+                        realPath = realPath.replace("\\", "/");
+
+                        // Tạo đường dẫn ảo của Tomcat
+                        String tomcatPath = realPath + "assets/img/";
+
+                        // Xử lý đường dẫn Source code vĩnh viễn
+                        String sourcePath = "";
+                        if (realPath.contains("build/web")) {
+                            // Dành cho project chuẩn Ant (NetBeans mặc định)
+                            sourcePath = realPath.replace("build/web", "web") + "assets/img/";
+                        } else if (realPath.contains("target/")) {
+                            // Dành cho project xài Maven
+                            sourcePath = realPath.substring(0, realPath.indexOf("target/")) + "src/main/webapp/assets/img/";
+                        } else {
+                            // Backup fallback
+                            sourcePath = realPath + "assets/img/";
+                        }
+
+                        // Trả lại dấu gạch chéo chuẩn của hệ điều hành hiện tại
+                        tomcatPath = tomcatPath.replace("/", File.separator);
+                        sourcePath = sourcePath.replace("/", File.separator);
+
+                        // In ra Console để theo dõi
+                        System.out.println("=== DEBUG LOG ĐƯỜNG DẪN ẢNH ===");
+                        System.out.println("Tomcat Path: " + tomcatPath);
+                        System.out.println("Source Path: " + sourcePath);
+
+                        // --- KẾT THÚC ĐOẠN FIX ĐƯỜNG DẪN ---
+
+                        // Tạo thư mục nếu chưa tồn tại
+                        File tomcatDir = new File(tomcatPath);
+                        if (!tomcatDir.exists()) tomcatDir.mkdirs();
+                        
+                        File sourceDir = new File(sourcePath);
+                        if (!sourceDir.exists()) sourceDir.mkdirs();
+
+                        // Bước A: Lưu ảnh vào máy chủ Tomcat ảo
+                        String fullTomcatFilePath = tomcatPath + finalImageName;
+                        filePart.write(fullTomcatFilePath);
+
+                        // Bước B: Copy ngược ảnh về thư mục gốc của project
+                        try {
+                            String fullSourceFilePath = sourcePath + finalImageName;
+                            java.nio.file.Files.copy(
+                                new java.io.File(fullTomcatFilePath).toPath(),
+                                new java.io.File(fullSourceFilePath).toPath(),
+                                java.nio.file.StandardCopyOption.REPLACE_EXISTING
+                            );
+                            System.out.println("-> OK: Đã copy ảnh vĩnh viễn vào source!");
+                        } catch (Exception copyEx) {
+                            System.out.println("-> LỖI: Không thể copy về source.");
+                            copyEx.printStackTrace();
+                        }
                     }
-                    filePart.write(savePath + finalImageName);
                 }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-        } catch (Exception e) {
-            e.printStackTrace();
         }
 
         // 3. Xử lý action
         if ("add".equals(action)) {
-            // ---> MỚI THÊM: Hứng giá trị price từ form Add Product
             double price = 0;
             try {
                 String priceStr = request.getParameter("price");
@@ -114,8 +165,6 @@ public class ManageProductController extends HttpServlet {
             } catch (NumberFormatException e) {
                 e.printStackTrace();
             }
-            
-            // Gọi hàm insertProduct có chứa tham số price (nhớ update lại ProductDAO như mình đã dặn nha)
             dao.insertProduct(name, desc, bid, cid, status, finalImageName, price);
 
         } else if ("update".equals(action)) {
@@ -127,7 +176,7 @@ public class ManageProductController extends HttpServlet {
             dao.deleteProduct(id);
         }
 
-        // Redirect về trang quản lý
+        // Redirect về trang quản lý (Chuẩn PRG)
         response.sendRedirect("manage-product");
     }
 }

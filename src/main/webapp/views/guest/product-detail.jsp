@@ -20,25 +20,23 @@
                     <div class="product-images">
                         <c:choose>
     <c:when test="${not empty product.images}">
-        <c:set var="mainFolderPath" value="${product.mainImage.contains('-') ? 'products/' : ''}" />
         <img id="mainImage" class="main-image" 
-             src="<%=request.getContextPath()%>/assets/img/${mainFolderPath}${product.mainImage}" 
+             src="<%=request.getContextPath()%>/assets/img/${product.mainImage}" 
              alt="${product.name}"
-             onerror="this.src='<%=request.getContextPath()%>/assets/img/default-product.jpg';">
+             onerror="this.src='<%=request.getContextPath()%>/assets/img/Logo.png';">
         
         <div class="thumbnail-images">
             <c:forEach items="${product.images}" var="img" varStatus="loop">
-                <c:set var="thumbFolderPath" value="${img.image.contains('-') ? 'products/' : ''}" />
                 <img class="thumbnail ${loop.index == 0 ? 'active' : ''}" 
-                     src="<%=request.getContextPath()%>/assets/img/${thumbFolderPath}${img.image}" 
+                     src="<%=request.getContextPath()%>/assets/img/${img.image}" 
                      alt="${product.name}" 
-                     onclick="changeImage('${thumbFolderPath}${img.image}', this)"
+                     onclick="changeImage('${img.image}', this)"
                      onerror="this.style.display='none';">
             </c:forEach>
         </div>
     </c:when>
     <c:otherwise>
-        <img class="main-image" src="<%=request.getContextPath()%>/assets/img/default-product.jpg" alt="No image available">
+        <img class="main-image" src="<%=request.getContextPath()%>/assets/img/Logo.png" alt="No image available">
     </c:otherwise>
 </c:choose>
                     </div>
