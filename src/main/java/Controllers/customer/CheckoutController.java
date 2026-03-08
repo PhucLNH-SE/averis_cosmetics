@@ -48,7 +48,7 @@ public class CheckoutController extends HttpServlet {
         // Check if there's a success order - clear cart and show popup
         String successParam = request.getParameter("success");
         String orderIdParam = request.getParameter("orderId");
-        
+
         if ("true".equals(successParam) && orderIdParam != null) {
             // Cart already cleared in doPost, just show success
             request.setAttribute("orderSuccess", true);
@@ -133,14 +133,14 @@ public class CheckoutController extends HttpServlet {
 
         // Validate
         if (addressIdStr == null || addressIdStr.trim().isEmpty()) {
-            response.sendRedirect(request.getContextPath() + "/checkout?error=" + 
-                java.net.URLEncoder.encode("Vui lòng chọn địa chỉ giao hàng!", "UTF-8"));
+            response.sendRedirect(request.getContextPath() + "/checkout?error="
+                    + java.net.URLEncoder.encode("Vui lòng chọn địa chỉ giao hàng!", "UTF-8"));
             return;
         }
 
         if (paymentMethod == null || paymentMethod.trim().isEmpty()) {
-            response.sendRedirect(request.getContextPath() + "/checkout?error=" + 
-                java.net.URLEncoder.encode("Vui lòng chọn phương thức thanh toán!", "UTF-8"));
+            response.sendRedirect(request.getContextPath() + "/checkout?error="
+                    + java.net.URLEncoder.encode("Vui lòng chọn phương thức thanh toán!", "UTF-8"));
             return;
         }
 
@@ -148,8 +148,8 @@ public class CheckoutController extends HttpServlet {
         try {
             addressId = Integer.parseInt(addressIdStr);
         } catch (NumberFormatException e) {
-            response.sendRedirect(request.getContextPath() + "/checkout?error=" + 
-                java.net.URLEncoder.encode("Địa chỉ không hợp lệ!", "UTF-8"));
+            response.sendRedirect(request.getContextPath() + "/checkout?error="
+                    + java.net.URLEncoder.encode("Địa chỉ không hợp lệ!", "UTF-8"));
             return;
         }
 
@@ -157,8 +157,8 @@ public class CheckoutController extends HttpServlet {
         List<Address> addresses = addressDAO.getAddressesByCustomerId(customer.getCustomerId());
         boolean validAddress = addresses.stream().anyMatch(a -> a.getAddressId() == addressId);
         if (!validAddress) {
-            response.sendRedirect(request.getContextPath() + "/checkout?error=" + 
-                java.net.URLEncoder.encode("Địa chỉ không hợp lệ!", "UTF-8"));
+            response.sendRedirect(request.getContextPath() + "/checkout?error="
+                    + java.net.URLEncoder.encode("Địa chỉ không hợp lệ!", "UTF-8"));
             return;
         }
 
@@ -179,8 +179,8 @@ public class CheckoutController extends HttpServlet {
         }
 
         if (items.isEmpty()) {
-            response.sendRedirect(request.getContextPath() + "/checkout?error=" + 
-                java.net.URLEncoder.encode("Giỏ hàng trống hoặc sản phẩm không tồn tại!", "UTF-8"));
+            response.sendRedirect(request.getContextPath() + "/checkout?error="
+                    + java.net.URLEncoder.encode("Giỏ hàng trống hoặc sản phẩm không tồn tại!", "UTF-8"));
             return;
         }
 
@@ -194,18 +194,30 @@ public class CheckoutController extends HttpServlet {
         );
 
         if (orderId > 0) {
-            // Order success - clear cart from session and database
-            session.removeAttribute("cart");
-            session.setAttribute("cart", null);
-            
-            // Also clear cart from database
-            cartDetailDAO.deleteAll(customer.getCustomerId());
-            
-            response.sendRedirect(request.getContextPath() + "/checkout?success=true&orderId=" + orderId);
+
+            if ("COD".equalsIgnoreCase(paymentMethod)) {
+
+                // COD: hoàn tất ngay
+                session.removeAttribute("cart");
+                cartDetailDAO.deleteAll(customer.getCustomerId());
+
+                response.sendRedirect(
+                        request.getContextPath() + "/checkout?success=true&orderId=" + orderId
+                );
+
+            } else if ("MOMO".equalsIgnoreCase(paymentMethod)) {
+
+                // MOMO: chuyển sang thanh toán MoMo
+                response.sendRedirect(
+                        request.getContextPath() + "/momo-payment?orderId=" + orderId
+                );
+
+            }
+
         } else {
-            // Order failed
-            response.sendRedirect(request.getContextPath() + "/checkout?error=" + 
-                java.net.URLEncoder.encode("Đặt hàng thất bại! Vui lòng thử lại sau.", "UTF-8"));
+
+            response.sendRedirect(request.getContextPath() + "/checkout?error="
+                    + java.net.URLEncoder.encode("Đặt hàng thất bại! Vui lòng thử lại sau.", "UTF-8"));
         }
     }
 }
