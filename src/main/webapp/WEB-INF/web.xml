@@ -85,6 +85,8 @@
         <servlet-class>Controllers.admin.PQuantityManagerController</servlet-class>
     </servlet>
     <servlet>
+        <servlet-name>ManageOrderController</servlet-name>
+        <servlet-class>Controllers.staff.ManageOrderController</servlet-class>
         <servlet-name>VoucherController</servlet-name>
         <servlet-class>Controllers.admin.VoucherController</servlet-class>
     </servlet>
@@ -262,6 +264,10 @@
     <servlet-mapping>
         <servlet-name>PQuantityManagerController</servlet-name>
         <url-pattern>/PQuantityManagerController</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>ManageOrderController</servlet-name>
+        <url-pattern>/ManageOrderController</url-pattern>
     </servlet-mapping>
     <servlet>
         <servlet-name>MomoPaymentController</servlet-name>

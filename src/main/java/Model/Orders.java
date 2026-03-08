@@ -28,24 +28,11 @@ public class Orders {
     private BigDecimal totalAmount;      
 
     private LocalDateTime createdAt;     
-    private LocalDateTime paidAt;  
-
+    private LocalDateTime paidAt; 
+    // them username
+ private String username; 
+private String voucherCode;
     public Orders() {
-    }
-
-    public Orders(int orderId, int customerId, int addressId, Integer handledBy, Integer voucherId, BigDecimal discountAmount, String paymentMethod, String paymentStatus, String orderStatus, BigDecimal totalAmount, LocalDateTime createdAt, LocalDateTime paidAt) {
-        this.orderId = orderId;
-        this.customerId = customerId;
-        this.addressId = addressId;
-        this.handledBy = handledBy;
-        this.voucherId = voucherId;
-        this.discountAmount = discountAmount;
-        this.paymentMethod = paymentMethod;
-        this.paymentStatus = paymentStatus;
-        this.orderStatus = orderStatus;
-        this.totalAmount = totalAmount;
-        this.createdAt = createdAt;
-        this.paidAt = paidAt;
     }
 
     public int getOrderId() {
@@ -143,5 +130,40 @@ public class Orders {
     public void setPaidAt(LocalDateTime paidAt) {
         this.paidAt = paidAt;
     }
-    
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getVoucherCode() {
+        return voucherCode;
+    }
+
+    public void setVoucherCode(String voucherCode) {
+        this.voucherCode = voucherCode;
+    }
+
+    public Orders(int orderId, int customerId, int addressId, Integer handledBy, Integer voucherId, BigDecimal discountAmount, String paymentMethod, String paymentStatus, String orderStatus, BigDecimal totalAmount, LocalDateTime createdAt, LocalDateTime paidAt, String username, String voucherCode) {
+        this.orderId = orderId;
+        this.customerId = customerId;
+        this.addressId = addressId;
+        this.handledBy = handledBy;
+        this.voucherId = voucherId;
+        this.discountAmount = discountAmount;
+        this.paymentMethod = paymentMethod;
+        this.paymentStatus = paymentStatus;
+        this.orderStatus = orderStatus;
+        this.totalAmount = totalAmount;
+        this.createdAt = createdAt;
+        this.paidAt = paidAt;
+        this.username = username;
+        this.voucherCode = voucherCode;
+    }
+
+   
+   
 }

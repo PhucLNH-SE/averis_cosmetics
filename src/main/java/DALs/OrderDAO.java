@@ -2,12 +2,14 @@ package DALs;
 
 import Model.CartItem;
 import Model.Orders;
+import Model.OrderDetail;
 import Utils.DBContext;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.List;
 
 public class OrderDAO extends DBContext {
@@ -23,6 +25,7 @@ public class OrderDAO extends DBContext {
         Connection conn = null;
         PreparedStatement psOrder = null;
         PreparedStatement psDetail = null;
+        PreparedStatement psStock = null;
         ResultSet rs = null;
 
         try {
@@ -62,29 +65,24 @@ public class OrderDAO extends DBContext {
             }
 
             String sqlDetail = "INSERT INTO Order_Detail (order_id, variant_id, quantity, price_at_order) VALUES (?, ?, ?, ?)";
-            String sqlStock = "UPDATE Product_Variant SET stock = stock - ? WHERE variant_id = ? AND stock >= ?";
+            
+psDetail = conn.prepareStatement(sqlDetail);
 
-            for (CartItem item : items) {
-                if (item.getVariant() == null || item.getVariant().getPrice() == null) {
-                    throw new SQLException("Invalid cart item");
-                }
+for (CartItem item : items) {
 
-                psDetail = conn.prepareStatement(sqlDetail);
-                psDetail.setInt(1, orderId);
-                psDetail.setInt(2, item.getVariant().getVariantId());
-                psDetail.setInt(3, item.getQuantity());
-                psDetail.setBigDecimal(4, item.getVariant().getPrice());
-                psDetail.executeUpdate();
+    if (item.getVariant() == null || item.getVariant().getPrice() == null) {
+        throw new SQLException("Invalid cart item");
+    }
 
-                psStock = conn.prepareStatement(sqlStock);
-                psStock.setInt(1, item.getQuantity());
-                psStock.setInt(2, item.getVariant().getVariantId());
-                psStock.setInt(3, item.getQuantity());
-                int updated = psStock.executeUpdate();
-                if (updated == 0) {
-                    throw new SQLException("Out of stock: " + item.getVariant().getVariantName());
-                }
-            }
+    psDetail.setInt(1, orderId);
+    psDetail.setInt(2, item.getVariant().getVariantId());
+    psDetail.setInt(3, item.getQuantity());
+    psDetail.setBigDecimal(4, item.getVariant().getPrice());
+
+    psDetail.addBatch();
+}
+
+psDetail.executeBatch();
 
             conn.commit();
             return orderId;
@@ -108,7 +106,7 @@ public class OrderDAO extends DBContext {
                 }
             }
 
-            closeResources(rs, psOrder, psDetail);
+            closeResources(rs, psOrder, psDetail,psStock);
         }
     }
 
@@ -172,6 +170,111 @@ public class OrderDAO extends DBContext {
 
         return null;
     }
+ 
+
+
+
+    public List<Orders> getAllOrders() {
+
+        List<Orders> list = new ArrayList<>();
+String sql = "SELECT o.order_id, c.username, v.code AS voucher_code, o.discount_amount, " +
+             "o.payment_method, o.payment_status, o.order_status, o.total_amount " +
+             "FROM Orders o " +
+             "JOIN Customers c ON o.customer_id = c.customer_id " +
+             "LEFT JOIN Voucher v ON o.voucher_id = v.voucher_id";
+
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ResultSet rs = ps.executeQuery();
+
+          while (rs.next()) {
+
+    Orders order = new Orders();
+    order.setOrderId(rs.getInt("order_id"));
+    order.setUsername(rs.getString("username"));
+    order.setVoucherCode(rs.getString("voucher_code"));
+    order.setDiscountAmount(rs.getBigDecimal("discount_amount"));
+    order.setPaymentMethod(rs.getString("payment_method"));
+    order.setPaymentStatus(rs.getString("payment_status"));
+    order.setOrderStatus(rs.getString("order_status"));
+    order.setTotalAmount(rs.getBigDecimal("total_amount"));
+
+    list.add(order);
+}
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
+  public List<OrderDetail> getOrderDetailsByOrderId(int orderId) {
+
+    List<OrderDetail> list = new ArrayList<>();
+
+String sql = "SELECT "
+        + "p.name AS product_name, "
+        + "b.name AS brand_name, "
+        + "c.name AS category_name, "
+        + "od.quantity, "
+        + "od.price_at_order, "
+        + "(SELECT TOP 1 image_url "
+        + " FROM Product_Image "
+        + " WHERE product_id = p.product_id) AS image_url "
+        + "FROM Order_Detail od "
+        + "JOIN Product_Variant v ON od.variant_id = v.variant_id "
+        + "JOIN Product p ON v.product_id = p.product_id "
+        + "JOIN Brand b ON p.brand_id = b.brand_id "
+        + "JOIN Category c ON p.category_id = c.category_id "
+        + "WHERE od.order_id = ?";
+
+    try {
+
+        PreparedStatement ps = connection.prepareStatement(sql);
+        ps.setInt(1, orderId);
+
+        ResultSet rs = ps.executeQuery();
+
+        while (rs.next()) {
+
+            OrderDetail od = new OrderDetail();
+
+            od.setProductName(rs.getString("product_name"));
+            od.setImageUrl(rs.getString("image_url"));
+            od.setBrandName(rs.getString("brand_name"));
+            od.setCategoryName(rs.getString("category_name"));
+            od.setQuantity(rs.getInt("quantity"));
+            od.setPriceAtOrder(rs.getBigDecimal("price_at_order"));
+
+            list.add(od);
+        }
+
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+
+    return list;
+}
+  public void updateOrder(int orderId, String paymentStatus, String orderStatus) {
+
+    String sql = "UPDATE Orders SET payment_status = ?, order_status = ? WHERE order_id = ?";
+
+    try {
+
+        PreparedStatement ps = connection.prepareStatement(sql);
+
+        ps.setString(1, paymentStatus);
+        ps.setString(2, orderStatus);
+        ps.setInt(3, orderId);
+
+        ps.executeUpdate();
+
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+}
+
+
 
     public boolean updatePaymentSuccess(int orderId) {
 
@@ -230,11 +333,11 @@ public class OrderDAO extends DBContext {
 
     public boolean deductStockAfterPayment(int orderId) {
 
-        String sql = "UPDATE Product_Variant "
-                + "SET stock = stock - od.quantity "
-                + "FROM Product_Variant pv "
-                + "JOIN Order_Detail od ON pv.variant_id = od.variant_id "
-                + "WHERE od.order_id = ? AND pv.stock >= od.quantity";
+        String sql = "UPDATE pv "
+        + "SET pv.stock = pv.stock - od.quantity "
+        + "FROM Product_Variant pv "
+        + "JOIN Order_Detail od ON pv.variant_id = od.variant_id "
+        + "WHERE od.order_id = ? AND pv.stock >= od.quantity";
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
 

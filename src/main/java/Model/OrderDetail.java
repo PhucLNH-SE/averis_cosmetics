@@ -18,16 +18,24 @@ import java.math.BigDecimal;
     private int variantId;           // variant_id (NOT NULL)
     private int quantity;            // quantity (NOT NULL)
     private BigDecimal priceAtOrder; // price_at_order (NOT NULL) decimal(10,2)
-
+// thêm field
+        public String ProductName ;
+    public String ImageUrl ;
+    public String BrandName;
+    public String CategoryName ;
     public OrderDetail() {
     }
 
-    public OrderDetail(int orderDetailId, int orderId, int variantId, int quantity, BigDecimal priceAtOrder) {
+    public OrderDetail(int orderDetailId, int orderId, int variantId, int quantity, BigDecimal priceAtOrder, String ProductName, String ImageUrl, String BrandName, String CategoryName) {
         this.orderDetailId = orderDetailId;
         this.orderId = orderId;
         this.variantId = variantId;
         this.quantity = quantity;
         this.priceAtOrder = priceAtOrder;
+        this.ProductName = ProductName;
+        this.ImageUrl = ImageUrl;
+        this.BrandName = BrandName;
+        this.CategoryName = CategoryName;
     }
 
     public int getOrderDetailId() {
@@ -69,5 +77,38 @@ import java.math.BigDecimal;
     public void setPriceAtOrder(BigDecimal priceAtOrder) {
         this.priceAtOrder = priceAtOrder;
     }
+
+    public String getProductName() {
+        return ProductName;
+    }
+
+    public void setProductName(String ProductName) {
+        this.ProductName = ProductName;
+    }
+
+    public String getImageUrl() {
+        return ImageUrl;
+    }
+
+    public void setImageUrl(String ImageUrl) {
+        this.ImageUrl = ImageUrl;
+    }
+
+    public String getBrandName() {
+        return BrandName;
+    }
+
+    public void setBrandName(String BrandName) {
+        this.BrandName = BrandName;
+    }
+
+    public String getCategoryName() {
+        return CategoryName;
+    }
+
+    public void setCategoryName(String CategoryName) {
+        this.CategoryName = CategoryName;
+    }
+
     
 }
