@@ -80,6 +80,10 @@
         <servlet-name>PQuantityManagerController</servlet-name>
         <servlet-class>Controllers.admin.PQuantityManagerController</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>ManageOrderController</servlet-name>
+        <servlet-class>Controllers.staff.ManageOrderController</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>UserManagerController</servlet-name>
         <url-pattern>/admin/dashboard</url-pattern>
@@ -180,7 +184,7 @@
         <servlet-name>CheckoutController</servlet-name>
         <url-pattern>/checkout</url-pattern>
     </servlet-mapping>
-<!--    <filter-mapping>
+    <!--    <filter-mapping>
         <filter-name>ManagerAuthFilter</filter-name>
         <url-pattern>/admin/*</url-pattern>
     </filter-mapping>
@@ -231,6 +235,10 @@
         <servlet-name>PQuantityManagerController</servlet-name>
         <url-pattern>/PQuantityManagerController</url-pattern>
     </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>ManageOrderController</servlet-name>
+        <url-pattern>/ManageOrderController</url-pattern>
+    </servlet-mapping>
     <session-config>
         <session-timeout>
             30
@@ -240,7 +248,6 @@
         <servlet-name>ManageProductController</servlet-name>
         <servlet-class>Controllers.admin.ManageProductController</servlet-class>
     </servlet>
-
     <servlet-mapping>
         <servlet-name>ManageProductController</servlet-name>
         <url-pattern>/admin/manage-product</url-pattern>
