@@ -45,6 +45,12 @@
                 </li>
 
                 <li>
+                    <a href="${pageContext.request.contextPath}/my-voucher">
+                        My Voucher
+                    </a>
+                </li>
+
+                <li>
                     <a class="${tab == 'password' ? 'active' : ''}"
                        href="${pageContext.request.contextPath}/profile?action=view&tab=password">
                         Change password

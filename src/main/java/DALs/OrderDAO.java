@@ -1,9 +1,8 @@
 package DALs;
 
-import Utils.DBContext;
-import Model.Orders;
 import Model.CartItem;
-
+import Model.Orders;
+import Utils.DBContext;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -14,34 +13,41 @@ import java.util.List;
 public class OrderDAO extends DBContext {
 
     public int placeOrder(int customerId, int addressId, String paymentMethod,
-            java.math.BigDecimal totalAmount, List<CartItem> items) {
+                          java.math.BigDecimal totalAmount, List<CartItem> items) {
+        return placeOrder(customerId, addressId, paymentMethod, totalAmount, items, null, java.math.BigDecimal.ZERO);
+    }
 
+    public int placeOrder(int customerId, int addressId, String paymentMethod,
+                          java.math.BigDecimal totalAmount, List<CartItem> items,
+                          Integer voucherId, java.math.BigDecimal discountAmount) {
         Connection conn = null;
         PreparedStatement psOrder = null;
         PreparedStatement psDetail = null;
         ResultSet rs = null;
 
         try {
-
             conn = this.connection;
 
             if (conn == null) {
-                System.out.println("Connection is null!");
                 return -1;
             }
 
             conn.setAutoCommit(false);
 
-            String sqlOrder = "INSERT INTO Orders (customer_id, address_id, payment_method, payment_status, order_status, total_amount) "
-                    + "VALUES (?, ?, ?, 'PENDING', 'CREATED', ?)";
-
+            String sqlOrder = "INSERT INTO Orders (customer_id, address_id, voucher_id, discount_amount, payment_method, payment_status, order_status, total_amount) "
+                    + "VALUES (?, ?, ?, ?, ?, 'PENDING', 'CREATED', ?)";
             psOrder = conn.prepareStatement(sqlOrder, Statement.RETURN_GENERATED_KEYS);
 
             psOrder.setInt(1, customerId);
             psOrder.setInt(2, addressId);
-            psOrder.setString(3, paymentMethod);
-            psOrder.setBigDecimal(4, totalAmount);
-
+            if (voucherId == null) {
+                psOrder.setNull(3, java.sql.Types.INTEGER);
+            } else {
+                psOrder.setInt(3, voucherId);
+            }
+            psOrder.setBigDecimal(4, discountAmount == null ? java.math.BigDecimal.ZERO : discountAmount);
+            psOrder.setString(5, paymentMethod);
+            psOrder.setBigDecimal(6, totalAmount);
             psOrder.executeUpdate();
 
             int orderId = -1;
@@ -51,49 +57,43 @@ public class OrderDAO extends DBContext {
             if (rs.next()) {
                 orderId = rs.getInt(1);
             }
-
             if (orderId == -1) {
-                throw new SQLException("Không thể tạo đơn hàng!");
+                throw new SQLException("Cannot create order");
             }
 
-            String sqlDetail = "INSERT INTO Order_Detail (order_id, variant_id, quantity, price_at_order) "
-                    + "VALUES (?, ?, ?, ?)";
-
-            psDetail = conn.prepareStatement(sqlDetail);
+            String sqlDetail = "INSERT INTO Order_Detail (order_id, variant_id, quantity, price_at_order) VALUES (?, ?, ?, ?)";
+            String sqlStock = "UPDATE Product_Variant SET stock = stock - ? WHERE variant_id = ? AND stock >= ?";
 
             for (CartItem item : items) {
-
                 if (item.getVariant() == null || item.getVariant().getPrice() == null) {
-                    throw new SQLException("Thông tin sản phẩm không hợp lệ!");
+                    throw new SQLException("Invalid cart item");
                 }
 
+                psDetail = conn.prepareStatement(sqlDetail);
                 psDetail.setInt(1, orderId);
                 psDetail.setInt(2, item.getVariant().getVariantId());
                 psDetail.setInt(3, item.getQuantity());
                 psDetail.setBigDecimal(4, item.getVariant().getPrice());
-
                 psDetail.executeUpdate();
+
+                psStock = conn.prepareStatement(sqlStock);
+                psStock.setInt(1, item.getQuantity());
+                psStock.setInt(2, item.getVariant().getVariantId());
+                psStock.setInt(3, item.getQuantity());
+                int updated = psStock.executeUpdate();
+                if (updated == 0) {
+                    throw new SQLException("Out of stock: " + item.getVariant().getVariantName());
+                }
             }
 
             conn.commit();
-
-            System.out.println("Order created successfully! Order ID: " + orderId);
-
-            // COD → trừ stock ngay
-            if ("COD".equalsIgnoreCase(paymentMethod)) {
-                deductStockAfterPayment(orderId);
-            }
-
             return orderId;
 
         } catch (SQLException e) {
-
             if (conn != null) {
                 try {
                     conn.rollback();
-                    System.out.println("Transaction rolled back: " + e.getMessage());
-                } catch (SQLException ex) {
-                    System.out.println("Rollback error: " + ex.getMessage());
+                } catch (SQLException ignored) {
                 }
             }
 
@@ -101,12 +101,10 @@ public class OrderDAO extends DBContext {
             return -1;
 
         } finally {
-
             if (conn != null) {
                 try {
                     conn.setAutoCommit(true);
-                } catch (SQLException ex) {
-                    System.out.println("AutoCommit reset error: " + ex.getMessage());
+                } catch (SQLException ignored) {
                 }
             }
 
@@ -119,8 +117,7 @@ public class OrderDAO extends DBContext {
         if (rs != null) {
             try {
                 rs.close();
-            } catch (SQLException e) {
-                System.out.println("Close rs error: " + e.getMessage());
+            } catch (SQLException ignored) {
             }
         }
 
@@ -128,8 +125,7 @@ public class OrderDAO extends DBContext {
             if (ps != null) {
                 try {
                     ps.close();
-                } catch (SQLException e) {
-                    System.out.println("Close ps error: " + e.getMessage());
+                } catch (SQLException ignored) {
                 }
             }
         }
@@ -159,11 +155,9 @@ public class OrderDAO extends DBContext {
                     order.setPaymentStatus(rs.getString("payment_status"));
                     order.setOrderStatus(rs.getString("order_status"));
                     order.setTotalAmount(rs.getBigDecimal("total_amount"));
-
                     if (rs.getTimestamp("created_at") != null) {
                         order.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
                     }
-
                     if (rs.getTimestamp("paid_at") != null) {
                         order.setPaidAt(rs.getTimestamp("paid_at").toLocalDateTime());
                     }
