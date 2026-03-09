@@ -14,7 +14,18 @@
 
 .products-list-container {
     width: min(1260px, calc(100% - 72px));
-    margin: 0 auto 28px;
+    margin: 18px auto 28px;
+}
+
+.products-layout {
+    display: grid;
+    grid-template-columns: 270px minmax(0, 1fr);
+    gap: 20px;
+    align-items: start;
+}
+
+.products-content {
+    min-width: 0;
 }
 
 .products-page {
@@ -38,12 +49,15 @@
 }
 
 .search-tools {
-    max-width: 1060px;
-    margin: 0 auto 20px;
+    margin: 0;
     padding: 18px;
     border: 1px solid #e9e2d8;
     border-radius: 12px;
     background: #fffaf4;
+    position: sticky;
+    top: 90px;
+    max-height: calc(100vh - 108px);
+    overflow: auto;
 }
 
 .search-result-info {
@@ -53,10 +67,10 @@
 }
 
 .filter-form {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(180px, 1fr)) auto;
+    display: flex;
+    flex-direction: column;
     gap: 12px;
-    align-items: end;
+    align-items: stretch;
 }
 
 .filter-group {
@@ -92,12 +106,13 @@
     display: flex;
     gap: 8px;
     align-items: center;
+    flex-wrap: wrap;
 }
 
 .filter-btn,
 .reset-btn {
     height: 40px;
-    padding: 0 14px;
+    padding: 0 24px;
     border-radius: 8px;
     font-weight: 700;
     border: 1px solid transparent;
@@ -130,9 +145,8 @@
 
 .products-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 260px));
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
     gap: 20px;
-    justify-content: center;
 }
 
 .product-card {
@@ -199,7 +213,7 @@
 
 .view-detail-btn {
     display: block;
-    width: 100%;
+    width: 93%;
     padding: 10px;
     background: #b45309;
     color: white;
@@ -207,7 +221,7 @@
     text-decoration: none;
     border-radius: 6px;
     font-weight: 600;
-    margin: 0 0 12px;
+    margin: 0 0 12px -3px;
     transition: background 0.3s;
 }
 
@@ -222,13 +236,13 @@
     font-size: 18px;
 }
 
-@media (max-width: 980px) {
-    .filter-form {
-        grid-template-columns: 1fr 1fr;
+@media (max-width: 768px) {
+    .products-layout {
+        grid-template-columns: 1fr;
     }
 
-    .filter-actions {
-        grid-column: 1 / -1;
+    .search-tools {
+        position: static;
     }
 }
 
@@ -251,7 +265,7 @@
     }
 
     .filter-form {
-        grid-template-columns: 1fr;
+        gap: 10px;
     }
 }
 
