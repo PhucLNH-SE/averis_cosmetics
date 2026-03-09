@@ -1021,12 +1021,12 @@ textarea.form-control {
 .form-grid select {
     width: 100%;
     max-width: 520px;
-    /* <-- chá»‰nh Ä‘á»™ dÃ i cá»§a Ã´ */
+    /* <-- ch???????nh ???????????? d????i c??????a ???? */
 }
 
 .form-grid select.gender-wide {
     max-width: 545px;
-    /* tÃ¹y chá»‰nh */
+    /* t????y ch???????nh */
 }
 
 .form-grid .hint {
@@ -1593,7 +1593,7 @@ textarea.form-control {
     color: #374151;
 }
 
-/* Input + Select + Date đồng bộ */
+/* Input + Select + Date ?????ng b??? */
 .auth-container input,
 .auth-container select {
     width: 100%;
@@ -1685,5 +1685,45 @@ textarea.form-control {
 .auth-container select.error {
     border-color: #dc2626;
     background: #fef2f2;
+}
+
+/* Google Places dropdown should appear above headers/modals */
+.pac-container {
+    z-index: 20000 !important;
+}
+.address-map-box {
+    height: 320px;
+    min-height: 320px;
+    width: 100%;
+    border: 1px solid #d9d9d9;
+    border-radius: 10px;
+    background: #f8fafc;
+}
+
+.address-map-fallback {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.address-map-placeholder {
+    font-size: 14px;
+    color: #475569;
+    text-align: center;
+    padding: 0 16px;
+}
+
+.street-suggestion-list {
+    margin-top: 8px;
+    max-height: 280px;
+    overflow-y: auto;
+    border: 1px solid #d9d9d9;
+    border-radius: 10px;
+    z-index: 1000;
+    background: #fff;
+}
+
+.street-suggestion-list .list-group-item {
+    cursor: pointer;
 }
 
