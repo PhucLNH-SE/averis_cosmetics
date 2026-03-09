@@ -23,7 +23,7 @@ public class Orders {
 
     private String paymentMethod;       
     private String paymentStatus;        
-    private String orderStatus;         
+    private String orderStatus;          
 
     private BigDecimal totalAmount;      
 
@@ -32,7 +32,12 @@ public class Orders {
     // them username
  private String username; 
  private String receiverName;
-private String voucherCode;
+ private String receiverPhone;
+ private String voucherCode;
+ private String streetAddress;
+ private String ward;
+ private String district;
+ private String province;
 
     public Orders() {
     }
@@ -155,6 +160,46 @@ private String voucherCode;
 
     public void setVoucherCode(String voucherCode) {
         this.voucherCode = voucherCode;
+    }
+    
+    public String getReceiverPhone() {
+        return receiverPhone;
+    }
+
+    public void setReceiverPhone(String receiverPhone) {
+        this.receiverPhone = receiverPhone;
+    }
+    
+    public String getStreetAddress() {
+        return streetAddress;
+    }
+
+    public void setStreetAddress(String streetAddress) {
+        this.streetAddress = streetAddress;
+    }
+    
+    public String getWard() {
+        return ward;
+    }
+
+    public void setWard(String ward) {
+        this.ward = ward;
+    }
+    
+    public String getDistrict() {
+        return district;
+    }
+
+    public void setDistrict(String district) {
+        this.district = district;
+    }
+    
+    public String getProvince() {
+        return province;
+    }
+
+    public void setProvince(String province) {
+        this.province = province;
     }
 
     public Orders(int orderId, int customerId, int addressId, Integer handledBy, Integer voucherId, BigDecimal discountAmount, String paymentMethod, String paymentStatus, String orderStatus, BigDecimal totalAmount, LocalDateTime createdAt, LocalDateTime paidAt, String username, String receiverName, String voucherCode) {

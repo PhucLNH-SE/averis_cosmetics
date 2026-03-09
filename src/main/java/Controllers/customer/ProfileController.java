@@ -7,10 +7,12 @@ package Controllers.customer;
 import DALs.CustomerDAO;
 import DALs.AddressDAO;
 import DALs.OrderDAO;
+import DALs.CustomerVoucherDAO;
 import Model.Customer;
 import Model.Address;
 import Model.OrderDetail;
 import Model.Orders;
+import Model.CustomerVoucher;
 import Utils.ValidationUtil;
 import java.util.List;
 import java.io.IOException;
@@ -151,14 +153,31 @@ private void showOrderDetail(HttpServletRequest request,
     int orderId = Integer.parseInt(request.getParameter("orderId"));
 
     OrderDAO dao = new OrderDAO();
+    Orders order = dao.getOrderById(orderId);
     List<OrderDetail> details = dao.getOrderDetailsByOrderId(orderId);
 
+    request.setAttribute("order", order);
     request.setAttribute("details", details);
     request.setAttribute("tab", "orderDetail");
 
     request.getRequestDispatcher("/views/customer/profile.jsp")
             .forward(request, response);
 }
+
+private void showVouchers(HttpServletRequest request, HttpServletResponse response,
+        Customer customer) throws ServletException, IOException {
+
+    CustomerVoucherDAO dao = new CustomerVoucherDAO();
+    dao.expireOutdatedVouchers();
+    List<CustomerVoucher> vouchers = dao.getByCustomerId(customer.getCustomerId());
+
+    request.setAttribute("myVouchers", vouchers);
+    request.setAttribute("tab", "voucher");
+
+    request.getRequestDispatcher("/views/customer/profile.jsp")
+            .forward(request, response);
+}
+
    private void changePassword(HttpServletRequest request,
         HttpServletResponse response,
         Customer customer) throws ServletException, IOException {
@@ -287,6 +306,8 @@ protected void doGet(HttpServletRequest request, HttpServletResponse response)
         case "view":
             if ("orders".equals(tab)) {
                 showOrders(request, response, customer);
+            } else if ("voucher".equals(tab)) {
+                showVouchers(request, response, customer);
             } else {
                 showProfilePage(request, response);
             }
@@ -299,12 +320,15 @@ protected void doGet(HttpServletRequest request, HttpServletResponse response)
         case "orders":
             showOrders(request, response, customer);
             break;
-case "orderDetail":
-    showOrderDetail(request, response, customer);
-    break;
-    case "cancelOrder":
-    cancelOrder(request, response, customer);
-    break;
+        case "orderDetail":
+            showOrderDetail(request, response, customer);
+            break;
+        case "voucher":
+            showVouchers(request, response, customer);
+            break;
+        case "cancelOrder":
+            cancelOrder(request, response, customer);
+            break;
         default:
             response.sendError(HttpServletResponse.SC_NOT_FOUND);
     }

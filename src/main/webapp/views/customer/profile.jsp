@@ -1,5 +1,6 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 
 <!DOCTYPE html>
 <html>
@@ -47,7 +48,8 @@
                 </li>
 
                 <li>
-                    <a href="${pageContext.request.contextPath}/my-voucher">
+                    <a class="${tab == 'voucher' ? 'active' : ''}"
+                       href="${pageContext.request.contextPath}/profile?action=view&tab=voucher">
                         My Voucher
                     </a>
                 </li>
@@ -264,87 +266,298 @@
                
 <c:when test="${tab == 'orders'}">
 
-<h2>My Orders</h2>
+                    <div class="orders-container">
+                        <div class="orders-header">
+                            <div>
+                                <h2>My Orders</h2>
+                                <p class="orders-subtitle">Track and manage your orders</p>
+                            </div>
+                        </div>
 
-<table border="1">
+                        <c:if test="${not empty profileMessage}">
+                            <div class="alert-message ${profileMessage.contains('success') ? 'alert-success' : 'alert-warning'}">
+                                <i class="fas ${profileMessage.contains('success') ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
+                                ${profileMessage}
+                            </div>
+                        </c:if>
 
-<tr>
-    <th>Receiver</th>
-    <th>Voucher</th>
-    <th>Discount</th>
-    <th>Status</th>
-    <th>Total</th>
-    <th>Date</th>
-    <th>Action</th>
-</tr>
+                        <c:choose>
+                            <c:when test="${empty orders}">
+                                <div class="empty-orders">
+                                    <div class="empty-icon">
+                                        <i class="fas fa-shopping-bag"></i>
+                                    </div>
+                                    <h3>No orders yet</h3>
+                                    <p>You haven't placed any orders yet. Start shopping to see your orders here!</p>
+                                    <a href="${pageContext.request.contextPath}/products" class="btn-shop-now">
+                                        <i class="fas fa-shopping-cart"></i> Shop Now
+                                    </a>
+                                </div>
+                            </c:when>
+                            <c:otherwise>
+                                <div class="orders-list">
+                                    <c:forEach var="o" items="${orders}">
+                                        <div class="order-card">
+                                            <div class="order-header">
+                                                <div class="order-id">
+                                                    <span class="order-label">Order ID:</span>
+                                                    <span class="order-value">#${o.orderId}</span>
+                                                </div>
+                                                <div class="order-status status-${fn:toLowerCase(o.orderStatus)}">
+                                                    <i class="fas ${o.orderStatus == 'COMPLETED' ? 'fa-check-circle' : o.orderStatus == 'CANCELLED' ? 'fa-times-circle' : o.orderStatus == 'SHIPPING' ? 'fa-truck' : 'fa-clock'}"></i>
+                                                    ${o.orderStatus}
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="order-info">
+                                                <div class="order-info-item">
+                                                    <i class="fas fa-user"></i>
+                                                    <div>
+                                                        <span class="info-label">Receiver</span>
+                                                        <span class="info-value">${o.receiverName}</span>
+                                                    </div>
+                                                </div>
+                                                <div class="order-info-item">
+                                                    <i class="fas fa-calendar-alt"></i>
+                                                    <div>
+                                                        <span class="info-label">Date</span>
+                                                        <span class="info-value">${o.createdAt}</span>
+                                                    </div>
+                                                </div>
+                                                <div class="order-info-item">
+                                                    <i class="fas fa-tag"></i>
+                                                    <div>
+                                                        <span class="info-label">Voucher</span>
+                                                        <span class="info-value">${o.voucherCode != null ? o.voucherCode : 'None'}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="order-footer">
+                                                <div class="order-total">
+                                                    <span class="total-label">Total:</span>
+                                                    <span class="total-value">${o.totalAmount} ₫</span>
+                                                    <c:if test="${o.discountAmount > 0}">
+                                                        <span class="discount-badge">-${o.discountAmount} ₫</span>
+                                                    </c:if>
+                                                </div>
+                                                <div class="order-actions">
+                                                    <a href="${pageContext.request.contextPath}/profile?action=orderDetail&orderId=${o.orderId}" class="action-btn view">
+                                                        <i class="fas fa-eye"></i> View Detail
+                                                    </a>
+                                                    <c:if test="${o.orderStatus == 'CREATED' || o.orderStatus == 'PROCESSING'}">
+                                                        <a href="#" onclick="confirmCancel(${o.orderId})" class="action-btn cancel">
+                                                            <i class="fas fa-times"></i> Cancel
+                                                        </a>
+                                                    </c:if>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </c:forEach>
+                                </div>
+                            </c:otherwise>
+                        </c:choose>
+                    </div>
 
-<c:forEach var="o" items="${orders}">
-
-<tr>
-    <td>${o.receiverName}</td>
-    <td>${o.voucherCode}</td>
-    <td>${o.discountAmount}</td>
-    <td>${o.orderStatus}</td>
-    <td>${o.totalAmount}</td>
-    <td>${o.createdAt}</td>
-
-    <td>
-        <a href="${pageContext.request.contextPath}/profile?action=orderDetail&orderId=${o.orderId}">
-            View Detail
-        </a>
-              <c:if test="${o.orderStatus == 'CREATED' || o.orderStatus == 'PROCESSING'}">
-      <c:if test="${o.orderStatus == 'CREATED' || o.orderStatus == 'PROCESSING'}">
-        | <a href="#" onclick="confirmCancel(${o.orderId})">Cancel</a>
-    </c:if>
-    </c:if>
-    </td>
-</tr>
-
-</c:forEach>
-
-</table>
-
-</c:when>
+                </c:when>
 <c:when test="${tab == 'orderDetail'}">
 
-<h2>Order Details</h2>
+                    <div class="order-detail-container">
+                        <div class="order-detail-header">
+                            <a href="${pageContext.request.contextPath}/profile?action=view&tab=orders" class="back-btn">
+                                <i class="fas fa-arrow-left"></i> Back to My Orders
+                            </a>
+                            <h2>Order Details</h2>
+                            <c:if test="${not empty order}">
+                                <div class="order-detail-status status-${fn:toLowerCase(order.orderStatus)}">
+                                    <i class="fas ${order.orderStatus == 'COMPLETED' ? 'fa-check-circle' : order.orderStatus == 'CANCELLED' ? 'fa-times-circle' : order.orderStatus == 'SHIPPING' ? 'fa-truck' : 'fa-clock'}"></i>
+                                    ${order.orderStatus}
+                                </div>
+                            </c:if>
+                        </div>
 
-<table border="1">
+                        <c:if test="${not empty order}">
+                            <div class="order-detail-info">
+                                <div class="info-card">
+                                    <h3><i class="fas fa-box"></i> Order Information</h3>
+                                    <div class="info-row">
+                                        <span class="label">Order ID</span>
+                                        <span class="value">#${order.orderId}</span>
+                                    </div>
+                                    <div class="info-row">
+                                        <span class="label">Order Date</span>
+                                        <span class="value">${order.createdAt}</span>
+                                    </div>
+                                    <div class="info-row">
+                                        <span class="label">Payment Method</span>
+                                        <span class="value">${order.paymentMethod}</span>
+                                    </div>
+                                    <div class="info-row">
+                                        <span class="label">Payment Status</span>
+                                        <span class="value">${order.paymentStatus}</span>
+                                    </div>
+                                </div>
 
-<tr>
-<th>Image</th>
-<th>Product</th>
-<th>Brand</th>
-<th>Category</th>
-<th>Quantity</th>
-<th>Price</th>
-</tr>
+                                <div class="info-card">
+                                    <h3><i class="fas fa-map-marker-alt"></i> Shipping Address</h3>
+                                    <div class="info-row">
+                                        <span class="label">Receiver</span>
+                                        <span class="value">${order.receiverName}</span>
+                                    </div>
+                                    <div class="info-row">
+                                        <span class="label">Phone</span>
+                                        <span class="value">${order.receiverPhone}</span>
+                                    </div>
+                                    <div class="info-row">
+                                        <span class="label">Address</span>
+                                        <span class="value">${order.streetAddress}, ${order.ward}, ${order.district}, ${order.province}</span>
+                                    </div>
+                                </div>
+                            </div>
 
-<c:forEach var="d" items="${details}">
-<tr>
+                            <div class="order-items-section">
+                                <h3><i class="fas fa-shopping-bag"></i> Order Items</h3>
+                                <div class="order-items-list">
+                                    <c:forEach var="d" items="${details}">
+                                        <div class="order-item">
+                                            <div class="item-image">
+                                                <img src="${pageContext.request.contextPath}/assets/img/${d.imageUrl}" 
+                                                     alt="${d.productName}"
+                                                     onerror="this.src='${pageContext.request.contextPath}/assets/img/default-product.jpg'">
+                                            </div>
+                                            <div class="item-details">
+                                                <div class="item-name">${d.productName}</div>
+                                                <div class="item-meta">
+                                                    <span>${d.brandName}</span>
+                                                    <span class="separator">|</span>
+                                                    <span>${d.categoryName}</span>
+                                                </div>
+                                            </div>
+                                            <div class="item-quantity">
+                                                <span class="qty-label">Qty:</span>
+                                                <span class="qty-value">${d.quantity}</span>
+                                            </div>
+                                            <div class="item-price">
+                                                <span class="price-value">${d.priceAtOrder} ₫</span>
+                                                <c:if test="${d.quantity > 1}">
+                                                    <span class="price-sub">${d.priceAtOrder * d.quantity} ₫</span>
+                                                </c:if>
+                                            </div>
+                                        </div>
+                                    </c:forEach>
+                                </div>
 
-<td>
-<img src="${pageContext.request.contextPath}/assets/img/${d.imageUrl}" width="80">
-</td>
+                                <div class="order-summary">
+                                    <div class="summary-row">
+                                        <span>Subtotal</span>
+                                        <span>${order.totalAmount + order.discountAmount} ₫</span>
+                                    </div>
+                                    <c:if test="${order.discountAmount > 0}">
+                                        <div class="summary-row discount">
+                                            <span>Discount</span>
+                                            <span>-${order.discountAmount} ₫</span>
+                                        </div>
+                                    </c:if>
+                                    <div class="summary-row total">
+                                        <span>Total</span>
+                                        <span>${order.totalAmount} ₫</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </c:if>
+                    </div>
 
-<td>${d.productName}</td>
-<td>${d.brandName}</td>
-<td>${d.categoryName}</td>
-<td>${d.quantity}</td>
-<td>${d.priceAtOrder}</td>
+                </c:when>
 
-</tr>
-</c:forEach>
+                <c:when test="${tab == 'voucher'}">
 
-</table>
+                    <div class="voucher-container">
+                        <div class="voucher-header">
+                            <div>
+                                <h2>My Voucher</h2>
+                                <p class="voucher-subtitle">Quản lý các voucher bạn đang sở hữu</p>
+                            </div>
+                        </div>
 
-<br>
+                        <div class="voucher-claim-card">
+                            <form method="post" action="${pageContext.request.contextPath}/my-voucher" class="voucher-claim-form">
+                                <input type="text" name="voucherCode" placeholder="Nhập voucher code" required>
+                                <button type="submit">Add Voucher</button>
+                            </form>
+                        </div>
 
-<a href="${pageContext.request.contextPath}/profile?action=orders">
-Back to My Orders
-</a>
+                        <c:if test="${param.success == 'claimed'}">
+                            <div class="alert-message alert-success">
+                                <i class="fas fa-check-circle"></i> Claim voucher thành công.
+                            </div>
+                        </c:if>
+                        <c:if test="${not empty param.error}">
+                            <div class="alert-message alert-warning">
+                                <i class="fas fa-exclamation-circle"></i>
+                                <c:choose>
+                                    <c:when test="${param.error == 'emptyCode'}">Vui lòng nhập mã voucher.</c:when>
+                                    <c:when test="${param.error == 'codeNotFound'}">Mã voucher không tồn tại hoặc đã bị tắt.</c:when>
+                                    <c:when test="${param.error == 'outOfStock'}">Voucher đã hết số lượng.</c:when>
+                                    <c:when test="${param.error == 'alreadyClaimed'}">Bạn đã nhận voucher này rồi.</c:when>
+                                    <c:when test="${param.error == 'voucherExpired'}">Voucher đã hết hạn nhận.</c:when>
+                                    <c:otherwise>Lỗi khi nhận voucher.</c:otherwise>
+                                </c:choose>
+                            </div>
+                        </c:if>
 
-</c:when>
+                        <div class="voucher-table-card">
+                            <div class="voucher-table-wrap">
+                                <table class="voucher-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Code</th>
+                                            <th>Discount</th>
+                                            <th>Ngày bắt đầu</th>
+                                            <th>Hạn sử dụng</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <c:choose>
+                                            <c:when test="${empty myVouchers}">
+                                                <tr>
+                                                    <td colspan="5" class="voucher-empty">Bạn chưa có voucher nào.</td>
+                                                </tr>
+                                            </c:when>
+                                            <c:otherwise>
+                                                <c:forEach var="cv" items="${myVouchers}">
+                                                    <c:set var="effectiveFromStr" value="${fn:replace(cv.effectiveFrom, 'T', ' ')}"/>
+                                                    <c:set var="effectiveToStr" value="${fn:replace(cv.effectiveTo, 'T', ' ')}"/>
+                                                    <tr>
+                                                        <td><strong>${cv.voucher.code}</strong></td>
+                                                        <td>
+                                                            <c:choose>
+                                                                <c:when test="${cv.voucher.discountType eq 'PERCENT'}">
+                                                                    <fmt:formatNumber value="${cv.voucher.discountValue}" pattern="#,##0" />%
+                                                                </c:when>
+                                                                <c:otherwise>
+                                                                    <fmt:formatNumber value="${cv.voucher.discountValue}" pattern="#,##0" /> ₫
+                                                                </c:otherwise>
+                                                            </c:choose>
+                                                        </td>
+                                                        <td>${fn:length(effectiveFromStr) > 16 ? fn:substring(effectiveFromStr, 0, 16) : effectiveFromStr}</td>
+                                                        <td>${fn:length(effectiveToStr) > 16 ? fn:substring(effectiveToStr, 0, 16) : effectiveToStr}</td>
+                                                        <td>
+                                                            <span class="voucher-status ${cv.status == 'ACTIVE' ? 'active' : (cv.status == 'USED' ? 'used' : 'expired')}">
+                                                                ${cv.status}
+                                                            </span>
+                                                        </td>
+                                                    </tr>
+                                                </c:forEach>
+                                            </c:otherwise>
+                                        </c:choose>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                </c:when>
 
         
                 <c:when test="${tab == 'password'}">
