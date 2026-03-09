@@ -9,6 +9,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -351,4 +353,72 @@ String sql = "SELECT "
 
         return false;
     }
+   public List<Orders> getOrdersByCustomerId(int customerId) {
+
+    List<Orders> list = new ArrayList<>();
+
+    String sql = "SELECT " +
+                 "o.order_id, " +              // thêm dòng này
+                 "a.receiver_name, " +
+                 "v.code AS voucher_code, " +
+                 "o.discount_amount, " +
+                 "o.order_status, " +
+                 "o.total_amount, " +
+                 "o.created_at " +
+                 "FROM Orders o " +
+                 "JOIN Address a ON o.address_id = a.address_id " +
+                 "LEFT JOIN Voucher v ON o.voucher_id = v.voucher_id " +
+                 "WHERE o.customer_id = ? " +
+                 "ORDER BY o.created_at DESC";
+
+    try {
+        PreparedStatement ps = connection.prepareStatement(sql);
+        ps.setInt(1, customerId);
+
+        ResultSet rs = ps.executeQuery();
+
+        while (rs.next()) {
+
+            Orders order = new Orders();
+
+            order.setOrderId(rs.getInt("order_id"));   // thêm dòng này
+            order.setReceiverName(rs.getString("receiver_name"));
+            order.setVoucherCode(rs.getString("voucher_code"));
+            order.setDiscountAmount(rs.getBigDecimal("discount_amount"));
+            order.setOrderStatus(rs.getString("order_status"));
+            order.setTotalAmount(rs.getBigDecimal("total_amount"));
+
+            Timestamp ts = rs.getTimestamp("created_at");
+            if (ts != null) {
+                order.setCreatedAt(ts.toLocalDateTime());
+            }
+
+            list.add(order);
+        }
+
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+
+    return list;
+}
+public boolean cancelOrder(int orderId) {
+
+    String sql = "UPDATE Orders "
+               + "SET order_status = 'CANCELLED' "
+               + "WHERE order_id = ? "
+               + "AND order_status IN ('CREATED','PROCESSING')";
+
+    try {
+        PreparedStatement ps = connection.prepareStatement(sql);
+        ps.setInt(1, orderId);
+
+        return ps.executeUpdate() > 0;
+
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+
+    return false;
+}
 }

@@ -19,7 +19,7 @@
                 </div>
 
                 <div class="profile-card__body">
-                    <form action="${pageContext.request.contextPath}/CustomerController?action=edit" method="post">
+                    <form action="${pageContext.request.contextPath}/profile?action=edit" method="post">
                         <div class="form-grid">
 
 
