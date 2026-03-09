@@ -1,8 +1,10 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+
 <!DOCTYPE html>
 <html>
 <head>
+
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <title>Profile - Averis Cosmetics</title>
     <link rel="stylesheet" href="<%=request.getContextPath()%>/assets/css/style.css">
@@ -260,11 +262,89 @@
 
 
                
-                <c:when test="${tab == 'orders'}">
-                    <h2>My Orders</h2>
-                    <p>This is the My Orders page. You can implement the content here.</p>
-                </c:when>
+<c:when test="${tab == 'orders'}">
 
+<h2>My Orders</h2>
+
+<table border="1">
+
+<tr>
+    <th>Receiver</th>
+    <th>Voucher</th>
+    <th>Discount</th>
+    <th>Status</th>
+    <th>Total</th>
+    <th>Date</th>
+    <th>Action</th>
+</tr>
+
+<c:forEach var="o" items="${orders}">
+
+<tr>
+    <td>${o.receiverName}</td>
+    <td>${o.voucherCode}</td>
+    <td>${o.discountAmount}</td>
+    <td>${o.orderStatus}</td>
+    <td>${o.totalAmount}</td>
+    <td>${o.createdAt}</td>
+
+    <td>
+        <a href="${pageContext.request.contextPath}/profile?action=orderDetail&orderId=${o.orderId}">
+            View Detail
+        </a>
+              <c:if test="${o.orderStatus == 'CREATED' || o.orderStatus == 'PROCESSING'}">
+      <c:if test="${o.orderStatus == 'CREATED' || o.orderStatus == 'PROCESSING'}">
+        | <a href="#" onclick="confirmCancel(${o.orderId})">Cancel</a>
+    </c:if>
+    </c:if>
+    </td>
+</tr>
+
+</c:forEach>
+
+</table>
+
+</c:when>
+<c:when test="${tab == 'orderDetail'}">
+
+<h2>Order Details</h2>
+
+<table border="1">
+
+<tr>
+<th>Image</th>
+<th>Product</th>
+<th>Brand</th>
+<th>Category</th>
+<th>Quantity</th>
+<th>Price</th>
+</tr>
+
+<c:forEach var="d" items="${details}">
+<tr>
+
+<td>
+<img src="${pageContext.request.contextPath}/assets/img/${d.imageUrl}" width="80">
+</td>
+
+<td>${d.productName}</td>
+<td>${d.brandName}</td>
+<td>${d.categoryName}</td>
+<td>${d.quantity}</td>
+<td>${d.priceAtOrder}</td>
+
+</tr>
+</c:forEach>
+
+</table>
+
+<br>
+
+<a href="${pageContext.request.contextPath}/profile?action=orders">
+Back to My Orders
+</a>
+
+</c:when>
 
         
                 <c:when test="${tab == 'password'}">
@@ -325,5 +405,25 @@
 </div>
 
 <%@include file="/assets/footer.jsp" %>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+function confirmCancel(orderId) {
+    Swal.fire({
+        title: 'Cancel Order',
+        text: 'Bạn có chắc muốn hủy đơn này?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, Cancel',
+        cancelButtonText: 'No',
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href =
+                'profile?action=cancelOrder&orderId=' + orderId;
+        }
+    });
+}
+</script>
 </body>
 </html>

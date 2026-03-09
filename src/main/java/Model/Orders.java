@@ -31,8 +31,18 @@ public class Orders {
     private LocalDateTime paidAt; 
     // them username
  private String username; 
+ private String receiverName;
 private String voucherCode;
+
     public Orders() {
+    }
+
+    public String getReceiverName() {
+        return receiverName;
+    }
+
+    public void setReceiverName(String receiverName) {
+        this.receiverName = receiverName;
     }
 
     public int getOrderId() {
@@ -147,7 +157,7 @@ private String voucherCode;
         this.voucherCode = voucherCode;
     }
 
-    public Orders(int orderId, int customerId, int addressId, Integer handledBy, Integer voucherId, BigDecimal discountAmount, String paymentMethod, String paymentStatus, String orderStatus, BigDecimal totalAmount, LocalDateTime createdAt, LocalDateTime paidAt, String username, String voucherCode) {
+    public Orders(int orderId, int customerId, int addressId, Integer handledBy, Integer voucherId, BigDecimal discountAmount, String paymentMethod, String paymentStatus, String orderStatus, BigDecimal totalAmount, LocalDateTime createdAt, LocalDateTime paidAt, String username, String receiverName, String voucherCode) {
         this.orderId = orderId;
         this.customerId = customerId;
         this.addressId = addressId;
@@ -161,8 +171,11 @@ private String voucherCode;
         this.createdAt = createdAt;
         this.paidAt = paidAt;
         this.username = username;
+        this.receiverName = receiverName;
         this.voucherCode = voucherCode;
     }
+
+ 
 
    
    

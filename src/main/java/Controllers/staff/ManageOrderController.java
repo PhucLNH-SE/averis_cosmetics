@@ -28,9 +28,7 @@ public class ManageOrderController extends HttpServlet {
                 listOrders(request, response);
                 break;
 
-            case "detail":
-                showOrderDetail(request, response);
-                break;
+           
 
             default:
                 listOrders(request, response);
@@ -47,19 +45,7 @@ public class ManageOrderController extends HttpServlet {
         request.getRequestDispatcher("views/staff/manage-orders.jsp").forward(request, response);
     }
 
-    private void showOrderDetail(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
 
-        int orderId = Integer.parseInt(request.getParameter("orderId"));
-
-        OrderDAO dao = new OrderDAO();
-        List<OrderDetail> orderDetails = dao.getOrderDetailsByOrderId(orderId);
-
-        request.setAttribute("orderDetails", orderDetails);
-        request.setAttribute("orderId", orderId);
-
-        request.getRequestDispatcher("views/staff/order-detail.jsp").forward(request, response);
-    }
 
  @Override
 protected void doPost(HttpServletRequest request, HttpServletResponse response)

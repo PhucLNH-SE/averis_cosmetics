@@ -6,8 +6,11 @@ package Controllers.customer;
 
 import DALs.CustomerDAO;
 import DALs.AddressDAO;
+import DALs.OrderDAO;
 import Model.Customer;
 import Model.Address;
+import Model.OrderDetail;
+import Model.Orders;
 import Utils.ValidationUtil;
 import java.util.List;
 import java.io.IOException;
@@ -118,15 +121,44 @@ public class ProfileController extends HttpServlet {
 
         if (ok) {
             request.getSession().setAttribute("customer", customer);
-            response.sendRedirect(request.getContextPath() + "/CustomerController?action=view");
+            response.sendRedirect(request.getContextPath() + "/profile?action=view");
         } else {
             request.setAttribute("error", "Update failed.");
             request.setAttribute("customer", customer);
-            request.getRequestDispatcher("/views/customer/editPprofile.jsp")
+            request.getRequestDispatcher("/views/customer/editprofile.jsp")
                     .forward(request, response);
         }
     }
+private void showOrders(HttpServletRequest request, HttpServletResponse response,
+        Customer customer) throws ServletException, IOException {
 
+    OrderDAO dao = new OrderDAO();
+
+    List<Orders> orders = dao.getOrdersByCustomerId(customer.getCustomerId());
+
+    request.setAttribute("orders", orders);
+
+    request.setAttribute("tab", "orders");
+
+    request.getRequestDispatcher("/views/customer/profile.jsp")
+            .forward(request, response);
+}
+private void showOrderDetail(HttpServletRequest request,
+        HttpServletResponse response,
+        Customer customer)
+        throws ServletException, IOException {
+
+    int orderId = Integer.parseInt(request.getParameter("orderId"));
+
+    OrderDAO dao = new OrderDAO();
+    List<OrderDetail> details = dao.getOrderDetailsByOrderId(orderId);
+
+    request.setAttribute("details", details);
+    request.setAttribute("tab", "orderDetail");
+
+    request.getRequestDispatcher("/views/customer/profile.jsp")
+            .forward(request, response);
+}
    private void changePassword(HttpServletRequest request,
         HttpServletResponse response,
         Customer customer) throws ServletException, IOException {
@@ -212,36 +244,72 @@ if (ok) {
             .forward(request, response);
 }
 }
+   private void cancelOrder(HttpServletRequest request,
+        HttpServletResponse response,
+        Customer customer)
+        throws ServletException, IOException {
 
-    @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+    int orderId = Integer.parseInt(request.getParameter("orderId"));
 
-        HttpSession session = request.getSession(false);
-        if (session == null || session.getAttribute("customer") == null) {
-            response.sendRedirect(request.getContextPath() + "/auth?action=login");
-            return;
-        }
+    OrderDAO dao = new OrderDAO();
 
-        Customer customer = (Customer) session.getAttribute("customer");
+    boolean success = dao.cancelOrder(orderId);
 
-        String action = request.getParameter("action");
-        if (action == null) {
-            action = "";
-        }
-
-        switch (action) {
-            case "view":
-                showProfilePage(request, response);
-                break;
-            case "edit":
-                showEditForm(request, response, customer);
-                break;
-
-            default:
-                response.sendError(HttpServletResponse.SC_NOT_FOUND);
-        }
+    if (success) {
+        response.sendRedirect(request.getContextPath() + "/profile?action=orders");
+    } else {
+        request.setAttribute("error", "Cannot cancel this order.");
+        showOrders(request, response, customer);
     }
+}
+
+@Override
+protected void doGet(HttpServletRequest request, HttpServletResponse response)
+        throws ServletException, IOException {
+
+    HttpSession session = request.getSession(false);
+    if (session == null || session.getAttribute("customer") == null) {
+        response.sendRedirect(request.getContextPath() + "/auth?action=login");
+        return;
+    }
+
+    Customer customer = (Customer) session.getAttribute("customer");
+
+    String action = request.getParameter("action");
+    String tab = request.getParameter("tab");
+
+    if (action == null) {
+        action = "view";
+    }
+
+    switch (action) {
+
+        case "view":
+            if ("orders".equals(tab)) {
+                showOrders(request, response, customer);
+            } else {
+                showProfilePage(request, response);
+            }
+            break;
+
+        case "edit":
+            showEditForm(request, response, customer);
+            break;
+
+        case "orders":
+            showOrders(request, response, customer);
+            break;
+case "orderDetail":
+    showOrderDetail(request, response, customer);
+    break;
+    case "cancelOrder":
+    cancelOrder(request, response, customer);
+    break;
+        default:
+            response.sendError(HttpServletResponse.SC_NOT_FOUND);
+    }
+    
+}
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
