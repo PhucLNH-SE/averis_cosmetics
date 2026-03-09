@@ -114,6 +114,10 @@
     <servlet-name>MomoReturnController</servlet-name>
     <servlet-class>Controllers.customer.MomoReturnController</servlet-class>
   </servlet>
+  <servlet>
+    <servlet-name>HeaderMenuController</servlet-name>
+    <servlet-class>Controllers.guest.HeaderMenuController</servlet-class>
+  </servlet>
 
   <!-- Servlet Mappings -->
   <servlet-mapping>
@@ -279,6 +283,10 @@
   <servlet-mapping>
     <servlet-name>MomoReturnController</servlet-name>
     <url-pattern>/momo-return</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>HeaderMenuController</servlet-name>
+    <url-pattern>/header-menu-data</url-pattern>
   </servlet-mapping>
 
   <welcome-file-list>

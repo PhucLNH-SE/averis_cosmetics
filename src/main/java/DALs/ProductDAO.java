@@ -1,92 +1,61 @@
 package DALs;
 
+import Model.Brand;
+import Model.Category;
+import Model.Product;
+import Model.ProductImage;
+import Model.ProductVariant;
 import Utils.DBContext;
-
 import java.sql.PreparedStatement;
-
 import java.sql.ResultSet;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
-
 import java.util.List;
-
 import java.util.Map;
-
-import Model.Brand;
-
-import Model.Category;
-
-import Model.Product;
-
-import Model.ProductImage;
-
-import Model.ProductVariant;
 
 public class ProductDAO extends DBContext {
 
     public List<String> getAllBrandNames() {
-
         List<String> brands = new ArrayList<>();
-
         String sql = "SELECT DISTINCT name FROM Brand WHERE status = 1 ORDER BY name ASC";
 
-        try (PreparedStatement ps = connection.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
-
+        try (PreparedStatement ps = connection.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
-
                 String brandName = rs.getString("name");
-
                 if (brandName != null && !brandName.trim().isEmpty()) {
-
                     brands.add(brandName);
-
                 }
-
             }
-
         } catch (Exception e) {
-
             e.printStackTrace();
-
         }
 
         return brands;
-
     }
 
     public List<String> getAllCategoryNames() {
-
         List<String> categories = new ArrayList<>();
-
         String sql = "SELECT DISTINCT name FROM Category WHERE status = 1 ORDER BY name ASC";
 
-        try (PreparedStatement ps = connection.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
-
+        try (PreparedStatement ps = connection.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
-
                 String categoryName = rs.getString("name");
-
                 if (categoryName != null && !categoryName.trim().isEmpty()) {
-
                     categories.add(categoryName);
-
                 }
-
             }
-
         } catch (Exception e) {
-
             e.printStackTrace();
-
         }
 
         return categories;
-
     }
 
     public List<Product> getAllProducts() {
         List<Product> list = new ArrayList<>();
-        // 1. Cập nhật câu SQL: Thêm MIN(price), MAX(price) và GROUP BY
         String sql = "SELECT "
                 + "  p.product_id, p.name, p.description, p.status, "
                 + "  b.brand_id, b.name AS brand_name, b.status AS brand_status, "
@@ -104,77 +73,59 @@ public class ProductDAO extends DBContext {
                 + "         pi.image_id, pi.image_url, pi.is_main "
                 + "ORDER BY p.product_id DESC, pi.is_main DESC, pi.image_id ASC";
 
-        try (PreparedStatement ps = connection.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+        try (PreparedStatement ps = connection.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
             Map<Integer, Product> productMap = new HashMap<>();
 
             while (rs.next()) {
                 int productId = rs.getInt("product_id");
-                Product p = productMap.get(productId);
+                Product product = productMap.get(productId);
 
-                if (p == null) {
-                    p = new Product();
-                    p.setProductId(productId);
-                    p.setName(rs.getString("name"));
-                    p.setDescription(rs.getString("description"));
-                    p.setStatus(rs.getBoolean("status"));
-                    
-                    // 2. Set giá trị minPrice và maxPrice từ SQL vào Object
-                    p.setPrice(rs.getDouble("min_price")); 
-                    p.setMaxPrice(rs.getDouble("max_price"));
-
-                    // ... (Đoạn set Brand, Category, Variants, MainImage giữ nguyên như cũ) ...
-                    p.setMainImage(rs.getString("image_url"));
-                    
-                    Brand b = new Brand();
-                    b.setBrandId(rs.getInt("brand_id"));
-                    b.setName(rs.getString("brand_name"));
-                    b.setStatus(rs.getBoolean("brand_status"));
-                    p.setBrand(b);
-
-                    Category c = new Category();
-                    c.setCategoryId(rs.getInt("category_id"));
-                    c.setName(rs.getString("category_name"));
-                    c.setStatus(rs.getBoolean("category_status"));
-                    p.setCategory(c);
-
-                    p.setVariants(getProductVariants(productId));
-                    p.setImages(new ArrayList<>());
-                    
-                    productMap.put(productId, p);
+                if (product == null) {
+                    product = mapBaseProduct(rs, productId, true);
+                    product.setPrice(rs.getDouble("min_price"));
+                    product.setMaxPrice(rs.getDouble("max_price"));
+                    product.setVariants(getProductVariants(productId));
+                    productMap.put(productId, product);
                 }
 
-                // ... (Đoạn xử lý Image List giữ nguyên như cũ) ...
-                int imageId = rs.getInt("image_id");
-                if (!rs.wasNull()) {
-                    ProductImage img = new ProductImage();
-                    img.setImageId(imageId);
-                    img.setProductId(productId);
-                    img.setImage(rs.getString("image_url"));
-                    img.setMain(rs.getBoolean("is_main"));
-                    p.getImages().add(img);
-
-                    if (rs.getBoolean("is_main") && p.getMainImage() == null) {
-                        p.setMainImage(rs.getString("image_url"));
-                    }
-                }
+                addImageFromRow(rs, product, productId);
             }
 
-            for (Product p : productMap.values()) {
-                if (p.getMainImage() == null && !p.getImages().isEmpty()) {
-                    p.setMainImage(p.getImages().get(0).getImage());
-                }
-            }
+            finalizeMainImages(productMap);
             list.addAll(productMap.values());
         } catch (Exception e) {
             e.printStackTrace();
         }
+
         return list;
     }
 
-    public Product getProductById(int productId) {
+    public List<Integer> getTopSellingProductIds() {
+        List<Integer> ids = new ArrayList<>();
+        String sql = "SELECT p.product_id, SUM(od.quantity) AS total_sold "
+                + "FROM Orders o "
+                + "JOIN Order_Detail od ON o.order_id = od.order_id "
+                + "JOIN Product_Variant pv ON od.variant_id = pv.variant_id "
+                + "JOIN Product p ON pv.product_id = p.product_id "
+                + "WHERE o.order_status <> 'CANCELLED' "
+                + "GROUP BY p.product_id "
+                + "ORDER BY total_sold DESC, p.product_id DESC";
 
-        String sql
-                = "SELECT "
+        try (PreparedStatement ps = connection.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                ids.add(rs.getInt("product_id"));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return ids;
+    }
+
+    public Product getProductById(int productId) {
+        String sql = "SELECT "
                 + "  p.product_id, p.name, p.description, p.status, "
                 + "  b.brand_id, b.name AS brand_name, b.status AS brand_status, "
                 + "  c.category_id, c.name AS category_name, c.status AS category_status, "
@@ -186,228 +137,120 @@ public class ProductDAO extends DBContext {
                 + "WHERE p.product_id = ? "
                 + "ORDER BY pi.is_main DESC, pi.image_id ASC";
 
-        try (
-                PreparedStatement ps = connection.prepareStatement(sql)) {
-
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, productId);
 
             try (ResultSet rs = ps.executeQuery()) {
-
-                Product p = null;
-
+                Product product = null;
                 Map<Integer, ProductImage> imageMap = new HashMap<>();
 
                 while (rs.next()) {
-
-                    if (p == null) {
-
-                        p = new Product();
-
-                        p.setProductId(rs.getInt("product_id"));
-
-                        p.setName(rs.getString("name"));
-
-                        p.setDescription(rs.getString("description"));
-
-                        p.setStatus(rs.getBoolean("status"));
-
-                        Brand b = new Brand();
-
-                        b.setBrandId(rs.getInt("brand_id"));
-
-                        b.setName(rs.getString("brand_name"));
-
-                        b.setStatus(rs.getBoolean("brand_status"));
-
-                        p.setBrand(b);
-
-                        Category c = new Category();
-
-                        c.setCategoryId(rs.getInt("category_id"));
-
-                        c.setName(rs.getString("category_name"));
-
-                        c.setStatus(rs.getBoolean("category_status"));
-
-                        p.setCategory(c);
-
-                        // Lấy các biến thể của sản phẩm
-                        p.setVariants(getProductVariants(productId));
-
+                    if (product == null) {
+                        product = mapBaseProduct(rs, productId, true);
+                        product.setVariants(getProductVariants(productId));
                     }
 
-                    // Process images
                     int imageId = rs.getInt("image_id");
-
                     if (!rs.wasNull() && !imageMap.containsKey(imageId)) {
-
                         ProductImage img = new ProductImage();
-
-                        img.setImageId(rs.getInt("image_id"));
-
-                        img.setProductId(rs.getInt("product_id"));
-
+                        img.setImageId(imageId);
+                        img.setProductId(productId);
                         img.setImage(rs.getString("image_url"));
-
                         img.setMain(rs.getBoolean("is_main"));
-
                         imageMap.put(imageId, img);
-
                     }
-
                 }
 
-                if (p != null) {
-
-                    // Set images
+                if (product != null) {
                     List<ProductImage> images = new ArrayList<>(imageMap.values());
+                    product.setImages(images);
 
-                    p.setImages(images);
-
-                    // Set main image
                     String mainImage = null;
-
                     for (ProductImage img : images) {
-
                         if (img.isMain()) {
-
                             mainImage = img.getImage();
-
                             break;
-
                         }
-
                     }
 
                     if (mainImage == null && !images.isEmpty()) {
-
                         mainImage = images.get(0).getImage();
-
                     }
 
-                    p.setMainImage(mainImage);
-
+                    product.setMainImage(mainImage);
                 }
 
-                return p;
-
+                return product;
             }
-
         } catch (Exception e) {
-
             e.printStackTrace();
-
         }
 
         return null;
-
     }
 
     private List<ProductVariant> getProductVariants(int productId) {
-
         List<ProductVariant> variants = new ArrayList<>();
-
-        String sql = "SELECT variant_id, product_id, variant_name, price, stock, status FROM Product_Variant WHERE product_id = ? AND status = 1";
+        String sql = "SELECT variant_id, product_id, variant_name, price, stock, status "
+                + "FROM Product_Variant WHERE product_id = ? AND status = 1";
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
-
             ps.setInt(1, productId);
 
             try (ResultSet rs = ps.executeQuery()) {
-
                 while (rs.next()) {
-
                     ProductVariant variant = new ProductVariant();
-
                     variant.setVariantId(rs.getInt("variant_id"));
-
                     variant.setProductId(rs.getInt("product_id"));
-
                     variant.setVariantName(rs.getString("variant_name"));
-
                     variant.setPrice(rs.getBigDecimal("price"));
-
                     variant.setStock(rs.getInt("stock"));
-
                     variant.setStatus(rs.getBoolean("status"));
-
                     variants.add(variant);
-
                 }
-
             }
-
         } catch (Exception e) {
-
             e.printStackTrace();
-
         }
 
         return variants;
-
     }
 
-    // Lấy dữ liệu variant (giá, tên, ảnh...) theo variantId để hiển thị trong Cart
     public ProductVariant getVariantById(int variantId) {
-
-        // Cập nhật SQL: JOIN bảng Product để lấy tên, SELECT lồng để lấy 1 ảnh chính (TOP 1)
         String sql = "SELECT v.variant_id, v.product_id, v.variant_name, v.price, v.stock, v.status, "
                 + "       p.name AS product_name, "
-                + "       (SELECT TOP 1 image_url FROM Product_Image pi WHERE pi.product_id = p.product_id AND pi.is_main = 1) AS image_url "
+                + "       (SELECT TOP 1 image_url FROM Product_Image pi "
+                + "        WHERE pi.product_id = p.product_id AND pi.is_main = 1) AS image_url "
                 + "FROM Product_Variant v "
                 + "JOIN Product p ON v.product_id = p.product_id "
                 + "WHERE v.variant_id = ?";
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
-
             ps.setInt(1, variantId);
 
             try (ResultSet rs = ps.executeQuery()) {
-
                 if (rs.next()) {
-
-                    ProductVariant v = new ProductVariant();
-
-                    // 1. Các trường cũ
-                    v.setVariantId(rs.getInt("variant_id"));
-
-                    v.setProductId(rs.getInt("product_id"));
-
-                    v.setVariantName(rs.getString("variant_name"));
-
-                    v.setPrice(rs.getBigDecimal("price"));
-
-                    v.setStock(rs.getInt("stock"));
-
-                    v.setStatus(rs.getBoolean("status"));
-
-                    // 2. Các trường MỚI (quan trọng để hiện thị Cart)
-                    v.setProductName(rs.getString("product_name"));
-
-                    v.setImageUrl(rs.getString("image_url"));
-
-                    return v;
-
+                    ProductVariant variant = new ProductVariant();
+                    variant.setVariantId(rs.getInt("variant_id"));
+                    variant.setProductId(rs.getInt("product_id"));
+                    variant.setVariantName(rs.getString("variant_name"));
+                    variant.setPrice(rs.getBigDecimal("price"));
+                    variant.setStock(rs.getInt("stock"));
+                    variant.setStatus(rs.getBoolean("status"));
+                    variant.setProductName(rs.getString("product_name"));
+                    variant.setImageUrl(rs.getString("image_url"));
+                    return variant;
                 }
-
             }
-
         } catch (Exception e) {
-
             e.printStackTrace();
-
         }
 
         return null;
-
     }
 
     public List<Product> searchProducts(String keyword) {
-
-        List<Product> list = new ArrayList<>();
-
-        String sql
-                = "SELECT "
+        String sql = "SELECT "
                 + "  p.product_id, p.name, p.description, p.status, "
                 + "  b.brand_id, b.name AS brand_name, b.status AS brand_status, "
                 + "  c.category_id, c.name AS category_name, c.status AS category_status, "
@@ -418,130 +261,12 @@ public class ProductDAO extends DBContext {
                 + "LEFT JOIN Product_Image pi ON p.product_id = pi.product_id "
                 + "WHERE p.name LIKE ? OR b.name LIKE ? OR c.name LIKE ? "
                 + "ORDER BY p.product_id DESC, pi.is_main DESC, pi.image_id ASC";
-
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-
-            String searchParam = "%" + keyword + "%";
-
-            ps.setString(1, searchParam);
-
-            ps.setString(2, searchParam);
-
-            ps.setString(3, searchParam);
-
-            try (ResultSet rs = ps.executeQuery()) {
-
-                Map<Integer, Product> productMap = new HashMap<>();
-
-                while (rs.next()) {
-
-                    int productId = rs.getInt("product_id");
-
-                    Product p = productMap.get(productId);
-
-                    if (p == null) {
-
-                        p = new Product();
-
-                        p.setProductId(productId);
-
-                        p.setName(rs.getString("name"));
-
-                        p.setDescription(rs.getString("description"));
-
-                        p.setStatus(rs.getBoolean("status"));
-
-                        Brand b = new Brand();
-
-                        b.setBrandId(rs.getInt("brand_id"));
-
-                        b.setName(rs.getString("brand_name"));
-
-                        b.setStatus(rs.getBoolean("brand_status"));
-
-                        p.setBrand(b);
-
-                        Category c = new Category();
-
-                        c.setCategoryId(rs.getInt("category_id"));
-
-                        c.setName(rs.getString("category_name"));
-
-                        c.setStatus(rs.getBoolean("category_status"));
-
-                        p.setCategory(c);
-
-                        // Fetch variants for this product
-                        p.setVariants(getProductVariants(productId));
-
-                        // Initialize images list
-                        p.setImages(new ArrayList<>());
-
-                        productMap.put(productId, p);
-
-                    }
-
-                    // Process image if exists
-                    int imageId = rs.getInt("image_id");
-
-                    if (!rs.wasNull()) {
-
-                        ProductImage img = new ProductImage();
-
-                        img.setImageId(imageId);
-
-                        img.setProductId(productId);
-
-                        img.setImage(rs.getString("image_url"));
-
-                        img.setMain(rs.getBoolean("is_main"));
-
-                        p.getImages().add(img);
-
-                        // Set main image if this is the main image
-                        if (rs.getBoolean("is_main") && p.getMainImage() == null) {
-
-                            p.setMainImage(rs.getString("image_url"));
-
-                        }
-
-                    }
-
-                }
-
-                // Finalize main images for products that don't have one set
-                for (Product p : productMap.values()) {
-
-                    if (p.getMainImage() == null && !p.getImages().isEmpty()) {
-
-                        p.setMainImage(p.getImages().get(0).getImage());
-
-                    }
-
-                }
-
-                list.addAll(productMap.values());
-
-            }
-
-        } catch (Exception e) {
-
-            e.printStackTrace();
-
-        }
-
-        return list;
-
+        return searchProductsByKeyword(keyword, sql, true);
     }
 
     public List<Product> searchProductsForAutoSuggest(String keyword) {
-
-        List<Product> list = new ArrayList<>();
-
-        String sql
-                = "SELECT TOP 10 "
-                + // Limit to top 10 results for auto-suggest
-                "  p.product_id, p.name, p.description, p.status, "
+        String sql = "SELECT TOP 10 "
+                + "  p.product_id, p.name, p.description, p.status, "
                 + "  b.brand_id, b.name AS brand_name, b.status AS brand_status, "
                 + "  c.category_id, c.name AS category_name, c.status AS category_status, "
                 + "  pi.image_id, pi.image_url, pi.is_main "
@@ -551,435 +276,347 @@ public class ProductDAO extends DBContext {
                 + "LEFT JOIN Product_Image pi ON p.product_id = pi.product_id "
                 + "WHERE p.name LIKE ? OR b.name LIKE ? OR c.name LIKE ? "
                 + "ORDER BY p.product_id DESC, pi.is_main DESC, pi.image_id ASC";
-
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-
-            String searchParam = "%" + keyword + "%";
-
-            ps.setString(1, searchParam);
-
-            ps.setString(2, searchParam);
-
-            ps.setString(3, searchParam);
-
-            try (ResultSet rs = ps.executeQuery()) {
-
-                Map<Integer, Product> productMap = new HashMap<>();
-
-                while (rs.next()) {
-
-                    int productId = rs.getInt("product_id");
-
-                    Product p = productMap.get(productId);
-
-                    if (p == null) {
-
-                        p = new Product();
-
-                        p.setProductId(productId);
-
-                        p.setName(rs.getString("name"));
-
-                        p.setDescription(rs.getString("description"));
-
-                        p.setStatus(rs.getBoolean("status"));
-
-                        Brand b = new Brand();
-
-                        b.setBrandId(rs.getInt("brand_id"));
-
-                        b.setName(rs.getString("brand_name"));
-
-                        b.setStatus(rs.getBoolean("brand_status"));
-
-                        p.setBrand(b);
-
-                        Category c = new Category();
-
-                        c.setCategoryId(rs.getInt("category_id"));
-
-                        c.setName(rs.getString("category_name"));
-
-                        c.setStatus(rs.getBoolean("category_status"));
-
-                        p.setCategory(c);
-
-                        // Initialize images list
-                        p.setImages(new ArrayList<>());
-
-                        productMap.put(productId, p);
-
-                    }
-
-                    // Process image if exists
-                    int imageId = rs.getInt("image_id");
-
-                    if (!rs.wasNull()) {
-
-                        ProductImage img = new ProductImage();
-
-                        img.setImageId(imageId);
-
-                        img.setProductId(productId);
-
-                        img.setImage(rs.getString("image_url"));
-
-                        img.setMain(rs.getBoolean("is_main"));
-
-                        p.getImages().add(img);
-
-                        // Set main image if this is the main image
-                        if (rs.getBoolean("is_main") && p.getMainImage() == null) {
-
-                            p.setMainImage(rs.getString("image_url"));
-
-                        }
-
-                    }
-
-                }
-
-                // Finalize main images for products that don't have one set
-                for (Product p : productMap.values()) {
-
-                    if (p.getMainImage() == null && !p.getImages().isEmpty()) {
-
-                        p.setMainImage(p.getImages().get(0).getImage());
-
-                    }
-
-                }
-
-                list.addAll(productMap.values());
-
-            }
-
-        } catch (Exception e) {
-
-            e.printStackTrace();
-
-        }
-
-        return list;
-
+        return searchProductsByKeyword(keyword, sql, false);
     }
 
     public List<Brand> getAllBrands() {
-
         List<Brand> list = new ArrayList<>();
-
         String sql = "SELECT * FROM Brand";
 
-        try {
-
-            PreparedStatement ps = connection.prepareStatement(sql);
-
-            ResultSet rs = ps.executeQuery();
-
+        try (PreparedStatement ps = connection.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
-
-                Brand b = new Brand();
-
-                b.setBrandId(rs.getInt("brand_id"));
-
-                b.setName(rs.getString("name"));
-
-                b.setStatus(rs.getBoolean("status"));
-
-                list.add(b);
-
+                Brand brand = new Brand();
+                brand.setBrandId(rs.getInt("brand_id"));
+                brand.setName(rs.getString("name"));
+                brand.setStatus(rs.getBoolean("status"));
+                list.add(brand);
             }
-
         } catch (Exception e) {
-
             e.printStackTrace();
-
         }
 
         return list;
-
     }
 
     public List<Category> getAllCategories() {
-
         List<Category> list = new ArrayList<>();
-
         String sql = "SELECT * FROM Category";
 
-        try {
-
-            PreparedStatement ps = connection.prepareStatement(sql);
-
-            ResultSet rs = ps.executeQuery();
-
+        try (PreparedStatement ps = connection.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
-
-                Category c = new Category();
-
-                c.setCategoryId(rs.getInt("category_id"));
-
-                c.setName(rs.getString("name"));
-
-                c.setStatus(rs.getBoolean("status"));
-
-                list.add(c);
-
+                Category category = new Category();
+                category.setCategoryId(rs.getInt("category_id"));
+                category.setName(rs.getString("name"));
+                category.setStatus(rs.getBoolean("status"));
+                list.add(category);
             }
-
         } catch (Exception e) {
-
             e.printStackTrace();
-
         }
 
         return list;
-
     }
 
-    // Đã khôi phục tham số 'double price' và thêm logic tạo Variant mặc định
-    public void insertProduct(String name, String description, int brandId, int categoryId, boolean status, String imageName, double price) {
-        String insertProductSql = "INSERT INTO Product (name, description, brand_id, category_id, status) VALUES (?, ?, ?, ?, ?)";
+    public void insertProduct(String name, String description, int brandId, int categoryId,
+                              boolean status, String imageName, double price) {
+        String insertProductSql = "INSERT INTO Product (name, description, brand_id, category_id, status) "
+                + "VALUES (?, ?, ?, ?, ?)";
         String insertImageSql = "INSERT INTO Product_Image (product_id, image_url, is_main) VALUES (?, ?, 1)";
-        // SQL tạo Variant mặc định với tên 'Standard' và số lượng tồn kho mặc định là 100
-        String insertVariantSql = "INSERT INTO Product_Variant (product_id, variant_name, price, stock, status) VALUES (?, 'Standard', ?, 100, 1)";
+        String insertVariantSql = "INSERT INTO Product_Variant (product_id, variant_name, price, stock, status) "
+                + "VALUES (?, 'Standard', ?, 100, 1)";
 
         try {
             connection.setAutoCommit(false);
-            
-            // 1. Thêm Product
-            PreparedStatement psP = connection.prepareStatement(insertProductSql, java.sql.Statement.RETURN_GENERATED_KEYS);
-            psP.setString(1, name);
-            psP.setString(2, description);
-            psP.setInt(3, brandId);
-            psP.setInt(4, categoryId);
-            psP.setBoolean(5, status);
-            psP.executeUpdate();
 
-            ResultSet rs = psP.getGeneratedKeys();
             int newId = 0;
+            try (PreparedStatement psProduct = connection.prepareStatement(insertProductSql, Statement.RETURN_GENERATED_KEYS)) {
+                psProduct.setString(1, name);
+                psProduct.setString(2, description);
+                psProduct.setInt(3, brandId);
+                psProduct.setInt(4, categoryId);
+                psProduct.setBoolean(5, status);
+                psProduct.executeUpdate();
 
-            if (rs.next()) {
-                newId = rs.getInt(1);
+                try (ResultSet rs = psProduct.getGeneratedKeys()) {
+                    if (rs.next()) {
+                        newId = rs.getInt(1);
+                    }
+                }
             }
 
             if (newId > 0) {
-                // 2. Thêm ảnh chính (nếu có)
                 if (imageName != null && !imageName.isEmpty()) {
-                    PreparedStatement psI = connection.prepareStatement(insertImageSql);
-                    psI.setInt(1, newId);
-                    psI.setString(2, imageName);
-                    psI.executeUpdate();
+                    try (PreparedStatement psImage = connection.prepareStatement(insertImageSql)) {
+                        psImage.setInt(1, newId);
+                        psImage.setString(2, imageName);
+                        psImage.executeUpdate();
+                    }
                 }
-                
-                // 3. Tự động thêm Variant mặc định
-                PreparedStatement psV = connection.prepareStatement(insertVariantSql);
-                psV.setInt(1, newId);
-                psV.setDouble(2, price);
-                psV.executeUpdate();
+
+                try (PreparedStatement psVariant = connection.prepareStatement(insertVariantSql)) {
+                    psVariant.setInt(1, newId);
+                    psVariant.setDouble(2, price);
+                    psVariant.executeUpdate();
+                }
             }
 
             connection.commit();
             connection.setAutoCommit(true);
-
         } catch (Exception e) {
             try {
                 connection.rollback();
             } catch (Exception ex) {
+                ex.printStackTrace();
             }
             e.printStackTrace();
         }
     }
 
-// Bỏ tham số 'double price'
-    public void updateProduct(int id, String name, String description, int brandId, int categoryId, boolean status, String imageName) {
-        // Bỏ set price trong SQL
-        String updateProductSql = "UPDATE Product SET name = ?, description = ?, brand_id = ?, category_id = ?, status = ? WHERE product_id = ?";
+    public void updateProduct(int id, String name, String description, int brandId, int categoryId,
+                              boolean status, String imageName) {
+        String updateProductSql = "UPDATE Product SET name = ?, description = ?, brand_id = ?, "
+                + "category_id = ?, status = ? WHERE product_id = ?";
         String updateImgSql = "UPDATE Product_Image SET image_url = ? WHERE product_id = ? AND is_main = 1";
 
         try {
             connection.setAutoCommit(false);
-            PreparedStatement psP = connection.prepareStatement(updateProductSql);
-            psP.setString(1, name);
-            psP.setString(2, description);
-            psP.setInt(3, brandId);
-            psP.setInt(4, categoryId);
-            psP.setBoolean(5, status);
-            psP.setInt(6, id);
-            psP.executeUpdate();
 
-            // 2. Cập nhật ảnh (chỉ khi người dùng có chọn ảnh mới)
+            try (PreparedStatement psProduct = connection.prepareStatement(updateProductSql)) {
+                psProduct.setString(1, name);
+                psProduct.setString(2, description);
+                psProduct.setInt(3, brandId);
+                psProduct.setInt(4, categoryId);
+                psProduct.setBoolean(5, status);
+                psProduct.setInt(6, id);
+                psProduct.executeUpdate();
+            }
+
             if (imageName != null && !imageName.isEmpty()) {
-
-                PreparedStatement psI = connection.prepareStatement(updateImgSql);
-
-                psI.setString(1, imageName);
-
-                psI.setInt(2, id);
-
-                psI.executeUpdate();
-
+                try (PreparedStatement psImage = connection.prepareStatement(updateImgSql)) {
+                    psImage.setString(1, imageName);
+                    psImage.setInt(2, id);
+                    psImage.executeUpdate();
+                }
             }
 
             connection.commit();
-
             connection.setAutoCommit(true);
-
         } catch (Exception e) {
-
             try {
                 connection.rollback();
             } catch (Exception ex) {
+                ex.printStackTrace();
             }
-
             e.printStackTrace();
-
         }
-
     }
 
     public void deleteProduct(int id) {
-        // Phải xóa ngược từ các bảng có chứa khóa ngoại trỏ đến Product và Variant
         String deleteReviewSql = "DELETE FROM Review WHERE product_id = ?";
-        String deleteCartDetailSql = "DELETE FROM Cart_Detail WHERE variant_id IN (SELECT variant_id FROM Product_Variant WHERE product_id = ?)";
-        String deleteOrderDetailSql = "DELETE FROM Order_Detail WHERE variant_id IN (SELECT variant_id FROM Product_Variant WHERE product_id = ?)";
+        String deleteCartDetailSql = "DELETE FROM Cart_Detail WHERE variant_id IN "
+                + "(SELECT variant_id FROM Product_Variant WHERE product_id = ?)";
+        String deleteOrderDetailSql = "DELETE FROM Order_Detail WHERE variant_id IN "
+                + "(SELECT variant_id FROM Product_Variant WHERE product_id = ?)";
         String deleteImageSql = "DELETE FROM Product_Image WHERE product_id = ?";
         String deleteVariantSql = "DELETE FROM Product_Variant WHERE product_id = ?";
         String deleteProductSql = "DELETE FROM Product WHERE product_id = ?";
 
         try {
-            // Tắt auto-commit để gom chung thành 1 Transaction an toàn
             connection.setAutoCommit(false);
 
-            // 1. Xóa trong bảng Review
             try (PreparedStatement ps = connection.prepareStatement(deleteReviewSql)) {
                 ps.setInt(1, id);
                 ps.executeUpdate();
             }
-
-            // 2. Xóa trong bảng Cart_Detail (Giỏ hàng của khách)
             try (PreparedStatement ps = connection.prepareStatement(deleteCartDetailSql)) {
                 ps.setInt(1, id);
                 ps.executeUpdate();
             }
-
-            // 3. Xóa trong bảng Order_Detail (Chi tiết đơn hàng)
             try (PreparedStatement ps = connection.prepareStatement(deleteOrderDetailSql)) {
                 ps.setInt(1, id);
                 ps.executeUpdate();
             }
-
-            // 4. Xóa ảnh sản phẩm
             try (PreparedStatement ps = connection.prepareStatement(deleteImageSql)) {
                 ps.setInt(1, id);
                 ps.executeUpdate();
             }
-
-            // 5. Xóa các biến thể (variants) của sản phẩm
             try (PreparedStatement ps = connection.prepareStatement(deleteVariantSql)) {
                 ps.setInt(1, id);
                 ps.executeUpdate();
             }
-
-            // 6. Cuối cùng mới xóa sản phẩm chính
             try (PreparedStatement ps = connection.prepareStatement(deleteProductSql)) {
                 ps.setInt(1, id);
                 ps.executeUpdate();
             }
 
-            // Nếu qua được cả 6 bước không lỗi lầm gì thì lưu thay đổi
             connection.commit();
-
         } catch (Exception e) {
-            // Nếu có lỗi, hoàn tác lại toàn bộ để bảo toàn dữ liệu
             try {
-                if (connection != null) connection.rollback();
+                if (connection != null) {
+                    connection.rollback();
+                }
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
             e.printStackTrace();
-            System.out.println("Lỗi khi xóa sản phẩm ID " + id + ": " + e.getMessage());
+            System.out.println("Error deleting product ID " + id + ": " + e.getMessage());
         } finally {
             try {
-                if (connection != null) connection.setAutoCommit(true);
+                if (connection != null) {
+                    connection.setAutoCommit(true);
+                }
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
         }
     }
-    
 
-
-public List<ProductVariant> getAllProductQuantity() {
-
+    public List<ProductVariant> getAllProductQuantity() {
         List<ProductVariant> list = new ArrayList<>();
+        String sql = "SELECT "
+                + "    pv.variant_id, "
+                + "    pv.variant_name, "
+                + "    p.product_id, "
+                + "    p.name AS product_name, "
+                + "    c.name AS category_name, "
+                + "    pi.image_url, "
+                + "    pv.price, "
+                + "    p.status, "
+                + "    pv.stock "
+                + "FROM Product p "
+                + "JOIN Category c ON p.category_id = c.category_id "
+                + "LEFT JOIN Product_Image pi ON p.product_id = pi.product_id AND pi.is_main = 1 "
+                + "JOIN Product_Variant pv ON p.product_id = pv.product_id";
 
-        String sql =
-            "SELECT  " +
-            "    pv.variant_id, " +
-                "    pv.variant_name, " +
-            "    p.product_id, " +
-            "    p.name AS product_name, " +
-            "    c.name AS category_name, " +
-            "    pi.image_url, " +
-            "    pv.price, " +
-            "    p.status, " +
-            "    pv.stock " +
-            "FROM Product p " +
-            "JOIN Category c  " +
-            "    ON p.category_id = c.category_id " +
-            "LEFT JOIN Product_Image pi  " +
-            "    ON p.product_id = pi.product_id  " +
-            "   AND pi.is_main = 1 " +
-            "JOIN Product_Variant pv  " +
-            "    ON p.product_id = pv.product_id";
-
-        try {
-            PreparedStatement ps = connection.prepareStatement(sql);
-            ResultSet rs = ps.executeQuery();
-
+        try (PreparedStatement ps = connection.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
+                ProductVariant variant = new ProductVariant();
+                variant.setVariantId(rs.getInt("variant_id"));
+                variant.setVariantName(rs.getString("variant_name"));
+                variant.setProductId(rs.getInt("product_id"));
+                variant.setProductName(rs.getString("product_name"));
+                variant.setCategoryName(rs.getString("category_name"));
 
-                ProductVariant v = new ProductVariant();
+                String image = rs.getString("image_url");
+                if (image != null && !image.startsWith("assets/")) {
+                    image = "assets/img/" + image;
+                }
+                variant.setImageUrl(image);
 
-                v.setVariantId(rs.getInt("variant_id"));
-                v.setVariantName(rs.getString("variant_name"));
-                v.setProductId(rs.getInt("product_id"));
-
-                // 3 field bạn vừa thêm trong ProductVariant
-                v.setProductName(rs.getString("product_name"));
-                v.setCategoryName(rs.getString("category_name"));
-               String img = rs.getString("image_url");
-
-if (img != null && !img.startsWith("assets/")) {
-    img = "assets/img/" + img;
-}
-
-v.setImageUrl(img);
-
-                v.setPrice(rs.getBigDecimal("price"));
-                v.setStock(rs.getInt("stock"));
-                v.setStatus(rs.getBoolean("status"));
-
-                list.add(v);
+                variant.setPrice(rs.getBigDecimal("price"));
+                variant.setStock(rs.getInt("stock"));
+                variant.setStatus(rs.getBoolean("status"));
+                list.add(variant);
             }
-
         } catch (Exception e) {
             e.printStackTrace();
         }
 
         return list;
     }
+
     public void updateStock(int variantId, int stock) {
+        String sql = "UPDATE Product_Variant SET stock = ? WHERE variant_id = ?";
 
-    String sql = "UPDATE Product_Variant SET stock = ? WHERE variant_id = ?";
-
-    try {
-        PreparedStatement ps = connection.prepareStatement(sql);
-        ps.setInt(1, stock);
-        ps.setInt(2, variantId);
-        ps.executeUpdate();
-    } catch (Exception e) {
-        e.printStackTrace();
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, stock);
+            ps.setInt(2, variantId);
+            ps.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
-}
+
+    private List<Product> searchProductsByKeyword(String keyword, String sql, boolean includeVariants) {
+        List<Product> list = new ArrayList<>();
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            String searchParam = "%" + keyword + "%";
+            ps.setString(1, searchParam);
+            ps.setString(2, searchParam);
+            ps.setString(3, searchParam);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                Map<Integer, Product> productMap = new HashMap<>();
+
+                while (rs.next()) {
+                    int productId = rs.getInt("product_id");
+                    Product product = productMap.get(productId);
+
+                    if (product == null) {
+                        product = mapBaseProduct(rs, productId, true);
+                        if (includeVariants) {
+                            product.setVariants(getProductVariants(productId));
+                        }
+                        productMap.put(productId, product);
+                    }
+
+                    addImageFromRow(rs, product, productId);
+                }
+
+                finalizeMainImages(productMap);
+                list.addAll(productMap.values());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
+
+    private Product mapBaseProduct(ResultSet rs, int productId, boolean initImages) throws Exception {
+        Product product = new Product();
+        product.setProductId(productId);
+        product.setName(rs.getString("name"));
+        product.setDescription(rs.getString("description"));
+        product.setStatus(rs.getBoolean("status"));
+        product.setMainImage(rs.getString("image_url"));
+
+        Brand brand = new Brand();
+        brand.setBrandId(rs.getInt("brand_id"));
+        brand.setName(rs.getString("brand_name"));
+        brand.setStatus(rs.getBoolean("brand_status"));
+        product.setBrand(brand);
+
+        Category category = new Category();
+        category.setCategoryId(rs.getInt("category_id"));
+        category.setName(rs.getString("category_name"));
+        category.setStatus(rs.getBoolean("category_status"));
+        product.setCategory(category);
+
+        if (initImages) {
+            product.setImages(new ArrayList<>());
+        }
+
+        return product;
+    }
+
+    private void addImageFromRow(ResultSet rs, Product product, int productId) throws Exception {
+        int imageId = rs.getInt("image_id");
+        if (rs.wasNull()) {
+            return;
+        }
+
+        ProductImage image = new ProductImage();
+        image.setImageId(imageId);
+        image.setProductId(productId);
+        image.setImage(rs.getString("image_url"));
+        image.setMain(rs.getBoolean("is_main"));
+        product.getImages().add(image);
+
+        if (rs.getBoolean("is_main") && product.getMainImage() == null) {
+            product.setMainImage(rs.getString("image_url"));
+        }
+    }
+
+    private void finalizeMainImages(Map<Integer, Product> productMap) {
+        for (Product product : productMap.values()) {
+            if (product.getMainImage() == null && product.getImages() != null && !product.getImages().isEmpty()) {
+                product.setMainImage(product.getImages().get(0).getImage());
+            }
+        }
+    }
 }

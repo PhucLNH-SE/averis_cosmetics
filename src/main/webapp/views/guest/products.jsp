@@ -12,17 +12,18 @@
         <%@include file="/assets/header.jsp" %>
 
         <div class="container products-list-container">
-            <h1 class="page-title">Product List</h1>
-
-            <c:if test="${searchKeyword != null}">
-                <div class="search-tools">
-                    <div class="search-result-info">
-                        Found ${products.size()} product(s) for "${searchKeyword}"
-                    </div>
+            <div class="products-layout">
+                <aside class="search-tools">
+                    <c:if test="${not empty searchKeyword}">
+                        <div class="search-result-info">
+                            Found ${products.size()} product(s) for "${searchKeyword}"
+                        </div>
+                    </c:if>
 
                     <form class="filter-form" method="get" action="<%=request.getContextPath()%>/products">
-                        <input type="hidden" name="keyword" value="${searchKeyword}">
-
+                        <c:if test="${not empty searchKeyword}">
+                            <input type="hidden" name="keyword" value="${searchKeyword}">
+                        </c:if>
                         <div class="filter-group">
                             <label for="brandFilter">Brand</label>
                             <select id="brandFilter" name="brand">
@@ -56,59 +57,68 @@
 
                         <div class="filter-actions">
                             <button type="submit" class="filter-btn">Apply Filters</button>
-                            <a class="reset-btn" href="<%=request.getContextPath()%>/products?keyword=${searchKeyword}">Reset</a>
+                            <c:choose>
+                                <c:when test="${not empty searchKeyword}">
+                                    <a class="reset-btn" href="<%=request.getContextPath()%>/products?keyword=${searchKeyword}">Reset</a>
+                                </c:when>
+                                <c:otherwise>
+                                    <a class="reset-btn" href="<%=request.getContextPath()%>/products">Reset</a>
+                                </c:otherwise>
+                            </c:choose>
                         </div>
                     </form>
-                </div>
-            </c:if>
+                </aside>
 
-            <c:choose>
-                <c:when test="${not empty products and products.size() > 0}">
-                    <div class="products-grid">
-                        <c:forEach items="${products}" var="product">
-                            <a href="<%=request.getContextPath()%>/products?id=${product.productId}"
-                               class="product-card">
-                                <c:choose>
-    <c:when test="${not empty product.mainImage}">
-        <img class="product-image"
-             src="<%=request.getContextPath()%>/assets/img/${product.mainImage}"
-             alt="${product.name}"
-             onerror="this.src='<%=request.getContextPath()%>/assets/img/Logo.png';"> 
-    </c:when>
-    <c:otherwise>
-        <img class="product-image" src="<%=request.getContextPath()%>/assets/img/Logo.png" alt="No image">
-    </c:otherwise>
-</c:choose>
+                <section class="products-content">
+                    <c:choose>
+                        <c:when test="${not empty products and products.size() > 0}">
+                            <div class="products-grid">
+                                <c:forEach items="${products}" var="product">
+                                    <a href="<%=request.getContextPath()%>/products?id=${product.productId}"
+                                       class="product-card">
+                                        <c:choose>
+                                            <c:when test="${not empty product.mainImage}">
+                                                <img class="product-image"
+                                                     src="<%=request.getContextPath()%>/assets/img/${product.mainImage}"
+                                                     alt="${product.name}"
+                                                     onerror="this.src='<%=request.getContextPath()%>/assets/img/Logo.png';">
+                                            </c:when>
+                                            <c:otherwise>
+                                                <img class="product-image" src="<%=request.getContextPath()%>/assets/img/Logo.png" alt="No image">
+                                            </c:otherwise>
+                                        </c:choose>
 
-                                <div class="product-info">
-                                    <div class="product-details-container">
-                                        <div class="product-name">${product.name}</div>
-                                        <div class="product-brand">${product.brand.name}</div>
-                                        <div class="product-category">${product.category.name}</div>
-                                        <div class="product-price">
-                                            <c:choose>
-                                                <c:when test="${not empty product.variants}">
-                                                    <fmt:formatNumber value="${product.variants[0].price}" type="currency" currencySymbol="$"/>
-                                                </c:when>
-                                                <c:otherwise>
-                                                    Contact
-                                                </c:otherwise>
-                                            </c:choose>
+                                        <div class="product-info">
+                                            <div class="product-details-container">
+                                                <div class="product-name">${product.name}</div>
+                                                <div class="product-brand">${product.brand.name}</div>
+                                                <div class="product-category">${product.category.name}</div>
+                                                <div class="product-price">
+                                                    <c:choose>
+                                                        <c:when test="${not empty product.variants}">
+                                                            <fmt:formatNumber value="${product.variants[0].price}" type="currency" currencySymbol="$"/>
+                                                        </c:when>
+                                                        <c:otherwise>
+                                                            Contact
+                                                        </c:otherwise>
+                                                    </c:choose>
+                                                </div>
+                                                <div class="view-detail-btn">View Details</div>
+                                            </div>
                                         </div>
-                                        <div class="view-detail-btn">View Details</div>
-                                    </div>
-                                </div>
-                            </a>
-                        </c:forEach>
-                    </div>
-                </c:when>
-                <c:otherwise>
-                    <div class="no-products">
-                        <h3>No products found</h3>
-                        <p>Try a different keyword or adjust your filter options.</p>
-                    </div>
-                </c:otherwise>
-            </c:choose>
+                                    </a>
+                                </c:forEach>
+                            </div>
+                        </c:when>
+                        <c:otherwise>
+                            <div class="no-products">
+                                <h3>No products found</h3>
+                                <p>Try a different keyword or adjust your filter options.</p>
+                            </div>
+                        </c:otherwise>
+                    </c:choose>
+                </section>
+            </div>
         </div>
 
         <%@include file="/assets/footer.jsp" %>

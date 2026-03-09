@@ -11,8 +11,13 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 @WebServlet(name = "ProductController", urlPatterns = {"/products"})
 public class ProductController extends HttpServlet {
@@ -77,7 +82,7 @@ public class ProductController extends HttpServlet {
         return filtered;
     }
 
-    private List<Product> applySort(List<Product> products, String sortBy) {
+    private List<Product> applySort(List<Product> products, String sortBy, ProductDAO dao) {
         if (products == null || products.size() <= 1 || sortBy == null) {
             return products;
         }
@@ -109,6 +114,21 @@ public class ProductController extends HttpServlet {
             case "name_desc":
                 sorted.sort((a, b) -> b.getName().compareToIgnoreCase(a.getName()));
                 break;
+            case "top_sales":
+                List<Integer> topIds = dao.getTopSellingProductIds();
+                if (topIds == null || topIds.isEmpty()) {
+                    break;
+                }
+                List<Product> topOnly = new ArrayList<>();
+                for (Integer productId : topIds) {
+                    for (Product product : sorted) {
+                        if (product.getProductId() == productId) {
+                            topOnly.add(product);
+                            break;
+                        }
+                    }
+                }
+                return topOnly;
             default:
                 break;
         }
@@ -116,114 +136,215 @@ public class ProductController extends HttpServlet {
         return sorted;
     }
 
+    private List<Product> buildFeaturedProducts(List<Product> allProducts, List<Integer> topIds,
+                                                int topLimit, int randomLimit) {
+        if (allProducts == null || allProducts.isEmpty()) {
+            return allProducts;
+        }
+
+        Map<Integer, Product> productMap = new HashMap<>();
+        for (Product product : allProducts) {
+            productMap.put(product.getProductId(), product);
+        }
+
+        List<Product> result = new ArrayList<>();
+        Set<Integer> usedIds = new HashSet<>();
+
+        if (topIds != null && !topIds.isEmpty()) {
+            for (Integer id : topIds) {
+                if (id == null || usedIds.contains(id)) {
+                    continue;
+                }
+                Product product = productMap.get(id);
+                if (product != null) {
+                    result.add(product);
+                    usedIds.add(id);
+                    if (result.size() >= topLimit) {
+                        break;
+                    }
+                }
+            }
+        }
+
+        List<Product> remaining = new ArrayList<>();
+        for (Product product : allProducts) {
+            if (!usedIds.contains(product.getProductId())) {
+                remaining.add(product);
+            }
+        }
+
+        Collections.shuffle(remaining);
+        int addRandom = Math.min(randomLimit, remaining.size());
+        for (int i = 0; i < addRandom; i++) {
+            result.add(remaining.get(i));
+        }
+
+        return result;
+    }
+
+    private void setProductListAttributes(HttpServletRequest request,
+                                          List<Product> products,
+                                          List<String> availableBrands,
+                                          List<String> availableCategories,
+                                          String brandFilter,
+                                          String categoryFilter,
+                                          String sortBy) {
+        request.setAttribute("products", products);
+        request.setAttribute("availableBrands", availableBrands);
+        request.setAttribute("availableCategories", availableCategories);
+        request.setAttribute("filterBrand", brandFilter);
+        request.setAttribute("filterCategory", categoryFilter);
+        request.setAttribute("sortBy", sortBy);
+    }
+
+    private String resolveAction(HttpServletRequest request) {
+        if (request.getParameter("id") != null) {
+            return "detail";
+        }
+        if (request.getParameter("keyword") != null) {
+            return "search";
+        }
+        return "list";
+    }
+
+    private boolean handleAutoSuggestAjax(HttpServletRequest request, HttpServletResponse response, ProductDAO dao)
+            throws IOException {
+        String ajaxRequest = request.getHeader("X-Requested-With");
+        if (!"XMLHttpRequest".equals(ajaxRequest)) {
+            return false;
+        }
+
+        String keyword = request.getParameter("keyword");
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return false;
+        }
+
+        List<Product> products = dao.searchProductsForAutoSuggest(keyword.trim());
+        StringBuilder json = new StringBuilder();
+        json.append("[");
+        for (int i = 0; i < products.size(); i++) {
+            Product p = products.get(i);
+            json.append("{");
+            json.append("\"productId\":\"").append(p.getProductId()).append("\",");
+            json.append("\"name\":\"").append(escapeJson(p.getName())).append("\",");
+            json.append("\"mainImage\":\"").append(escapeJson(p.getMainImage())).append("\",");
+            json.append("\"images\":[],");
+            json.append("\"brand\":{");
+            json.append("\"name\":\"").append(escapeJson(p.getBrand() != null ? p.getBrand().getName() : "Unknown Brand")).append("\"");
+            json.append("}");
+            json.append("}");
+            if (i < products.size() - 1) {
+                json.append(",");
+            }
+        }
+        json.append("]");
+
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        response.getWriter().write(json.toString());
+        return true;
+    }
+
+    private void handleDetail(HttpServletRequest request, HttpServletResponse response, ProductDAO dao)
+            throws ServletException, IOException {
+        try {
+            int productId = Integer.parseInt(request.getParameter("id"));
+            Product product = dao.getProductById(productId);
+
+            if (product != null) {
+                request.setAttribute("product", product);
+                request.getRequestDispatcher("/views/guest/product-detail.jsp").forward(request, response);
+                return;
+            }
+        } catch (NumberFormatException e) {
+            // Ignore and redirect to product listing.
+        }
+        response.sendRedirect(request.getContextPath() + "/products");
+    }
+
+    private void handleSearch(HttpServletRequest request, HttpServletResponse response, ProductDAO dao)
+            throws ServletException, IOException {
+        String keyword = trimToNull(request.getParameter("keyword"));
+        List<Product> products = (keyword != null) ? dao.searchProducts(keyword) : dao.getAllProducts();
+        if (keyword != null) {
+            request.setAttribute("searchKeyword", keyword);
+        }
+
+        List<String> availableBrands = dao.getAllBrandNames();
+        List<String> availableCategories = dao.getAllCategoryNames();
+
+        String brandFilter = trimToNull(request.getParameter("brand"));
+        String categoryFilter = trimToNull(request.getParameter("category"));
+        String sortBy = trimToNull(request.getParameter("sort"));
+
+        products = applyFilters(products, brandFilter, categoryFilter);
+        products = applySort(products, sortBy, dao);
+
+        setProductListAttributes(
+                request,
+                products,
+                availableBrands,
+                availableCategories,
+                brandFilter,
+                categoryFilter,
+                sortBy
+        );
+        request.getRequestDispatcher("/views/guest/products.jsp").forward(request, response);
+    }
+
+    private void handleList(HttpServletRequest request, HttpServletResponse response, ProductDAO dao)
+            throws ServletException, IOException {
+        List<Product> products = dao.getAllProducts();
+        List<String> availableBrands = dao.getAllBrandNames();
+        List<String> availableCategories = dao.getAllCategoryNames();
+        String brandFilter = trimToNull(request.getParameter("brand"));
+        String categoryFilter = trimToNull(request.getParameter("category"));
+        String sortBy = trimToNull(request.getParameter("sort"));
+
+        boolean isDefaultLanding = brandFilter == null
+                && categoryFilter == null
+                && sortBy == null;
+
+        if (isDefaultLanding) {
+            products = buildFeaturedProducts(products, dao.getTopSellingProductIds(), 30, 20);
+        } else {
+            products = applyFilters(products, brandFilter, categoryFilter);
+            products = applySort(products, sortBy, dao);
+        }
+
+        setProductListAttributes(
+                request,
+                products,
+                availableBrands,
+                availableCategories,
+                brandFilter,
+                categoryFilter,
+                sortBy
+        );
+        request.getRequestDispatcher("/views/guest/products.jsp").forward(request, response);
+    }
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        String pathInfo = request.getRequestURI().substring(request.getContextPath().length()).toLowerCase();
         ProductDAO dao = new ProductDAO();
+        String action = resolveAction(request);
 
-        // Determine the action based on path info or parameters
-        String action;
-        if (pathInfo.contains("/product/detail") || request.getParameter("id") != null) {
-            action = "detail";
-        } else if (request.getParameter("keyword") != null) {
-            action = "search";
-        } else {
-            action = "list";
+        if (handleAutoSuggestAjax(request, response, dao)) {
+            return;
         }
 
-        // Check if this is an AJAX request for auto-suggest
-        String ajaxRequest = request.getHeader("X-Requested-With");
-        if ("XMLHttpRequest".equals(ajaxRequest)) {
-            // Handle AJAX auto-suggest request
-            String keyword = request.getParameter("keyword");
-            if (keyword != null && !keyword.trim().isEmpty()) {
-                List<Product> products = dao.searchProductsForAutoSuggest(keyword.trim());
-
-                // Convert to JSON manually to avoid needing Gson
-                StringBuilder json = new StringBuilder();
-                json.append("[");
-                for (int i = 0; i < products.size(); i++) {
-                    Product p = products.get(i);
-                    json.append("{");
-                    json.append("\"productId\":\"").append(p.getProductId()).append("\",");
-                    json.append("\"name\":\"").append(escapeJson(p.getName())).append("\",");
-                    json.append("\"mainImage\":\"").append(escapeJson(p.getMainImage())).append("\",");
-                    json.append("\"images\":[],");
-                    json.append("\"brand\":{");
-                    json.append("\"name\":\"").append(escapeJson(p.getBrand() != null ? p.getBrand().getName() : "Unknown Brand")).append("\"");
-                    json.append("}");
-                    json.append("}");
-                    if (i < products.size() - 1) {
-                        json.append(",");
-                    }
-                }
-                json.append("]");
-
-                response.setContentType("application/json");
-                response.setCharacterEncoding("UTF-8");
-                response.getWriter().write(json.toString());
-                return;
-            }
-        }
-
-        // Handle regular requests
         switch (action) {
             case "detail":
-                // Handle product detail request
-                try {
-                    int productId = Integer.parseInt(request.getParameter("id"));
-                    Product product = dao.getProductById(productId);
-
-                    if (product != null) {
-                        request.setAttribute("product", product);
-                        request.getRequestDispatcher("/views/guest/product-detail.jsp").forward(request, response);
-                    } else {
-                        response.sendRedirect(request.getContextPath() + "/products");
-                    }
-
-                } catch (NumberFormatException e) {
-                    response.sendRedirect(request.getContextPath() + "/products");
-                }
+                handleDetail(request, response, dao);
                 break;
             case "search":
-                // Handle product search + post-search filters
-                String keyword = request.getParameter("keyword");
-                List<Product> searchResults;
-
-                if (keyword != null && !keyword.trim().isEmpty()) {
-                    keyword = keyword.trim();
-                    searchResults = dao.searchProducts(keyword);
-                    request.setAttribute("searchKeyword", keyword);
-                } else {
-                    searchResults = dao.getAllProducts();
-                }
-
-                List<String> availableBrands = dao.getAllBrandNames();
-                List<String> availableCategories = dao.getAllCategoryNames();
-
-                String brandFilter = trimToNull(request.getParameter("brand"));
-                String categoryFilter = trimToNull(request.getParameter("category"));
-                String sortBy = trimToNull(request.getParameter("sort"));
-
-                searchResults = applyFilters(searchResults, brandFilter, categoryFilter);
-                searchResults = applySort(searchResults, sortBy);
-
-                request.setAttribute("availableBrands", availableBrands);
-                request.setAttribute("availableCategories", availableCategories);
-                request.setAttribute("filterBrand", brandFilter);
-                request.setAttribute("filterCategory", categoryFilter);
-                request.setAttribute("sortBy", sortBy);
-                request.setAttribute("products", searchResults);
-                request.getRequestDispatcher("/views/guest/products.jsp").forward(request, response);
+                handleSearch(request, response, dao);
                 break;
             case "list":
             default:
-                // Handle product list request (original GuestController functionality)
-                List<Product> list = dao.getAllProducts();
-                request.setAttribute("products", list);
-                request.getRequestDispatcher("/views/guest/products.jsp").forward(request, response);
+                handleList(request, response, dao);
                 break;
         }
     }
