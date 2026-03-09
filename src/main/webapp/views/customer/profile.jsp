@@ -173,67 +173,84 @@
 
                     <div class="address-container">
                         <div class="address-header">
-                            <h2>My Addresses</h2>
+                            <div>
+                                <h2>My Addresses</h2>
+                                <p class="address-subtitle">Manage your delivery addresses</p>
+                            </div>
                             <a href="${pageContext.request.contextPath}/address?action=add"
-                               class="btn btn-primary">
-                                <i class="fas fa-plus"></i> Add New Address
+                               class="btn-add-address">
+                                <i class="fas fa-plus-circle"></i> Add New Address
                             </a>
                         </div>
 
                         <c:if test="${not empty profileMessage}">
-                            <div class="alert alert-info">${profileMessage}</div>
+                            <div class="alert-message ${profileMessage.contains('success') ? 'alert-success' : 'alert-warning'}">
+                                <i class="fas ${profileMessage.contains('success') ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
+                                ${profileMessage}
+                            </div>
                         </c:if>
 
-                        <div class="address-list">
+                        <div class="address-grid">
                             <c:choose>
                                 <c:when test="${empty addresses}">
-                                    <div class="no-address">
-                                        <p>You don't have any addresses yet.</p>
+                                    <div class="empty-address">
+                                        <div class="empty-icon">
+                                            <i class="fas fa-map-marker-alt"></i>
+                                        </div>
+                                        <h3>No addresses yet</h3>
+                                        <p>Add your first delivery address to get started</p>
                                         <a href="${pageContext.request.contextPath}/address?action=add"
-                                           class="btn btn-primary">
-                                            Add Your First Address
+                                           class="btn-add-first">
+                                            <i class="fas fa-plus"></i> Add Your First Address
                                         </a>
                                     </div>
                                 </c:when>
                                 <c:otherwise>
-                                    <div class="row">
-                                        <c:forEach items="${addresses}" var="addr">
-                                            <div class="col-md-6 mb-4">
-                                                <div class="address-card ${addr.isDefault ? 'default' : ''}">
-                                                    <div class="address-card-header">
-                                                        <h5>
-                                                            ${addr.receiverName}
-                                                            <c:if test="${addr.isDefault}">
-                                                                <span class="badge bg-primary">Default</span>
-                                                            </c:if>
-                                                        </h5>
-                                                        <div class="address-actions">
-                                                            <c:if test="${!addr.isDefault}">
-                                                                <a href="${pageContext.request.contextPath}/address?action=setdefault&id=${addr.addressId}"
-                                                                   class="btn btn-sm btn-outline-primary">
-                                                                    Set Default
-                                                                </a>
-                                                            </c:if>
-                                                            <a href="${pageContext.request.contextPath}/address?action=edit&id=${addr.addressId}"
-                                                               class="btn btn-sm btn-outline-secondary">
-                                                                Edit
-                                                            </a>
-                                                            <a href="${pageContext.request.contextPath}/address?action=delete&id=${addr.addressId}"
-                                                               class="btn btn-sm btn-outline-danger"
-                                                               onclick="return confirm('Are you sure you want to delete this address?')">
-                                                                Delete
-                                                            </a>
-                                                        </div>
-                                                    </div>
-                                                    <div class="address-card-body">
-                                                        <p><i class="fas fa-phone"></i> ${addr.phone}</p>
-                                                        <p><i class="fas fa-map-marker-alt"></i> ${addr.streetAddress}</p>
-                                                        <p>${addr.ward}, ${addr.district}, ${addr.province}</p>
-                                                    </div>
+                                    <c:forEach items="${addresses}" var="addr">
+                                        <div class="address-card ${addr.isDefault ? 'default-address' : ''}">
+                                            <c:if test="${addr.isDefault}">
+                                                <div class="default-badge">
+                                                    <i class="fas fa-star"></i> Default
+                                                </div>
+                                            </c:if>
+                                            
+                                            <div class="address-card-content">
+                                                <div class="address-receiver">
+                                                    <i class="fas fa-user"></i>
+                                                    <span>${addr.receiverName}</span>
+                                                </div>
+                                                <div class="address-phone">
+                                                    <i class="fas fa-phone"></i>
+                                                    <span>${addr.phone}</span>
+                                                </div>
+                                                <div class="address-location">
+                                                    <i class="fas fa-map-pin"></i>
+                                                    <span>${addr.streetAddress}, ${addr.ward}, ${addr.district}, ${addr.province}</span>
                                                 </div>
                                             </div>
-                                        </c:forEach>
-                                    </div>
+                                            
+                                            <div class="address-card-actions">
+                                                <c:if test="${!addr.isDefault}">
+                                                    <a href="${pageContext.request.contextPath}/address?action=setdefault&id=${addr.addressId}"
+                                                       class="action-btn set-default"
+                                                       title="Set as default">
+                                                        <i class="fas fa-check"></i> Set Default
+                                                    </a>
+                                                </c:if>
+                                                <a href="${pageContext.request.contextPath}/address?action=edit&id=${addr.addressId}"
+                                                   class="action-btn edit"
+                                                   title="Edit address">
+                                                    <i class="fas fa-pen"></i> Edit
+                                                </a>
+                                                <a href="${pageContext.request.contextPath}/address?action=delete&id=${addr.addressId}"
+                                                   class="action-btn delete"
+                                                   title="Delete address"
+                                                   onclick="return confirm('Are you sure you want to delete this address?')">
+                                                    <i class="fas fa-trash"></i> Delete
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </c:forEach>
                                 </c:otherwise>
                             </c:choose>
                         </div>
