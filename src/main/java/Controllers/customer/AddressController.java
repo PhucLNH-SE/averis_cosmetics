@@ -304,12 +304,12 @@ public class AddressController extends HttpServlet {
         try {
             int addressId = Integer.parseInt(addressIdStr);
             AddressDAO addressDAO = new AddressDAO();
-            boolean success = addressDAO.deleteAddress(addressId, customer.getCustomerId());
+            String result = addressDAO.deleteAddress(addressId, customer.getCustomerId());
 
-            if (success) {
+            if ("success".equals(result)) {
                 session.setAttribute("profileMessage", "Address deleted successfully");
             } else {
-                session.setAttribute("profileMessage", "Failed to delete address");
+                session.setAttribute("profileMessage", result);
             }
 
         } catch (NumberFormatException e) {

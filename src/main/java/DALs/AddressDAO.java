@@ -98,7 +98,21 @@ public class AddressDAO extends DBContext {
         return false;
     }
     
-    public boolean deleteAddress(int addressId, int customerId) {
+    public String deleteAddress(int addressId, int customerId) {
+        // First check if there are any orders using this address
+        String checkSql = "SELECT COUNT(*) FROM Orders WHERE address_id = ?";
+        
+        try (PreparedStatement checkPs = connection.prepareStatement(checkSql)) {
+            checkPs.setInt(1, addressId);
+            try (ResultSet rs = checkPs.executeQuery()) {
+                if (rs.next() && rs.getInt(1) > 0) {
+                    return "Cannot delete this address because it is associated with existing orders.";
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        
         String sql = "DELETE FROM Address WHERE address_id = ? AND customer_id = ?";
         
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -106,12 +120,14 @@ public class AddressDAO extends DBContext {
             ps.setInt(2, customerId);
             
             int rowsAffected = ps.executeUpdate();
-            return rowsAffected > 0;
+            if (rowsAffected > 0) {
+                return "success";
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
         
-        return false;
+        return "Failed to delete address.";
     }
     
     public boolean setDefaultAddress(int addressId, int customerId) {
