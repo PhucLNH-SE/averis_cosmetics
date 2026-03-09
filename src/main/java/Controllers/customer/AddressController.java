@@ -126,6 +126,10 @@ public class AddressController extends HttpServlet {
         String streetAddress = request.getParameter("streetAddress");
         String isDefaultStr = request.getParameter("isDefault");
 
+        if ((district == null || district.trim().isEmpty()) && ward != null && !ward.trim().isEmpty()) {
+            district = ward;
+        }
+
         // Validation
         if (receiverName == null || receiverName.trim().isEmpty()) {
             request.setAttribute("error", "Receiver name is required");
@@ -141,12 +145,6 @@ public class AddressController extends HttpServlet {
 
         if (province == null || province.trim().isEmpty()) {
             request.setAttribute("error", "Province is required");
-            showAddForm(request, response);
-            return;
-        }
-
-        if (district == null || district.trim().isEmpty()) {
-            request.setAttribute("error", "District is required");
             showAddForm(request, response);
             return;
         }
@@ -213,6 +211,10 @@ public class AddressController extends HttpServlet {
             String streetAddress = request.getParameter("streetAddress");
             String isDefaultStr = request.getParameter("isDefault");
 
+            if ((district == null || district.trim().isEmpty()) && ward != null && !ward.trim().isEmpty()) {
+                district = ward;
+            }
+
             // Validation
             if (receiverName == null || receiverName.trim().isEmpty()) {
                 request.setAttribute("error", "Receiver name is required");
@@ -223,6 +225,27 @@ public class AddressController extends HttpServlet {
 
             if (phone == null || phone.trim().isEmpty()) {
                 request.setAttribute("error", "Phone is required");
+                request.setAttribute("addressId", addressId);
+                showEditForm(request, response, customer);
+                return;
+            }
+
+            if (province == null || province.trim().isEmpty()) {
+                request.setAttribute("error", "Province is required");
+                request.setAttribute("addressId", addressId);
+                showEditForm(request, response, customer);
+                return;
+            }
+
+            if (ward == null || ward.trim().isEmpty()) {
+                request.setAttribute("error", "Ward is required");
+                request.setAttribute("addressId", addressId);
+                showEditForm(request, response, customer);
+                return;
+            }
+
+            if (streetAddress == null || streetAddress.trim().isEmpty()) {
+                request.setAttribute("error", "Street address is required");
                 request.setAttribute("addressId", addressId);
                 showEditForm(request, response, customer);
                 return;
@@ -318,3 +341,4 @@ public class AddressController extends HttpServlet {
         response.sendRedirect(request.getContextPath() + "/profile?action=view&tab=address");
     }
 }
+
