@@ -1,4 +1,4 @@
-/* Main styles for the cosmetics shop website */
+﻿/* Main styles for the cosmetics shop website */
 :root {
     --bg: #ffffff;
     --text: #111827;
@@ -1021,12 +1021,12 @@ textarea.form-control {
 .form-grid select {
     width: 100%;
     max-width: 520px;
-    /* <-- ch???????nh ???????????? d????i c??????a ???? */
+    /* <-- chÃ¡Â»â€°nh Ã„â€˜Ã¡Â»â„¢ dÃƒÂ i cÃ¡Â»Â§a ÃƒÂ´ */
 }
 
 .form-grid select.gender-wide {
     max-width: 545px;
-    /* t????y ch???????nh */
+    /* tÃƒÂ¹y chÃ¡Â»â€°nh */
 }
 
 .form-grid .hint {

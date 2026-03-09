@@ -838,21 +838,73 @@ public class ProductDAO extends DBContext {
     }
 
     public void deleteProduct(int id) {
+        // Phải xóa ngược từ các bảng có chứa khóa ngoại trỏ đến Product và Variant
+        String deleteReviewSql = "DELETE FROM Review WHERE product_id = ?";
+        String deleteCartDetailSql = "DELETE FROM Cart_Detail WHERE variant_id IN (SELECT variant_id FROM Product_Variant WHERE product_id = ?)";
+        String deleteOrderDetailSql = "DELETE FROM Order_Detail WHERE variant_id IN (SELECT variant_id FROM Product_Variant WHERE product_id = ?)";
+        String deleteImageSql = "DELETE FROM Product_Image WHERE product_id = ?";
+        String deleteVariantSql = "DELETE FROM Product_Variant WHERE product_id = ?";
+        String deleteProductSql = "DELETE FROM Product WHERE product_id = ?";
 
-        String sql = "DELETE FROM Product WHERE product_id = ?";
+        try {
+            // Tắt auto-commit để gom chung thành 1 Transaction an toàn
+            connection.setAutoCommit(false);
 
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            // 1. Xóa trong bảng Review
+            try (PreparedStatement ps = connection.prepareStatement(deleteReviewSql)) {
+                ps.setInt(1, id);
+                ps.executeUpdate();
+            }
 
-            ps.setInt(1, id);
+            // 2. Xóa trong bảng Cart_Detail (Giỏ hàng của khách)
+            try (PreparedStatement ps = connection.prepareStatement(deleteCartDetailSql)) {
+                ps.setInt(1, id);
+                ps.executeUpdate();
+            }
 
-            ps.executeUpdate();
+            // 3. Xóa trong bảng Order_Detail (Chi tiết đơn hàng)
+            try (PreparedStatement ps = connection.prepareStatement(deleteOrderDetailSql)) {
+                ps.setInt(1, id);
+                ps.executeUpdate();
+            }
+
+            // 4. Xóa ảnh sản phẩm
+            try (PreparedStatement ps = connection.prepareStatement(deleteImageSql)) {
+                ps.setInt(1, id);
+                ps.executeUpdate();
+            }
+
+            // 5. Xóa các biến thể (variants) của sản phẩm
+            try (PreparedStatement ps = connection.prepareStatement(deleteVariantSql)) {
+                ps.setInt(1, id);
+                ps.executeUpdate();
+            }
+
+            // 6. Cuối cùng mới xóa sản phẩm chính
+            try (PreparedStatement ps = connection.prepareStatement(deleteProductSql)) {
+                ps.setInt(1, id);
+                ps.executeUpdate();
+            }
+
+            // Nếu qua được cả 6 bước không lỗi lầm gì thì lưu thay đổi
+            connection.commit();
 
         } catch (Exception e) {
-
+            // Nếu có lỗi, hoàn tác lại toàn bộ để bảo toàn dữ liệu
+            try {
+                if (connection != null) connection.rollback();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
             e.printStackTrace();
-
+            System.out.println("Lỗi khi xóa sản phẩm ID " + id + ": " + e.getMessage());
+        } finally {
+            try {
+                if (connection != null) connection.setAutoCommit(true);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
         }
-
     }
     
 

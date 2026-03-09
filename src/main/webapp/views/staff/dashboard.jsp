@@ -31,7 +31,10 @@
                     <h2 class="h5"><i class="bi bi-receipt me-2"></i>Manage Orders</h2>
                     <p class="text-muted">Quản lý đơn hàng và xem chi tiết đơn hàng.</p>
                     <div class="d-flex gap-2 flex-wrap">
-                        <a class="btn btn-primary" href="${pageContext.request.contextPath}/staff/manage-orders">Manage Orders</a>
+                    <a class="btn btn-primary" 
+   href="${pageContext.request.contextPath}/ManageOrderController?action=list">
+   Manage Orders
+</a>
                         <a class="btn btn-outline-primary" href="${pageContext.request.contextPath}/staff/order-detail">View Order Detail</a>
                     </div>
                 </div>
