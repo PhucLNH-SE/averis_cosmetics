@@ -23,17 +23,8 @@ public class CustomerVoucherController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        HttpSession session = request.getSession(false);
-        if (session == null || session.getAttribute("customer") == null) {
-            response.sendRedirect(request.getContextPath() + "/auth?action=login");
-            return;
-        }
-
-        Customer customer = (Customer) session.getAttribute("customer");
-        customerVoucherDAO.expireOutdatedVouchers();
-        List<CustomerVoucher> vouchers = customerVoucherDAO.getActiveByCustomerId(customer.getCustomerId());
-        request.setAttribute("myVouchers", vouchers);
-        request.getRequestDispatcher("/views/customer/my-voucher.jsp").forward(request, response);
+        // Redirect to profile with voucher tab
+        response.sendRedirect(request.getContextPath() + "/profile?action=view&tab=voucher");
     }
 
     @Override
@@ -48,15 +39,15 @@ public class CustomerVoucherController extends HttpServlet {
         Customer customer = (Customer) session.getAttribute("customer");
         String code = request.getParameter("voucherCode");
         if (code == null || code.trim().isEmpty()) {
-            response.sendRedirect(request.getContextPath() + "/my-voucher?error=emptyCode");
+            response.sendRedirect(request.getContextPath() + "/profile?action=view&tab=voucher&error=emptyCode");
             return;
         }
 
         String result = customerVoucherDAO.claimVoucherWithReason(customer.getCustomerId(), code.trim());
         if ("ok".equals(result)) {
-            response.sendRedirect(request.getContextPath() + "/my-voucher?success=claimed");
+            response.sendRedirect(request.getContextPath() + "/profile?action=view&tab=voucher&success=claimed");
             return;
         }
-        response.sendRedirect(request.getContextPath() + "/my-voucher?error=" + result);
+        response.sendRedirect(request.getContextPath() + "/profile?action=view&tab=voucher&error=" + result);
     }
 }

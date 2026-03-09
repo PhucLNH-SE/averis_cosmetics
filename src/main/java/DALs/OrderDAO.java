@@ -133,7 +133,10 @@ psDetail.executeBatch();
 
     public Orders getOrderById(int orderId) {
 
-        String sql = "SELECT * FROM Orders WHERE order_id = ?";
+        String sql = "SELECT o.*, a.receiver_name, a.phone, a.street_address, a.ward, a.district, a.province " +
+                     "FROM Orders o " +
+                     "LEFT JOIN Address a ON o.address_id = a.address_id " +
+                     "WHERE o.order_id = ?";
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
 
@@ -161,6 +164,14 @@ psDetail.executeBatch();
                     if (rs.getTimestamp("paid_at") != null) {
                         order.setPaidAt(rs.getTimestamp("paid_at").toLocalDateTime());
                     }
+                    
+                    // Address info
+                    order.setReceiverName(rs.getString("receiver_name"));
+                    order.setReceiverPhone(rs.getString("phone"));
+                    order.setStreetAddress(rs.getString("street_address"));
+                    order.setWard(rs.getString("ward"));
+                    order.setDistrict(rs.getString("district"));
+                    order.setProvince(rs.getString("province"));
 
                     return order;
                 }
