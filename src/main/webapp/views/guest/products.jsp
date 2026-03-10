@@ -107,6 +107,8 @@
                                                 <div class="view-detail-btn">View Details</div>
                                             </div>
                                         </div>
+                                                
+                                                
                                     </a>
                                 </c:forEach>
                             </div>

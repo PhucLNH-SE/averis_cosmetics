@@ -154,7 +154,9 @@ private void showOrderDetail(HttpServletRequest request,
 
     OrderDAO dao = new OrderDAO();
     Orders order = dao.getOrderById(orderId);
-    List<OrderDetail> details = dao.getOrderDetailsByOrderId(orderId);
+    
+    // Đã thay đổi hàm gọi thành getOrderDetailsWithReview
+    List<OrderDetail> details = dao.getOrderDetailsWithReview(orderId); 
 
     request.setAttribute("order", order);
     request.setAttribute("details", details);
