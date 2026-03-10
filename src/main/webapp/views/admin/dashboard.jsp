@@ -87,8 +87,8 @@
                     <h2 class="h5"><i class="bi bi-boxes me-2"></i>Manage Inventory</h2>
                     <p class="text-muted">Quản lý số lượng tồn kho sản phẩm.</p>
                     <div class="d-flex gap-2 flex-wrap">
-                     <a class="btn btn-primary"
-   href="${pageContext.request.contextPath}/PQuantityManagerController">
+   <a class="btn btn-primary"
+   href="${pageContext.request.contextPath}/ImportProductController?action=history">
    Manage Inventory
 </a>
                         <a class="btn btn-outline-primary" href="${pageContext.request.contextPath}/admin/update-product-quantity">Update Product Quantity</a>

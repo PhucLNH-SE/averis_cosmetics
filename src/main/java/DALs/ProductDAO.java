@@ -473,62 +473,8 @@ public class ProductDAO extends DBContext {
         }
     }
 
-    public List<ProductVariant> getAllProductQuantity() {
-        List<ProductVariant> list = new ArrayList<>();
-        String sql = "SELECT "
-                + "    pv.variant_id, "
-                + "    pv.variant_name, "
-                + "    p.product_id, "
-                + "    p.name AS product_name, "
-                + "    c.name AS category_name, "
-                + "    pi.image_url, "
-                + "    pv.price, "
-                + "    p.status, "
-                + "    pv.stock "
-                + "FROM Product p "
-                + "JOIN Category c ON p.category_id = c.category_id "
-                + "LEFT JOIN Product_Image pi ON p.product_id = pi.product_id AND pi.is_main = 1 "
-                + "JOIN Product_Variant pv ON p.product_id = pv.product_id";
-
-        try (PreparedStatement ps = connection.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) {
-                ProductVariant variant = new ProductVariant();
-                variant.setVariantId(rs.getInt("variant_id"));
-                variant.setVariantName(rs.getString("variant_name"));
-                variant.setProductId(rs.getInt("product_id"));
-                variant.setProductName(rs.getString("product_name"));
-                variant.setCategoryName(rs.getString("category_name"));
-
-                String image = rs.getString("image_url");
-                if (image != null && !image.startsWith("assets/")) {
-                    image = "assets/img/" + image;
-                }
-                variant.setImageUrl(image);
-
-                variant.setPrice(rs.getBigDecimal("price"));
-                variant.setStock(rs.getInt("stock"));
-                variant.setStatus(rs.getBoolean("status"));
-                list.add(variant);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return list;
-    }
-
-    public void updateStock(int variantId, int stock) {
-        String sql = "UPDATE Product_Variant SET stock = ? WHERE variant_id = ?";
-
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setInt(1, stock);
-            ps.setInt(2, variantId);
-            ps.executeUpdate();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
+  
+   
 
     private List<Product> searchProductsByKeyword(String keyword, String sql, boolean includeVariants) {
         List<Product> list = new ArrayList<>();

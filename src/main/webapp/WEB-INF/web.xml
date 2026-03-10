@@ -287,16 +287,7 @@
   <servlet-mapping>
     <servlet-name>HeaderMenuController</servlet-name>
     <url-pattern>/header-menu-data</url-pattern>
-  </servlet-mapping>
-
-  <welcome-file-list>
-    <welcome-file>home</welcome-file>
-  </welcome-file-list>
-
-  <session-config>
-    <session-timeout>30</session-timeout>
-  </session-config>
-  
+  </servlet-mapping>  
   <filter>
     <filter-name>ManagerAuthFilter</filter-name>
     <filter-class>Filters.ManagerAuthFilter</filter-class>
@@ -326,5 +317,15 @@
         <filter-name>ManagerAuthFilter</filter-name>
         <url-pattern>/views/staff/*</url-pattern>
     </filter-mapping>
+    <welcome-file-list>
+        <welcome-file>home</welcome-file>
+    </welcome-file-list>
+    <servlet-mapping>
+        <servlet-name>ImportProductController</servlet-name>
+        <url-pattern>/ImportProductController</url-pattern>
+    </servlet-mapping>
+    <session-config>
+        <session-timeout>30</session-timeout>
+    </session-config>
   
 </web-app>
