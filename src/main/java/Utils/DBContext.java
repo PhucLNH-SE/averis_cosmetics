@@ -11,9 +11,9 @@ public class DBContext {
     public DBContext() {
         try {
             String url = "jdbc:sqlserver://localhost:1433;"
-                    + "databaseName=CosmeticShopDB_v4;"
+                    + "databaseName=CosmeticShopDB_v5;"
                     + "user=sa;"
-                    + "password=Baga009@;"
+                    + "password=1234;"
                     + "encrypt=true;"
                     + "trustServerCertificate=true;";
             Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");

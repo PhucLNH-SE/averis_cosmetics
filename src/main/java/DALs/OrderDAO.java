@@ -432,4 +432,80 @@ public boolean cancelOrder(int orderId) {
 
     return false;
 }
+
+public boolean updateReview(int orderDetailId, int rating, String comment) {
+        String sql = "UPDATE Order_Detail "
+                   + "SET rating = ?, review_comment = ?, reviewed_at = GETDATE() "
+                   + "WHERE order_detail_id = ?";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, rating);
+            ps.setString(2, comment);
+            ps.setInt(3, orderDetailId);
+
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+public List<OrderDetail> getOrderDetailsWithReview(int orderId) {
+        List<OrderDetail> list = new ArrayList<>();
+
+        String sql = "SELECT "
+                + "od.order_detail_id, "
+                + "od.rating, "
+                + "od.review_comment, "
+                + "od.reviewed_at, "
+                + "p.name AS product_name, "
+                + "b.name AS brand_name, "
+                + "c.name AS category_name, "
+                + "od.quantity, "
+                + "od.price_at_order, "
+                + "(SELECT TOP 1 image_url "
+                + " FROM Product_Image "
+                + " WHERE product_id = p.product_id) AS image_url "
+                + "FROM Order_Detail od "
+                + "JOIN Product_Variant v ON od.variant_id = v.variant_id "
+                + "JOIN Product p ON v.product_id = p.product_id "
+                + "JOIN Brand b ON p.brand_id = b.brand_id "
+                + "JOIN Category c ON p.category_id = c.category_id "
+                + "WHERE od.order_id = ?";
+
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setInt(1, orderId);
+
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                OrderDetail od = new OrderDetail();
+
+                // Các trường dữ liệu phục vụ cho Review
+                od.setOrderDetailId(rs.getInt("order_detail_id"));
+                od.setRating(rs.getInt("rating"));
+                od.setReviewComment(rs.getString("review_comment"));
+                if (rs.getTimestamp("reviewed_at") != null) {
+                    od.setReviewedAt(rs.getTimestamp("reviewed_at").toLocalDateTime());
+                }
+
+                // Các trường thông tin sản phẩm
+                od.setProductName(rs.getString("product_name"));
+                od.setImageUrl(rs.getString("image_url"));
+                od.setBrandName(rs.getString("brand_name"));
+                od.setCategoryName(rs.getString("category_name"));
+                od.setQuantity(rs.getInt("quantity"));
+                od.setPriceAtOrder(rs.getBigDecimal("price_at_order"));
+
+                list.add(od);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
 }

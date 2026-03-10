@@ -34,6 +34,22 @@ public class CartController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        
+        // --- THÊM ĐOẠN NÀY VÀO ĐẦU HÀM doGet ---
+        String action = request.getParameter("action");
+        if ("getCount".equals(action)) {
+            HttpSession session = request.getSession();
+            Map<Integer, CartItem> cart = (Map<Integer, CartItem>) session.getAttribute("cart");
+            int count = (cart != null) ? cart.size() : 0;
+            response.getWriter().write(String.valueOf(count));
+            return; // Dừng lại ở đây, không forward đi đâu cả
+        }
+        // ---------------------------------------
+
+        if (request.getParameter("variantId") != null) {
+            doPost(request, response);
+            return;
+        }
 
         if (request.getParameter("variantId") != null) {
             doPost(request, response);

@@ -1,5 +1,7 @@
 package Controllers.guest;
 
+import DALs.FeedbackDAO;
+import Model.OrderDetail;
 import DALs.ProductDAO;
 import Model.Product;
 import Model.ProductVariant;
@@ -253,6 +255,13 @@ public class ProductController extends HttpServlet {
 
             if (product != null) {
                 request.setAttribute("product", product);
+                
+                // --- THÊM PHẦN LẤY DỮ LIỆU FEEDBACK Ở ĐÂY ---
+                FeedbackDAO feedbackDAO = new FeedbackDAO();
+                List<OrderDetail> reviews = feedbackDAO.getFeedbacksByProductId(productId);
+                request.setAttribute("reviews", reviews);
+                // --------------------------------------------
+
                 request.getRequestDispatcher("/views/guest/product-detail.jsp").forward(request, response);
                 return;
             }

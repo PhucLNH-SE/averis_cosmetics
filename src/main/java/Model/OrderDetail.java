@@ -6,7 +6,7 @@ package Model;
 
 
 import java.math.BigDecimal;
-
+import java.time.LocalDateTime;
 /**
  *
  * @author Admin
@@ -19,6 +19,17 @@ import java.math.BigDecimal;
     private int quantity;            // quantity (NOT NULL)
     private BigDecimal priceAtOrder; // price_at_order (NOT NULL) decimal(10,2)
 // thêm field
+    // Các trường phục vụ chức năng Feedback
+    private Integer rating; 
+    private String reviewComment;
+    private LocalDateTime reviewedAt;
+    // Thêm các biến này bên dưới các biến review hiện tại
+    private Integer managerResponse;
+    private String responseContent;
+    private LocalDateTime respondedAt;
+    // --- CÁC BIẾN PHỤ HIỂN THỊ CHO STAFF ---
+    private String customerName;
+    private String managerName;
         public String ProductName ;
     public String ImageUrl ;
     public String BrandName;
@@ -36,6 +47,36 @@ import java.math.BigDecimal;
         this.ImageUrl = ImageUrl;
         this.BrandName = BrandName;
         this.CategoryName = CategoryName;
+    }
+    
+    
+    public String getCustomerName() { return customerName; }
+    public void setCustomerName(String customerName) { this.customerName = customerName; }
+    public String getManagerName() { return managerName; }
+    public void setManagerName(String managerName) { this.managerName = managerName; }
+    // --- GETTER & SETTER ---
+    public Integer getManagerResponse() {
+        return managerResponse;
+    }
+
+    public void setManagerResponse(Integer managerResponse) {
+        this.managerResponse = managerResponse;
+    }
+
+    public String getResponseContent() {
+        return responseContent;
+    }
+
+    public void setResponseContent(String responseContent) {
+        this.responseContent = responseContent;
+    }
+
+    public LocalDateTime getRespondedAt() {
+        return respondedAt;
+    }
+
+    public void setRespondedAt(LocalDateTime respondedAt) {
+        this.respondedAt = respondedAt;
     }
 
     public int getOrderDetailId() {
@@ -109,6 +150,28 @@ import java.math.BigDecimal;
     public void setCategoryName(String CategoryName) {
         this.CategoryName = CategoryName;
     }
+    public Integer getRating() {
+        return rating;
+    }
 
+    public void setRating(Integer rating) {
+        this.rating = rating;
+    }
+
+    public String getReviewComment() {
+        return reviewComment;
+    }
+
+    public void setReviewComment(String reviewComment) {
+        this.reviewComment = reviewComment;
+    }
+
+    public LocalDateTime getReviewedAt() {
+        return reviewedAt;
+    }
+
+    public void setReviewedAt(LocalDateTime reviewedAt) {
+        this.reviewedAt = reviewedAt;
+    }
     
 }
