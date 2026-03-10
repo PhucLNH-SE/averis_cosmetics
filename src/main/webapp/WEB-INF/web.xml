@@ -296,4 +296,35 @@
   <session-config>
     <session-timeout>30</session-timeout>
   </session-config>
+  
+  <filter>
+    <filter-name>ManagerAuthFilter</filter-name>
+    <filter-class>Filters.ManagerAuthFilter</filter-class>
+</filter>
+  
+  <filter-mapping>
+        <filter-name>ManagerAuthFilter</filter-name>
+        <url-pattern>/admin/*</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>ManagerAuthFilter</filter-name>
+        <url-pattern>/staff/*</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>ManagerAuthFilter</filter-name>
+        <url-pattern>/AdminControllers</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>ManagerAuthFilter</filter-name>
+        <url-pattern>/StaffController</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>ManagerAuthFilter</filter-name>
+        <url-pattern>/views/admin/*</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>ManagerAuthFilter</filter-name>
+        <url-pattern>/views/staff/*</url-pattern>
+    </filter-mapping>
+  
 </web-app>

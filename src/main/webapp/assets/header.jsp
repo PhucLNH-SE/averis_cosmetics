@@ -767,5 +767,24 @@
 
       searchDropdown.style.display = 'block';
     }
+    
+    // Hàm gọi lên Server để lấy số lượng giỏ hàng thực tế trong Session
+    function updateCartCountRealtime() {
+        const cartCountEl = document.getElementById('cartCount');
+        if (!cartCountEl) return;
+
+        fetch('${pageContext.request.contextPath}/cart?action=getCount')
+            .then(response => response.text())
+            .then(count => {
+                cartCountEl.innerText = count.trim();
+            })
+            .catch(err => console.error('Failed to sync cart count:', err));
+    }
+
+    // Lắng nghe sự kiện hiển thị trang (chạy cả khi nhấn nút Back)
+    window.addEventListener('pageshow', function(event) {
+        updateCartCountRealtime();
+    });
+    
   });
 </script>
