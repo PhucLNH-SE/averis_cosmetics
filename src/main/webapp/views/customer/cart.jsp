@@ -1,6 +1,7 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<fmt:setLocale value="vi_VN"/>
 
 <!DOCTYPE html>
 <html lang="vi">
@@ -62,7 +63,7 @@
                                     <span style="color:var(--muted); font-weight:400;">(${entry.value.variant.variantName})</span>
                                 </a>
                                 <div class="item-price">
-                                    <fmt:formatNumber value="${entry.value.variant.price}" type="currency" currencySymbol="$"/>
+                                    <fmt:formatNumber value="${entry.value.variant.price}" pattern="#,##0"/> ₫
                                 </div>
                             </div>
 
@@ -91,7 +92,7 @@
                         </div>
                         
                         <div style="font-weight:700; font-size:14px; align-self:flex-end; display:none;">
-                           <fmt:formatNumber value="${entry.value.subtotal}" type="currency" currencySymbol="$"/>
+                           <fmt:formatNumber value="${entry.value.subtotal}" pattern="#,##0"/> ₫
                         </div>
                     </div>
                 </c:forEach>
@@ -100,16 +101,16 @@
             <div class="cart-sidebar">
                 <div class="summary-row">
                     <span>Tạm tính:</span>
-                    <span style="font-weight:600"><fmt:formatNumber value="${total}" type="currency" currencySymbol="$"/></span>
+                    <span style="font-weight:600"><fmt:formatNumber value="${total}" pattern="#,##0"/> ₫</span>
                 </div>
                 <div class="summary-row">
                     <span>Giảm giá:</span>
-                    <span>$0.00</span>
+                    <span>0 ₫</span>
                 </div>
                 
                 <div class="summary-total">
                     <span>Tổng cộng:</span>
-                    <span><fmt:formatNumber value="${total}" type="currency" currencySymbol="$"/></span>
+                    <span><fmt:formatNumber value="${total}" pattern="#,##0"/> ₫</span>
                 </div>
                 
                 <div style="text-align:right; font-size:12px; color:var(--muted); margin-top:5px;">

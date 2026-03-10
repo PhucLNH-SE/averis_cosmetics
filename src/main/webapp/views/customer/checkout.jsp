@@ -1,6 +1,7 @@
 ﻿<%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<fmt:setLocale value="vi_VN"/>
 
 <!DOCTYPE html>
 <html lang="vi">
@@ -78,6 +79,7 @@
 
                             <div style="margin-top: 16px;">
                                 <a href="${pageContext.request.contextPath}/address?action=add"
+                                   id="openCheckoutAddressLink"
                                    style="color: var(--accent); font-size: 14px; text-decoration: underline;">
                                     + Thêm địa chỉ mới
                                 </a>
@@ -119,7 +121,7 @@
                                     <div class="product-qty">Số lượng: ${entry.value.quantity}</div>
                                 </div>
                                 <div class="product-price">
-                                    <fmt:formatNumber value="${entry.value.subtotal}" type="currency" currencySymbol="₫"/>
+                                    <fmt:formatNumber value="${entry.value.subtotal}" pattern="#,##0"/> ₫
                                 </div>
                             </div>
                         </c:forEach>
@@ -166,7 +168,7 @@
 
                     <div class="summary-row">
                         <span>Tạm tính (${cart.size()} sản phẩm):</span>
-                        <span style="font-weight:600"><fmt:formatNumber value="${total}" type="currency" currencySymbol="₫"/></span>
+                        <span style="font-weight:600"><fmt:formatNumber value="${total}" pattern="#,##0"/> ₫</span>
                     </div>
                     <div class="summary-row">
                         <span>Phí vận chuyển:</span>
@@ -190,14 +192,14 @@
 
                     <div class="summary-row">
                         <span>Giảm giá:</span>
-                        <span class="discount" id="discountAmount"><fmt:formatNumber value="${discountAmount}" type="currency" currencySymbol="VND "/></span>
+                        <span class="discount" id="discountAmount"><fmt:formatNumber value="${discountAmount}" pattern="#,##0"/> ₫</span>
                     </div>
 
                     <div class="summary-divider"></div>
 
                     <div class="summary-total">
                         <span>Tổng cộng:</span>
-                        <span id="totalAmount"><fmt:formatNumber value="${finalTotal}" type="currency" currencySymbol="VND "/></span>
+                        <span id="totalAmount"><fmt:formatNumber value="${finalTotal}" pattern="#,##0"/> ₫</span>
                     </div>
 
                     <div style="text-align:right; font-size:12px; color:var(--muted); margin-top:5px;">
@@ -229,7 +231,7 @@
                                     </c:when>
                                     <c:otherwise>
                                         <c:forEach items="${checkoutVouchers}" var="cv">
-                                            <fmt:formatNumber value="${cv.voucher.discountValue}" pattern="#,##0.##" var="popupDiscountRaw"/>
+                                            <fmt:formatNumber value="${cv.voucher.discountValue}" pattern="#,##0" var="popupDiscountRaw"/>
                                             <div class="checkout-voucher-item" data-voucher-code="${cv.voucher.code}" onclick="selectVoucherCode('${cv.voucher.code}')">
                                                 <div class="voucher-item-top">
                                                     <strong>${cv.voucher.code}</strong>
@@ -241,7 +243,7 @@
                                                             Giảm ${popupDiscountRaw}%
                                                         </c:when>
                                                         <c:otherwise>
-                                                            Giảm ${popupDiscountRaw}
+                                                            Giảm ${popupDiscountRaw} ₫
                                                         </c:otherwise>
                                                     </c:choose>
                                                 </div>
@@ -254,6 +256,22 @@
                         </div>
                     </div>
                 </div>
+
+                <div id="checkoutAddressPopup" class="checkout-address-popup" onclick="closeCheckoutAddressPopup(event)">
+                    <div class="checkout-address-popup-card">
+                        <div class="checkout-address-popup-head">
+                            <div>
+                                <h4>Thêm địa chỉ giao hàng</h4>
+                            </div>
+                            <button type="button" class="checkout-address-popup-close" onclick="closeCheckoutAddressPopup()">&times;</button>
+                        </div>
+                        <iframe id="checkoutAddressFrame"
+                                class="checkout-address-frame"
+                                src="about:blank"
+                                title="Add Address"></iframe>
+                    </div>
+                </div>
+
             </form>
         </c:if>
     </div>
@@ -294,6 +312,7 @@ if (defaultAddress) {
 }
 
             initVoucherSelector();
+            initCheckoutAddressPopup();
         });
 
         document.querySelectorAll('.address-item').forEach(item => {
@@ -322,6 +341,86 @@ if (defaultAddress) {
                 });
             }
         }
+
+        function initCheckoutAddressPopup() {
+            const openLink = document.getElementById('openCheckoutAddressLink');
+            const frame = document.getElementById('checkoutAddressFrame');
+
+            if (openLink) {
+                openLink.addEventListener('click', function (event) {
+                    event.preventDefault();
+                    openCheckoutAddressPopup(this.href);
+                });
+            }
+
+            if (!frame) {
+                return;
+            }
+
+            frame.addEventListener('load', function () {
+                try {
+                    const frameWindow = frame.contentWindow;
+                    const doc = frame.contentDocument || frameWindow.document;
+                    const frameUrl = new URL(frameWindow.location.href);
+                    const isProfileAddressPage = frameUrl.pathname.endsWith('/profile')
+                            && frameUrl.searchParams.get('action') === 'view'
+                            && frameUrl.searchParams.get('tab') === 'address';
+
+                    if (isProfileAddressPage) {
+                        closeCheckoutAddressPopup();
+                        window.location.href = '${pageContext.request.contextPath}/checkout';
+                        return;
+                    }
+
+                    const topbar = doc.querySelector('.topbar-shell');
+                    const footer = doc.querySelector('footer');
+                    const container = doc.querySelector('.container');
+
+                    if (topbar) {
+                        topbar.style.display = 'none';
+                    }
+                    if (footer) {
+                        footer.style.display = 'none';
+                    }
+                    if (container) {
+                        container.style.margin = '0 auto';
+                        container.style.padding = '24px';
+                        container.style.maxWidth = '100%';
+                    }
+                } catch (error) {
+                    console.error('Cannot optimize checkout address frame:', error);
+                }
+            });
+        }
+
+        function openCheckoutAddressPopup(url) {
+            const popup = document.getElementById('checkoutAddressPopup');
+            const frame = document.getElementById('checkoutAddressFrame');
+            if (!popup || !frame) {
+                return;
+            }
+
+            frame.src = url || '${pageContext.request.contextPath}/address?action=add';
+            popup.classList.add('show');
+            document.body.classList.add('checkout-popup-open');
+        }
+
+        function closeCheckoutAddressPopup(event) {
+            const popup = document.getElementById('checkoutAddressPopup');
+            const frame = document.getElementById('checkoutAddressFrame');
+            if (!popup) {
+                return;
+            }
+
+            if (!event || event.target.id === 'checkoutAddressPopup') {
+                popup.classList.remove('show');
+                document.body.classList.remove('checkout-popup-open');
+                if (frame) {
+                    frame.src = 'about:blank';
+                }
+            }
+        }
+
 
         function openVoucherSelectPopup() {
             const popup = document.getElementById('voucherSelectPopup');

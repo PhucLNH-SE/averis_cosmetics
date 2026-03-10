@@ -1,6 +1,7 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<fmt:setLocale value="vi_VN"/>
 <!DOCTYPE html>
 <html>
     <head>
@@ -64,7 +65,7 @@
                             <c:choose>
                                 <c:when test="${not empty product.variants}">
                                     <div class="current-price">
-                                        <fmt:formatNumber value="${product.variants[0].price}" type="currency" currencySymbol="$"/>
+                                        <fmt:formatNumber value="${product.variants[0].price}" pattern="#,##0"/> ₫
                                     </div>
                                 </c:when>
                                 <c:otherwise>
@@ -90,7 +91,7 @@
                                                     <span class="variant-name">Variant ${loop.index + 1}</span>
                                                 </c:otherwise>
                                             </c:choose>
-                                            <span class="variant-price"><fmt:formatNumber value="${variant.price}" type="currency" currencySymbol="$"/></span>
+                                            <span class="variant-price"><fmt:formatNumber value="${variant.price}" pattern="#,##0"/> ₫</span>
                                         </div>
                                     </c:forEach>
                                 </div>
@@ -153,10 +154,9 @@
             });
             
             function formatCurrency(amount) {
-                return new Intl.NumberFormat('en-US', {
-                    style: 'currency',
-                    currency: 'USD'
-                }).format(amount);
+                return Number(amount).toLocaleString('vi-VN', {
+                    maximumFractionDigits: 0
+                }) + ' ₫';
             }
             // Add product to cart
 function addToCart(productId) {

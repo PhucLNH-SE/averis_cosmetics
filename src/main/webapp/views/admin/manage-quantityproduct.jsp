@@ -1,5 +1,7 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%@taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<fmt:setLocale value="vi_VN"/>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -85,7 +87,7 @@
                                     <td><strong>${v.productName}</strong></td>
                                     <td>${v.variantName}</td>
                                     <td>${v.categoryName}</td>
-                                    <td>${v.price}</td>
+                                    <td><fmt:formatNumber value="${v.price}" pattern="#,##0"/> ₫</td>
                                     <td>
                                         <c:choose>
                                             <c:when test="${v.status}">

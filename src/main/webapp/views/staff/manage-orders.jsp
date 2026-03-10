@@ -1,5 +1,7 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<fmt:setLocale value="vi_VN"/>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -91,7 +93,7 @@
                                             <td class="px-4">#${o.orderId}</td>
                                             <td><strong>${o.username}</strong></td>
                                             <td>${o.voucherCode != null ? o.voucherCode : '-'}</td>
-                                            <td>${o.discountAmount != null ? o.discountAmount : '0'}</td>
+                                            <td><fmt:formatNumber value="${o.discountAmount != null ? o.discountAmount : 0}" pattern="#,##0"/> ₫</td>
                                             <td>${o.paymentMethod}</td>
                                             <td>
                                                 <input type="hidden" name="orderId" value="${o.orderId}">
@@ -110,7 +112,7 @@
                                                     <option value="CANCELLED" ${o.orderStatus == 'CANCELLED' ? 'selected' : ''}>CANCELLED</option>
                                                 </select>
                                             </td>
-                                            <td><strong>${o.totalAmount}</strong></td>
+                                            <td><strong><fmt:formatNumber value="${o.totalAmount}" pattern="#,##0"/> ₫</strong></td>
                                             <td class="text-end px-4">
                                             </td>
                                         </tr>

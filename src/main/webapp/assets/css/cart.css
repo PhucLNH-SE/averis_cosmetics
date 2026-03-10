@@ -188,7 +188,7 @@ body {
 .cart-sidebar {
     width: 320px;
     position: sticky;
-    top: 20px; /* Dính lại khi cuộn trang */
+    top: 94px; /* Chừa khoảng cho sticky header */
     background: #fff;
     border: 1px solid var(--border);
     border-radius: 8px;
@@ -275,6 +275,5 @@ body {
     }
 }
 .header-wrapper {
-    width: 100%;
-    flex-shrink: 0;
+    display: contents;
 }

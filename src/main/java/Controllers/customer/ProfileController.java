@@ -169,7 +169,7 @@ private void showVouchers(HttpServletRequest request, HttpServletResponse respon
 
     CustomerVoucherDAO dao = new CustomerVoucherDAO();
     dao.expireOutdatedVouchers();
-    List<CustomerVoucher> vouchers = dao.getByCustomerId(customer.getCustomerId());
+    List<CustomerVoucher> vouchers = dao.getActiveByCustomerId(customer.getCustomerId());
 
     request.setAttribute("myVouchers", vouchers);
     request.setAttribute("tab", "voucher");
