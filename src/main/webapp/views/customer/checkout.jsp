@@ -78,9 +78,9 @@
                             </div>
 
                             <div style="margin-top: 16px;">
-                                <a href="${pageContext.request.contextPath}/address?action=add"
+                            <a href="${pageContext.request.contextPath}/address?action=add"
                                    id="openCheckoutAddressLink"
-                                   style="color: var(--accent); font-size: 14px; text-decoration: underline;">
+                                   class="checkout-address-popup-trigger checkout-address-add-link">
                                     + Thêm địa chỉ mới
                                 </a>
                             </div>
@@ -91,7 +91,7 @@
                                 Bạn chưa có địa chỉ giao hàng. Vui lòng thêm địa chỉ mới.
                             </p>
                             <a href="${pageContext.request.contextPath}/address?action=add"
-                               class="btn-place-order" style="width: fit-content; padding: 12px 24px; display: inline-block;">
+                               class="checkout-address-popup-trigger checkout-address-add-link">
                                 + Thêm địa chỉ
                             </a>
                         </c:if>
@@ -343,15 +343,15 @@ if (defaultAddress) {
         }
 
         function initCheckoutAddressPopup() {
-            const openLink = document.getElementById('openCheckoutAddressLink');
+            const openLinks = document.querySelectorAll('a.checkout-address-popup-trigger');
             const frame = document.getElementById('checkoutAddressFrame');
 
-            if (openLink) {
+            openLinks.forEach(function (openLink) {
                 openLink.addEventListener('click', function (event) {
                     event.preventDefault();
                     openCheckoutAddressPopup(this.href);
                 });
-            }
+            });
 
             if (!frame) {
                 return;
@@ -387,6 +387,10 @@ if (defaultAddress) {
                         container.style.padding = '24px';
                         container.style.maxWidth = '100%';
                     }
+
+                    doc.querySelectorAll('.address-form-actions .btn-secondary').forEach(function (button) {
+                        button.style.display = 'none';
+                    });
                 } catch (error) {
                     console.error('Cannot optimize checkout address frame:', error);
                 }

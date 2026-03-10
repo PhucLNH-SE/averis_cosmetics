@@ -743,14 +743,18 @@ document.addEventListener('DOMContentLoaded', function () {
             if (footer) {
                 footer.style.display = 'none';
             }
-            if (container) {
-                container.style.margin = '0 auto';
-                container.style.padding = '24px';
-                container.style.maxWidth = '100%';
-            }
-        } catch (error) {
-            console.error('Cannot optimize address popup frame:', error);
-        }
+                    if (container) {
+                        container.style.margin = '0 auto';
+                        container.style.padding = '24px';
+                        container.style.maxWidth = '100%';
+                    }
+
+                    doc.querySelectorAll('.address-form-actions .btn-secondary').forEach(function (button) {
+                        button.style.display = 'none';
+                    });
+                } catch (error) {
+                    console.error('Cannot optimize address popup frame:', error);
+                }
     });
 });
 </script>

@@ -624,6 +624,27 @@ body {
     box-shadow: 0 4px 6px rgba(180, 83, 9, 0.3);
 }
 
+.checkout-address-add-link {
+    display: inline-block;
+    width: fit-content;
+    padding: 0;
+    background: transparent;
+    color: var(--accent);
+    border-radius: 0;
+    text-decoration: underline;
+    font-weight: 500;
+    letter-spacing: 0;
+    transition: color 0.2s ease;
+    box-shadow: none;
+}
+
+.checkout-address-add-link:hover {
+    transform: none;
+    box-shadow: none;
+    color: var(--accent-hover);
+    text-decoration: underline;
+}
+
 .btn-place-order:hover {
     transform: translateY(-2px);
     box-shadow: 0 8px 15px rgba(180, 83, 9, 0.4);
