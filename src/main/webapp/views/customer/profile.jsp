@@ -1,6 +1,8 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<fmt:setLocale value="vi_VN"/>
 
 <!DOCTYPE html>
 <html>
@@ -181,10 +183,11 @@
                                 <h2>My Addresses</h2>
                                 <p class="address-subtitle">Manage your delivery addresses</p>
                             </div>
-                            <a href="${pageContext.request.contextPath}/address?action=add"
-                               class="btn-add-address">
+                            <button type="button"
+                               class="btn-add-address"
+                               onclick="openAddressPopup('add')">
                                 <i class="fas fa-plus-circle"></i> Add New Address
-                            </a>
+                            </button>
                         </div>
 
                         <c:if test="${not empty profileMessage}">
@@ -203,10 +206,11 @@
                                         </div>
                                         <h3>No addresses yet</h3>
                                         <p>Add your first delivery address to get started</p>
-                                        <a href="${pageContext.request.contextPath}/address?action=add"
-                                           class="btn-add-first">
+                                        <button type="button"
+                                           class="btn-add-first"
+                                           onclick="openAddressPopup('add')">
                                             <i class="fas fa-plus"></i> Add Your First Address
-                                        </a>
+                                        </button>
                                     </div>
                                 </c:when>
                                 <c:otherwise>
@@ -241,11 +245,20 @@
                                                         <i class="fas fa-check"></i> Set Default
                                                     </a>
                                                 </c:if>
-                                                <a href="${pageContext.request.contextPath}/address?action=edit&id=${addr.addressId}"
+                                                <button type="button"
                                                    class="action-btn edit"
-                                                   title="Edit address">
+                                                   title="Edit address"
+                                                   data-address-id="${addr.addressId}"
+                                                   data-receiver-name="<c:out value='${addr.receiverName}'/>"
+                                                   data-phone="<c:out value='${addr.phone}'/>"
+                                                   data-province="<c:out value='${addr.province}'/>"
+                                                   data-district="<c:out value='${addr.district}'/>"
+                                                   data-ward="<c:out value='${addr.ward}'/>"
+                                                   data-street-address="<c:out value='${addr.streetAddress}'/>"
+                                                   data-is-default="${addr.isDefault}"
+                                                   onclick="openAddressPopup('edit', this)">
                                                     <i class="fas fa-pen"></i> Edit
-                                                </a>
+                                                </button>
                                                 <a href="${pageContext.request.contextPath}/address?action=delete&id=${addr.addressId}"
                                                    class="action-btn delete"
                                                    title="Delete address"
@@ -257,6 +270,25 @@
                                     </c:forEach>
                                 </c:otherwise>
                             </c:choose>
+                        </div>
+                    </div>
+
+                    <div class="address-popup-overlay" id="addressPopupOverlay" onclick="closeAddressPopup(event)">
+                        <div class="address-popup-card address-popup-card--iframe">
+                            <div class="address-popup-header">
+                                <div>
+                                    <h3 id="addressPopupTitle">Add New Address</h3>
+                                    <p id="addressPopupSubtitle">Enter your delivery address details</p>
+                                </div>
+                                <button type="button" class="address-popup-close" onclick="closeAddressPopup()">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+
+                            <iframe id="addressPopupFrame"
+                                    class="address-popup-frame"
+                                    src="about:blank"
+                                    title="Address Form"></iframe>
                         </div>
                     </div>
 
@@ -336,9 +368,9 @@
                                             <div class="order-footer">
                                                 <div class="order-total">
                                                     <span class="total-label">Total:</span>
-                                                    <span class="total-value">${o.totalAmount} ₫</span>
+                                                    <span class="total-value"><fmt:formatNumber value="${o.totalAmount}" pattern="#,##0"/> ₫</span>
                                                     <c:if test="${o.discountAmount > 0}">
-                                                        <span class="discount-badge">-${o.discountAmount} ₫</span>
+                                                        <span class="discount-badge">-<fmt:formatNumber value="${o.discountAmount}" pattern="#,##0"/> ₫</span>
                                                     </c:if>
                                                 </div>
                                                 <div class="order-actions">
@@ -438,9 +470,9 @@
                                                 <span class="qty-value">${d.quantity}</span>
                                             </div>
                                             <div class="item-price">
-                                                <span class="price-value">${d.priceAtOrder} ₫</span>
+                                                <span class="price-value"><fmt:formatNumber value="${d.priceAtOrder}" pattern="#,##0"/> ₫</span>
                                                 <c:if test="${d.quantity > 1}">
-                                                    <span class="price-sub">${d.priceAtOrder * d.quantity} ₫</span>
+                                                    <span class="price-sub"><fmt:formatNumber value="${d.priceAtOrder * d.quantity}" pattern="#,##0"/> ₫</span>
                                                 </c:if>
                                             </div>
                                         </div>
@@ -450,17 +482,17 @@
                                 <div class="order-summary">
                                     <div class="summary-row">
                                         <span>Subtotal</span>
-                                        <span>${order.totalAmount + order.discountAmount} ₫</span>
+                                        <span><fmt:formatNumber value="${order.totalAmount + order.discountAmount}" pattern="#,##0"/> ₫</span>
                                     </div>
                                     <c:if test="${order.discountAmount > 0}">
                                         <div class="summary-row discount">
                                             <span>Discount</span>
-                                            <span>-${order.discountAmount} ₫</span>
+                                            <span>-<fmt:formatNumber value="${order.discountAmount}" pattern="#,##0"/> ₫</span>
                                         </div>
                                     </c:if>
                                     <div class="summary-row total">
                                         <span>Total</span>
-                                        <span>${order.totalAmount} ₫</span>
+                                        <span><fmt:formatNumber value="${order.totalAmount}" pattern="#,##0"/> ₫</span>
                                     </div>
                                 </div>
                             </div>
@@ -528,11 +560,12 @@
                                                 <c:forEach var="cv" items="${myVouchers}">
                                                     <c:set var="effectiveFromStr" value="${fn:replace(cv.effectiveFrom, 'T', ' ')}"/>
                                                     <c:set var="effectiveToStr" value="${fn:replace(cv.effectiveTo, 'T', ' ')}"/>
+                                                    <c:set var="discountTypeNormalized" value="${fn:toUpperCase(cv.voucher.discountType)}"/>
                                                     <tr>
                                                         <td><strong>${cv.voucher.code}</strong></td>
                                                         <td>
                                                             <c:choose>
-                                                                <c:when test="${cv.voucher.discountType eq 'PERCENT'}">
+                                                                <c:when test="${discountTypeNormalized eq 'PERCENT' or discountTypeNormalized eq 'PERCENTAGE'}">
                                                                     <fmt:formatNumber value="${cv.voucher.discountValue}" pattern="#,##0" />%
                                                                 </c:when>
                                                                 <c:otherwise>
@@ -637,6 +670,89 @@ function confirmCancel(orderId) {
         }
     });
 }
+
+function openAddressPopup(mode, trigger) {
+    const overlay = document.getElementById('addressPopupOverlay');
+    const title = document.getElementById('addressPopupTitle');
+    const subtitle = document.getElementById('addressPopupSubtitle');
+    const frame = document.getElementById('addressPopupFrame');
+
+    if (!overlay || !frame) {
+        return;
+    }
+
+    if (mode === 'edit' && trigger) {
+        title.textContent = 'Edit Address';
+        subtitle.textContent = 'Update your delivery address details';
+        frame.src = '${pageContext.request.contextPath}/address?action=edit&id='
+                + encodeURIComponent(trigger.getAttribute('data-address-id') || '');
+    } else {
+        title.textContent = 'Add New Address';
+        subtitle.textContent = 'Enter your delivery address details';
+        frame.src = '${pageContext.request.contextPath}/address?action=add';
+    }
+
+    overlay.classList.add('show');
+    document.body.classList.add('address-popup-open');
+}
+
+function closeAddressPopup(event) {
+    const overlay = document.getElementById('addressPopupOverlay');
+    const frame = document.getElementById('addressPopupFrame');
+    if (!overlay) {
+        return;
+    }
+
+    if (!event || event.target === overlay) {
+        overlay.classList.remove('show');
+        document.body.classList.remove('address-popup-open');
+        if (frame) {
+            frame.src = 'about:blank';
+        }
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    const frame = document.getElementById('addressPopupFrame');
+    if (!frame) {
+        return;
+    }
+
+    frame.addEventListener('load', function () {
+        try {
+            const frameWindow = frame.contentWindow;
+            const doc = frame.contentDocument || frameWindow.document;
+            const frameUrl = new URL(frameWindow.location.href);
+            const isProfileAddressPage = frameUrl.pathname.endsWith('/profile')
+                    && frameUrl.searchParams.get('action') === 'view'
+                    && frameUrl.searchParams.get('tab') === 'address';
+
+            if (isProfileAddressPage) {
+                closeAddressPopup();
+                window.location.href = frameUrl.pathname + frameUrl.search;
+                return;
+            }
+
+            const topbar = doc.querySelector('.topbar-shell');
+            const footer = doc.querySelector('footer');
+            const container = doc.querySelector('.container');
+
+            if (topbar) {
+                topbar.style.display = 'none';
+            }
+            if (footer) {
+                footer.style.display = 'none';
+            }
+            if (container) {
+                container.style.margin = '0 auto';
+                container.style.padding = '24px';
+                container.style.maxWidth = '100%';
+            }
+        } catch (error) {
+            console.error('Cannot optimize address popup frame:', error);
+        }
+    });
+});
 </script>
 </body>
 </html>

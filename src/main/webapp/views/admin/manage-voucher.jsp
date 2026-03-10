@@ -2,6 +2,7 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<fmt:setLocale value="vi_VN"/>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -253,13 +254,12 @@
                                             </td>
                                             <td>
                                                 <fmt:formatNumber value="${v.discountValue}" pattern="#,##0.##" var="discountRaw"/>
-                                                <c:set var="discountDot" value="${fn:replace(discountRaw, ',', '.')}"/>
                                                 <c:choose>
                                                     <c:when test="${v.discountType eq 'PERCENT'}">
-                                                        <span class="voucher-discount-percent">${discountDot}%</span>
+                                                        <span class="voucher-discount-percent">${discountRaw}%</span>
                                                     </c:when>
                                                     <c:otherwise>
-                                                        <span class="voucher-discount-fixed">${discountDot}</span>
+                                                        <span class="voucher-discount-fixed">${discountRaw} ₫</span>
                                                     </c:otherwise>
                                                 </c:choose>
                                             </td>

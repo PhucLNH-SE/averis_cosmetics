@@ -267,6 +267,20 @@
     .filter-form {
         gap: 10px;
     }
+
+    .address-popup-overlay {
+        padding: 12px;
+    }
+
+    .address-popup-card {
+        padding: 18px;
+        border-radius: 16px;
+    }
+
+    .address-popup-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
 }
 
 /* Product detail page styles */
@@ -890,6 +904,7 @@ textarea.form-control {
     display: grid;
     grid-template-columns: 1.2fr 1fr 1fr 1fr;
     gap: 28px;
+    padding-left: 130px;
 }
 
 .f-title {
@@ -1294,6 +1309,7 @@ textarea.form-control {
     text-decoration: none;
     transition: all 0.3s ease;
     box-shadow: 0 4px 12px rgba(180, 83, 9, 0.3);
+    cursor: pointer;
 }
 
 .btn-add-address:hover {
@@ -1389,6 +1405,7 @@ textarea.form-control {
     text-decoration: none;
     transition: all 0.3s ease;
     box-shadow: 0 4px 12px rgba(180, 83, 9, 0.3);
+    cursor: pointer;
 }
 
 .btn-add-first:hover {
@@ -1503,6 +1520,8 @@ textarea.form-control {
     min-width: 80px;
     max-width: 120px;
     padding: 10px 12px;
+    border-width: 1px;
+    border-style: solid;
     border-radius: 8px;
     font-size: 12px;
     font-weight: 600;
@@ -1513,6 +1532,7 @@ textarea.form-control {
     align-items: center;
     justify-content: center;
     gap: 5px;
+    cursor: pointer;
 }
 
 .action-btn i {
@@ -1520,36 +1540,36 @@ textarea.form-control {
 }
 
 .action-btn.set-default {
-    background: #fef3c7;
-    color: #92400e;
-    border: 1px solid #fcd34d;
+    background: linear-gradient(135deg, #fff3cd 0%, #fde68a 100%);
+    color: #8a4b08;
+    border-color: #f4c96b;
 }
 
 .action-btn.set-default:hover {
-    background: #fde68a;
-    color: #78350f;
+    background: linear-gradient(135deg, #fde68a 0%, #f5c04d 100%);
+    color: #6f3a05;
 }
 
 .action-btn.edit {
-    background: #e5e7eb;
-    color: #374151;
-    border: 1px solid #d1d5db;
+    background: linear-gradient(135deg, #fff7ed 0%, #fde7cf 100%);
+    color: #9a3412;
+    border-color: #f3c99f;
 }
 
 .action-btn.edit:hover {
-    background: #d1d5db;
-    color: #1f2937;
+    background: linear-gradient(135deg, #fed7aa 0%, #fdba74 100%);
+    color: #7c2d12;
 }
 
 .action-btn.delete {
-    background: #fee2e2;
-    color: #dc2626;
-    border: 1px solid #fca5a5;
+    background: linear-gradient(135deg, #fff1f2 0%, #ffe4e6 100%);
+    color: #be123c;
+    border-color: #fda4af;
 }
 
 .action-btn.delete:hover {
-    background: #fecaca;
-    color: #b91c1c;
+    background: linear-gradient(135deg, #fecdd3 0%, #fda4af 100%);
+    color: #9f1239;
 }
 
 /* Responsive */
@@ -1557,43 +1577,43 @@ textarea.form-control {
     .address-container {
         padding: 16px;
     }
-    
+
     .address-header {
         flex-direction: column;
         align-items: stretch;
         text-align: center;
     }
-    
+
     .address-header > div {
         text-align: center;
     }
-    
+
     .btn-add-address {
         width: 100%;
         justify-content: center;
     }
-    
+
     .address-grid {
         grid-template-columns: 1fr;
         gap: 16px;
     }
-    
+
     .address-card {
         padding: 16px;
     }
-    
+
     .address-card-actions {
         flex-direction: row;
         justify-content: stretch;
     }
-    
+
     .action-btn {
         max-width: none;
         flex: 1;
         padding: 10px 8px;
         font-size: 11px;
     }
-    
+
     .action-btn i {
         display: none;
     }
@@ -2116,38 +2136,38 @@ textarea.form-control {
         flex-direction: column;
         gap: 12px;
     }
-    
+
     .order-footer {
         flex-direction: column;
         align-items: stretch;
     }
-    
+
     .order-total {
         justify-content: center;
     }
-    
+
     .order-actions {
         justify-content: stretch;
     }
-    
+
     .order-actions .action-btn {
         flex: 1;
         justify-content: center;
     }
-    
+
     .order-item {
         flex-wrap: wrap;
     }
-    
+
     .order-item .item-details {
         flex: 1 1 calc(100% - 96px);
     }
-    
+
     .order-item .item-quantity,
     .order-item .item-price {
         flex: none;
     }
-    
+
     .order-summary {
         max-width: 100%;
     }
@@ -2159,26 +2179,26 @@ textarea.form-control {
         gap: 15px;
         text-align: center;
     }
-    
+
     .address-card-header {
         flex-direction: column;
         gap: 10px;
     }
-    
+
     .address-actions {
         width: 100%;
         justify-content: center;
     }
-    
+
     .address-card {
         margin-bottom: 15px;
     }
-    
+
     .address-form-container {
         margin: 20px;
         padding: 15px;
     }
-    
+
     .address-form-actions {
         flex-direction: column;
     }
@@ -2188,10 +2208,11 @@ textarea.form-control {
 .address-form-container {
     max-width: 600px;
     margin: 30px auto;
-    padding: 20px;
+    padding: 24px;
     background: #fff;
-    border-radius: 10px;
-    box-shadow: 0 0 20px rgba(0,0,0,0.1);
+    border-radius: 18px;
+    border: 1px solid #f1e8dd;
+    box-shadow: 0 18px 45px rgba(31, 41, 55, 0.10);
 }
 
 .address-form-header {
@@ -2201,13 +2222,13 @@ textarea.form-control {
 
 .address-form-header h2 {
     margin: 0 0 10px 0;
-    color: #333;
+    color: #9a3412;
 }
 
 .address-form-header p {
     margin: 0;
-    color: #666;
-    font-size: 16px;
+    color: #b45309;
+    font-size: 15px;
 }
 
 .address-form-group {
@@ -2218,13 +2239,63 @@ textarea.form-control {
     font-weight: 600;
     margin-bottom: 8px;
     display: block;
-    color: #333;
+    color: #374151;
 }
 
 .address-btn-submit {
     width: 100%;
     padding: 12px;
     font-size: 16px;
+}
+
+.address-form-container .form-control {
+    min-height: 46px;
+    border: 1px solid #dfd3c2;
+    border-radius: 12px;
+    background: #fffdf9;
+    color: #1f2937;
+    box-shadow: none;
+}
+
+.address-form-container .form-control:focus {
+    border-color: #c17a20;
+    box-shadow: 0 0 0 4px rgba(180, 83, 9, 0.12);
+    background: #ffffff;
+}
+
+.address-form-container .btn-primary,
+.address-form-container .btn-secondary {
+    min-height: 48px;
+    border-radius: 12px;
+    font-weight: 700;
+    border-width: 1px;
+}
+
+.address-form-container .btn-primary {
+    background: linear-gradient(135deg, #b45309 0%, #d97706 100%);
+    border-color: #b45309;
+    color: #fff;
+    box-shadow: 0 10px 22px rgba(180, 83, 9, 0.20);
+}
+
+.address-form-container .btn-primary:hover,
+.address-form-container .btn-primary:focus {
+    background: linear-gradient(135deg, #9a4208 0%, #c86508 100%);
+    border-color: #9a4208;
+    color: #fff;
+}
+
+.address-form-container .btn-secondary {
+    background: #fff8ef;
+    border-color: #eadfce;
+    color: #7c5a36;
+}
+
+.address-form-container .btn-secondary:hover,
+.address-form-container .btn-secondary:focus {
+    background: #f5e7d3;
+    border-color: #dec9a9;
+    color: #654729;
 }
 
 .address-form-actions {
@@ -2240,6 +2311,122 @@ textarea.form-control {
     text-align: center;
 }
 
+.address-popup-open {
+    overflow: hidden;
+}
+
+.address-popup-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(17, 24, 39, 0.48);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    z-index: 1600;
+}
+
+.address-popup-overlay.show {
+    display: flex;
+}
+
+.address-popup-card {
+    width: min(760px, 100%);
+    max-height: min(88vh, 920px);
+    overflow-y: auto;
+    background: #fff;
+    border-radius: 18px;
+    border: 1px solid #f1e8dd;
+    box-shadow: 0 28px 80px rgba(15, 23, 42, 0.22);
+    padding: 24px;
+    animation: addressPopupSlide .24s ease;
+}
+
+.address-popup-card--iframe {
+    width: min(1120px, 100%);
+    height: min(90vh, 920px);
+    max-height: none;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.address-popup-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.address-popup-header h3 {
+    margin: 0 0 6px;
+    color: #1f2937;
+}
+
+.address-popup-header p {
+    margin: 0;
+    color: #6b7280;
+}
+
+.address-popup-close {
+    width: 40px;
+    height: 40px;
+    border: 1px solid #e7d6bf;
+    background: linear-gradient(135deg, #fffaf4 0%, #f6ead9 100%);
+    color: #8b5e34;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all .2s ease;
+}
+
+.address-popup-close:hover {
+    background: linear-gradient(135deg, #f7ebdc 0%, #eed8bc 100%);
+    color: #6f471f;
+}
+
+.address-popup-form {
+    margin: 0;
+}
+
+.address-popup-frame {
+    width: 100%;
+    flex: 1;
+    min-height: 0;
+    border: 0;
+    border-radius: 14px;
+    background: #fff;
+}
+
+.address-popup-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.address-popup-street {
+    grid-column: 1 / -1;
+}
+
+.address-popup-default {
+    margin-top: 8px;
+}
+
+.address-popup-actions {
+    margin-top: 24px;
+}
+
+@keyframes addressPopupSlide {
+    from {
+        opacity: 0;
+        transform: translateY(-18px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 /* ===== Profile Page Styles ===== */
 .account-sidebar {
     width: 260px;
@@ -2251,6 +2438,7 @@ textarea.form-control {
     border-radius: 14px;
     padding: 20px 18px 18px;
     box-shadow: 0 8px 22px rgba(31, 41, 55, .06);
+    margin: 0px 0px 35px 0px;
 }
 
 .account-avatar {
@@ -2317,7 +2505,7 @@ textarea.form-control {
 .profile-container {
     width: 100%;
     max-width: 900px;
-    margin: 0;
+    margin: 0px 0px 35px 0px;
     padding: 30px;
     border: 1px solid #e9e2d8;
     border-radius: 12px;
@@ -2480,6 +2668,7 @@ textarea.form-control {
 /* Form */
 .auth-container .form-group {
     margin-bottom: 22px;
+    padding-right: 32px;
 }
 
 .auth-container .form-group label {
@@ -2814,24 +3003,24 @@ textarea.form-control {
     .customer-voucher-wrapper {
         padding: 20px 16px;
     }
-    
+
     .customer-voucher-head h1 {
         font-size: 24px;
     }
-    
+
     .customer-voucher-claim-card {
         padding: 16px;
     }
-    
+
     .customer-voucher-claim-form {
         flex-direction: column;
         max-width: 100%;
     }
-    
+
     .customer-voucher-claim-form button {
         width: 100%;
     }
-    
+
     .customer-voucher-table th,
     .customer-voucher-table td {
         padding: 12px 10px;
@@ -2862,7 +3051,7 @@ textarea.form-control {
 .voucher-claim-form {
     display: flex;
     gap: 12px;
-    max-width: 450px;
+    max-width: 870px;
 }
 
 .voucher-claim-form input {
@@ -3147,19 +3336,19 @@ textarea.form-control {
         flex-direction: column;
         max-width: 100%;
     }
-    
+
     .voucher-claim-form button {
         width: 100%;
     }
-    
+
     .voucher-grid {
         grid-template-columns: 1fr;
     }
-    
+
     .voucher-card {
         flex-direction: column;
     }
-    
+
     .voucher-card-left {
         border-right: none;
         border-bottom: 1px dashed #e5e7eb;

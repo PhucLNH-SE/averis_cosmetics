@@ -1,6 +1,7 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<fmt:setLocale value="vi_VN"/>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -64,11 +65,11 @@
                                     <c:choose>
                                         <c:when test="${p.price == 0}"><span class="text-muted small">No variants</span></c:when>
                                         <c:when test="${p.price == p.maxPrice}">
-                                            <span class="text-primary fw-bold"><fmt:formatNumber value="${p.price}" pattern="#,###"/>₫</span>
+                                            <span class="text-primary fw-bold"><fmt:formatNumber value="${p.price}" pattern="#,##0"/>₫</span>
                                         </c:when>
                                         <c:otherwise>
                                             <span class="text-primary fw-bold">
-                                                <fmt:formatNumber value="${p.price}" pattern="#,###"/>₫ - <fmt:formatNumber value="${p.maxPrice}" pattern="#,###"/>₫
+                                                <fmt:formatNumber value="${p.price}" pattern="#,##0"/>₫ - <fmt:formatNumber value="${p.maxPrice}" pattern="#,##0"/>₫
                                             </span>
                                         </c:otherwise>
                                     </c:choose>

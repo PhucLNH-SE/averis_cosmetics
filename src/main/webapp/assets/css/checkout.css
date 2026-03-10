@@ -23,10 +23,7 @@ body {
 
 /* Header */
 .header-wrapper {
-    width: 100%;
-    flex-shrink: 0;
-    background: #fff;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    display: contents;
 }
 
 /* Main Container */
@@ -35,6 +32,9 @@ body {
     max-width: 1200px;
     margin: 40px auto;
     flex: 1;
+}
+
+#checkoutForm {
     display: flex;
     gap: 32px;
     align-items: flex-start;
@@ -317,7 +317,7 @@ body {
 .checkout-sidebar {
     width: 380px;
     position: sticky;
-    top: 20px;
+    top: 94px;
     background: #fff;
     border: 1px solid var(--border);
     border-radius: 16px;
@@ -648,6 +648,80 @@ body {
     text-decoration: underline;
 }
 
+.checkout-popup-open {
+    overflow: hidden;
+}
+
+.checkout-address-popup {
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(15, 23, 42, 0.45);
+    z-index: 2000;
+}
+
+.checkout-address-popup.show {
+    display: flex;
+}
+
+.checkout-address-popup-card {
+    width: min(1120px, 100%);
+    height: min(90vh, 920px);
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 28px 80px rgba(15, 23, 42, 0.22);
+    overflow: hidden;
+    animation: popupSlideIn 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.checkout-address-popup-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 18px 22px;
+    border-bottom: 1px solid #ece3d7;
+    background: linear-gradient(180deg, #fffaf4 0%, #fff 100%);
+}
+
+.checkout-address-popup-head h4 {
+    margin: 0 0 4px;
+    font-size: 20px;
+    color: #7c2d12;
+}
+
+.checkout-address-popup-head p {
+    margin: 0;
+    color: #8c6b46;
+    font-size: 13px;
+}
+
+.checkout-address-popup-close {
+    width: 40px;
+    height: 40px;
+    border: 1px solid #eadfce;
+    border-radius: 10px;
+    background: #fff8ef;
+    color: #8b5e34;
+    font-size: 24px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.checkout-address-frame {
+    width: 100%;
+    flex: 1;
+    min-height: 0;
+    border: 0;
+    background: #fff;
+}
+
+
 /* Payment Methods */
 .payment-method-placeholder {
     padding: 20px;
@@ -682,7 +756,7 @@ body {
 
 /* Responsive */
 @media (max-width: 900px) {
-    .checkout-container {
+    #checkoutForm {
         flex-direction: column;
     }
     .checkout-sidebar {
@@ -697,6 +771,20 @@ body {
     .page-title {
         font-size: 24px;
     }
+
+    .checkout-address-popup {
+        padding: 12px;
+    }
+
+    .checkout-address-popup-card {
+        height: min(92vh, 920px);
+        border-radius: 16px;
+    }
+
+    .checkout-address-popup-head {
+        padding: 16px;
+    }
+
 }
 
 /* Popup Styles */
