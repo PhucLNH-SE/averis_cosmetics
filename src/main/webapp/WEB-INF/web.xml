@@ -118,6 +118,10 @@
     <servlet-name>HeaderMenuController</servlet-name>
     <servlet-class>Controllers.guest.HeaderMenuController</servlet-class>
   </servlet>
+  <servlet>
+    <servlet-name>ImportProductController</servlet-name>
+    <servlet-class>Controllers.admin.ImportProductController</servlet-class>
+</servlet>
 
   <!-- Servlet Mappings -->
   <servlet-mapping>
