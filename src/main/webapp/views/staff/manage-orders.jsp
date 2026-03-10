@@ -91,7 +91,7 @@
                                     <c:forEach var="o" items="${orderList}">
                                         <tr>
                                             <td class="px-4">#${o.orderId}</td>
-                                            <td><strong>${o.username}</strong></td>
+                                           <td><strong>${o.receiverName}</strong></td>
                                             <td>${o.voucherCode != null ? o.voucherCode : '-'}</td>
                                             <td><fmt:formatNumber value="${o.discountAmount != null ? o.discountAmount : 0}" pattern="#,##0"/> ₫</td>
                                             <td>${o.paymentMethod}</td>

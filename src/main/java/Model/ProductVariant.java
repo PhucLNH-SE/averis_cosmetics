@@ -17,9 +17,18 @@ public class ProductVariant {
     private String productName; // Tên sản phẩm gốc (VD: Kem dưỡng ẩm A)
     private String imageUrl;    // Đường dẫn ảnh đại diện
         private String categoryName;
+        private BigDecimal importPrice;
     // ----------------------------------------------------
 
-    public ProductVariant(int variantId, int productId, String variantName, String sku, BigDecimal price, int stock, boolean status, String productName, String imageUrl, String categoryName) {
+    public BigDecimal getImportPrice() {
+        return importPrice;
+    }
+
+    public void setImportPrice(BigDecimal importPrice) {
+        this.importPrice = importPrice;
+    }
+
+    public ProductVariant(int variantId, int productId, String variantName, String sku, BigDecimal price, int stock, boolean status, String productName, String imageUrl, String categoryName, BigDecimal importPrice) {
         this.variantId = variantId;
         this.productId = productId;
         this.variantName = variantName;
@@ -30,7 +39,10 @@ public class ProductVariant {
         this.productName = productName;
         this.imageUrl = imageUrl;
         this.categoryName = categoryName;
+        this.importPrice = importPrice;
     }
+
+   
 
     public ProductVariant() {
     }

@@ -1,0 +1,173 @@
+package DALs;
+
+import Model.OrderDetail;
+import Utils.DBContext;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.util.ArrayList;
+import java.util.List;
+
+public class FeedbackDAO extends DBContext {
+
+    // UC-16.1: Lấy danh sách tất cả đánh giá
+    public List<OrderDetail> getAllFeedbacks() {
+        List<OrderDetail> list = new ArrayList<>();
+        String sql = "SELECT od.order_detail_id, od.order_id, od.rating, od.review_comment, od.reviewed_at, "
+                   + "od.manager_response, od.response_content, od.responded_at, "
+                   + "p.name AS product_name, "
+                   + "c.full_name AS customer_name, "
+                   + "m.full_name AS manager_name "
+                   + "FROM Order_Detail od "
+                   + "JOIN Orders o ON od.order_id = o.order_id "
+                   + "JOIN Customers c ON o.customer_id = c.customer_id "
+                   + "JOIN Product_Variant pv ON od.variant_id = pv.variant_id "
+                   + "JOIN Product p ON pv.product_id = p.product_id "
+                   + "LEFT JOIN Manager m ON od.manager_response = m.manager_id "
+                   + "WHERE od.rating IS NOT NULL "
+                   + "ORDER BY od.reviewed_at DESC";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                list.add(mapResultSetToOrderDetail(rs));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    // UC-16.4: Xem chi tiết 1 đánh giá
+    public OrderDetail getFeedbackDetail(int orderDetailId) {
+        String sql = "SELECT od.order_detail_id, od.order_id, od.rating, od.review_comment, od.reviewed_at, "
+                   + "od.manager_response, od.response_content, od.responded_at, "
+                   + "p.name AS product_name, "
+                   + "c.full_name AS customer_name, "
+                   + "m.full_name AS manager_name "
+                   + "FROM Order_Detail od "
+                   + "JOIN Orders o ON od.order_id = o.order_id "
+                   + "JOIN Customers c ON o.customer_id = c.customer_id "
+                   + "JOIN Product_Variant pv ON od.variant_id = pv.variant_id "
+                   + "JOIN Product p ON pv.product_id = p.product_id "
+                   + "LEFT JOIN Manager m ON od.manager_response = m.manager_id "
+                   + "WHERE od.order_detail_id = ?";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, orderDetailId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapResultSetToOrderDetail(rs);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    // UC-16.2: Staff viết câu trả lời cho đánh giá
+    public boolean replyFeedback(int orderDetailId, int managerId, String responseContent) {
+        String sql = "UPDATE Order_Detail "
+                   + "SET manager_response = ?, response_content = ?, responded_at = GETDATE() "
+                   + "WHERE order_detail_id = ?";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, managerId);
+            ps.setString(2, responseContent);
+            ps.setInt(3, orderDetailId);
+
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    // UC-16.3: Xóa đánh giá (Set NULL để không mất thông tin đơn hàng)
+    public boolean deleteFeedback(int orderDetailId) {
+        String sql = "UPDATE Order_Detail "
+                   + "SET rating = NULL, review_comment = NULL, reviewed_at = NULL, "
+                   + "manager_response = NULL, response_content = NULL, responded_at = NULL "
+                   + "WHERE order_detail_id = ?";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, orderDetailId);
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    // Hàm phụ trợ map ResultSet vào Object để code gọn gàng, không bị lặp
+    private OrderDetail mapResultSetToOrderDetail(ResultSet rs) throws Exception {
+        OrderDetail od = new OrderDetail();
+        od.setOrderDetailId(rs.getInt("order_detail_id"));
+        od.setOrderId(rs.getInt("order_id"));
+        od.setRating(rs.getInt("rating"));
+        od.setReviewComment(rs.getString("review_comment"));
+        
+        if (rs.getTimestamp("reviewed_at") != null) {
+            od.setReviewedAt(rs.getTimestamp("reviewed_at").toLocalDateTime());
+        }
+
+        od.setManagerResponse(rs.getObject("manager_response", Integer.class));
+        od.setResponseContent(rs.getString("response_content"));
+        
+        if (rs.getTimestamp("responded_at") != null) {
+            od.setRespondedAt(rs.getTimestamp("responded_at").toLocalDateTime());
+        }
+
+        od.setProductName(rs.getString("product_name"));
+        od.setCustomerName(rs.getString("customer_name"));
+        od.setManagerName(rs.getString("manager_name"));
+        
+        return od;
+    }
+    
+    // Lấy danh sách đánh giá của 1 sản phẩm cụ thể để hiển thị ngoài trang Product Detail
+public List<OrderDetail> getFeedbacksByProductId(int productId) {
+    List<OrderDetail> list = new ArrayList<>();
+    String sql = "SELECT od.order_detail_id, od.order_id, od.rating, od.review_comment, od.reviewed_at, "
+               + "od.manager_response, od.response_content, od.responded_at, "
+               + "c.full_name AS customer_name, "
+               + "m.full_name AS manager_name "
+               + "FROM Order_Detail od "
+               + "JOIN Orders o ON od.order_id = o.order_id "
+               + "JOIN Customers c ON o.customer_id = c.customer_id "
+               + "JOIN Product_Variant pv ON od.variant_id = pv.variant_id "
+               + "LEFT JOIN Manager m ON od.manager_response = m.manager_id "
+               + "WHERE pv.product_id = ? AND od.rating IS NOT NULL "
+               + "ORDER BY od.reviewed_at DESC";
+
+    try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        ps.setInt(1, productId);
+        try (ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                OrderDetail od = new OrderDetail();
+                od.setOrderDetailId(rs.getInt("order_detail_id"));
+                od.setRating(rs.getInt("rating"));
+                od.setReviewComment(rs.getString("review_comment"));
+                
+                if (rs.getTimestamp("reviewed_at") != null) {
+                    od.setReviewedAt(rs.getTimestamp("reviewed_at").toLocalDateTime());
+                }
+
+                od.setResponseContent(rs.getString("response_content"));
+                if (rs.getTimestamp("responded_at") != null) {
+                    od.setRespondedAt(rs.getTimestamp("responded_at").toLocalDateTime());
+                }
+
+                od.setCustomerName(rs.getString("customer_name"));
+                od.setManagerName(rs.getString("manager_name"));
+                
+                list.add(od);
+            }
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+    return list;
+}
+}

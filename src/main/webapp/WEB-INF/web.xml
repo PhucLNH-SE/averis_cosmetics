@@ -118,6 +118,10 @@
     <servlet-name>HeaderMenuController</servlet-name>
     <servlet-class>Controllers.guest.HeaderMenuController</servlet-class>
   </servlet>
+  <servlet>
+    <servlet-name>ImportProductController</servlet-name>
+    <servlet-class>Controllers.admin.ImportProductController</servlet-class>
+</servlet>
 
   <!-- Servlet Mappings -->
   <servlet-mapping>
@@ -287,13 +291,45 @@
   <servlet-mapping>
     <servlet-name>HeaderMenuController</servlet-name>
     <url-pattern>/header-menu-data</url-pattern>
-  </servlet-mapping>
-
-  <welcome-file-list>
-    <welcome-file>home</welcome-file>
-  </welcome-file-list>
-
-  <session-config>
-    <session-timeout>30</session-timeout>
-  </session-config>
+  </servlet-mapping>  
+  <filter>
+    <filter-name>ManagerAuthFilter</filter-name>
+    <filter-class>Filters.ManagerAuthFilter</filter-class>
+</filter>
+  
+  <filter-mapping>
+        <filter-name>ManagerAuthFilter</filter-name>
+        <url-pattern>/admin/*</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>ManagerAuthFilter</filter-name>
+        <url-pattern>/staff/*</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>ManagerAuthFilter</filter-name>
+        <url-pattern>/AdminControllers</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>ManagerAuthFilter</filter-name>
+        <url-pattern>/StaffController</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>ManagerAuthFilter</filter-name>
+        <url-pattern>/views/admin/*</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>ManagerAuthFilter</filter-name>
+        <url-pattern>/views/staff/*</url-pattern>
+    </filter-mapping>
+    <welcome-file-list>
+        <welcome-file>home</welcome-file>
+    </welcome-file-list>
+    <servlet-mapping>
+        <servlet-name>ImportProductController</servlet-name>
+        <url-pattern>/ImportProductController</url-pattern>
+    </servlet-mapping>
+    <session-config>
+        <session-timeout>30</session-timeout>
+    </session-config>
+  
 </web-app>
