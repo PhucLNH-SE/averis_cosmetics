@@ -251,7 +251,7 @@ public class ProductController extends HttpServlet {
             throws ServletException, IOException {
         try {
             int productId = Integer.parseInt(request.getParameter("id"));
-            Product product = dao.getProductById(productId);
+            Product product = dao.getActiveProductById(productId); // <-- Đã sửa
 
             if (product != null) {
                 request.setAttribute("product", product);
@@ -274,7 +274,7 @@ public class ProductController extends HttpServlet {
     private void handleSearch(HttpServletRequest request, HttpServletResponse response, ProductDAO dao)
             throws ServletException, IOException {
         String keyword = trimToNull(request.getParameter("keyword"));
-        List<Product> products = (keyword != null) ? dao.searchProducts(keyword) : dao.getAllProducts();
+        List<Product> products = (keyword != null) ? dao.searchProducts(keyword) : dao.getAllActiveProducts(); // <-- Đã sửa
         if (keyword != null) {
             request.setAttribute("searchKeyword", keyword);
         }
@@ -303,7 +303,7 @@ public class ProductController extends HttpServlet {
 
     private void handleList(HttpServletRequest request, HttpServletResponse response, ProductDAO dao)
             throws ServletException, IOException {
-        List<Product> products = dao.getAllProducts();
+        List<Product> products = dao.getAllActiveProducts();
         List<String> availableBrands = dao.getAllBrandNames();
         List<String> availableCategories = dao.getAllCategoryNames();
         String brandFilter = trimToNull(request.getParameter("brand"));

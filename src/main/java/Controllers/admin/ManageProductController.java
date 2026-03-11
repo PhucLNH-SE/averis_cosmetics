@@ -10,11 +10,14 @@ import java.util.List;
 import java.util.UUID;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.MultipartConfig;
+import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.http.Part;
 
+@WebServlet(name = "ManageProductController", urlPatterns = {"/admin/manage-product"})
 @MultipartConfig(
     fileSizeThreshold = 1024 * 1024 * 1, // 1MB
     maxFileSize = 1024 * 1024 * 10,      // 10MB
@@ -37,7 +40,60 @@ public class ManageProductController extends HttpServlet {
             throws ServletException, IOException {
 
         ProductDAO dao = new ProductDAO();
+        HttpSession session = request.getSession();
+        
+        String action = request.getParameter("action");
+        
+        // --- XỬ LÝ DELETE (ẨN SẢN PHẨM) ---
+        if ("delete".equals(action)) {
+            String idStr = request.getParameter("productId");
+            if (idStr != null && !idStr.isEmpty()) {
+                try {
+                    int id = Integer.parseInt(idStr);
+                    if (dao.hideProduct(id)) { 
+                        session.setAttribute("successMsg", "Đã ẩn sản phẩm thành công!");
+                    } else {
+                        session.setAttribute("errorMsg", "Lỗi: Không thể ẩn sản phẩm.");
+                    }
+                } catch (NumberFormatException e) {
+                    e.printStackTrace();
+                }
+            }
+            response.sendRedirect(request.getContextPath() + "/admin/manage-product");
+            return; 
+        }
+        
+        // --- XỬ LÝ SHOW (HIỆN LẠI SẢN PHẨM) ---
+        if ("show".equals(action)) {
+            String idStr = request.getParameter("productId");
+            if (idStr != null && !idStr.isEmpty()) {
+                try {
+                    int id = Integer.parseInt(idStr);
+                    if (dao.showProduct(id)) { 
+                        session.setAttribute("successMsg", "Đã hiển thị lại sản phẩm thành công!");
+                    } else {
+                        session.setAttribute("errorMsg", "Lỗi: Không thể hiển thị lại sản phẩm.");
+                    }
+                } catch (NumberFormatException e) {
+                    e.printStackTrace();
+                }
+            }
+            response.sendRedirect(request.getContextPath() + "/admin/manage-product");
+            return; 
+        }
+        // ------------------------------
 
+        // Đẩy Flash Message ra View
+        if (session.getAttribute("successMsg") != null) {
+            request.setAttribute("successMsg", session.getAttribute("successMsg"));
+            session.removeAttribute("successMsg");
+        }
+        if (session.getAttribute("errorMsg") != null) {
+            request.setAttribute("errorMsg", session.getAttribute("errorMsg"));
+            session.removeAttribute("errorMsg");
+        }
+
+        // Render giao diện
         List<Product> listP = dao.getAllProducts();
         List<Brand> listB = dao.getAllBrands();
         List<Category> listC = dao.getAllCategories();
@@ -56,6 +112,44 @@ public class ManageProductController extends HttpServlet {
         request.setCharacterEncoding("UTF-8");
         String action = request.getParameter("action");
         ProductDAO dao = new ProductDAO();
+        HttpSession session = request.getSession();
+
+        // Xử lý action từ form submit trực tiếp (phòng hờ)
+        if ("delete".equals(action)) {
+            String idStr = request.getParameter("productId");
+            if (idStr != null && !idStr.isEmpty()) {
+                try {
+                    int id = Integer.parseInt(idStr);
+                    if (dao.hideProduct(id)) {
+                        session.setAttribute("successMsg", "Đã ẩn sản phẩm thành công!");
+                    } else {
+                        session.setAttribute("errorMsg", "Lỗi: Không thể ẩn sản phẩm.");
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            response.sendRedirect(request.getContextPath() + "/admin/manage-product");
+            return;
+        }
+        
+        if ("show".equals(action)) {
+            String idStr = request.getParameter("productId");
+            if (idStr != null && !idStr.isEmpty()) {
+                try {
+                    int id = Integer.parseInt(idStr);
+                    if (dao.showProduct(id)) {
+                        session.setAttribute("successMsg", "Đã hiển thị lại sản phẩm thành công!");
+                    } else {
+                        session.setAttribute("errorMsg", "Lỗi: Không thể hiển thị lại sản phẩm.");
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            response.sendRedirect(request.getContextPath() + "/admin/manage-product");
+            return;
+        }
 
         // 1. Lấy các thông tin chung
         String name = request.getParameter("name");
@@ -65,17 +159,17 @@ public class ManageProductController extends HttpServlet {
         int cid = 0;
         boolean status = false;
         
-        if (!"delete".equals(action)) {
-            try {
-                bid = Integer.parseInt(request.getParameter("brandId"));
-                cid = Integer.parseInt(request.getParameter("categoryId"));
-            } catch (NumberFormatException e) {
-                e.printStackTrace();
-            }
-            status = request.getParameter("status") != null;
+        try {
+            String brandStr = request.getParameter("brandId");
+            String catStr = request.getParameter("categoryId");
+            if (brandStr != null) bid = Integer.parseInt(brandStr);
+            if (catStr != null) cid = Integer.parseInt(catStr);
+        } catch (NumberFormatException e) {
+            e.printStackTrace();
         }
+        status = request.getParameter("status") != null;
 
-        // 2. Xử lý file ảnh (Đã nâng cấp: Lưu kép chống mất ảnh cực mạnh)
+        // 2. Xử lý file ảnh
         String finalImageName = null;
         String contentType = request.getContentType();
         
@@ -88,53 +182,32 @@ public class ManageProductController extends HttpServlet {
                         String extension = fileName.substring(fileName.lastIndexOf("."));
                         finalImageName = UUID.randomUUID().toString() + extension;
 
-                        // --- BẮT ĐẦU ĐOẠN FIX ĐƯỜNG DẪN ---
-                        
-                        // Lấy đường dẫn thực tế của Server
                         String realPath = request.getServletContext().getRealPath("/");
-
-                        // Đồng bộ toàn bộ dấu gạch chéo về dạng chuẩn "/"
                         realPath = realPath.replace("\\", "/");
 
-                        // Tạo đường dẫn ảo của Tomcat
                         String tomcatPath = realPath + "assets/img/";
 
-                        // Xử lý đường dẫn Source code vĩnh viễn
                         String sourcePath = "";
                         if (realPath.contains("build/web")) {
-                            // Dành cho project chuẩn Ant (NetBeans mặc định)
                             sourcePath = realPath.replace("build/web", "web") + "assets/img/";
                         } else if (realPath.contains("target/")) {
-                            // Dành cho project xài Maven
                             sourcePath = realPath.substring(0, realPath.indexOf("target/")) + "src/main/webapp/assets/img/";
                         } else {
-                            // Backup fallback
                             sourcePath = realPath + "assets/img/";
                         }
 
-                        // Trả lại dấu gạch chéo chuẩn của hệ điều hành hiện tại
                         tomcatPath = tomcatPath.replace("/", File.separator);
                         sourcePath = sourcePath.replace("/", File.separator);
 
-                        // In ra Console để theo dõi
-                        System.out.println("=== DEBUG LOG ĐƯỜNG DẪN ẢNH ===");
-                        System.out.println("Tomcat Path: " + tomcatPath);
-                        System.out.println("Source Path: " + sourcePath);
-
-                        // --- KẾT THÚC ĐOẠN FIX ĐƯỜNG DẪN ---
-
-                        // Tạo thư mục nếu chưa tồn tại
                         File tomcatDir = new File(tomcatPath);
                         if (!tomcatDir.exists()) tomcatDir.mkdirs();
                         
                         File sourceDir = new File(sourcePath);
                         if (!sourceDir.exists()) sourceDir.mkdirs();
 
-                        // Bước A: Lưu ảnh vào máy chủ Tomcat ảo
                         String fullTomcatFilePath = tomcatPath + finalImageName;
                         filePart.write(fullTomcatFilePath);
 
-                        // Bước B: Copy ngược ảnh về thư mục gốc của project
                         try {
                             String fullSourceFilePath = sourcePath + finalImageName;
                             java.nio.file.Files.copy(
@@ -142,9 +215,7 @@ public class ManageProductController extends HttpServlet {
                                 new java.io.File(fullSourceFilePath).toPath(),
                                 java.nio.file.StandardCopyOption.REPLACE_EXISTING
                             );
-                            System.out.println("-> OK: Đã copy ảnh vĩnh viễn vào source!");
                         } catch (Exception copyEx) {
-                            System.out.println("-> LỖI: Không thể copy về source.");
                             copyEx.printStackTrace();
                         }
                     }
@@ -154,7 +225,7 @@ public class ManageProductController extends HttpServlet {
             }
         }
 
-        // 3. Xử lý action
+        // 3. Xử lý action Add và Update
         if ("add".equals(action)) {
             double price = 0;
             try {
@@ -166,17 +237,15 @@ public class ManageProductController extends HttpServlet {
                 e.printStackTrace();
             }
             dao.insertProduct(name, desc, bid, cid, status, finalImageName, price);
+            session.setAttribute("successMsg", "Thêm sản phẩm thành công!");
 
         } else if ("update".equals(action)) {
             int id = Integer.parseInt(request.getParameter("productId"));
             dao.updateProduct(id, name, desc, bid, cid, status, finalImageName);
-
-        } else if ("delete".equals(action)) {
-            int id = Integer.parseInt(request.getParameter("productId"));
-            dao.deleteProduct(id);
+            session.setAttribute("successMsg", "Cập nhật sản phẩm thành công!");
         }
 
-        // Redirect về trang quản lý (Chuẩn PRG)
-        response.sendRedirect("manage-product");
+        // Redirect về trang quản lý bằng đường dẫn tuyệt đối để tránh lỗi
+        response.sendRedirect(request.getContextPath() + "/admin/manage-product");
     }
 }

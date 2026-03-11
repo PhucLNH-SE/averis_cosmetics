@@ -99,12 +99,24 @@
                                         <i class="fas fa-edit me-1"></i> Edit
                                     </button>
 
-                                    <button class="btn btn-danger btn-sm px-3" 
-                                            data-id="${p.productId}" 
-                                            data-name="<c:out value='${p.name}' />"
-                                            onclick="openDeleteModal(this)">
-                                        <i class="fas fa-trash me-1"></i> Delete
-                                    </button>
+                                    <c:choose>
+                                        <c:when test="${p.status}">
+                                            <button class="btn btn-danger btn-sm px-3" 
+                                                    data-id="${p.productId}" 
+                                                    data-name="<c:out value='${p.name}' />"
+                                                    onclick="openHideModal(this)">
+                                                <i class="fas fa-eye-slash me-1"></i> Hide
+                                            </button>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <button class="btn btn-success btn-sm px-3" 
+                                                    data-id="${p.productId}" 
+                                                    data-name="<c:out value='${p.name}' />"
+                                                    onclick="openShowModal(this)">
+                                                <i class="fas fa-eye me-1"></i> Show
+                                            </button>
+                                        </c:otherwise>
+                                    </c:choose>
                                 </td>
                             </tr>
                         </c:forEach>
@@ -315,24 +327,40 @@
         </div>
     </div>
 
-    <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content text-center">
+    <div class="modal fade" id="hideModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-sm modal-dialog-centered">
+            <div class="modal-content text-center border-0 shadow">
                 <form action="manage-product" method="post">
                     <input type="hidden" name="action" value="delete">
-                    <input type="hidden" name="productId" id="deleteId">
-                    <div class="modal-header border-0">
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <input type="hidden" name="productId" id="hideId">
+                    <div class="modal-body p-4">
+                        <i class="fas fa-eye-slash text-danger mb-3" style="font-size: 3rem;"></i>
+                        <h5 class="fw-bold mb-3">Hide Product?</h5>
+                        <p class="text-muted small mb-4">Are you sure you want to hide <strong id="hideName" class="text-dark"></strong>? It will no longer be visible to customers.</p>
+                        <div class="d-flex justify-content-center gap-2">
+                            <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-danger px-4">Yes, Hide</button>
+                        </div>
                     </div>
-                    <div class="modal-body">
-                        <i class="fas fa-exclamation-triangle text-warning mb-3" style="font-size: 3rem;"></i>
-                        <p>Are you sure you want to delete product:</p>
-                        <h5 id="deleteName" class="fw-bold text-danger mb-4"></h5>
-                        <p class="text-muted small">This action cannot be undone and might affect related orders.</p>
-                    </div>
-                    <div class="modal-footer justify-content-center border-0">
-                        <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-danger px-4">Delete Permanently</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="showModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-sm modal-dialog-centered">
+            <div class="modal-content text-center border-0 shadow">
+                <form action="manage-product" method="post">
+                    <input type="hidden" name="action" value="show">
+                    <input type="hidden" name="productId" id="showId">
+                    <div class="modal-body p-4">
+                        <i class="fas fa-eye text-success mb-3" style="font-size: 3rem;"></i>
+                        <h5 class="fw-bold mb-3">Show Product?</h5>
+                        <p class="text-muted small mb-4">Do you want to make <strong id="showName" class="text-dark"></strong> visible to customers again?</p>
+                        <div class="d-flex justify-content-center gap-2">
+                            <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-success px-4">Yes, Show</button>
+                        </div>
                     </div>
                 </form>
             </div>
@@ -381,12 +409,19 @@
             editModal.show();
         }
 
-        function openDeleteModal(button) {
-            document.getElementById('deleteId').value = button.getAttribute('data-id');
-            document.getElementById('deleteName').innerText = button.getAttribute('data-name');
-            
-            const deleteModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('deleteModal'));
-            deleteModal.show();
+        // ĐÃ SỬA JS BẮT SỰ KIỆN HIDE / SHOW
+        function openHideModal(button) {
+            document.getElementById('hideId').value = button.getAttribute('data-id');
+            document.getElementById('hideName').innerText = button.getAttribute('data-name');
+            const hideModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('hideModal'));
+            hideModal.show();
+        }
+
+        function openShowModal(button) {
+            document.getElementById('showId').value = button.getAttribute('data-id');
+            document.getElementById('showName').innerText = button.getAttribute('data-name');
+            const showModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('showModal'));
+            showModal.show();
         }
     </script>
 </body>

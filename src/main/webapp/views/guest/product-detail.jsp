@@ -103,12 +103,37 @@
                             </a>
                         </div>
                     </div> </div> <div class="reviews-container">
-                    <h2>Customer reviews</h2>
+                    
+                    <c:set var="totalStars" value="0" />
+                    <c:set var="reviewCount" value="0" />
+                    
+                    <c:if test="${not empty reviews}">
+                        <c:forEach var="r" items="${reviews}">
+                            <c:set var="totalStars" value="${totalStars + r.rating}" />
+                            <c:set var="reviewCount" value="${reviewCount + 1}" />
+                        </c:forEach>
+                    </c:if>
+
+                    <div class="reviews-header-wrap">
+                        <h2>Customer reviews</h2>
+                        
+                        <c:if test="${reviewCount > 0}">
+                            <c:set var="avgStar" value="${totalStars / reviewCount}" />
+                            <div class="avg-star-badge">
+                                <i class="fas fa-star avg-star-icon"></i>
+                                <span class="avg-star-value">
+                                    <fmt:formatNumber value="${avgStar}" maxFractionDigits="1" minFractionDigits="1"/>
+                                </span>
+                                <span class="avg-star-max">/ 5</span>
+                                <span class="avg-star-count">(${reviewCount} reviews)</span>
+                            </div>
+                        </c:if>
+                    </div>
                     
                     <c:choose>
                         <c:when test="${empty reviews}">
-                            <div style="text-align: center; padding: 40px; color: #94a3b8; background: #fdfdfd; border-radius: 12px; border: 1px dashed #e2e8f0;">
-                                <i class="far fa-comments" style="font-size: 3rem; margin-bottom: 10px; display: block; opacity: 0.5;"></i>
+                            <div class="empty-reviews">
+                                <i class="far fa-comments empty-reviews-icon"></i>
                                 This product has no reviews yet. Be the first buyer to leave your feedback!
                             </div>
                         </c:when>
@@ -147,10 +172,11 @@
                                         </c:if>
                                     </div>
                                 </c:forEach>
-                            </div>
+                            </div> 
                         </c:otherwise>
                     </c:choose>
-                </div> </c:if>
+                </div> 
+            </c:if>
             
             <c:if test="${empty product}">
                 <div style="text-align: center; padding: 100px 50px;">
@@ -187,7 +213,7 @@
                 });
             });
             
-            // Thêm vào giỏ hàng
+            // Thêm vào giỏ hàng mượt mà không cần alert
             function addToCart(productId) {
                 const selectedVariant = document.querySelector('.variant-item.active');
                 if (!selectedVariant) {
@@ -204,6 +230,9 @@
                 params.append('ajax', 'true');
                 params.append('action', 'add');
 
+                // Lấy ra cái nút "Add to cart" mà người dùng vừa bấm
+                const btn = event.currentTarget || document.querySelector('.actions .btn-primary');
+
                 fetch(url, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
@@ -214,9 +243,23 @@
                         return response.text().then(loginUrl => { window.location.href = loginUrl; });
                     }
                     return response.text().then(data => {
+                        // Cập nhật số lượng giỏ hàng trên Header
                         const cartCountEl = document.getElementById('cartCount');
                         if (cartCountEl) cartCountEl.innerText = data;
-                        alert('Added to cart successfully!');
+                        
+                        // Hiệu ứng mượt: Đổi chữ nút thành "Added ✓" trong 1 giây thay vì dùng alert
+                        if (btn) {
+                            const originalText = btn.innerText;
+                            const originalBg = btn.style.backgroundColor;
+                            
+                            btn.innerText = 'Added ✓';
+                            btn.style.backgroundColor = '#059669'; // Chuyển sang màu xanh lá
+                            
+                            setTimeout(() => {
+                                btn.innerText = originalText;
+                                btn.style.backgroundColor = originalBg; // Trả lại màu cũ
+                            }, 1000);
+                        }
                     });
                 })
                 .catch(error => {
