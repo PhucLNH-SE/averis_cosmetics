@@ -1,19 +1,16 @@
 /* File: feedback.css - Dành riêng cho khu vực đánh giá sản phẩm */
-
 .reviews-container {
     margin-top: 50px;
     border-top: 1px solid #eee;
     padding-top: 30px;
-    clear: both; /* Đảm bảo không bị dính float từ phần trên */
+    clear: both;
 }
-
 .reviews-container h2 {
     margin-bottom: 30px;
     font-size: 1.6rem;
     font-weight: 700;
     color: #111827;
 }
-
 .review-item {
     background: #ffffff;
     border: 1px solid #f1f5f9;
@@ -22,46 +19,38 @@
     margin-bottom: 20px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.02);
 }
-
 .review-meta {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 12px;
 }
-
 .user-name {
     font-weight: 700;
     color: #1e293b;
     font-size: 1.05rem;
 }
-
 .review-date {
     color: #94a3b8;
     font-size: 13px;
 }
-
 .stars-orange {
-    color: #f59e0b; /* Màu vàng cam cho sao */
+    color: #f59e0b;
     margin-bottom: 12px;
     font-size: 14px;
 }
-
 .comment-text {
     color: #475569;
     line-height: 1.6;
     font-size: 1rem;
 }
-
-/* Phản hồi từ Staff/Admin */
 .staff-reply-box {
     background: #f8fafc;
-    border-left: 4px solid #3b82f6; /* Viền xanh đặc trưng cho staff */
+    border-left: 4px solid #3b82f6; 
     padding: 15px 20px;
     margin-top: 15px;
     border-radius: 0 8px 8px 0;
 }
-
 .staff-header {
     display: flex;
     align-items: center;
@@ -71,9 +60,62 @@
     font-weight: 700;
     font-size: 0.9rem;
 }
-
 .reply-content {
     color: #334155;
     font-size: 0.95rem;
     line-height: 1.5;
+}
+.reviews-header-wrap {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+.reviews-header-wrap h2 {
+    margin: 0; 
+    display: inline-block;
+    width: auto;
+}
+.avg-star-badge {
+    display: inline-flex;
+    align-items: center;
+    background: #fff8f0;
+    padding: 4px 12px;
+    border-radius: 20px;
+    border: 1px solid #ffedd5;
+}
+.avg-star-icon {
+    color: #f59e0b;
+    font-size: 16px;
+    margin-right: 6px;
+}
+.avg-star-value {
+    font-weight: 700;
+    font-size: 18px; 
+    color: #f59e0b;
+}
+.avg-star-max {
+    color: #94a3b8;
+    font-size: 14px;
+    margin-left: 4px;
+}
+.avg-star-count {
+    color: #64748b;
+    font-size: 14px;
+    margin-left: 8px;
+}
+.empty-reviews {
+    text-align: center;
+    padding: 40px;
+    color: #94a3b8;
+    background: #fdfdfd;
+    border-radius: 12px;
+    border: 1px dashed #e2e8f0;
+}
+.empty-reviews-icon {
+    font-size: 3rem;
+    margin-bottom: 10px;
+    display: block;
+    opacity: 0.5;
 }

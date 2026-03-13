@@ -84,7 +84,8 @@
                                 <form action="cart" method="post" style="margin:0;">
                                     <input type="hidden" name="action" value="update"> <input type="hidden" name="variantId" value="${entry.key}">
                                     <input type="hidden" name="quantity" value="0">
-                                    <button class="btn-delete" onclick="return confirm('Bạn chắc chắn muốn xóa sản phẩm này?')">
+                                    
+                                    <button type="submit" class="btn-delete">
                                         Xóa
                                     </button>
                                 </form>
@@ -92,7 +93,7 @@
                         </div>
                         
                         <div style="font-weight:700; font-size:14px; align-self:flex-end; display:none;">
-                           <fmt:formatNumber value="${entry.value.subtotal}" pattern="#,##0"/> ₫
+                            <fmt:formatNumber value="${entry.value.subtotal}" pattern="#,##0"/> ₫
                         </div>
                     </div>
                 </c:forEach>

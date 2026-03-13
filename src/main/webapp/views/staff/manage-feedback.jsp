@@ -1,191 +1,154 @@
-<%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <fmt:setLocale value="en_US"/>
 
-<!DOCTYPE html>
-<html>
-<head>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <title>Manage Feedback - Staff Dashboard</title>
-    
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css">
-    
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/manage-feedback.css">
-    
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-</head>
-<body style="background-color: #f3f4f6;">
-
-<%-- <%@include file="/views/staff/header.jsp" %> --%>
-
-<div class="container" style="margin-top: 40px; margin-bottom: 40px;">
-    <div style="display: flex; justify-content: space-between; align-items: center;">
-        <h2>Manage Reviews (Feedback)</h2>
-    </div>
-
-    <c:if test="${not empty successMsg}">
-        <div style="background: #d1fae5; color: #065f46; padding: 12px; border-radius: 4px; margin-top: 16px;">
-            <i class="fas fa-check-circle"></i> ${successMsg}
-        </div>
-    </c:if>
-    <c:if test="${not empty errorMsg}">
-        <div style="background: #fee2e2; color: #b91c1c; padding: 12px; border-radius: 4px; margin-top: 16px;">
-            <i class="fas fa-exclamation-circle"></i> ${errorMsg}
-        </div>
-    </c:if>
-
-    <table class="feedback-table">
-        <thead>
-            <tr>
-                <th>Customer</th>
-                <th>Product</th>
-                <th>Rating</th>
-                <th>Status</th>
-                <th>Review Date</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            <c:choose>
-                <c:when test="${empty feedbacks}">
-                    <tr>
-                        <td colspan="6" style="text-align: center; padding: 30px;">No reviews from customers found.</td>
-                    </tr>
-                </c:when>
-                <c:otherwise>
-                    <c:forEach var="fb" items="${feedbacks}">
-                        <tr>
-                            <td><strong>${fb.customerName}</strong></td>
-                            <td>${fb.productName}</td>
-                            <td class="stars">
-                                <c:forEach begin="1" end="5" var="i">
-                                    <i class="fas fa-star" style="${i <= fb.rating ? '' : 'color: #e5e7eb;'}"></i>
+<c:choose>
+    <c:when test="${isAjax}">
+        <c:choose>
+            <c:when test="${empty comments}">
+                <div class="alert alert-light text-center py-5">No reviews found for this product.</div>
+            </c:when>
+            <c:otherwise>
+                <c:forEach var="c" items="${comments}">
+                    <div class="card mb-4 border-0 shadow-sm rounded-4">
+                        <div class="card-body p-4">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div>
+                                    <div class="d-flex align-items-center gap-2 mb-1">
+                                        <h6 class="fw-bold mb-0">${c.customerName}</h6>
+                                        <span class="badge bg-secondary" style="font-size: 0.7rem; font-weight: 500;">
+                                            Order #${c.orderId}
+                                        </span>
+                                    </div>
+                                    <small class="text-muted">
+                                        <fmt:parseDate value="${c.reviewedAt}" pattern="yyyy-MM-dd'T'HH:mm:ss" var="parsedDate" type="both" />
+                                        <fmt:formatDate value="${parsedDate}" pattern="dd/MM/yyyy HH:mm" />
+                                    </small>
+                                </div>
+                                <div class="text-warning">
+                                    <c:forEach begin="1" end="5" var="i">
+                                        <i class="${i <= c.rating ? 'fas' : 'far'} fa-star small"></i>
+                                    </c:forEach>
+                                </div>
+                            </div>
+                            <p class="card-text fb-comment-text mb-4">"${c.reviewComment}"</p>
+                            <c:if test="${not empty c.responseContent}">
+                                <div class="fb-staff-response mb-4">
+                                    <div class="small fw-bold text-primary mb-1">Staff (${c.managerName}):</div>
+                                    <div class="small text-dark">${c.responseContent}</div>
+                                </div>
+                            </c:if>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-sm btn-primary px-3 rounded-pill" type="button" data-bs-toggle="collapse" data-bs-target="#replyForm${c.orderDetailId}">
+                                    <i class="fas fa-reply me-1"></i> ${not empty c.responseContent ? 'Edit' : 'Reply'}
+                                </button>
+                                <a href="manage-feedback?action=delete&id=${c.orderDetailId}" class="btn btn-sm btn-outline-danger rounded-circle" onclick="return confirm('Delete this review?')">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </div>
+                            <div class="collapse mt-3" id="replyForm${c.orderDetailId}">
+                                <form action="manage-feedback" method="POST">
+                                    <input type="hidden" name="action" value="reply">
+                                    <input type="hidden" name="orderDetailId" value="${c.orderDetailId}">
+                                    <textarea name="responseContent" class="form-control mb-2 rounded-3" rows="2">${c.responseContent}</textarea>
+                                    <div class="text-end">
+                                        <button type="submit" class="btn btn-success btn-sm px-4">Save Response</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </c:forEach>
+            </c:otherwise>
+        </c:choose>
+    </c:when>
+    <c:otherwise>
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <title>Feedback Management - Averis Cosmetics</title>
+            <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+            <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/manage-feedback.css?v=4">
+        </head>
+        <body class="bg-light">
+            <div class="container fb-main-container">
+                <div class="fb-header-flex">
+                    <div>
+                        <h3 class="fb-title">Feedback Management</h3>
+                        <p class="text-muted small">Manage reviews grouped by product</p>
+                    </div>
+                    <button class="btn btn-outline-secondary px-3" onclick="history.back()">← Back</button>
+                </div>
+                <c:if test="${not empty successMsg}">
+                    <div class="alert alert-success border-0 shadow-sm mb-4">${successMsg}</div>
+                </c:if>
+                <div class="card fb-table-card">
+                    <div class="card-body p-0">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="ps-4">ID</th>
+                                    <th>Image</th>
+                                    <th>Product Name</th>
+                                    <th>Avg. Rating</th>
+                                    <th class="text-center">Total Reviews</th>
+                                    <th class="text-end pe-4">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <c:forEach items="${productSummaries}" var="ps">
+                                    <tr>
+                                        <td class="ps-4 fw-bold text-muted">${ps.productId}</td>
+                                        <td><img src="${pageContext.request.contextPath}/${ps.productImageUrl}" class="fb-product-img" onerror="this.src='${pageContext.request.contextPath}/assets/img/Logo.png';"></td>
+                                        <td class="fw-bold">${ps.productName}</td>
+                                        <td>
+                                            <span class="fb-rating-badge">
+                                                <i class="fas fa-star me-1"></i>
+                                                <fmt:formatNumber value="${ps.averageRating}" maxFractionDigits="1" minFractionDigits="1"/>
+                                            </span>
+                                        </td>
+                                        <td class="text-center"><span class="fb-count-badge">${ps.totalFeedbacks}</span></td>
+                                        <td class="text-end pe-4">
+                                            <button class="btn btn-primary btn-sm px-3 rounded-pill" onclick="viewProductReviews(${ps.productId}, '${ps.productName}')">
+                                                <i class="fas fa-eye me-1"></i> View
+                                            </button>
+                                        </td>
+                                    </tr>
                                 </c:forEach>
-                            </td>
-                            <td>
-                                <c:choose>
-                                    <c:when test="${not empty fb.responseContent}">
-                                        <span class="status-badge status-replied">Responded</span>
-                                    </c:when>
-                                    <c:otherwise>
-                                        <span class="status-badge status-pending">Pending</span>
-                                    </c:otherwise>
-                                </c:choose>
-                            </td>
-                            <td>
-                                <fmt:parseDate value="${fb.reviewedAt}" pattern="yyyy-MM-dd'T'HH:mm:ss" var="parsedDate" type="both" />
-                                <fmt:formatDate value="${parsedDate}" pattern="MMM dd, yyyy" />
-                            </td>
-                            <td>
-                                <button class="action-btn btn-view" 
-                                        onclick="openDetailModal(${fb.orderDetailId}, '${fb.customerName}', '${fb.productName}', ${fb.rating}, '${fb.reviewComment}', '${fb.responseContent}', '${fb.managerName}')">
-                                    <i class="fas fa-reply"></i> Details & Reply
-                                </button>
-                                
-                                <button class="action-btn btn-delete" onclick="confirmDelete(${fb.orderDetailId})">
-                                    <i class="fas fa-trash"></i> Delete
-                                </button>
-                            </td>
-                        </tr>
-                    </c:forEach>
-                </c:otherwise>
-            </c:choose>
-        </tbody>
-    </table>
-</div>
-
-<div class="modal-overlay" id="feedbackDetailModal">
-    <div class="modal-card">
-        <div class="modal-header">
-            <h3 style="margin: 0;">Review Details</h3>
-            <button type="button" onclick="closeDetailModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
-        </div>
-        
-        <div style="margin-bottom: 20px; background: #f9fafb; padding: 15px; border-radius: 6px;">
-            <p><strong>Customer:</strong> <span id="mdCustomerName"></span></p>
-            <p><strong>Product:</strong> <span id="mdProductName"></span></p>
-            <p><strong>Rating:</strong> <span id="mdRating" class="stars"></span></p>
-            <p style="margin-top: 10px;"><strong>Customer Comment:</strong></p>
-            <p id="mdComment" style="font-style: italic; color: #4b5563;"></p>
-        </div>
-
-        <form action="${pageContext.request.contextPath}/staff/manage-feedback" method="POST">
-            <input type="hidden" name="action" value="reply">
-            <input type="hidden" name="orderDetailId" id="mdOrderDetailId">
-            
-            <div style="margin-bottom: 10px;">
-                <label style="font-weight: 600; display: block; margin-bottom: 8px;">Store Response (Staff):</label>
-                <textarea name="responseContent" id="mdResponseContent" rows="4" style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 4px;" placeholder="Type your answer here..." required></textarea>
-                <p id="mdStaffNameInfo" style="font-size: 12px; color: #6b7280; margin-top: 5px; display: none;">
-                    Responded by: <strong id="mdStaffName"></strong>
-                </p>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
-            
-            <div style="text-align: right; margin-top: 20px;">
-                <button type="button" onclick="closeDetailModal()" style="padding: 8px 16px; border: 1px solid #d1d5db; background: #fff; border-radius: 4px; cursor: pointer;">Close</button>
-                <button type="submit" id="btnSubmitReply" style="padding: 8px 16px; border: none; background: #111827; color: #fff; border-radius: 4px; cursor: pointer;">Save Response</button>
+            <div class="fb-modal-overlay" id="feedbackModal">
+                <div class="fb-modal-card">
+                    <div class="fb-modal-header">
+                        <h5 class="fw-bold mb-0">Reviews: <span id="modalProductName" class="text-primary"></span></h5>
+                        <button type="button" class="btn-close" onclick="closeDetailModal()"></button>
+                    </div>
+                    <div class="fb-modal-body" id="modalCommentsArea"></div>
+                </div>
             </div>
-        </form>
-    </div>
-</div>
+            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+            <script>
+                function viewProductReviews(productId, productName) {
+                    document.getElementById('modalProductName').innerText = productName;
+                    document.getElementById('modalCommentsArea').innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary"></div></div>';
+                    document.getElementById('feedbackModal').style.display = 'flex';
 
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script>
-    // Populates and opens the modal
-    function openDetailModal(id, customer, product, rating, comment, response, staffName) {
-        document.getElementById('mdOrderDetailId').value = id;
-        document.getElementById('mdCustomerName').textContent = customer;
-        document.getElementById('mdProductName').textContent = product;
-        
-        let starsHtml = '';
-        for(let i=1; i<=5; i++) {
-            starsHtml += `<i class="fas fa-star" style="\${i <= rating ? '' : 'color: #e5e7eb;'}"></i>`;
-        }
-        document.getElementById('mdRating').innerHTML = starsHtml;
-        
-        document.getElementById('mdComment').textContent = (comment && comment !== 'null' && comment !== '') ? comment : "(No comment provided)";
-        
-        const responseInput = document.getElementById('mdResponseContent');
-        const staffInfo = document.getElementById('mdStaffNameInfo');
-        const btnSubmit = document.getElementById('btnSubmitReply');
-        
-        if (response && response !== 'null' && response !== '') {
-            responseInput.value = response;
-            document.getElementById('mdStaffName').textContent = staffName;
-            staffInfo.style.display = 'block';
-            btnSubmit.textContent = "Update Response";
-        } else {
-            responseInput.value = '';
-            staffInfo.style.display = 'none';
-            btnSubmit.textContent = "Send Response";
-        }
-        
-        document.getElementById('feedbackDetailModal').style.display = 'flex';
-    }
-
-    function closeDetailModal() {
-        document.getElementById('feedbackDetailModal').style.display = 'none';
-    }
-
-    // Handles Soft Delete with English Confirmation
-    function confirmDelete(id) {
-        Swal.fire({
-            title: 'Delete this review?',
-            text: "The review will be hidden from customers, but purchase records will remain.",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#ef4444',
-            cancelButtonColor: '#6b7280',
-            confirmButtonText: 'Yes, delete it!',
-            cancelButtonText: 'Cancel'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                window.location.href = '${pageContext.request.contextPath}/staff/manage-feedback?action=delete&id=' + id;
-            }
-        });
-    }
-</script>
-
-</body>
-</html>
+                    fetch('manage-feedback?action=getComments&productId=' + productId)
+                        .then(response => response.text())
+                        .then(html => {
+                            document.getElementById('modalCommentsArea').innerHTML = html;
+                        });
+                }
+                function closeDetailModal() { document.getElementById('feedbackModal').style.display = 'none'; }
+                window.onclick = function(event) { if (event.target == document.getElementById('feedbackModal')) closeDetailModal(); }
+            </script>
+        </body>
+        </html>
+    </c:otherwise>
+</c:choose>

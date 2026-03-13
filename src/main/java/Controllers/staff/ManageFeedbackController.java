@@ -3,6 +3,7 @@ package Controllers.staff;
 import DALs.FeedbackDAO;
 import Model.Manager;
 import Model.OrderDetail;
+import Model.ProductFeedbackSummary;
 import java.io.IOException;
 import java.util.List;
 import jakarta.servlet.ServletException;
@@ -29,9 +30,9 @@ public class ManageFeedbackController extends HttpServlet {
 
         switch (action) {
             case "list":
-                // Get all feedbacks
-                List<OrderDetail> feedbacks = dao.getAllFeedbacks();
-                request.setAttribute("feedbacks", feedbacks);
+                // Lấy danh sách sản phẩm (Group by) thay vì từng comment đơn lẻ
+                List<ProductFeedbackSummary> productSummaries = dao.getFeedbackSummaryList();
+                request.setAttribute("productSummaries", productSummaries);
                 
                 // Handle Flash Messages
                 if (session.getAttribute("successMsg") != null) {
@@ -46,11 +47,27 @@ public class ManageFeedbackController extends HttpServlet {
                 request.getRequestDispatcher("/views/staff/manage-feedback.jsp").forward(request, response);
                 break;
 
+            case "getComments":
+    try {
+        int productId = Integer.parseInt(request.getParameter("productId"));
+        List<OrderDetail> comments = dao.getFeedbacksByProductId(productId);
+        
+        request.setAttribute("comments", comments);
+        // Đặt biển báo: Đây là yêu cầu AJAX nhé!
+        request.setAttribute("isAjax", true); 
+        
+        // Forward về chính nó luôn
+        request.getRequestDispatcher("/views/staff/manage-feedback.jsp").forward(request, response);
+    } catch (Exception e) {
+        response.sendError(500);
+    }
+    break;
+
             case "delete":
                 try {
                     int orderDetailId = Integer.parseInt(request.getParameter("id"));
                     
-                    // DELETE CONSTRAINT: Only the original respondent or unassigned feedback can be deleted
+                    // DELETE CONSTRAINT
                     FeedbackDAO feedbackDAO = new FeedbackDAO();
                     OrderDetail currentFb = feedbackDAO.getFeedbackDetail(orderDetailId);
                     Manager manager = (Manager) session.getAttribute("manager");
@@ -99,7 +116,6 @@ public class ManageFeedbackController extends HttpServlet {
                 OrderDetail existingFb = dao.getFeedbackDetail(orderDetailId);
                 
                 if (existingFb != null && existingFb.getManagerResponse() != null) {
-                    // If a response already exists and the respondent ID differs from current staff
                     if (!existingFb.getManagerResponse().equals(currentManagerId)) {
                         session.setAttribute("errorMsg", "Error: This review has already been responded to by another staff member (" 
                                              + existingFb.getManagerName() + "). You do not have permission to change it.");

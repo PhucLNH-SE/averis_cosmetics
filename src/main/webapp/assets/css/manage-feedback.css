@@ -1,77 +1,99 @@
-/* Table Styles */
-.feedback-table { 
-    width: 100%; 
-    border-collapse: collapse; 
-    margin-top: 20px; 
-    background: #fff; 
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1); 
-    border-radius: 8px; 
-    overflow: hidden; 
+/* Container chính */
+.fb-main-container {
+    margin-top: 40px;
+    margin-bottom: 40px;
 }
-.feedback-table th, .feedback-table td { 
-    padding: 12px 15px; 
-    text-align: left; 
-    border-bottom: 1px solid #e5e7eb; 
+/* Khối tiêu đề */
+.fb-header-flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
 }
-.feedback-table th { 
-    background-color: #f9fafb; 
-    font-weight: 600; 
-    color: #374151; 
+.fb-title {
+    font-weight: 700;
+    margin-bottom: 0;
 }
-
-/* UI Elements */
-.stars { color: #f59e0b; }
-.status-badge { 
-    padding: 4px 8px; 
-    border-radius: 9999px; 
-    font-size: 12px; 
-    font-weight: 500; 
+/* Card bao quanh bảng */
+.fb-table-card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    border: none;
 }
-.status-replied { background: #d1fae5; color: #065f46; }
-.status-pending { background: #fef3c7; color: #92400e; }
-
-/* Action Buttons */
-.action-btn { 
-    padding: 6px 12px; 
-    border: none; 
-    border-radius: 4px; 
-    cursor: pointer; 
-    color: #fff; 
-    text-decoration: none; 
-    display: inline-block; 
-    font-size: 13px; 
+/* Ảnh sản phẩm trong bảng */
+.fb-product-img {
+    width: 50px;
+    height: 50px;
+    object-fit: contain;
+    padding: 4px;
+    background: white;
+    border-radius: 4px;
+    border: 1px solid #dee2e6;
 }
-.btn-view { background-color: #3b82f6; }
-.btn-delete { background-color: #ef4444; }
-
-/* Modal Styles */
-.modal-overlay { 
-    display: none; 
-    position: fixed; 
-    top: 0; 
-    left: 0; 
-    right: 0; 
-    bottom: 0; 
-    background: rgba(0,0,0,0.5); 
-    z-index: 1000; 
-    align-items: center; 
-    justify-content: center; 
+/* Badge sao trung bình */
+.fb-rating-badge {
+    padding: 6px 10px;
+    background-color: #fff8f0;
+    color: #f59e0b;
+    border-radius: 8px;
+    font-weight: 700;
+    border: 1px solid #ffedd5;
 }
-.modal-card { 
-    background: #fff; 
-    width: 100%; 
-    max-width: 600px; 
-    border-radius: 8px; 
-    padding: 24px; 
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
-    max-height: 90vh; 
-    overflow-y: auto; 
+/* Badge tổng số lượng */
+.fb-count-badge {
+    background-color: #e0f2fe;
+    color: #0369a1;
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border: 1px solid #bae6fd;
 }
-.modal-header { 
-    display: flex; 
-    justify-content: space-between; 
-    align-items: center; 
-    margin-bottom: 20px; 
-    border-bottom: 1px solid #e5e7eb; 
-    padding-bottom: 10px; 
+/* MODAL STYLES */
+.fb-modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    align-items: center;
+    justify-content: center;
+    z-index: 1050;
+}
+.fb-modal-card {
+    background: white;
+    width: 90%;
+    max-width: 850px;
+    max-height: 90vh;
+    border-radius: 16px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+.fb-modal-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #ffffff;
+}
+.fb-modal-body {
+    padding: 24px;
+    overflow-y: auto;
+    flex-grow: 1;
+    background: #f8fafc;
+}
+/* Chỉnh sửa text trong modal */
+.fb-comment-text {
+    font-style: italic;
+    color: #475569;
+}
+.fb-staff-response {
+    background-color: #f1f5f9;
+    border-left: 4px solid #3b82f6;
+    padding: 16px;
+    border-radius: 0 8px 8px 0;
 }
