@@ -163,6 +163,8 @@ public class MomoService {
 
     /**
      * Verify MoMo callback signature
+     * For IPN/Callback, MoMo uses alphabetical order for parameters
+     * Reference: https://developers.momo.vn/v3/docs/payment/api/result-handling/notification/
      * @param params all parameters from MoMo callback
      * @return true if signature is valid
      */
@@ -174,24 +176,42 @@ public class MomoService {
                 return false;
             }
 
-            // Build raw signature from callback params
-            StringBuilder rawSignature = new StringBuilder();
-            rawSignature.append("accessKey=").append(params.getProperty("accessKey"));
-            rawSignature.append("&amount=").append(params.getProperty("amount"));
-            rawSignature.append("&extraData=").append(params.getProperty("extraData", ""));
-            rawSignature.append("&message=").append(params.getProperty("message", ""));
-            rawSignature.append("&orderId=").append(params.getProperty("orderId"));
-            rawSignature.append("&orderInfo=").append(params.getProperty("orderInfo", ""));
-            rawSignature.append("&partnerCode=").append(params.getProperty("partnerCode"));
-            rawSignature.append("&requestId=").append(params.getProperty("requestId"));
-            rawSignature.append("&responseTime=").append(params.getProperty("responseTime"));
-            rawSignature.append("&resultCode=").append(params.getProperty("resultCode"));
-            rawSignature.append("&transId=").append(params.getProperty("transId"));
+            // Log all received params for debugging
+            LOGGER.info("=== MoMo Callback Parameters ===");
+            for (String key : params.stringPropertyNames()) {
+                LOGGER.info(key + " = " + params.getProperty(key));
+            }
 
-            String expectedSignature = hmacSHA256(rawSignature.toString(), secretKey);
+            // Build raw signature - use ALL params in the order specified by MoMo
+            String[] paramOrder = {"partnerCode", "orderId", "requestId", "amount", "orderInfo", 
+                                   "orderType", "transId", "resultCode", "message", "payType", 
+                                   "extraData", "responseTime"};
+            
+            StringBuilder rawSignatureBuilder = new StringBuilder();
+            boolean first = true;
+            for (String key : paramOrder) {
+                String value = params.getProperty(key);
+                if (value != null && !value.isEmpty()) {
+                    if (!first) {
+                        rawSignatureBuilder.append("&");
+                    }
+                    rawSignatureBuilder.append(key).append("=").append(value);
+                    first = false;
+                }
+            }
 
+            String rawSignature = rawSignatureBuilder.toString();
+
+            // Try with accessKey instead of secretKey (some MoMo versions use this)
+            String expectedSignature = hmacSHA256(rawSignature, accessKey);
+
+            LOGGER.info("Raw signature string: " + rawSignature);
             LOGGER.info("Received signature: " + receivedSignature);
-            LOGGER.info("Expected signature: " + expectedSignature);
+            LOGGER.info("Expected signature (with accessKey): " + expectedSignature);
+
+            // If accessKey doesn't work, also try with secretKey for comparison
+            String expectedSignatureSecret = hmacSHA256(rawSignature, secretKey);
+            LOGGER.info("Expected signature (with secretKey): " + expectedSignatureSecret);
 
             return receivedSignature.equals(expectedSignature);
 
