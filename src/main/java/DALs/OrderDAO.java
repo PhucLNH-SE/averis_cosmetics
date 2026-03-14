@@ -4,6 +4,7 @@ import Model.CartItem;
 import Model.Orders;
 import Model.OrderDetail;
 import Utils.DBContext;
+import jakarta.persistence.criteria.Order;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -704,4 +705,51 @@ public List<OrderDetail> getOrderDetailsWithReview(int orderId) {
 
         return list;
     }
+public List<Orders> getOrdersByStatus(String status) {
+
+    List<Orders> list = new ArrayList<>();
+
+    String sql = "SELECT o.order_id, "
+            + "a.receiver_name, "
+            + "v.code AS voucher_code, "
+            + "o.discount_amount, "
+            + "o.payment_method, "
+            + "o.payment_status, "
+            + "o.order_status, "
+            + "o.total_amount "
+            + "FROM Orders o "
+            + "JOIN Address a ON o.address_id = a.address_id "
+            + "LEFT JOIN Voucher v ON o.voucher_id = v.voucher_id "
+            + "WHERE o.order_status = ? "
+            + "ORDER BY o.order_id DESC";
+
+    try {
+
+        PreparedStatement ps = connection.prepareStatement(sql);
+        ps.setString(1, status);
+
+        ResultSet rs = ps.executeQuery();
+
+        while (rs.next()) {
+
+            Orders order = new Orders();
+
+            order.setOrderId(rs.getInt("order_id"));
+            order.setReceiverName(rs.getString("receiver_name"));
+            order.setVoucherCode(rs.getString("voucher_code"));
+            order.setDiscountAmount(rs.getBigDecimal("discount_amount"));
+            order.setPaymentMethod(rs.getString("payment_method"));
+            order.setPaymentStatus(rs.getString("payment_status"));
+            order.setOrderStatus(rs.getString("order_status"));
+            order.setTotalAmount(rs.getBigDecimal("total_amount"));
+
+            list.add(order);
+        }
+
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+
+    return list;
+}
 }

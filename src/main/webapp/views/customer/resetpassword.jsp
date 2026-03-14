@@ -5,7 +5,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Reset Password - Averis Cosmetics</title>
+    <title>Forget Password - Averis Cosmetics</title>
 
     <link rel="stylesheet"
           href="${pageContext.request.contextPath}/assets/css/style.css">
@@ -18,7 +18,7 @@
     <div class="auth-container">
 
         <div class="auth-header">
-            <h2>Reset Password</h2>
+            <h2>Forget Password</h2>
             <p>Enter your new password</p>
         </div>
 
