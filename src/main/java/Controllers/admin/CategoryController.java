@@ -1,14 +1,13 @@
 package Controllers.admin;
 
-import java.io.IOException;
-import java.util.List;
-
 import DALs.CategoryDAO;
 import Model.Category;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.List;
 
 public class CategoryController extends HttpServlet {
 
@@ -19,11 +18,7 @@ public class CategoryController extends HttpServlet {
 
         switch (path) {
             case "/admin/manage-category":
-                CategoryDAO dao = new CategoryDAO();
-                List<Category> categories = dao.getAllCategories();
-                request.setAttribute("categories", categories);
-                request.getRequestDispatcher("/views/admin/manage-category.jsp")
-                        .forward(request, response);
+                forwardManageCategory(request, response);
                 break;
             default:
                 response.sendError(HttpServletResponse.SC_NOT_FOUND);
@@ -42,43 +37,54 @@ public class CategoryController extends HttpServlet {
             case "/admin/add-category": {
                 String name = request.getParameter("name");
                 String statusParam = request.getParameter("status");
-                boolean status = "on".equalsIgnoreCase(statusParam) || "1".equals(statusParam) || "true".equalsIgnoreCase(statusParam);
+                boolean status = "on".equalsIgnoreCase(statusParam)
+                        || "1".equals(statusParam)
+                        || "true".equalsIgnoreCase(statusParam);
                 if (name != null && !name.trim().isEmpty()) {
                     dao.addCategory(name.trim(), status);
                 }
-                response.sendRedirect(request.getContextPath() + "/admin/manage-category");
+                response.sendRedirect(request.getContextPath() + "/admin/manage-category?success=add");
                 break;
             }
-
             case "/admin/update-category": {
                 try {
                     int id = Integer.parseInt(request.getParameter("id"));
-                    String uname = request.getParameter("name");
+                    String name = request.getParameter("name");
                     String statusParam = request.getParameter("status");
-                    boolean status = "on".equalsIgnoreCase(statusParam) || "1".equals(statusParam) || "true".equalsIgnoreCase(statusParam);
-                    if (uname != null && !uname.trim().isEmpty()) {
-                        dao.updateCategory(id, uname.trim(), status);
+                    boolean status = "on".equalsIgnoreCase(statusParam)
+                            || "1".equals(statusParam)
+                            || "true".equalsIgnoreCase(statusParam);
+                    if (name != null && !name.trim().isEmpty()) {
+                        dao.updateCategory(id, name.trim(), status);
                     }
+                    response.sendRedirect(request.getContextPath() + "/admin/manage-category?success=update");
                 } catch (NumberFormatException e) {
-                    // ignore
+                    response.sendRedirect(request.getContextPath() + "/admin/manage-category?error=updateFailed");
                 }
-                response.sendRedirect(request.getContextPath() + "/admin/manage-category");
                 break;
             }
-
             case "/admin/delete-category":
                 try {
                     int id = Integer.parseInt(request.getParameter("id"));
                     dao.deleteCategory(id);
+                    response.sendRedirect(request.getContextPath() + "/admin/manage-category?success=delete");
                 } catch (NumberFormatException e) {
-                    // ignore
+                    response.sendRedirect(request.getContextPath() + "/admin/manage-category?error=deleteFailed");
                 }
-                response.sendRedirect(request.getContextPath() + "/admin/manage-category");
                 break;
-
             default:
                 response.sendError(HttpServletResponse.SC_NOT_FOUND);
                 break;
         }
+    }
+
+    private void forwardManageCategory(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        CategoryDAO dao = new CategoryDAO();
+        List<Category> categories = dao.getAllCategories();
+        request.setAttribute("categories", categories);
+        request.setAttribute("currentView", "categories");
+        request.setAttribute("contentPage", "/views/admin/partials/manage-category-content.jsp");
+        request.getRequestDispatcher("/views/admin/admin-panel.jsp").forward(request, response);
     }
 }

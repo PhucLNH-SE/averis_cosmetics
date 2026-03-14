@@ -4,12 +4,10 @@ import DALs.ProductVariantDAO;
 import java.io.IOException;
 import java.math.BigDecimal;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-@WebServlet(name = "ManageVariantController", urlPatterns = {"/admin/manage-variant"})
 public class ManageVariantController extends HttpServlet {
 
     @Override
@@ -46,6 +44,6 @@ public class ManageVariantController extends HttpServlet {
         }
 
         // Cập nhật giá xong thì chuyển hướng lại về trang danh sách sản phẩm
-        response.sendRedirect("manage-product");
+        response.sendRedirect(request.getContextPath() + "/admin/manage-product");
     }
 }

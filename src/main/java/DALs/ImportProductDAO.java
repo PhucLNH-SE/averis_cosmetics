@@ -146,21 +146,45 @@ public class ImportProductDAO extends DBContext {
     // =============================
     // UPDATE PRODUCT STOCK
     // =============================
-    public void updateStock(int variantId, int quantity) {
+    public void updateStock(int variantId, int quantity, double importPrice) {
 
-        String sql =
-                "UPDATE Product_Variant " +
-                "SET stock = stock + ? " +
-                "WHERE variant_id = ?";
+        String selectSql = "SELECT stock, avg_cost FROM Product_Variant WHERE variant_id = ?";
+        String updateSql = "UPDATE Product_Variant SET stock = ?, avg_cost = ? WHERE variant_id = ?";
 
-        try {
+        try (PreparedStatement selectPs = connection.prepareStatement(selectSql)) {
 
-            PreparedStatement ps = connection.prepareStatement(sql);
+            selectPs.setInt(1, variantId);
 
-            ps.setInt(1, quantity);
-            ps.setInt(2, variantId);
+            try (ResultSet rs = selectPs.executeQuery()) {
+                if (!rs.next()) {
+                    return;
+                }
 
-            ps.executeUpdate();
+                int currentStock = rs.getInt("stock");
+                java.math.BigDecimal currentAvgCost = rs.getBigDecimal("avg_cost");
+                java.math.BigDecimal importCost = java.math.BigDecimal.valueOf(importPrice);
+
+                int newStock = currentStock + quantity;
+                java.math.BigDecimal newAvgCost;
+
+                if (newStock <= 0) {
+                    newAvgCost = currentAvgCost == null ? java.math.BigDecimal.ZERO : currentAvgCost;
+                } else if (currentAvgCost == null || currentStock <= 0) {
+                    newAvgCost = importCost;
+                } else {
+                    java.math.BigDecimal existingCost = currentAvgCost.multiply(java.math.BigDecimal.valueOf(currentStock));
+                    java.math.BigDecimal incomingCost = importCost.multiply(java.math.BigDecimal.valueOf(quantity));
+                    newAvgCost = existingCost.add(incomingCost)
+                            .divide(java.math.BigDecimal.valueOf(newStock), 2, java.math.RoundingMode.HALF_UP);
+                }
+
+                try (PreparedStatement updatePs = connection.prepareStatement(updateSql)) {
+                    updatePs.setInt(1, newStock);
+                    updatePs.setBigDecimal(2, newAvgCost);
+                    updatePs.setInt(3, variantId);
+                    updatePs.executeUpdate();
+                }
+            }
 
         } catch (Exception e) {
             e.printStackTrace();

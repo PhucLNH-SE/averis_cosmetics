@@ -1,0 +1,140 @@
+.statistic-page {
+    gap: 24px;
+}
+
+.statistic-page__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.statistic-filter {
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
+    flex-wrap: wrap;
+    background: #ffffff;
+    padding: 16px;
+    border-radius: 18px;
+    box-shadow: 0 16px 32px rgba(15, 23, 42, 0.06);
+}
+
+.statistic-filter__group {
+    min-width: 120px;
+}
+
+.statistic-filter__group label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #475569;
+}
+
+.stat-card {
+    height: 100%;
+    background: #ffffff;
+    border-radius: 20px;
+    padding: 20px;
+    box-shadow: 0 16px 32px rgba(15, 23, 42, 0.06);
+}
+
+.stat-card__label {
+    display: block;
+    margin-bottom: 10px;
+    color: #64748b;
+    font-size: 0.92rem;
+}
+
+.stat-card__value {
+    display: block;
+    color: #0f172a;
+    font-size: 1.35rem;
+    line-height: 1.4;
+}
+
+.chart-card,
+.statistic-table-card {
+    background: #ffffff;
+    border-radius: 22px;
+    box-shadow: 0 16px 32px rgba(15, 23, 42, 0.06);
+    overflow: hidden;
+}
+
+.chart-card {
+    min-height: 420px;
+    padding: 20px;
+}
+
+.chart-card__head,
+.table-card__head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 18px;
+}
+
+.chart-card__head h3,
+.table-card__head h3 {
+    margin: 0;
+    font-size: 1.1rem;
+}
+
+.chart-card__head span,
+.table-card__head span {
+    color: #64748b;
+    font-size: 0.9rem;
+}
+
+.chart-card canvas {
+    width: 100% !important;
+    height: 320px !important;
+}
+
+.product-cell {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.product-cell__thumb {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    background: #eff6ff;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #64748b;
+    font-size: 0.72rem;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.product-cell__thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.stock-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 42px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: #fee2e2;
+    color: #b91c1c;
+    font-weight: 700;
+}
+
+@media (max-width: 991.98px) {
+    .chart-card {
+        min-height: 380px;
+    }
+}

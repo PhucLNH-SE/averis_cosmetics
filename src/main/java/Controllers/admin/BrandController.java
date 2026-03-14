@@ -2,12 +2,11 @@ package Controllers.admin;
 
 import DALs.BrandDAO;
 import Model.Brand;
-import java.io.IOException;
-import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.util.List;
 
 public class BrandController extends HttpServlet {
@@ -23,7 +22,7 @@ public class BrandController extends HttpServlet {
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         request.setCharacterEncoding("UTF-8");
-        
+
         String action = request.getParameter("action");
         if (action == null) {
             action = "list";
@@ -50,22 +49,16 @@ public class BrandController extends HttpServlet {
 
     private void listBrands(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        List<Brand> brands = brandDAO.getAll();
-        request.setAttribute("brands", brands);
-        request.getRequestDispatcher("/views/admin/manage-brand.jsp").forward(request, response);
+        forwardManageBrand(request, response, null);
     }
 
     private void addBrand(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String name = request.getParameter("name").trim();
-        boolean status = request.getParameter("status") != null && request.getParameter("status").equals("1");
+        boolean status = "1".equals(request.getParameter("status"));
 
-        // Kiểm tra tên đã tồn tại chưa
         if (brandDAO.existsByName(name)) {
-            request.setAttribute("error", "Tên thương hiệu đã tồn tại!");
-            List<Brand> brands = brandDAO.getAll();
-            request.setAttribute("brands", brands);
-            request.getRequestDispatcher("/views/admin/manage-brand.jsp").forward(request, response);
+            forwardManageBrand(request, response, "Brand name already exists.");
             return;
         }
 
@@ -85,14 +78,10 @@ public class BrandController extends HttpServlet {
             throws ServletException, IOException {
         int brandId = Integer.parseInt(request.getParameter("brandId"));
         String name = request.getParameter("name").trim();
-        boolean status = request.getParameter("status") != null && request.getParameter("status").equals("1");
+        boolean status = "1".equals(request.getParameter("status"));
 
-        // Kiểm tra tên đã tồn tại chưa (trừ brand hiện tại)
         if (brandDAO.existsByNameExceptId(name, brandId)) {
-            request.setAttribute("error", "Tên thương hiệu đã tồn tại!");
-            List<Brand> brands = brandDAO.getAll();
-            request.setAttribute("brands", brands);
-            request.getRequestDispatcher("/views/admin/manage-brand.jsp").forward(request, response);
+            forwardManageBrand(request, response, "Brand name already exists.");
             return;
         }
 
@@ -121,7 +110,18 @@ public class BrandController extends HttpServlet {
         }
     }
 
-    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
+    private void forwardManageBrand(HttpServletRequest request, HttpServletResponse response, String error)
+            throws ServletException, IOException {
+        List<Brand> brands = brandDAO.getAll();
+        request.setAttribute("brands", brands);
+        if (error != null && !error.trim().isEmpty()) {
+            request.setAttribute("error", error);
+        }
+        request.setAttribute("currentView", "brands");
+        request.setAttribute("contentPage", "/views/admin/partials/manage-brand-content.jsp");
+        request.getRequestDispatcher("/views/admin/admin-panel.jsp").forward(request, response);
+    }
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -138,5 +138,4 @@ public class BrandController extends HttpServlet {
     public String getServletInfo() {
         return "Brand Controller";
     }
-    // </editor-fold>
 }

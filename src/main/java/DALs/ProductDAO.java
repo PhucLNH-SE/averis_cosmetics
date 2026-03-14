@@ -217,7 +217,7 @@ public class ProductDAO extends DBContext {
     }
 
     public ProductVariant getVariantById(int variantId) {
-        String sql = "SELECT v.variant_id, v.product_id, v.variant_name, v.price, v.stock, v.status, "
+        String sql = "SELECT v.variant_id, v.product_id, v.variant_name, v.price, v.stock, v.status, v.avg_cost, "
                 + "       p.name AS product_name, "
                 + "       (SELECT TOP 1 image_url FROM Product_Image pi "
                 + "        WHERE pi.product_id = p.product_id AND pi.is_main = 1) AS image_url "
@@ -237,6 +237,7 @@ public class ProductDAO extends DBContext {
                     variant.setPrice(rs.getBigDecimal("price"));
                     variant.setStock(rs.getInt("stock"));
                     variant.setStatus(rs.getBoolean("status"));
+                    variant.setImportPrice(rs.getBigDecimal("avg_cost"));
                     variant.setProductName(rs.getString("product_name"));
                     variant.setImageUrl(rs.getString("image_url"));
                     return variant;

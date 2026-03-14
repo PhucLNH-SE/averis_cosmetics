@@ -69,10 +69,10 @@ public class ManagerAuthController extends HttpServlet {
         String normalizedRole = role == null ? "" : role.toUpperCase();
         switch (normalizedRole) {
             case "ADMIN":
-                response.sendRedirect(request.getContextPath() + "/admin/dashboard");
+                response.sendRedirect(request.getContextPath() + "/admin/panel?view=dashboard");
                 break;
             case "STAFF":
-                response.sendRedirect(request.getContextPath() + "/staff/dashboard");
+                response.sendRedirect(request.getContextPath() + "/staff/panel?view=dashboard");
                 break;
             default:
                 request.setAttribute("errorMessage", "Role khong hop le.");

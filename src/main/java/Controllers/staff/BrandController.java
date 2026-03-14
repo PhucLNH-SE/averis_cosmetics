@@ -1,14 +1,13 @@
 package Controllers.staff;
 
-import java.io.IOException;
-import java.util.List;
-
 import DALs.BrandDAO;
 import Model.Brand;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.List;
 
 public class BrandController extends HttpServlet {
 
@@ -18,7 +17,9 @@ public class BrandController extends HttpServlet {
         BrandDAO dao = new BrandDAO();
         List<Brand> brands = dao.getAll();
         request.setAttribute("brands", brands);
-        request.getRequestDispatcher("/views/staff/manage-brand.jsp").forward(request, response);
+        request.setAttribute("currentView", "brands");
+        request.setAttribute("contentPage", "/views/staff/partials/manage-brand-content.jsp");
+        request.getRequestDispatcher("/views/staff/staff-panel.jsp").forward(request, response);
     }
 
     @Override

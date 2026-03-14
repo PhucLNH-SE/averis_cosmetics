@@ -2,24 +2,18 @@
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Staff Management - Admin Dashboard</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/manage-staff.css">
-</head>
-<body class="bg-light">
+<section class="admin-content__section">
     <div class="container-fluid staff-main-container">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
                 <h3 class="fw-bold mb-0">Staff Management</h3>
                 <p class="text-muted small">Manage system administrators and staff</p>
             </div>
-            <button class="btn btn-outline-secondary px-3" onclick="history.back()">← Back</button>
+            <button class="btn btn-success px-3" data-bs-toggle="modal" data-bs-target="#addModal">
+                <i class="fas fa-user-plus me-1"></i> Add New Staff
+            </button>
         </div>
+
         <c:if test="${not empty successMsg}">
             <div class="alert alert-success alert-dismissible fade show shadow-sm border-0 mb-4">
                 <i class="fas fa-check-circle me-2"></i> ${successMsg}
@@ -32,17 +26,14 @@
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         </c:if>
+
         <div class="card staff-table-card">
             <div class="card-body p-4">
-                <div class="d-flex justify-content-end mb-3">
-                    <button class="btn btn-success px-3" data-bs-toggle="modal" data-bs-target="#addModal">
-                        <i class="fas fa-user-plus me-1"></i> Add New Staff
-                    </button>
-                </div>
                 <table class="table table-hover align-middle">
                     <thead class="table-light">
                         <tr>
-                            <th>Staff Name</th> <th>Email</th>
+                            <th>Staff Name</th>
+                            <th>Email</th>
                             <th>Role</th>
                             <th>Status</th>
                             <th class="text-center">Actions</th>
@@ -72,15 +63,16 @@
                                     </span>
                                 </td>
                                 <td class="text-center">
-                                    <button class="btn btn-info btn-sm text-white px-2 me-1" 
+                                    <button class="btn btn-info btn-sm text-white px-2 me-1"
                                             onclick="openViewModal('${s.managerId}', '${fn:escapeXml(s.fullName)}', '${s.email}', '${s.managerRole}', '${s.status}')">
                                         <i class="fas fa-eye"></i>
                                     </button>
-                                    
-                                    <button class="btn btn-primary btn-sm px-2 me-1" 
+
+                                    <button class="btn btn-primary btn-sm px-2 me-1"
                                             onclick="openEditModal('${s.managerId}', '${fn:escapeXml(s.fullName)}', '${s.email}', '${s.managerRole}', '${s.status}')">
                                         <i class="fas fa-edit"></i>
-                                    </button>                            
+                                    </button>
+
                                     <c:if test="${s.managerId != sessionScope.manager.managerId}">
                                         <c:choose>
                                             <c:when test="${s.status}">
@@ -105,10 +97,11 @@
             </div>
         </div>
     </div>
+
     <div class="modal fade" id="addModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content border-0 shadow">
-                <form action="manage-staff" method="post">
+                <form action="${pageContext.request.contextPath}/admin/manage-staff" method="post">
                     <input type="hidden" name="action" value="add">
                     <div class="modal-header bg-success text-white">
                         <h5 class="modal-title fw-bold">Add New Staff</h5>
@@ -116,7 +109,8 @@
                     </div>
                     <div class="modal-body">
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Staff Name</label> <input type="text" name="name" class="form-control" required>
+                            <label class="form-label fw-bold">Staff Name</label>
+                            <input type="text" name="name" class="form-control" required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label fw-bold">Email</label>
@@ -147,10 +141,11 @@
             </div>
         </div>
     </div>
+
     <div class="modal fade" id="editModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content border-0 shadow">
-                <form action="manage-staff" method="post">
+                <form action="${pageContext.request.contextPath}/admin/manage-staff" method="post">
                     <input type="hidden" name="action" value="update">
                     <input type="hidden" name="managerId" id="editId">
                     <div class="modal-header bg-primary text-white">
@@ -159,7 +154,8 @@
                     </div>
                     <div class="modal-body">
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Staff Name</label> <input type="text" name="name" id="editName" class="form-control" required>
+                            <label class="form-label fw-bold">Staff Name</label>
+                            <input type="text" name="name" id="editName" class="form-control" required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label fw-bold">Email</label>
@@ -168,7 +164,7 @@
                         <div class="mb-3">
                             <label class="form-label fw-bold">New Password</label>
                             <input type="password" name="password" class="form-control" minlength="6" placeholder="Leave blank to keep current password">
-                            <small class="text-primary mt-1 d-block">* Note: Leave this field blank if you don't want to change the password.</small>
+                            <small class="text-primary mt-1 d-block">Leave blank if you do not want to change the password.</small>
                         </div>
                         <div class="mb-3">
                             <label class="form-label fw-bold">Role</label>
@@ -191,6 +187,7 @@
             </div>
         </div>
     </div>
+
     <div class="modal fade" id="viewModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow">
@@ -204,7 +201,8 @@
                         <div class="view-detail-value" id="viewId"></div>
                     </div>
                     <div class="view-detail-row">
-                        <div class="view-detail-label">Staff Name:</div> <div class="view-detail-value" id="viewName"></div>
+                        <div class="view-detail-label">Staff Name:</div>
+                        <div class="view-detail-value" id="viewName"></div>
                     </div>
                     <div class="view-detail-row">
                         <div class="view-detail-label">Email:</div>
@@ -222,10 +220,11 @@
             </div>
         </div>
     </div>
+
     <div class="modal fade" id="deleteModal" tabindex="-1">
         <div class="modal-dialog modal-sm modal-dialog-centered">
             <div class="modal-content text-center border-0 shadow">
-                <form action="manage-staff" method="post">
+                <form action="${pageContext.request.contextPath}/admin/manage-staff" method="post">
                     <input type="hidden" name="action" value="delete">
                     <input type="hidden" name="managerId" id="deleteId">
                     <div class="modal-body p-4">
@@ -241,10 +240,11 @@
             </div>
         </div>
     </div>
+
     <div class="modal fade" id="unbanModal" tabindex="-1">
         <div class="modal-dialog modal-sm modal-dialog-centered">
             <div class="modal-content text-center border-0 shadow">
-                <form action="manage-staff" method="post">
+                <form action="${pageContext.request.contextPath}/admin/manage-staff" method="post">
                     <input type="hidden" name="action" value="unban">
                     <input type="hidden" name="managerId" id="unbanId">
                     <div class="modal-body p-4">
@@ -260,37 +260,40 @@
             </div>
         </div>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        function openEditModal(id, name, email, role, status) {
-            document.getElementById('editId').value = id;
-            document.getElementById('editName').value = name;
-            document.getElementById('editEmail').value = email;
-            document.getElementById('editRole').value = role;
-            document.getElementById('editStatus').checked = (status === 'true');
-            new bootstrap.Modal(document.getElementById('editModal')).show();
-        }
+</section>
 
-        function openViewModal(id, name, email, role, status) {
-            document.getElementById('viewId').innerText = "#" + id;
-            document.getElementById('viewName').innerText = name;
-            document.getElementById('viewEmail').innerText = email;
-            document.getElementById('viewRole').innerHTML = role === 'ADMIN' ? '<span class="role-badge-admin">ADMIN</span>' : '<span class="role-badge-staff">STAFF</span>';
-            document.getElementById('viewStatus').innerHTML = status === 'true' ? '<span class="status-active"><i class="fas fa-check-circle"></i> Active</span>' : '<span class="status-inactive"><i class="fas fa-ban"></i> Banned</span>';
-            new bootstrap.Modal(document.getElementById('viewModal')).show();
-        }
+<script>
+    function openEditModal(id, name, email, role, status) {
+        document.getElementById('editId').value = id;
+        document.getElementById('editName').value = name;
+        document.getElementById('editEmail').value = email;
+        document.getElementById('editRole').value = role;
+        document.getElementById('editStatus').checked = (status === 'true');
+        new bootstrap.Modal(document.getElementById('editModal')).show();
+    }
 
-        function openDeleteModal(id, name) {
-            document.getElementById('deleteId').value = id;
-            document.getElementById('deleteName').innerText = name;
-            new bootstrap.Modal(document.getElementById('deleteModal')).show();
-        }
+    function openViewModal(id, name, email, role, status) {
+        document.getElementById('viewId').innerText = '#' + id;
+        document.getElementById('viewName').innerText = name;
+        document.getElementById('viewEmail').innerText = email;
+        document.getElementById('viewRole').innerHTML = role === 'ADMIN'
+                ? '<span class="role-badge-admin">ADMIN</span>'
+                : '<span class="role-badge-staff">STAFF</span>';
+        document.getElementById('viewStatus').innerHTML = status === 'true'
+                ? '<span class="status-active"><i class="fas fa-check-circle"></i> Active</span>'
+                : '<span class="status-inactive"><i class="fas fa-ban"></i> Banned</span>';
+        new bootstrap.Modal(document.getElementById('viewModal')).show();
+    }
 
-        function openUnbanModal(id, name) {
-            document.getElementById('unbanId').value = id;
-            document.getElementById('unbanName').innerText = name;
-            new bootstrap.Modal(document.getElementById('unbanModal')).show();
-        }
-    </script>
-</body>
-</html>
+    function openDeleteModal(id, name) {
+        document.getElementById('deleteId').value = id;
+        document.getElementById('deleteName').innerText = name;
+        new bootstrap.Modal(document.getElementById('deleteModal')).show();
+    }
+
+    function openUnbanModal(id, name) {
+        document.getElementById('unbanId').value = id;
+        document.getElementById('unbanName').innerText = name;
+        new bootstrap.Modal(document.getElementById('unbanModal')).show();
+    }
+</script>

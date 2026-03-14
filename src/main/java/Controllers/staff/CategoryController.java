@@ -1,14 +1,13 @@
 package Controllers.staff;
 
-import java.io.IOException;
-import java.util.List;
-
 import DALs.CategoryDAO;
 import Model.Category;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.List;
 
 public class CategoryController extends HttpServlet {
 
@@ -18,7 +17,9 @@ public class CategoryController extends HttpServlet {
         CategoryDAO dao = new CategoryDAO();
         List<Category> categories = dao.getAllCategories();
         request.setAttribute("categories", categories);
-        request.getRequestDispatcher("/views/staff/manage-category.jsp").forward(request, response);
+        request.setAttribute("currentView", "categories");
+        request.setAttribute("contentPage", "/views/staff/partials/manage-category-content.jsp");
+        request.getRequestDispatcher("/views/staff/staff-panel.jsp").forward(request, response);
     }
 
     @Override
