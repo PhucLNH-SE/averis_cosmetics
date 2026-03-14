@@ -18,10 +18,13 @@ import java.util.List;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.http.Part;
+import java.io.File;
 import java.time.LocalDate;
 import java.util.Map;
 import org.mindrot.jbcrypt.BCrypt;
@@ -30,6 +33,7 @@ import org.mindrot.jbcrypt.BCrypt;
  *
  * @author lengu
  */
+@MultipartConfig
 public class ProfileController extends HttpServlet {
 
     private void showProfilePage(HttpServletRequest request, HttpServletResponse response)
@@ -131,211 +135,212 @@ public class ProfileController extends HttpServlet {
                     .forward(request, response);
         }
     }
-private void showOrders(HttpServletRequest request, HttpServletResponse response,
-        Customer customer) throws ServletException, IOException {
 
-    OrderDAO dao = new OrderDAO();
+    private void showOrders(HttpServletRequest request, HttpServletResponse response,
+            Customer customer) throws ServletException, IOException {
 
-    List<Orders> orders = dao.getOrdersByCustomerId(customer.getCustomerId());
+        OrderDAO dao = new OrderDAO();
 
-    request.setAttribute("orders", orders);
+        List<Orders> orders = dao.getOrdersByCustomerId(customer.getCustomerId());
 
-    request.setAttribute("tab", "orders");
+        request.setAttribute("orders", orders);
 
-    request.getRequestDispatcher("/views/customer/profile.jsp")
-            .forward(request, response);
-}
-private void showOrderDetail(HttpServletRequest request,
-        HttpServletResponse response,
-        Customer customer)
-        throws ServletException, IOException {
+        request.setAttribute("tab", "orders");
 
-    int orderId = Integer.parseInt(request.getParameter("orderId"));
-
-    OrderDAO dao = new OrderDAO();
-    Orders order = dao.getOrderById(orderId);
-    
-    // Đã thay đổi hàm gọi thành getOrderDetailsWithReview
-    List<OrderDetail> details = dao.getOrderDetailsWithReview(orderId); 
-
-    request.setAttribute("order", order);
-    request.setAttribute("details", details);
-    request.setAttribute("tab", "orderDetail");
-
-    request.getRequestDispatcher("/views/customer/profile.jsp")
-            .forward(request, response);
-}
-
-private void showVouchers(HttpServletRequest request, HttpServletResponse response,
-        Customer customer) throws ServletException, IOException {
-
-    CustomerVoucherDAO dao = new CustomerVoucherDAO();
-    dao.expireOutdatedVouchers();
-    List<CustomerVoucher> vouchers = dao.getActiveByCustomerId(customer.getCustomerId());
-
-    request.setAttribute("myVouchers", vouchers);
-    request.setAttribute("tab", "voucher");
-
-    request.getRequestDispatcher("/views/customer/profile.jsp")
-            .forward(request, response);
-}
-
-   private void changePassword(HttpServletRequest request,
-        HttpServletResponse response,
-        Customer customer) throws ServletException, IOException {
-
-    String oldPassword = request.getParameter("oldPassword");
-    String newPassword = request.getParameter("newPassword");
-    String confirmPassword = request.getParameter("confirmPassword");
-
-    // luôn set tab
-    request.setAttribute("tab", "password");
-
-    if (oldPassword == null || oldPassword.isBlank()
-            || newPassword == null || newPassword.isBlank()
-            || confirmPassword == null || confirmPassword.isBlank()) {
-
-        request.setAttribute("error", "Please enter all the required information.");
         request.getRequestDispatcher("/views/customer/profile.jsp")
                 .forward(request, response);
-        return;
     }
 
-   Map<String, String> errors =
-        ValidationUtil.validateResetPassword(newPassword, confirmPassword);
+    private void showOrderDetail(HttpServletRequest request,
+            HttpServletResponse response,
+            Customer customer)
+            throws ServletException, IOException {
 
-if (!errors.isEmpty()) {
-    request.setAttribute("errors", errors);
-    request.setAttribute("tab", "password");
-    request.getRequestDispatcher("/views/customer/profile.jsp")
-            .forward(request, response);
-    return;
-}
+        int orderId = Integer.parseInt(request.getParameter("orderId"));
 
-    CustomerDAO dao = new CustomerDAO();
+        OrderDAO dao = new OrderDAO();
+        Orders order = dao.getOrderById(orderId);
 
-    String currentHash = dao.getPasswordByCustomerId(customer.getCustomerId());
+        // Đã thay đổi hàm gọi thành getOrderDetailsWithReview
+        List<OrderDetail> details = dao.getOrderDetailsWithReview(orderId);
 
-    if (currentHash == null) {
-        request.setAttribute("error", "Unable to retrieve the current password.");
+        request.setAttribute("order", order);
+        request.setAttribute("details", details);
+        request.setAttribute("tab", "orderDetail");
+
         request.getRequestDispatcher("/views/customer/profile.jsp")
                 .forward(request, response);
-        return;
     }
 
-    if (!BCrypt.checkpw(oldPassword, currentHash)) {
-        request.setAttribute("error", "The old password is incorrect.");
+    private void showVouchers(HttpServletRequest request, HttpServletResponse response,
+            Customer customer) throws ServletException, IOException {
+
+        CustomerVoucherDAO dao = new CustomerVoucherDAO();
+        dao.expireOutdatedVouchers();
+        List<CustomerVoucher> vouchers = dao.getActiveByCustomerId(customer.getCustomerId());
+
+        request.setAttribute("myVouchers", vouchers);
+        request.setAttribute("tab", "voucher");
+
         request.getRequestDispatcher("/views/customer/profile.jsp")
                 .forward(request, response);
-        return;
     }
 
-    if (BCrypt.checkpw(newPassword, currentHash)) {
-        request.setAttribute("error", "The new password must not be the same as the old password.");
-        request.getRequestDispatcher("/views/customer/profile.jsp")
-                .forward(request, response);
-        return;
+    private void changePassword(HttpServletRequest request,
+            HttpServletResponse response,
+            Customer customer) throws ServletException, IOException {
+
+        String oldPassword = request.getParameter("oldPassword");
+        String newPassword = request.getParameter("newPassword");
+        String confirmPassword = request.getParameter("confirmPassword");
+
+        // luôn set tab
+        request.setAttribute("tab", "password");
+
+        if (oldPassword == null || oldPassword.isBlank()
+                || newPassword == null || newPassword.isBlank()
+                || confirmPassword == null || confirmPassword.isBlank()) {
+
+            request.setAttribute("error", "Please enter all the required information.");
+            request.getRequestDispatcher("/views/customer/profile.jsp")
+                    .forward(request, response);
+            return;
+        }
+
+        Map<String, String> errors
+                = ValidationUtil.validateResetPassword(newPassword, confirmPassword);
+
+        if (!errors.isEmpty()) {
+            request.setAttribute("errors", errors);
+            request.setAttribute("tab", "password");
+            request.getRequestDispatcher("/views/customer/profile.jsp")
+                    .forward(request, response);
+            return;
+        }
+
+        CustomerDAO dao = new CustomerDAO();
+
+        String currentHash = dao.getPasswordByCustomerId(customer.getCustomerId());
+
+        if (currentHash == null) {
+            request.setAttribute("error", "Unable to retrieve the current password.");
+            request.getRequestDispatcher("/views/customer/profile.jsp")
+                    .forward(request, response);
+            return;
+        }
+
+        if (!BCrypt.checkpw(oldPassword, currentHash)) {
+            request.setAttribute("error", "The old password is incorrect.");
+            request.getRequestDispatcher("/views/customer/profile.jsp")
+                    .forward(request, response);
+            return;
+        }
+
+        if (BCrypt.checkpw(newPassword, currentHash)) {
+            request.setAttribute("error", "The new password must not be the same as the old password.");
+            request.getRequestDispatcher("/views/customer/profile.jsp")
+                    .forward(request, response);
+            return;
+        }
+
+        if (!newPassword.equals(confirmPassword)) {
+            request.setAttribute("error", "The verification password doesn't match.");
+            request.getRequestDispatcher("/views/customer/profile.jsp")
+                    .forward(request, response);
+            return;
+        }
+
+        boolean ok = dao.updatePassword(
+                customer.getCustomerId(),
+                newPassword
+        );
+
+        if (ok) {
+            request.setAttribute("profileMessage", "Password changed successfully.");
+            request.setAttribute("tab", "password");
+
+            request.getRequestDispatcher("/views/customer/profile.jsp")
+                    .forward(request, response);
+        } else {
+            request.setAttribute("error", "Password change failed.");
+            request.setAttribute("tab", "password");
+
+            request.getRequestDispatcher("/views/customer/profile.jsp")
+                    .forward(request, response);
+        }
     }
 
-    if (!newPassword.equals(confirmPassword)) {
-        request.setAttribute("error", "The verification password doesn't match.");
-        request.getRequestDispatcher("/views/customer/profile.jsp")
-                .forward(request, response);
-        return;
-    }
+    private void cancelOrder(HttpServletRequest request,
+            HttpServletResponse response,
+            Customer customer)
+            throws ServletException, IOException {
 
-    boolean ok = dao.updatePassword(
-            customer.getCustomerId(),
-            newPassword
-    );
+        int orderId = Integer.parseInt(request.getParameter("orderId"));
 
+        OrderDAO dao = new OrderDAO();
 
+        boolean success = dao.cancelOrder(orderId);
 
-if (ok) {
-    request.setAttribute("profileMessage", "Password changed successfully.");
-    request.setAttribute("tab", "password");
-
-    request.getRequestDispatcher("/views/customer/profile.jsp")
-            .forward(request, response);
-} else {
-    request.setAttribute("error", "Password change failed.");
-    request.setAttribute("tab", "password");
-
-    request.getRequestDispatcher("/views/customer/profile.jsp")
-            .forward(request, response);
-}
-}
-   private void cancelOrder(HttpServletRequest request,
-        HttpServletResponse response,
-        Customer customer)
-        throws ServletException, IOException {
-
-    int orderId = Integer.parseInt(request.getParameter("orderId"));
-
-    OrderDAO dao = new OrderDAO();
-
-    boolean success = dao.cancelOrder(orderId);
-
-    if (success) {
-        response.sendRedirect(request.getContextPath() + "/profile?action=orders");
-    } else {
-        request.setAttribute("error", "Cannot cancel this order.");
-        showOrders(request, response, customer);
-    }
-}
-
-@Override
-protected void doGet(HttpServletRequest request, HttpServletResponse response)
-        throws ServletException, IOException {
-
-    HttpSession session = request.getSession(false);
-    if (session == null || session.getAttribute("customer") == null) {
-        response.sendRedirect(request.getContextPath() + "/auth?action=login");
-        return;
-    }
-
-    Customer customer = (Customer) session.getAttribute("customer");
-
-    String action = request.getParameter("action");
-    String tab = request.getParameter("tab");
-
-    if (action == null) {
-        action = "view";
-    }
-
-    switch (action) {
-
-        case "view":
-            if ("orders".equals(tab)) {
-                showOrders(request, response, customer);
-            } else if ("voucher".equals(tab)) {
-                showVouchers(request, response, customer);
-            } else {
-                showProfilePage(request, response);
-            }
-            break;
-
-        case "edit":
-            showEditForm(request, response, customer);
-            break;
-
-        case "orders":
+        if (success) {
+            response.sendRedirect(request.getContextPath() + "/profile?action=orders");
+        } else {
+            request.setAttribute("error", "Cannot cancel this order.");
             showOrders(request, response, customer);
-            break;
-        case "orderDetail":
-            showOrderDetail(request, response, customer);
-            break;
-        case "voucher":
-            showVouchers(request, response, customer);
-            break;
-        case "cancelOrder":
-            cancelOrder(request, response, customer);
-            break;
-        default:
-            response.sendError(HttpServletResponse.SC_NOT_FOUND);
+        }
     }
-    
-}
+
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
+        HttpSession session = request.getSession(false);
+        if (session == null || session.getAttribute("customer") == null) {
+            response.sendRedirect(request.getContextPath() + "/auth?action=login");
+            return;
+        }
+
+        Customer customer = (Customer) session.getAttribute("customer");
+
+        String action = request.getParameter("action");
+        String tab = request.getParameter("tab");
+
+        if (action == null) {
+            action = "view";
+        }
+
+        switch (action) {
+
+            case "view":
+                if ("orders".equals(tab)) {
+                    showOrders(request, response, customer);
+                } else if ("voucher".equals(tab)) {
+                    showVouchers(request, response, customer);
+                } else {
+                    showProfilePage(request, response);
+                }
+                break;
+
+            case "edit":
+                showEditForm(request, response, customer);
+                break;
+
+            case "orders":
+                showOrders(request, response, customer);
+                break;
+            case "orderDetail":
+                showOrderDetail(request, response, customer);
+                break;
+            case "voucher":
+                showVouchers(request, response, customer);
+                break;
+            case "cancelOrder":
+                cancelOrder(request, response, customer);
+                break;
+            default:
+                response.sendError(HttpServletResponse.SC_NOT_FOUND);
+        }
+
+    }
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
