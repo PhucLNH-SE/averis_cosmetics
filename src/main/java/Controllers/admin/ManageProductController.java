@@ -9,20 +9,12 @@ import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.MultipartConfig;
-import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.http.Part;
 
-@WebServlet(name = "ManageProductController", urlPatterns = {"/admin/manage-product"})
-@MultipartConfig(
-    fileSizeThreshold = 1024 * 1024 * 1, // 1MB
-    maxFileSize = 1024 * 1024 * 10,      // 10MB
-    maxRequestSize = 1024 * 1024 * 15    // 15MB
-)
 public class ManageProductController extends HttpServlet {
 
     private String getFileName(Part part) {
@@ -101,8 +93,10 @@ public class ManageProductController extends HttpServlet {
         request.setAttribute("listP", listP);
         request.setAttribute("listB", listB);
         request.setAttribute("listC", listC);
+        request.setAttribute("currentView", "products");
+        request.setAttribute("contentPage", "/views/admin/partials/manage-product-content.jsp");
 
-        request.getRequestDispatcher("/views/admin/manage-product.jsp").forward(request, response);
+        request.getRequestDispatcher("/views/admin/admin-panel.jsp").forward(request, response);
     }
 
     @Override

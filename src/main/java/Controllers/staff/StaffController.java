@@ -19,7 +19,7 @@ public class StaffController extends HttpServlet {
         switch (action) {
             case "dashboard":
             default:
-                request.getRequestDispatcher("/views/staff/dashboard.jsp").forward(request, response);
+                response.sendRedirect(request.getContextPath() + "/staff/panel?view=dashboard");
                 break;
         }
     }

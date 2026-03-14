@@ -29,6 +29,7 @@ public class Orders {
 
     private LocalDateTime createdAt;     
     private LocalDateTime paidAt; 
+    private LocalDateTime completedAt;
     // them username
  private String username; 
  private String receiverName;
@@ -144,6 +145,14 @@ public class Orders {
 
     public void setPaidAt(LocalDateTime paidAt) {
         this.paidAt = paidAt;
+    }
+
+    public LocalDateTime getCompletedAt() {
+        return completedAt;
+    }
+
+    public void setCompletedAt(LocalDateTime completedAt) {
+        this.completedAt = completedAt;
     }
 
     public String getUsername() {

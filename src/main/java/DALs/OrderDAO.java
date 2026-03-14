@@ -66,7 +66,7 @@ public class OrderDAO extends DBContext {
                 throw new SQLException("Cannot create order");
             }
 
-            String sqlDetail = "INSERT INTO Order_Detail (order_id, variant_id, quantity, price_at_order) VALUES (?, ?, ?, ?)";
+            String sqlDetail = "INSERT INTO Order_Detail (order_id, variant_id, quantity, price_at_order, cost_price_at_order) VALUES (?, ?, ?, ?, ?)";
             
 psDetail = conn.prepareStatement(sqlDetail);
 
@@ -80,6 +80,7 @@ for (CartItem item : items) {
     psDetail.setInt(2, item.getVariant().getVariantId());
     psDetail.setInt(3, item.getQuantity());
     psDetail.setBigDecimal(4, item.getVariant().getPrice());
+    psDetail.setBigDecimal(5, item.getVariant().getImportPrice() == null ? java.math.BigDecimal.ZERO : item.getVariant().getImportPrice());
 
     psDetail.addBatch();
 }
@@ -163,6 +164,9 @@ psDetail.executeBatch();
                     }
                     if (rs.getTimestamp("paid_at") != null) {
                         order.setPaidAt(rs.getTimestamp("paid_at").toLocalDateTime());
+                    }
+                    if (rs.getTimestamp("completed_at") != null) {
+                        order.setCompletedAt(rs.getTimestamp("completed_at").toLocalDateTime());
                     }
                     
                     // Address info
@@ -284,23 +288,92 @@ String sql = "SELECT "
     return list;
 }
   public void updateOrder(int orderId, String paymentStatus, String orderStatus) {
+      updateOrder(orderId, paymentStatus, orderStatus, null);
+  }
 
-    String sql = "UPDATE Orders SET payment_status = ?, order_status = ? WHERE order_id = ?";
+  public boolean updateOrder(int orderId, String paymentStatus, String orderStatus, Integer changedBy) {
+      Connection conn = null;
 
-    try {
+      try {
+          conn = this.connection;
+          if (conn == null) {
+              return false;
+          }
 
-        PreparedStatement ps = connection.prepareStatement(sql);
+          conn.setAutoCommit(false);
 
-        ps.setString(1, paymentStatus);
-        ps.setString(2, orderStatus);
-        ps.setInt(3, orderId);
+          OrderSnapshot snapshot = getOrderSnapshot(conn, orderId);
+          if (snapshot == null) {
+              conn.rollback();
+              return false;
+          }
 
-        ps.executeUpdate();
+          boolean shouldDeductStock = !"SUCCESS".equalsIgnoreCase(snapshot.paymentStatus)
+                  && "SUCCESS".equalsIgnoreCase(paymentStatus)
+                  && !"COD".equalsIgnoreCase(snapshot.paymentMethod);
 
-    } catch (Exception e) {
-        e.printStackTrace();
-    }
-}
+          boolean shouldRestoreStock = !"CANCELLED".equalsIgnoreCase(snapshot.orderStatus)
+                  && "CANCELLED".equalsIgnoreCase(orderStatus)
+                  && ("COD".equalsIgnoreCase(snapshot.paymentMethod)
+                  || "SUCCESS".equalsIgnoreCase(snapshot.paymentStatus)
+                  || "SUCCESS".equalsIgnoreCase(paymentStatus));
+
+          if (shouldDeductStock && !deductStockForOrder(conn, orderId)) {
+              throw new SQLException("Cannot deduct stock for order " + orderId);
+          }
+
+          if (shouldRestoreStock && !restoreStockForOrder(conn, orderId)) {
+              throw new SQLException("Cannot restore stock for order " + orderId);
+          }
+
+          String sql = "UPDATE Orders "
+                  + "SET payment_status = ?, "
+                  + "    order_status = ?, "
+                  + "    handled_by = COALESCE(?, handled_by), "
+                  + "    paid_at = CASE WHEN ? = 'SUCCESS' AND paid_at IS NULL THEN GETDATE() ELSE paid_at END, "
+                  + "    completed_at = CASE WHEN ? = 'COMPLETED' THEN ISNULL(completed_at, GETDATE()) ELSE NULL END "
+                  + "WHERE order_id = ?";
+
+          try (PreparedStatement ps = conn.prepareStatement(sql)) {
+              ps.setString(1, paymentStatus);
+              ps.setString(2, orderStatus);
+              if (changedBy == null) {
+                  ps.setNull(3, java.sql.Types.INTEGER);
+              } else {
+                  ps.setInt(3, changedBy);
+              }
+              ps.setString(4, paymentStatus);
+              ps.setString(5, orderStatus);
+              ps.setInt(6, orderId);
+              ps.executeUpdate();
+          }
+
+          if (changedBy != null && !equalsIgnoreCase(snapshot.orderStatus, orderStatus)) {
+              insertOrderStatusHistory(conn, orderId, snapshot.orderStatus, orderStatus, changedBy);
+          }
+
+          conn.commit();
+          return true;
+
+      } catch (Exception e) {
+          if (conn != null) {
+              try {
+                  conn.rollback();
+              } catch (SQLException ignored) {
+              }
+          }
+          e.printStackTrace();
+      } finally {
+          if (conn != null) {
+              try {
+                  conn.setAutoCommit(true);
+              } catch (SQLException ignored) {
+              }
+          }
+      }
+
+      return false;
+  }
 
 
 
@@ -322,7 +395,9 @@ String sql = "SELECT "
                 ps.executeUpdate();
             }
 
-            deductStockAfterPayment(orderId);
+            if (!deductStockForOrder(conn, orderId)) {
+                throw new SQLException("Cannot deduct stock for order " + orderId);
+            }
 
             conn.commit();
 
@@ -360,23 +435,11 @@ String sql = "SELECT "
     }
 
     public boolean deductStockAfterPayment(int orderId) {
-
-        String sql = "UPDATE pv "
-        + "SET pv.stock = pv.stock - od.quantity "
-        + "FROM Product_Variant pv "
-        + "JOIN Order_Detail od ON pv.variant_id = od.variant_id "
-        + "WHERE od.order_id = ? AND pv.stock >= od.quantity";
-
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-
-            ps.setInt(1, orderId);
-
-            return ps.executeUpdate() > 0;
-
+        try {
+            return deductStockForOrder(connection, orderId);
         } catch (Exception e) {
             e.printStackTrace();
         }
-
         return false;
     }
    public List<Orders> getOrdersByCustomerId(int customerId) {
@@ -429,24 +492,142 @@ String sql = "SELECT "
     return list;
 }
 public boolean cancelOrder(int orderId) {
-
-    String sql = "UPDATE Orders "
-               + "SET order_status = 'CANCELLED' "
-               + "WHERE order_id = ? "
-               + "AND order_status IN ('CREATED','PROCESSING')";
+    Connection conn = null;
 
     try {
-        PreparedStatement ps = connection.prepareStatement(sql);
-        ps.setInt(1, orderId);
+        conn = this.connection;
+        if (conn == null) {
+            return false;
+        }
 
-        return ps.executeUpdate() > 0;
+        conn.setAutoCommit(false);
+
+        OrderSnapshot snapshot = getOrderSnapshot(conn, orderId);
+        if (snapshot == null
+                || (!"CREATED".equalsIgnoreCase(snapshot.orderStatus)
+                && !"PROCESSING".equalsIgnoreCase(snapshot.orderStatus))) {
+            conn.rollback();
+            return false;
+        }
+
+        boolean shouldRestoreStock = "COD".equalsIgnoreCase(snapshot.paymentMethod)
+                || "SUCCESS".equalsIgnoreCase(snapshot.paymentStatus);
+
+        if (shouldRestoreStock && !restoreStockForOrder(conn, orderId)) {
+            throw new SQLException("Cannot restore stock for order " + orderId);
+        }
+
+        String sql = "UPDATE Orders "
+                   + "SET order_status = 'CANCELLED', completed_at = NULL "
+                   + "WHERE order_id = ?";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, orderId);
+            boolean updated = ps.executeUpdate() > 0;
+            if (!updated) {
+                conn.rollback();
+                return false;
+            }
+        }
+
+        conn.commit();
+        return true;
 
     } catch (Exception e) {
+        if (conn != null) {
+            try {
+                conn.rollback();
+            } catch (SQLException ignored) {
+            }
+        }
         e.printStackTrace();
+    } finally {
+        if (conn != null) {
+            try {
+                conn.setAutoCommit(true);
+            } catch (SQLException ignored) {
+            }
+        }
     }
 
     return false;
 }
+
+    private boolean deductStockForOrder(Connection conn, int orderId) throws SQLException {
+        String sql = "UPDATE pv "
+                + "SET pv.stock = pv.stock - od.quantity "
+                + "FROM Product_Variant pv "
+                + "JOIN Order_Detail od ON pv.variant_id = od.variant_id "
+                + "WHERE od.order_id = ? AND pv.stock >= od.quantity";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, orderId);
+            return ps.executeUpdate() > 0;
+        }
+    }
+
+    private boolean restoreStockForOrder(Connection conn, int orderId) throws SQLException {
+        String sql = "UPDATE pv "
+                + "SET pv.stock = pv.stock + od.quantity "
+                + "FROM Product_Variant pv "
+                + "JOIN Order_Detail od ON pv.variant_id = od.variant_id "
+                + "WHERE od.order_id = ?";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, orderId);
+            return ps.executeUpdate() > 0;
+        }
+    }
+
+    private OrderSnapshot getOrderSnapshot(Connection conn, int orderId) throws SQLException {
+        String sql = "SELECT payment_method, payment_status, order_status "
+                + "FROM Orders WHERE order_id = ?";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, orderId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    OrderSnapshot snapshot = new OrderSnapshot();
+                    snapshot.paymentMethod = rs.getString("payment_method");
+                    snapshot.paymentStatus = rs.getString("payment_status");
+                    snapshot.orderStatus = rs.getString("order_status");
+                    return snapshot;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private void insertOrderStatusHistory(Connection conn, int orderId, String oldStatus, String newStatus, int changedBy)
+            throws SQLException {
+        String sql = "INSERT INTO Order_Status_History (order_id, old_status, new_status, changed_by) "
+                + "VALUES (?, ?, ?, ?)";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, orderId);
+            ps.setString(2, oldStatus);
+            ps.setString(3, newStatus);
+            ps.setInt(4, changedBy);
+            ps.executeUpdate();
+        }
+    }
+
+    private boolean equalsIgnoreCase(String left, String right) {
+        if (left == null && right == null) {
+            return true;
+        }
+        if (left == null || right == null) {
+            return false;
+        }
+        return left.equalsIgnoreCase(right);
+    }
+
+    private static class OrderSnapshot {
+        private String paymentMethod;
+        private String paymentStatus;
+        private String orderStatus;
+    }
 
 public boolean updateReview(int orderDetailId, int rating, String comment) {
         String sql = "UPDATE Order_Detail "

@@ -69,7 +69,9 @@ public class VoucherController extends HttpServlet {
             throws ServletException, IOException {
         List<Voucher> vouchers = voucherDAO.getAll();
         request.setAttribute("vouchers", vouchers);
-        request.getRequestDispatcher("/views/admin/manage-voucher.jsp").forward(request, response);
+        request.setAttribute("currentView", "voucher");
+        request.setAttribute("contentPage", "/views/admin/partials/manage-voucher-content.jsp");
+        request.getRequestDispatcher("/views/admin/admin-panel.jsp").forward(request, response);
     }
 
     private void createVoucher(HttpServletRequest request, HttpServletResponse response)

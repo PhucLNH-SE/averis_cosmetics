@@ -5,14 +5,12 @@ import Model.Manager;
 import java.io.IOException;
 import java.util.List;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import org.mindrot.jbcrypt.BCrypt;
 
-@WebServlet(name = "ManageStaffController", urlPatterns = {"/admin/manage-staff"})
 public class ManageStaffController extends HttpServlet {
 
     @Override
@@ -42,7 +40,9 @@ public class ManageStaffController extends HttpServlet {
             session.removeAttribute("errorMsg");
         }
 
-        request.getRequestDispatcher("/views/admin/manage-staff.jsp").forward(request, response);
+        request.setAttribute("currentView", "staff");
+        request.setAttribute("contentPage", "/views/admin/partials/manage-staff-content.jsp");
+        request.getRequestDispatcher("/views/admin/admin-panel.jsp").forward(request, response);
     }
 
     @Override

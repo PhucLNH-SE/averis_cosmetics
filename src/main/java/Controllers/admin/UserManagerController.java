@@ -19,10 +19,10 @@ public class UserManagerController extends HttpServlet {
 
         switch (path) {
             case "/admin/dashboard":
-                request.getRequestDispatcher("/views/admin/dashboard.jsp").forward(request, response);
+                response.sendRedirect(request.getContextPath() + "/admin/panel?view=dashboard");
                 break;
             case "/admin/manage-users":
-                showManageUsers(request, response);
+                response.sendRedirect(request.getContextPath() + "/admin/panel?view=users");
                 break;
             default:
                 response.sendError(HttpServletResponse.SC_NOT_FOUND);
@@ -46,21 +46,13 @@ public class UserManagerController extends HttpServlet {
         }
     }
 
-    private void showManageUsers(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        CustomerDAO customerDAO = new CustomerDAO();
-        List<Customer> users = customerDAO.getAllCustomers();
-        request.setAttribute("users", users);
-        request.getRequestDispatcher("/views/admin/manage-users.jsp").forward(request, response);
-    }
-
     private void updateUserStatus(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
         String idParam = request.getParameter("id");
         String statusParam = request.getParameter("status");
 
         if (idParam == null || statusParam == null) {
-            response.sendRedirect(request.getContextPath() + "/admin/manage-users");
+            response.sendRedirect(request.getContextPath() + "/admin/panel?view=users");
             return;
         }
 
@@ -69,9 +61,9 @@ public class UserManagerController extends HttpServlet {
             boolean targetStatus = Boolean.parseBoolean(statusParam);
             CustomerDAO customerDAO = new CustomerDAO();
             customerDAO.updateCustomerStatus(userId, targetStatus);
-            response.sendRedirect(request.getContextPath() + "/admin/manage-users?success=update");
+            response.sendRedirect(request.getContextPath() + "/admin/panel?view=users&success=update");
         } catch (NumberFormatException ex) {
-            response.sendRedirect(request.getContextPath() + "/admin/manage-users?error=updateFailed");
+            response.sendRedirect(request.getContextPath() + "/admin/panel?view=users&error=updateFailed");
         }
     }
 }
