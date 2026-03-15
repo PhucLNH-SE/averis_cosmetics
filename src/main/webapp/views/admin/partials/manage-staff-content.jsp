@@ -7,7 +7,7 @@
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
                 <h3 class="fw-bold mb-0">Staff Management</h3>
-                <p class="text-muted small">Manage system administrators and staff</p>
+                <p class="text-muted small">Manage system staff accounts</p>
             </div>
             <button class="btn btn-success px-3" data-bs-toggle="modal" data-bs-target="#addModal">
                 <i class="fas fa-user-plus me-1"></i> Add New Staff
@@ -41,39 +41,40 @@
                     </thead>
                     <tbody>
                         <c:forEach items="${listStaff}" var="s">
-                            <tr>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <div class="staff-avatar-placeholder me-3">
-                                            ${fn:substring(s.fullName, 0, 1)}
+                            <%-- CHỈ HIỂN THỊ STAFF, ẨN ADMIN --%>
+                            <c:if test="${s.managerRole == 'STAFF'}">
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="staff-avatar-placeholder me-3">
+                                                ${fn:substring(s.fullName, 0, 1)}
+                                            </div>
+                                            <span class="fw-bold text-dark">${s.fullName}</span>
                                         </div>
-                                        <span class="fw-bold text-dark">${s.fullName}</span>
-                                    </div>
-                                </td>
-                                <td>${s.email}</td>
-                                <td>
-                                    <span class="${s.managerRole == 'ADMIN' ? 'role-badge-admin' : 'role-badge-staff'}">
-                                        ${s.managerRole}
-                                    </span>
-                                </td>
-                                <td>
-                                    <span class="${s.status ? 'status-active' : 'status-inactive'}">
-                                        <i class="fas ${s.status ? 'fa-check-circle' : 'fa-ban'} me-1"></i>
-                                        ${s.status ? 'Active' : 'Banned'}
-                                    </span>
-                                </td>
-                                <td class="text-center">
-                                    <button class="btn btn-info btn-sm text-white px-2 me-1"
-                                            onclick="openViewModal('${s.managerId}', '${fn:escapeXml(s.fullName)}', '${s.email}', '${s.managerRole}', '${s.status}')">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
+                                    </td>
+                                    <td>${s.email}</td>
+                                    <td>
+                                        <span class="role-badge-staff">
+                                            ${s.managerRole}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="${s.status ? 'status-active' : 'status-inactive'}">
+                                            <i class="fas ${s.status ? 'fa-check-circle' : 'fa-ban'} me-1"></i>
+                                            ${s.status ? 'Active' : 'Banned'}
+                                        </span>
+                                    </td>
+                                    <td class="text-center">
+                                        <button class="btn btn-info btn-sm text-white px-2 me-1"
+                                                onclick="openViewModal('${s.managerId}', '${fn:escapeXml(s.fullName)}', '${s.email}', '${s.managerRole}', '${s.status}')">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
 
-                                    <button class="btn btn-primary btn-sm px-2 me-1"
-                                            onclick="openEditModal('${s.managerId}', '${fn:escapeXml(s.fullName)}', '${s.email}', '${s.managerRole}', '${s.status}')">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
+                                        <button class="btn btn-primary btn-sm px-2 me-1"
+                                                onclick="openEditModal('${s.managerId}', '${fn:escapeXml(s.fullName)}', '${s.email}', '${s.managerRole}', '${s.status}')">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
 
-                                    <c:if test="${s.managerId != sessionScope.manager.managerId}">
                                         <c:choose>
                                             <c:when test="${s.status}">
                                                 <button class="btn btn-danger btn-sm px-2" title="Ban Account"
@@ -88,9 +89,9 @@
                                                 </button>
                                             </c:otherwise>
                                         </c:choose>
-                                    </c:if>
-                                </td>
-                            </tr>
+                                    </td>
+                                </tr>
+                            </c:if>
                         </c:forEach>
                     </tbody>
                 </table>
@@ -103,6 +104,8 @@
             <div class="modal-content border-0 shadow">
                 <form action="${pageContext.request.contextPath}/admin/manage-staff" method="post">
                     <input type="hidden" name="action" value="add">
+                    <input type="hidden" name="role" value="STAFF"> 
+                    
                     <div class="modal-header bg-success text-white">
                         <h5 class="modal-title fw-bold">Add New Staff</h5>
                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
@@ -119,13 +122,6 @@
                         <div class="mb-3">
                             <label class="form-label fw-bold">Password</label>
                             <input type="password" name="password" class="form-control" required minlength="6">
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Role</label>
-                            <select name="role" class="form-select">
-                                <option value="STAFF">STAFF</option>
-                                <option value="ADMIN">ADMIN</option>
-                            </select>
                         </div>
                         <div class="form-check form-switch mt-3">
                             <input type="hidden" name="status" value="false">
@@ -148,6 +144,8 @@
                 <form action="${pageContext.request.contextPath}/admin/manage-staff" method="post">
                     <input type="hidden" name="action" value="update">
                     <input type="hidden" name="managerId" id="editId">
+                    <input type="hidden" name="role" id="editRole" value="STAFF">
+
                     <div class="modal-header bg-primary text-white">
                         <h5 class="modal-title fw-bold">Edit Staff Profile</h5>
                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
@@ -165,13 +163,6 @@
                             <label class="form-label fw-bold">New Password</label>
                             <input type="password" name="password" class="form-control" minlength="6" placeholder="Leave blank to keep current password">
                             <small class="text-primary mt-1 d-block">Leave blank if you do not want to change the password.</small>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Role</label>
-                            <select name="role" id="editRole" class="form-select">
-                                <option value="STAFF">STAFF</option>
-                                <option value="ADMIN">ADMIN</option>
-                            </select>
                         </div>
                         <div class="form-check form-switch mt-3">
                             <input type="hidden" name="status" value="false">
@@ -267,7 +258,8 @@
         document.getElementById('editId').value = id;
         document.getElementById('editName').value = name;
         document.getElementById('editEmail').value = email;
-        document.getElementById('editRole').value = role;
+        // Dữ liệu 'role' vẫn được gán vào thẻ ẩn <input type="hidden" id="editRole">
+        document.getElementById('editRole').value = role; 
         document.getElementById('editStatus').checked = (status === 'true');
         new bootstrap.Modal(document.getElementById('editModal')).show();
     }

@@ -86,7 +86,8 @@ public class ManageProductController extends HttpServlet {
         }
 
         // Render giao diện
-        List<Product> listP = dao.getAllProducts();
+        // Gọi hàm mới có lấy giá nhập:
+        List<Product> listP = dao.getAllProductsWithImportPrice();
         List<Brand> listB = dao.getAllBrands();
         List<Category> listC = dao.getAllCategories();
 
@@ -222,15 +223,21 @@ public class ManageProductController extends HttpServlet {
         // 3. Xử lý action Add và Update
         if ("add".equals(action)) {
             double price = 0;
+            double importPrice = 0;
+            int stock = 0; // Luôn tạo mới với số lượng là 0
+
             try {
                 String priceStr = request.getParameter("price");
-                if (priceStr != null && !priceStr.isEmpty()) {
-                    price = Double.parseDouble(priceStr);
-                }
+                String importPriceStr = request.getParameter("importPrice");
+
+                if (priceStr != null && !priceStr.isEmpty()) price = Double.parseDouble(priceStr);
+                if (importPriceStr != null && !importPriceStr.isEmpty()) importPrice = Double.parseDouble(importPriceStr);
             } catch (NumberFormatException e) {
                 e.printStackTrace();
             }
-            dao.insertProduct(name, desc, bid, cid, status, finalImageName, price);
+            
+            // Truyền thẳng kho = 0 xuống DAO
+            dao.insertProduct(name, desc, bid, cid, status, finalImageName, price, stock, importPrice);
             session.setAttribute("successMsg", "Thêm sản phẩm thành công!");
 
         } else if ("update".equals(action)) {

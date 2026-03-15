@@ -44,11 +44,11 @@
                         <div class="item-image">
                             <c:choose>
     <c:when test="${not empty entry.value.variant.imageUrl}">
-        <img src="<%=request.getContextPath()%>/assets/img/${entry.value.variant.imageUrl}" 
-             alt="Product" 
-             style="width:100%; height:100%; object-fit:contain; padding: 5px;"
-             onerror="this.src='<%=request.getContextPath()%>/assets/img/Logo.png';">
-    </c:when>
+<img src="<%=request.getContextPath()%>/assets/img/${entry.value.variant.imageUrl}"
+alt="Product"
+style="width:100%; height:100%; object-fit:contain; padding: 5px;"
+onerror="this.src='<%=request.getContextPath()%>/assets/img/Logo.png';">
+</c:when>
     <c:otherwise>
         <img src="<%=request.getContextPath()%>/assets/img/Logo.png" alt="No Image" 
              style="width:100%; height:100%; object-fit:contain; padding: 5px;">
@@ -60,8 +60,20 @@
                             <div>
                                 <a href="#" class="item-name">
                                     ${entry.value.variant.productName} 
-                                    <span style="color:var(--muted); font-weight:400;">(${entry.value.variant.variantName})</span>
                                 </a>
+                                
+                                <form action="cart" method="post" id="form-variant-${entry.key}">
+                                    <input type="hidden" name="action" value="changeVariant">
+                                    <input type="hidden" name="variantId" value="${entry.key}">
+                                    <select name="newVariantId" onchange="document.getElementById('form-variant-${entry.key}').submit()">
+                                        <c:forEach items="${availableVariants[entry.value.variant.productId]}" var="v">
+                                            <option value="${v.variantId}" ${v.variantId == entry.key ? 'selected' : ''}>
+                                                ${v.variantName}
+                                            </option>
+                                        </c:forEach>
+                                    </select>
+                                </form>
+
                                 <div class="item-price">
                                     <fmt:formatNumber value="${entry.value.variant.price}" pattern="#,##0"/> ₫
                                 </div>
@@ -79,6 +91,10 @@
                                         
                                         <button type="button" class="qty-btn" onclick="updateQty('${entry.key}', 1)">+</button>
                                     </div>
+                                    
+                                    <c:if test="${entry.value.quantity >= entry.value.variant.stock}">
+                                        <span style="color: red; font-size: 12px;">(Tối đa kho)</span>
+                                    </c:if>
                                 </form>
 
                                 <form action="cart" method="post" style="margin:0;">

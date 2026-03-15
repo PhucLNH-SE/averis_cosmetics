@@ -30,8 +30,27 @@ public class CartDetailDAO extends DBContext {
         return list;
     }
 
-    /** Thêm hoặc cộng dồn: nếu đã có (customer_id, variant_id) thì cập nhật quantity = quantity + addQuantity, không thì insert. */
-    public void addOrUpdate(int customerId, int variantId, int addQuantity) {
+    // --- HÀM HỖ TRỢ LẤY STOCK ---
+    private int getVariantStock(int variantId) {
+        String sql = "SELECT stock FROM Product_Variant WHERE variant_id = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, variantId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return rs.getInt("stock");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    /** * Cập nhật số lượng có check stock.
+     * @return số lượng thực tế đã được set vào giỏ hàng (nếu out of stock sẽ trả về stock tối đa) 
+     */
+    public int addOrUpdate(int customerId, int variantId, int addQuantity) {
+        int stock = getVariantStock(variantId);
+        if (stock <= 0) return 0; // Hết hàng thì không cho thêm
+
         String findSql = "SELECT cart_detail_id, quantity FROM Cart_Detail WHERE customer_id = ? AND variant_id = ?";
         try (PreparedStatement psFind = connection.prepareStatement(findSql)) {
             psFind.setInt(1, customerId);
@@ -41,8 +60,16 @@ public class CartDetailDAO extends DBContext {
                     int cartDetailId = rs.getInt("cart_detail_id");
                     int currentQty = rs.getInt("quantity");
                     int newQty = currentQty + addQuantity;
+                    
+                    // --- BẮT ĐẦU CHECK STOCK ---
+                    if (newQty > stock) {
+                        newQty = stock; // Ép về max stock nếu vượt
+                    }
+                    // ---------------------------
+
                     if (newQty <= 0) {
                         delete(customerId, variantId);
+                        return 0;
                     } else {
                         String updateSql = "UPDATE Cart_Detail SET quantity = ? WHERE cart_detail_id = ?";
                         try (PreparedStatement psUp = connection.prepareStatement(updateSql)) {
@@ -50,33 +77,46 @@ public class CartDetailDAO extends DBContext {
                             psUp.setInt(2, cartDetailId);
                             psUp.executeUpdate();
                         }
+                        return newQty;
                     }
                 } else {
                     if (addQuantity > 0) {
+                        int finalAddQty = Math.min(addQuantity, stock); // Check stock cho lần thêm mới
                         String insertSql = "INSERT INTO Cart_Detail (customer_id, variant_id, quantity) VALUES (?, ?, ?)";
                         try (PreparedStatement psIns = connection.prepareStatement(insertSql)) {
                             psIns.setInt(1, customerId);
                             psIns.setInt(2, variantId);
-                            psIns.setInt(3, addQuantity);
+                            psIns.setInt(3, finalAddQty);
                             psIns.executeUpdate();
                         }
+                        return finalAddQty;
                     }
                 }
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return 0;
     }
 
-    /** Đặt số lượng (update/delete): quantity <= 0 thì xóa dòng. */
-    public void setQuantity(int customerId, int variantId, int quantity) {
+    /** Đặt số lượng (có check stock) */
+    public int setQuantity(int customerId, int variantId, int quantity) {
         if (quantity <= 0) {
             delete(customerId, variantId);
-            return;
+            return 0;
         }
+
+        int stock = getVariantStock(variantId);
+        int finalQty = Math.min(quantity, stock); // Không cho phép set vượt stock
+
+        if (finalQty == 0) {
+            delete(customerId, variantId);
+            return 0;
+        }
+
         String sql = "UPDATE Cart_Detail SET quantity = ? WHERE customer_id = ? AND variant_id = ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setInt(1, quantity);
+            ps.setInt(1, finalQty);
             ps.setInt(2, customerId);
             ps.setInt(3, variantId);
             int updated = ps.executeUpdate();
@@ -85,13 +125,40 @@ public class CartDetailDAO extends DBContext {
                 try (PreparedStatement psIns = connection.prepareStatement(insertSql)) {
                     psIns.setInt(1, customerId);
                     psIns.setInt(2, variantId);
-                    psIns.setInt(3, quantity);
+                    psIns.setInt(3, finalQty);
                     psIns.executeUpdate();
                 }
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return finalQty;
+    }
+
+    /**
+     * TÍNH NĂNG MỚI: Đổi phân loại ngay trong giỏ hàng
+     */
+    public boolean changeVariant(int customerId, int oldVariantId, int newVariantId) {
+        if (oldVariantId == newVariantId) return true;
+
+        String findSql = "SELECT quantity FROM Cart_Detail WHERE customer_id = ? AND variant_id = ?";
+        try (PreparedStatement psFind = connection.prepareStatement(findSql)) {
+            psFind.setInt(1, customerId);
+            psFind.setInt(2, oldVariantId);
+            try (ResultSet rs = psFind.executeQuery()) {
+                if (rs.next()) {
+                    int currentQty = rs.getInt("quantity");
+                    // Xóa variant cũ
+                    delete(customerId, oldVariantId);
+                    // Thêm số lượng đó vào variant mới (hàm addOrUpdate sẽ tự gộp nếu variant mới đã có sẵn, và tự check stock luôn)
+                    addOrUpdate(customerId, newVariantId, currentQty);
+                    return true;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
     public void delete(int customerId, int variantId) {

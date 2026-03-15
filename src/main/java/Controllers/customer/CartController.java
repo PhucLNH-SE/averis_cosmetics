@@ -2,6 +2,7 @@ package Controllers.customer;
 
 import DALs.CartDetailDAO;
 import DALs.ProductDAO;
+import DALs.ProductVariantDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.*;
 import Model.CartDetail;
@@ -18,12 +19,13 @@ public class CartController extends HttpServlet {
 
     ProductDAO productDAO = new ProductDAO();
     CartDetailDAO cartDetailDAO = new CartDetailDAO();
+    ProductVariantDAO variantDAO = new ProductVariantDAO();
 
     private Map<Integer, CartItem> loadCartFromDb(int customerId) {
         Map<Integer, CartItem> cart = new HashMap<>();
         List<CartDetail> details = cartDetailDAO.getByCustomerId(customerId);
         for (CartDetail d : details) {
-            ProductVariant v = productDAO.getVariantById(d.getVariantId());
+            ProductVariant v = variantDAO.getVariantById(d.getVariantId());
             if (v != null) {
                 cart.put(d.getVariantId(), new CartItem(v, d.getQuantity()));
             }
@@ -35,19 +37,12 @@ public class CartController extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         
-        // --- THÊM ĐOẠN NÀY VÀO ĐẦU HÀM doGet ---
         String action = request.getParameter("action");
         if ("getCount".equals(action)) {
             HttpSession session = request.getSession();
             Map<Integer, CartItem> cart = (Map<Integer, CartItem>) session.getAttribute("cart");
             int count = (cart != null) ? cart.size() : 0;
             response.getWriter().write(String.valueOf(count));
-            return; // Dừng lại ở đây, không forward đi đâu cả
-        }
-        // ---------------------------------------
-
-        if (request.getParameter("variantId") != null) {
-            doPost(request, response);
             return;
         }
 
@@ -60,7 +55,6 @@ public class CartController extends HttpServlet {
         Map<Integer, CartItem> cart = (Map<Integer, CartItem>) session.getAttribute("cart");
         Customer customer = (Customer) session.getAttribute("customer");
 
-        // If not logged in, redirect to login
         if (customer == null) {
             session.setAttribute("redirectAfterLogin", request.getContextPath() + "/cart");
             response.sendRedirect(request.getContextPath() + "/auth?action=login");
@@ -74,12 +68,20 @@ public class CartController extends HttpServlet {
         if (cart == null) cart = new HashMap<>();
 
         BigDecimal total = BigDecimal.ZERO;
+        Map<Integer, List<ProductVariant>> availableVariants = new HashMap<>();
+        
         for (CartItem i : cart.values()) {
             total = total.add(i.getSubtotal());
+            
+            int productId = i.getVariant().getProductId();
+            if (!availableVariants.containsKey(productId)) {
+                availableVariants.put(productId, variantDAO.getVariantsByProductId(productId));
+            }
         }
 
         request.setAttribute("cart", cart);
         request.setAttribute("total", total);
+        request.setAttribute("availableVariants", availableVariants);
 
         request.getRequestDispatcher("/views/customer/cart.jsp").forward(request, response);
     }
@@ -91,7 +93,6 @@ public class CartController extends HttpServlet {
         String vRaw = request.getParameter("variantId");
         String qRaw = request.getParameter("quantity");
         
-        // Mặc định action là "add" nếu không gửi lên
         String action = request.getParameter("action");
         if (action == null) action = "add"; 
 
@@ -127,34 +128,67 @@ public class CartController extends HttpServlet {
             switch (action) {
                 case "update":
                     if (cart.containsKey(variantId)) {
-                        if (quantity <= 0) {
+                        int finalQty = cartDetailDAO.setQuantity(customer.getCustomerId(), variantId, quantity);
+                        if (finalQty <= 0) {
                             cart.remove(variantId);
-                            cartDetailDAO.delete(customer.getCustomerId(), variantId);
                         } else {
-                            cart.get(variantId).setQuantity(quantity);
-                            cartDetailDAO.setQuantity(customer.getCustomerId(), variantId, quantity);
+                            cart.get(variantId).setQuantity(finalQty);
+                        }
+                    }
+                    break;
+
+                case "changeVariant":
+                    String newVariantIdRaw = request.getParameter("newVariantId");
+                    if (newVariantIdRaw != null) {
+                        int newVariantId = Integer.parseInt(newVariantIdRaw);
+                        boolean changed = cartDetailDAO.changeVariant(customer.getCustomerId(), variantId, newVariantId);
+                        if (changed) {
+                            cart = loadCartFromDb(customer.getCustomerId());
                         }
                     }
                     break;
 
                 case "add":
                 default:
-                    ProductVariant v = productDAO.getVariantById(variantId);
+                    ProductVariant v = variantDAO.getVariantById(variantId);
                     if (v != null) {
-                        if (cart.containsKey(variantId)) {
-                            CartItem item = cart.get(variantId);
-                            item.setQuantity(item.getQuantity() + quantity);
-                        } else {
-                            cart.put(variantId, new CartItem(v, quantity));
+                        // --- LOGIC KIỂM TRA SỐ LƯỢNG TỒN KHO ---
+                        int currentQtyInCart = cart.containsKey(variantId) ? cart.get(variantId).getQuantity() : 0;
+                        
+                        if (currentQtyInCart + quantity > v.getStock()) {
+                            String errorMsg = "Vượt quá tồn kho! Cửa hàng chỉ còn " + v.getStock() + " sản phẩm loại này.";
+                            
+                            // Trả về lỗi 400 (Bad Request) nếu là gọi qua AJAX
+                            if ("true".equals(request.getParameter("ajax"))) {
+                                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                                response.setContentType("text/plain;charset=UTF-8");
+                                response.getWriter().write(errorMsg);
+                                return; // Dừng, không cho add tiếp
+                            } else {
+                                // Nếu gọi qua Form submit bình thường
+                                session.setAttribute("errorMsg", errorMsg);
+                                String referer = request.getHeader("referer");
+                                response.sendRedirect(referer != null ? referer : "products");
+                                return; // Dừng, không cho add tiếp
+                            }
                         }
-                        cartDetailDAO.addOrUpdate(customer.getCustomerId(), variantId, quantity);
+                        // ----------------------------------------
+
+                        // Nếu qua được vòng kiểm tra trên, tiến hành add như bình thường
+                        int finalQty = cartDetailDAO.addOrUpdate(customer.getCustomerId(), variantId, quantity);
+                        if (finalQty > 0) {
+                            if (cart.containsKey(variantId)) {
+                                cart.get(variantId).setQuantity(finalQty);
+                            } else {
+                                cart.put(variantId, new CartItem(v, finalQty));
+                            }
+                        }
                     }
                     break;
             }
 
             session.setAttribute("cart", cart);
 
-            // Xử lý phản hồi (AJAX hoặc Redirect)
             String isAjax = request.getParameter("ajax");
             if ("true".equals(isAjax)) {
                 response.setContentType("text/plain");

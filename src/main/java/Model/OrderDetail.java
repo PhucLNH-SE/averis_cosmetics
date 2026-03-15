@@ -34,6 +34,7 @@ import java.time.LocalDateTime;
     public String ImageUrl ;
     public String BrandName;
     public String CategoryName ;
+    private String variantName;
     public OrderDetail() {
     }
 
@@ -49,12 +50,15 @@ import java.time.LocalDateTime;
         this.CategoryName = CategoryName;
     }
     
+  
+    
     
     public String getCustomerName() { return customerName; }
     public void setCustomerName(String customerName) { this.customerName = customerName; }
     public String getManagerName() { return managerName; }
     public void setManagerName(String managerName) { this.managerName = managerName; }
     // --- GETTER & SETTER ---
+    
     public Integer getManagerResponse() {
         return managerResponse;
     }

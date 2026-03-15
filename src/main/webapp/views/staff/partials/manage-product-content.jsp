@@ -86,6 +86,7 @@
                                 </c:choose>
                             </td>
                             
+                            <%-- HIỂN THỊ TÊN BIẾN THỂ KÈM GIÁ NHẬP --%>
                             <td>
                                 <c:choose>
                                     <c:when test="${empty p.variants}">
@@ -167,8 +168,8 @@
                 </c:when>
                 <c:otherwise>
                     <c:forEach items="${p.variants}" var="v">
-                        <div class="d-flex gap-2 mb-2 p-2 border-bottom align-items-end bg-white rounded">
-                            <form action="${pageContext.request.contextPath}/admin/manage-variant" method="post" class="d-flex gap-2 flex-grow-1 align-items-end mb-0">
+                        <div class="d-flex gap-2 mb-2 p-2 border-bottom align-items-center bg-white rounded">
+                            <form action="${pageContext.request.contextPath}/admin/manage-variant" method="post" class="d-flex gap-2 flex-grow-1 align-items-center mb-0">
                                 <input type="hidden" name="action" value="update">
                                 <input type="hidden" name="variantId" value="${v.variantId}">
                                 <input type="hidden" name="productId" value="${p.productId}">
@@ -179,20 +180,23 @@
                                     <input type="text" name="variantName" class="form-control form-control-sm text-primary fw-bold" value="${v.variantName}" required>
                                 </div>
                                 <div class="flex-grow-1" style="max-width: 150px;">
-                                    <label class="small text-muted mb-1 fw-bold">Price (VND)</label>
+                                    <label class="small text-muted mb-1 fw-bold">Sale Price (VND)</label>
                                     <input type="number" step="0.01" name="price" class="form-control form-control-sm text-danger fw-bold" value="${v.price}" required>
                                 </div>
-                                <div class="flex-grow-1" style="max-width: 80px;">
-                                    <label class="small text-muted mb-1 fw-bold text-success">Stock</label>
-                                    <input type="text" class="form-control form-control-sm text-center fw-bold bg-light text-success" value="${v.stock}" readonly title="Stock is read-only">
+                                
+                                <div class="ms-2 me-3 text-center" style="min-width: 80px;">
+                                    <label class="small text-muted mb-1 fw-bold d-block">Stock</label>
+                                    <span class="badge ${v.stock > 10 ? 'bg-success' : (v.stock > 0 ? 'bg-warning text-dark' : 'bg-danger')}">
+                                        ${v.stock}
+                                    </span>
                                 </div>
 
-                                <button type="submit" class="btn btn-success btn-sm px-3 mb-1" title="Save">
+                                <button type="submit" class="btn btn-success btn-sm px-3 mt-3" title="Save">
                                     <i class="fas fa-save"></i>
                                 </button>
                             </form>
 
-                            <form action="${pageContext.request.contextPath}/admin/manage-variant" method="post" class="mb-1" onsubmit="return confirm('Do you want delete?');">
+                            <form action="${pageContext.request.contextPath}/admin/manage-variant" method="post" class="mb-0 mt-3" onsubmit="return confirm('Do you want delete?');">
                                 <input type="hidden" name="action" value="delete">
                                 <input type="hidden" name="variantId" value="${v.variantId}">
                                 <button type="submit" class="btn btn-danger btn-sm px-3" title="Delete">
@@ -223,15 +227,15 @@
                             <input type="hidden" name="productId" id="addVarProductId">
                             <input type="hidden" name="stock" value="0">
                             
-                            <div class="col-md-5">
+                            <div class="col-md-6">
                                 <label class="small text-muted mb-1 fw-bold">Variant Name</label>
                                 <input type="text" name="variantName" class="form-control form-control-sm" placeholder="Ex: 50ml" required>
                             </div>
                             <div class="col-md-4">
-                                <label class="small text-muted mb-1 fw-bold">Price</label>
+                                <label class="small text-muted mb-1 fw-bold">Sale Price</label>
                                 <input type="number" step="0.01" name="price" class="form-control form-control-sm" placeholder="Price" required>
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-2">
                                 <button type="submit" class="btn btn-primary btn-sm w-100"><i class="fas fa-plus"></i> Add</button>
                             </div>
                         </form>
@@ -250,6 +254,7 @@
         <div class="modal-content">
             <form action="${pageContext.request.contextPath}/admin/manage-product" method="post" enctype="multipart/form-data">
                 <input type="hidden" name="action" value="add">
+                <input type="hidden" name="stock" value="0">
                 <div class="modal-header bg-success text-white">
                     <h5 class="modal-title fw-bold">Add New Product</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
@@ -267,9 +272,7 @@
                     </div>
 
                     <div class="row bg-light p-3 rounded border mb-3 mx-0">
-                        <h6 class="fw-bold text-secondary mb-2 border-bottom pb-1">Pricing & Inventory (Bản mặc định)</h6>
-                        <input type="hidden" name="stock" value="0">
-
+                        <h6 class="fw-bold text-secondary mb-2 border-bottom pb-1">Pricing (Bản mặc định)</h6>
                         <div class="col-md-6 mb-2">
                             <label class="form-label text-danger fw-bold small">Sale Price</label>
                             <input type="number" step="0.01" name="price" class="form-control" required placeholder="Ex: 299000">

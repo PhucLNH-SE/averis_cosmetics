@@ -468,9 +468,13 @@
                                                         <span class="qty-value">${d.quantity}</span>
                                                     </div>
                                                     <div class="item-price">
-                                                        <span class="price-value"><fmt:formatNumber value="${d.priceAtOrder}" pattern="#,##0"/> ₫</span>
+                                                        <span class="price-value">
+                                                            <fmt:formatNumber value="${d.priceAtOrder * d.quantity}" pattern="#,##0"/> ₫
+                                                        </span>
                                                         <c:if test="${d.quantity > 1}">
-                                                            <span class="price-sub"><fmt:formatNumber value="${d.priceAtOrder * d.quantity}" pattern="#,##0"/> ₫</span>
+                                                            <div style="font-size: 0.85em; color: #9ca3af; text-decoration: none; margin-top: 4px;">
+                                                                (Original Price: <fmt:formatNumber value="${d.priceAtOrder}" pattern="#,##0"/> ₫)
+                                                            </div>
                                                         </c:if>
                                                     </div>
 
@@ -726,20 +730,22 @@
 <%@include file="/assets/footer.jsp" %>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-                                        function confirmCancel(orderId) {
-                                            Swal.fire({
-                                                title: 'Cancel Order',
-                                                text: 'Bạn có chắc muốn hủy đơn này?',
-                                                icon: 'warning',
-                                                showCancelButton: true,
-                                                confirmButtonText: 'Yes, Cancel',
-                                                cancelButtonText: 'No',
-                                                confirmButtonColor: '#d33',
-                                                cancelButtonColor: '#3085d6'
-                                            }).then((result) => {
-                                                if (result.isConfirmed) {
-                                                    window.location.href =
-                                                            'profile?action=cancelOrder&orderId=' + orderId;
+                                                function confirmCancel(orderId) {
+                                                    Swal.fire({
+                                                        title: 'Cancel Order',
+                                                        text: 'Bạn có chắc muốn hủy đơn này?',
+                                                        icon: 'warning',
+                                                        showCancelButton: true,
+                                                        confirmButtonText: 'Yes, Cancel',
+                                                        cancelButtonText: 'No',
+                                                        confirmButtonColor: '#d33',
+                                                        cancelButtonColor: '#3085d6'
+                                                    }).then((result) => {
+                                                        if (result.isConfirmed) {
+                                                            window.location.href =
+                                                                    'profile?action=cancelOrder&orderId=' + orderId;
+                                                        }
+                                                    });
                                                 }
                                             });
                                         }
@@ -876,6 +882,23 @@
                                             ratingText.textContent = ratingTexts[value - 1];
                                         }
                                       
+
+
+
+                                                function updateStars(value) {
+                                                    const stars = document.querySelectorAll('.star-rating-select .fa-star');
+                                                    const ratingText = document.getElementById('ratingText');
+
+                                                    stars.forEach(s => {
+                                                        if (parseInt(s.getAttribute('data-val')) <= value) {
+                                                            s.style.color = '#f59e0b'; // Màu vàng
+                                                        } else {
+                                                            s.style.color = '#e5e7eb'; // Màu xám nhạt
+                                                        }
+                                                    });
+                                                    ratingText.textContent = ratingTexts[value - 1];
+                                                }
+
 
 
 
