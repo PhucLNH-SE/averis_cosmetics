@@ -20,9 +20,7 @@
 
                 <div class="account-card">
 
-                    <div class="account-avatar">
-                        <div class="avatar-circle"></div>
-                    </div>
+
 
                     <ul class="account-menu">
                         <li>
@@ -470,9 +468,13 @@
                                                         <span class="qty-value">${d.quantity}</span>
                                                     </div>
                                                     <div class="item-price">
-                                                        <span class="price-value"><fmt:formatNumber value="${d.priceAtOrder}" pattern="#,##0"/> ₫</span>
+                                                        <span class="price-value">
+                                                            <fmt:formatNumber value="${d.priceAtOrder * d.quantity}" pattern="#,##0"/> ₫
+                                                        </span>
                                                         <c:if test="${d.quantity > 1}">
-                                                            <span class="price-sub"><fmt:formatNumber value="${d.priceAtOrder * d.quantity}" pattern="#,##0"/> ₫</span>
+                                                            <div style="font-size: 0.85em; color: #9ca3af; text-decoration: none; margin-top: 4px;">
+                                                                (Original Price: <fmt:formatNumber value="${d.priceAtOrder}" pattern="#,##0"/> ₫)
+                                                            </div>
                                                         </c:if>
                                                     </div>
 
@@ -686,6 +688,11 @@
                                             ${error}
                                         </div>
                                     </c:if>
+                                    <c:if test="${not empty errors.errorPassword}">
+                                        <div class="alert alert-danger">
+                                            ${errors.errorPassword}
+                                        </div>
+                                    </c:if>
                                     <c:if test="${not empty profileMessage}">
                                         <div class="alert alert-success">
                                             ${profileMessage}
@@ -718,120 +725,11 @@
 
 </div>
 
+<%-- (Các phần trên giữ nguyên) --%>
+
 <%@include file="/assets/footer.jsp" %>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-function confirmCancel(orderId) {
-    Swal.fire({
-        title: 'Cancel Order',
-        text: 'Bạn có chắc muốn hủy đơn này?',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Yes, Cancel',
-        cancelButtonText: 'No',
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#3085d6'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            window.location.href =
-                'profile?action=cancelOrder&orderId=' + orderId;
-        }
-    });
-}
-
-function openAddressPopup(mode, trigger) {
-    const overlay = document.getElementById('addressPopupOverlay');
-    const title = document.getElementById('addressPopupTitle');
-    const subtitle = document.getElementById('addressPopupSubtitle');
-    const frame = document.getElementById('addressPopupFrame');
-
-    if (!overlay || !frame) {
-        return;
-    }
-
-    if (mode === 'edit' && trigger) {
-        title.textContent = 'Edit Address';
-        subtitle.textContent = 'Update your delivery address details';
-        frame.src = '${pageContext.request.contextPath}/address?action=edit&id='
-                + encodeURIComponent(trigger.getAttribute('data-address-id') || '');
-    } else {
-        title.textContent = 'Add New Address';
-        subtitle.textContent = 'Enter your delivery address details';
-        frame.src = '${pageContext.request.contextPath}/address?action=add';
-    }
-
-    overlay.classList.add('show');
-    document.body.classList.add('address-popup-open');
-}
-
-function closeAddressPopup(event) {
-    const overlay = document.getElementById('addressPopupOverlay');
-    const frame = document.getElementById('addressPopupFrame');
-    if (!overlay) {
-        return;
-    }
-
-    if (!event || event.target === overlay) {
-        overlay.classList.remove('show');
-        document.body.classList.remove('address-popup-open');
-        if (frame) {
-            frame.src = 'about:blank';
-        }
-    }
-}
-
-document.addEventListener('DOMContentLoaded', function () {
-    const frame = document.getElementById('addressPopupFrame');
-    if (!frame) {
-        return;
-    }
-
-    frame.addEventListener('load', function () {
-        try {
-            const frameWindow = frame.contentWindow;
-            const doc = frame.contentDocument || frameWindow.document;
-            const frameUrl = new URL(frameWindow.location.href);
-            const isProfileAddressPage = frameUrl.pathname.endsWith('/profile')
-                    && frameUrl.searchParams.get('action') === 'view'
-                    && frameUrl.searchParams.get('tab') === 'address';
-
-            if (isProfileAddressPage) {
-                closeAddressPopup();
-                window.location.href = frameUrl.pathname + frameUrl.search;
-                return;
-            }
-
-            const topbar = doc.querySelector('.topbar-shell');
-            const footer = doc.querySelector('footer');
-            const container = doc.querySelector('.container');
-
-            if (topbar) {
-                topbar.style.display = 'none';
-            }
-            if (footer) {
-                footer.style.display = 'none';
-            }
-                    if (container) {
-                        container.style.margin = '0 auto';
-                        container.style.padding = '24px';
-                        container.style.maxWidth = '100%';
-                    }
-
-                    doc.querySelectorAll('.address-form-actions .btn-secondary').forEach(function (button) {
-                        button.style.display = 'none';
-                    });
-                } catch (error) {
-                    console.error('Cannot optimize address popup frame:', error);
-                }
-    });
-});
-</script>
-</body>
-        <%-- (Các phần trên giữ nguyên) --%>
-
-        <%@include file="/assets/footer.jsp" %>
-        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-        <script>
                                                 function confirmCancel(orderId) {
                                                     Swal.fire({
                                                         title: 'Cancel Order',
@@ -981,5 +879,10 @@ document.addEventListener('DOMContentLoaded', function () {
                                                     });
                                                     ratingText.textContent = ratingTexts[value - 1];
                                                 }
-        </script> </body>
+
+
+
+
+</script> 
+</body>
 </html>

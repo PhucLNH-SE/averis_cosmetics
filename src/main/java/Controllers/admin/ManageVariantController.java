@@ -46,4 +46,5 @@ public class ManageVariantController extends HttpServlet {
         // Cập nhật giá xong thì chuyển hướng lại về trang danh sách sản phẩm
         response.sendRedirect(request.getContextPath() + "/admin/manage-product");
     }
+    
 }

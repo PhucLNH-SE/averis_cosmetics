@@ -320,18 +320,23 @@ public class ProductDAO extends DBContext {
         return list;
     }
 
+    // Đã thay đổi tham số truyền vào: thêm int stock và double importPrice
     public void insertProduct(String name, String description, int brandId, int categoryId,
-                              boolean status, String imageName, double price) {
+                              boolean status, String imageName, double price, int stock, double importPrice) {
+        
         String insertProductSql = "INSERT INTO Product (name, description, brand_id, category_id, status) "
                 + "VALUES (?, ?, ?, ?, ?)";
         String insertImageSql = "INSERT INTO Product_Image (product_id, image_url, is_main) VALUES (?, ?, 1)";
-        String insertVariantSql = "INSERT INTO Product_Variant (product_id, variant_name, price, stock, status) "
-                + "VALUES (?, 'Standard', ?, 100, 1)";
+        
+        // CHỖ SỬA QUAN TRỌNG NHẤT LÀ ĐÂY: Thêm avg_cost và stock vào câu Query
+        String insertVariantSql = "INSERT INTO Product_Variant (product_id, variant_name, price, stock, avg_cost, status) "
+                + "VALUES (?, 'Standard', ?, ?, ?, 1)";
 
         try {
             connection.setAutoCommit(false);
 
             int newId = 0;
+            // 1. Insert Product
             try (PreparedStatement psProduct = connection.prepareStatement(insertProductSql, Statement.RETURN_GENERATED_KEYS)) {
                 psProduct.setString(1, name);
                 psProduct.setString(2, description);
@@ -348,6 +353,7 @@ public class ProductDAO extends DBContext {
             }
 
             if (newId > 0) {
+                // 2. Insert Image
                 if (imageName != null && !imageName.isEmpty()) {
                     try (PreparedStatement psImage = connection.prepareStatement(insertImageSql)) {
                         psImage.setInt(1, newId);
@@ -356,9 +362,12 @@ public class ProductDAO extends DBContext {
                     }
                 }
 
+                // 3. Insert Variant (với số lượng và giá nhập)
                 try (PreparedStatement psVariant = connection.prepareStatement(insertVariantSql)) {
                     psVariant.setInt(1, newId);
                     psVariant.setDouble(2, price);
+                    psVariant.setInt(3, stock);         // Gán Số lượng
+                    psVariant.setDouble(4, importPrice);// Gán Giá nhập (avg_cost)
                     psVariant.executeUpdate();
                 }
             }
@@ -705,6 +714,88 @@ public class ProductDAO extends DBContext {
         }
 
         return null;
+    }
+    
+    // =========================================================================
+    // CÁC HÀM MỚI THÊM ĐỂ LẤY GIÁ NHẬP (KHÔNG ẢNH HƯỞNG CODE CŨ CỦA TEAM)
+    // =========================================================================
+
+    public List<Product> getAllProductsWithImportPrice() {
+        List<Product> list = new ArrayList<>();
+        String sql = "SELECT "
+                + "  p.product_id, p.name, p.description, p.status, "
+                + "  b.brand_id, b.name AS brand_name, b.status AS brand_status, "
+                + "  c.category_id, c.name AS category_name, c.status AS category_status, "
+                + "  pi.image_id, pi.image_url, pi.is_main, "
+                + "  MIN(pv.price) AS min_price, MAX(pv.price) AS max_price "
+                + "FROM Product p "
+                + "JOIN Brand b ON p.brand_id = b.brand_id "
+                + "JOIN Category c ON p.category_id = c.category_id "
+                + "LEFT JOIN Product_Image pi ON p.product_id = pi.product_id "
+                + "LEFT JOIN Product_Variant pv ON p.product_id = pv.product_id AND pv.status = 1 "
+                + "GROUP BY p.product_id, p.name, p.description, p.status, "
+                + "         b.brand_id, b.name, b.status, "
+                + "         c.category_id, c.name, c.status, "
+                + "         pi.image_id, pi.image_url, pi.is_main "
+                + "ORDER BY p.product_id DESC, pi.is_main DESC, pi.image_id ASC";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            Map<Integer, Product> productMap = new HashMap<>();
+
+            while (rs.next()) {
+                int productId = rs.getInt("product_id");
+                Product product = productMap.get(productId);
+
+                if (product == null) {
+                    product = mapBaseProduct(rs, productId, true);
+                    product.setPrice(rs.getDouble("min_price"));
+                    product.setMaxPrice(rs.getDouble("max_price"));
+                    // GỌI ĐẾN HÀM LẤY VARIANT MỚI BÊN DƯỚI
+                    product.setVariants(getProductVariantsWithImportPrice(productId)); 
+                    productMap.put(productId, product);
+                }
+
+                addImageFromRow(rs, product, productId);
+            }
+
+            finalizeMainImages(productMap);
+            list.addAll(productMap.values());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
+
+    private List<ProductVariant> getProductVariantsWithImportPrice(int productId) {
+        List<ProductVariant> variants = new ArrayList<>();
+        // Đã thêm avg_cost vào câu SELECT
+        String sql = "SELECT variant_id, product_id, variant_name, price, stock, avg_cost, status "
+                + "FROM Product_Variant WHERE product_id = ? AND status = 1";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, productId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    ProductVariant variant = new ProductVariant();
+                    variant.setVariantId(rs.getInt("variant_id"));
+                    variant.setProductId(rs.getInt("product_id"));
+                    variant.setVariantName(rs.getString("variant_name"));
+                    variant.setPrice(rs.getBigDecimal("price"));
+                    variant.setStock(rs.getInt("stock"));
+                    variant.setStatus(rs.getBoolean("status"));
+                    // Set giá nhập vào đây (Dùng BigDecimal theo form mẫu cũ của bro)
+                    variant.setImportPrice(rs.getBigDecimal("avg_cost")); 
+                    variants.add(variant);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return variants;
     }
     
 }

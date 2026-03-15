@@ -76,4 +76,38 @@ public class ProductVariantDAO extends DBContext {
             e.printStackTrace();
         }
     }
+    
+    // 5. Lấy chi tiết 1 biến thể theo variantId (Đã join lấy ảnh và tên SP)
+    public ProductVariant getVariantById(int variantId) {
+        String sql = "SELECT pv.variant_id, pv.product_id, pv.variant_name, pv.price, pv.stock, pv.status, "
+                   + "p.name AS product_name, pi.image_url "
+                   + "FROM Product_Variant pv "
+                   + "JOIN Product p ON pv.product_id = p.product_id "
+                   + "LEFT JOIN Product_Image pi ON p.product_id = pi.product_id AND pi.is_main = 1 "
+                   + "WHERE pv.variant_id = ?";
+                   
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, variantId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    ProductVariant v = new ProductVariant();
+                    v.setVariantId(rs.getInt("variant_id"));
+                    v.setProductId(rs.getInt("product_id"));
+                    v.setVariantName(rs.getString("variant_name"));
+                    v.setPrice(rs.getBigDecimal("price"));
+                    v.setStock(rs.getInt("stock"));
+                    v.setStatus(rs.getBoolean("status"));
+                    
+                    // Set thêm dữ liệu lấy từ bảng Product và Product_Image
+                    v.setProductName(rs.getString("product_name"));
+                    v.setImageUrl(rs.getString("image_url"));
+                    
+                    return v;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 }
