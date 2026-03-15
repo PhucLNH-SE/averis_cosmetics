@@ -103,6 +103,14 @@
     <servlet-class>Controllers.admin.PQuantityManagerController</servlet-class>
   </servlet>
   <servlet>
+    <servlet-name>AdminManageOrderController</servlet-name>
+    <servlet-class>Controllers.admin.AdminManageOrderController</servlet-class>
+</servlet>
+<servlet>
+    <servlet-name>AdminManageFeedbackController</servlet-name>
+    <servlet-class>Controllers.admin.AdminManageFeedbackController</servlet-class>
+</servlet>
+  <servlet>
     <servlet-name>ManageProductController</servlet-name>
     <servlet-class>Controllers.admin.ManageProductController</servlet-class>
     <multipart-config>
@@ -189,6 +197,14 @@
     <servlet-name>CategoryController</servlet-name>
     <url-pattern>/admin/delete-category</url-pattern>
   </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>AdminManageOrderController</servlet-name>
+    <url-pattern>/admin/manage-orders</url-pattern>
+</servlet-mapping>
+<servlet-mapping>
+    <servlet-name>AdminManageFeedbackController</servlet-name>
+    <url-pattern>/admin/manage-feedback</url-pattern>
+</servlet-mapping>
   <servlet-mapping>
     <servlet-name>ProfileController</servlet-name>
     <url-pattern>/profile</url-pattern>
