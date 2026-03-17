@@ -12,7 +12,7 @@ public class AddressDAO extends DBContext {
     
     public List<Address> getAddressesByCustomerId(int customerId) {
         List<Address> addresses = new ArrayList<>();
-        String sql = "SELECT * FROM Address WHERE customer_id = ? ORDER BY is_default DESC, address_id";
+        String sql = "SELECT * FROM Address WHERE customer_id = ? AND is_deleted = 0 ORDER BY is_default DESC, address_id";
         
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, customerId);
