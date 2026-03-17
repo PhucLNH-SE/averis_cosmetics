@@ -766,123 +766,88 @@
                                                         }
                                                     });
                                                 }
-                                            });
-                                        }
 
-                                        function openAddressPopup(mode, trigger) {
-                                            const overlay = document.getElementById('addressPopupOverlay');
-                                            const title = document.getElementById('addressPopupTitle');
-                                            const subtitle = document.getElementById('addressPopupSubtitle');
-                                            const frame = document.getElementById('addressPopupFrame');
+                                                function openAddressPopup(mode, trigger) {
+                                                    const overlay = document.getElementById('addressPopupOverlay');
+                                                    const title = document.getElementById('addressPopupTitle');
+                                                    const subtitle = document.getElementById('addressPopupSubtitle');
+                                                    const frame = document.getElementById('addressPopupFrame');
 
-                                            if (!overlay || !frame) {
-                                                return;
-                                            }
-
-                                            if (mode === 'edit' && trigger) {
-                                                title.textContent = 'Edit Address';
-                                                subtitle.textContent = 'Update your delivery address details';
-                                                frame.src = '${pageContext.request.contextPath}/address?action=edit&id='
-                                                        + encodeURIComponent(trigger.getAttribute('data-address-id') || '');
-                                            } else {
-                                                title.textContent = 'Add New Address';
-                                                subtitle.textContent = 'Enter your delivery address details';
-                                                frame.src = '${pageContext.request.contextPath}/address?action=add';
-                                            }
-
-                                            overlay.classList.add('show');
-                                            document.body.classList.add('address-popup-open');
-                                        }
-
-                                        function closeAddressPopup(event) {
-                                            const overlay = document.getElementById('addressPopupOverlay');
-                                            const frame = document.getElementById('addressPopupFrame');
-                                            if (!overlay) {
-                                                return;
-                                            }
-
-                                            if (!event || event.target === overlay) {
-                                                overlay.classList.remove('show');
-                                                document.body.classList.remove('address-popup-open');
-                                                if (frame) {
-                                                    frame.src = 'about:blank';
-                                                }
-                                            }
-                                        }
-
-                                        document.addEventListener('DOMContentLoaded', function () {
-                                            const frame = document.getElementById('addressPopupFrame');
-                                            if (!frame) {
-                                                return;
-                                            }
-
-                                            frame.addEventListener('load', function () {
-                                                try {
-                                                    const frameWindow = frame.contentWindow;
-                                                    const doc = frame.contentDocument || frameWindow.document;
-                                                    const frameUrl = new URL(frameWindow.location.href);
-                                                    const isProfileAddressPage = frameUrl.pathname.endsWith('/profile')
-                                                            && frameUrl.searchParams.get('action') === 'view'
-                                                            && frameUrl.searchParams.get('tab') === 'address';
-
-                                                    if (isProfileAddressPage) {
-                                                        closeAddressPopup();
-                                                        window.location.href = frameUrl.pathname + frameUrl.search;
+                                                    if (!overlay || !frame) {
                                                         return;
                                                     }
 
-                                                    const topbar = doc.querySelector('.topbar-shell');
-                                                    const footer = doc.querySelector('footer');
-                                                    const container = doc.querySelector('.container');
+                                                    if (mode === 'edit' && trigger) {
+                                                        title.textContent = 'Edit Address';
+                                                        subtitle.textContent = 'Update your delivery address details';
+                                                        frame.src = '${pageContext.request.contextPath}/address?action=edit&id='
+                                                                + encodeURIComponent(trigger.getAttribute('data-address-id') || '');
+                                                    } else {
+                                                        title.textContent = 'Add New Address';
+                                                        subtitle.textContent = 'Enter your delivery address details';
+                                                        frame.src = '${pageContext.request.contextPath}/address?action=add';
+                                                    }
 
-                                                    if (topbar) {
-                                                        topbar.style.display = 'none';
-                                                    }
-                                                    if (footer) {
-                                                        footer.style.display = 'none';
-                                                    }
-                                                    if (container) {
-                                                        container.style.margin = '0 auto';
-                                                        container.style.padding = '24px';
-                                                        container.style.maxWidth = '100%';
-                                                    }
-                                                } catch (error) {
-                                                    console.error('Cannot optimize address popup frame:', error);
+                                                    overlay.classList.add('show');
+                                                    document.body.classList.add('address-popup-open');
                                                 }
-                                            });
-                                        });
 
-                                        // ===== PHẦN CODE MỚI DÀNH CHO FEEDBACK ===== //
-                                        // Biến lưu trữ mảng text tương ứng với số sao
-                                        const ratingTexts = ["Tệ", "Không hài lòng", "Bình thường", "Hài lòng", "Tuyệt vời"];
+                                                function closeAddressPopup(event) {
+                                                    const overlay = document.getElementById('addressPopupOverlay');
+                                                    const frame = document.getElementById('addressPopupFrame');
+                                                    if (!overlay) {
+                                                        return;
+                                                    }
 
-                                        function openFeedbackPopup(orderDetailId, productName) {
-                                            const overlay = document.getElementById('feedbackPopupOverlay');
-                                            document.getElementById('feedbackOrderDetailId').value = orderDetailId;
-                                            document.getElementById('feedbackProductName').textContent = productName;
+                                                    if (!event || event.target === overlay) {
+                                                        overlay.classList.remove('show');
+                                                        document.body.classList.remove('address-popup-open');
+                                                        if (frame) {
+                                                            frame.src = 'about:blank';
+                                                        }
+                                                    }
+                                                }
 
-                                            // Reset form về mặc định 5 sao
-                                            document.getElementById('feedbackForm').reset();
-                                            updateStars(5);
-                                            document.getElementById('feedbackRating').value = 5; // Cập nhật luôn giá trị input ẩn
+                                                document.addEventListener('DOMContentLoaded', function () {
+                                                    const frame = document.getElementById('addressPopupFrame');
+                                                    if (!frame) {
+                                                        return;
+                                                    }
 
-                                            overlay.style.display = 'flex';
-                                        }
+                                                    frame.addEventListener('load', function () {
+                                                        try {
+                                                            const frameWindow = frame.contentWindow;
+                                                            const doc = frame.contentDocument || frameWindow.document;
+                                                            const frameUrl = new URL(frameWindow.location.href);
+                                                            const isProfileAddressPage = frameUrl.pathname.endsWith('/profile')
+                                                                    && frameUrl.searchParams.get('action') === 'view'
+                                                                    && frameUrl.searchParams.get('tab') === 'address';
 
-                                        function closeFeedbackPopup() {
-                                            document.getElementById('feedbackPopupOverlay').style.display = 'none';
-                                        }
+                                                            if (isProfileAddressPage) {
+                                                                closeAddressPopup();
+                                                                window.location.href = frameUrl.pathname + frameUrl.search;
+                                                                return;
+                                                            }
 
-                                        // Xử lý hiệu ứng click chọn sao
-                                        document.addEventListener('DOMContentLoaded', function () {
-                                            const stars = document.querySelectorAll('.star-rating-select .fa-star');
-                                            const ratingInput = document.getElementById('feedbackRating');
+                                                            const topbar = doc.querySelector('.topbar-shell');
+                                                            const footer = doc.querySelector('footer');
+                                                            const container = doc.querySelector('.container');
 
-                                            stars.forEach(star => {
-                                                star.addEventListener('click', function () {
-                                                    const val = this.getAttribute('data-val');
-                                                    ratingInput.value = val;
-                                                    updateStars(val);
+                                                            if (topbar) {
+                                                                topbar.style.display = 'none';
+                                                            }
+                                                            if (footer) {
+                                                                footer.style.display = 'none';
+                                                            }
+                                                            if (container) {
+                                                                container.style.margin = '0 auto';
+                                                                container.style.padding = '24px';
+                                                                container.style.maxWidth = '100%';
+                                                            }
+                                                        } catch (error) {
+                                                            console.error('Cannot optimize address popup frame:', error);
+                                                        }
+                                                    });
                                                 });
 
                                                 // ===== PHẦN CODE MỚI DÀNH CHO FEEDBACK ===== //
@@ -890,36 +855,36 @@
                                                 const ratingTexts = ["Tệ", "Không hài lòng", "Bình thường", "Hài lòng", "Tuyệt vời"];
 
                                                 function openFeedbackPopup(buttonElement) {
-    const overlay = document.getElementById('feedbackPopupOverlay');
-    const form = document.getElementById('feedbackForm');
-    
-    // Lấy dữ liệu từ data-attributes của nút được bấm
-    const orderDetailId = buttonElement.getAttribute('data-id');
-    const productName = buttonElement.getAttribute('data-name');
-    const existingRating = parseInt(buttonElement.getAttribute('data-rating')) || 5;
-    const existingComment = buttonElement.getAttribute('data-comment') || '';
+                                                    const overlay = document.getElementById('feedbackPopupOverlay');
+                                                    const form = document.getElementById('feedbackForm');
 
-    // Gán dữ liệu vào Form
-    document.getElementById('feedbackOrderDetailId').value = orderDetailId;
-    document.getElementById('feedbackProductName').textContent = productName;
-    
-    // Reset và set lại giá trị cũ
-    form.reset();
-    document.getElementById('feedbackRating').value = existingRating;
-    updateStars(existingRating); // Hàm của bro đã viết ở dưới, cứ gọi lại thôi
-    form.querySelector('textarea[name="comment"]').value = existingComment;
+                                                    // Lấy dữ liệu từ data-attributes của nút được bấm
+                                                    const orderDetailId = buttonElement.getAttribute('data-id');
+                                                    const productName = buttonElement.getAttribute('data-name');
+                                                    const existingRating = parseInt(buttonElement.getAttribute('data-rating')) || 5;
+                                                    const existingComment = buttonElement.getAttribute('data-comment') || '';
 
-    // Đổi Title của Popup tùy thuộc vào việc Thêm mới hay Sửa
-    const headerTitle = overlay.querySelector('.feedback-popup-header h3');
-    if (existingComment !== '' || existingRating !== 5 || buttonElement.classList.contains('btn-edit-feedback')) {
-        headerTitle.textContent = "Chỉnh sửa đánh giá";
-    } else {
-        headerTitle.textContent = "Đánh giá sản phẩm";
-    }
+                                                    // Gán dữ liệu vào Form
+                                                    document.getElementById('feedbackOrderDetailId').value = orderDetailId;
+                                                    document.getElementById('feedbackProductName').textContent = productName;
 
-    // Hiển thị Popup
-    overlay.style.display = 'flex';
-}
+                                                    // Reset và set lại giá trị cũ
+                                                    form.reset();
+                                                    document.getElementById('feedbackRating').value = existingRating;
+                                                    updateStars(existingRating); // Hàm của bro đã viết ở dưới, cứ gọi lại thôi
+                                                    form.querySelector('textarea[name="comment"]').value = existingComment;
+
+                                                    // Đổi Title của Popup tùy thuộc vào việc Thêm mới hay Sửa
+                                                    const headerTitle = overlay.querySelector('.feedback-popup-header h3');
+                                                    if (existingComment !== '' || existingRating !== 5 || buttonElement.classList.contains('btn-edit-feedback')) {
+                                                        headerTitle.textContent = "Chỉnh sửa đánh giá";
+                                                    } else {
+                                                        headerTitle.textContent = "Đánh giá sản phẩm";
+                                                    }
+
+                                                    // Hiển thị Popup
+                                                    overlay.style.display = 'flex';
+                                                }
 
 
 
@@ -935,6 +900,18 @@
                                                         }
                                                     });
                                                     ratingText.textContent = ratingTexts[value - 1];
+                                                }
+
+                                                document.querySelectorAll('.star-rating-select .fa-star').forEach(star => {
+                                                    star.addEventListener('click', function () {
+                                                        const value = parseInt(this.getAttribute('data-val'));
+                                                        document.getElementById('feedbackRating').value = value;
+                                                        updateStars(value);
+                                                    });
+                                                });
+                                                function closeFeedbackPopup() {
+                                                    const overlay = document.getElementById('feedbackPopupOverlay');
+                                                    overlay.style.display = 'none';
                                                 }
 
 
