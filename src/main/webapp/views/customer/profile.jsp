@@ -484,7 +484,11 @@
                                                                 <c:when test="${empty d.rating || d.rating == 0}">
                                                                     <button type="button" class="btn-feedback" 
                                                                             style="padding: 6px 12px; background: #000; color: #fff; border: none; border-radius: 4px; cursor: pointer;"
-                                                                            onclick="openFeedbackPopup(${d.orderDetailId}, '${fn:escapeXml(d.productName)}')">
+                                                                            data-id="${d.orderDetailId}"
+                                                                            data-name="${fn:escapeXml(d.productName)}"
+                                                                            data-rating="5"
+                                                                            data-comment=""
+                                                                            onclick="openFeedbackPopup(this)">
                                                                         <i class="fas fa-star"></i> Feedback
                                                                     </button>
                                                                 </c:when>
@@ -498,10 +502,25 @@
                                                                             <i class="fas fa-check-circle"></i> Reviewed
                                                                         </div>
 
-                                                                        <c:if test="${not empty d.reviewComment}">
+                                                                        <c:set var="isEdited" value="${fn:contains(d.reviewComment, '[EDITED]')}" />
+                                                                        <c:set var="displayComment" value="${fn:replace(d.reviewComment, '[EDITED]', '')}" />
+
+                                                                        <c:if test="${not empty displayComment}">
                                                                             <div class="user-comment-display" style="font-size: 13px; color: #4b5563; margin-top: 8px; font-style: italic; max-width: 250px; line-height: 1.4; word-wrap: break-word;">
-                                                                                "${d.reviewComment}"
+                                                                                "${displayComment}"
                                                                             </div>
+                                                                        </c:if>
+
+                                                                        <c:if test="${!isEdited}">
+                                                                            <button type="button" class="btn-edit-feedback"
+                                                                                    style="margin-top: 8px; padding: 4px 8px; font-size: 12px; background: #f3f4f6; color: #374151; border: 1px solid #d1d5db; border-radius: 4px; cursor: pointer; transition: 0.2s;"
+                                                                                    data-id="${d.orderDetailId}"
+                                                                                    data-name="${fn:escapeXml(d.productName)}"
+                                                                                    data-rating="${d.rating}"
+                                                                                    data-comment="${fn:escapeXml(displayComment)}"
+                                                                                    onclick="openFeedbackPopup(this)">
+                                                                                <i class="fas fa-pen"></i> Edit Feedback
+                                                                            </button>
                                                                         </c:if>
                                                                     </div>
                                                                 </c:otherwise>
@@ -865,23 +884,42 @@
                                                     ratingInput.value = val;
                                                     updateStars(val);
                                                 });
-                                            });
-                                        });
 
-                                        function updateStars(value) {
-                                            const stars = document.querySelectorAll('.star-rating-select .fa-star');
-                                            const ratingText = document.getElementById('ratingText');
+                                                // ===== PHẦN CODE MỚI DÀNH CHO FEEDBACK ===== //
+                                                // Biến lưu trữ mảng text tương ứng với số sao
+                                                const ratingTexts = ["Tệ", "Không hài lòng", "Bình thường", "Hài lòng", "Tuyệt vời"];
 
-                                            stars.forEach(s => {
-                                                if (parseInt(s.getAttribute('data-val')) <= value) {
-                                                    s.style.color = '#f59e0b'; // Màu vàng
-                                                } else {
-                                                    s.style.color = '#e5e7eb'; // Màu xám nhạt
-                                                }
-                                            });
-                                            ratingText.textContent = ratingTexts[value - 1];
-                                        }
-                                      
+                                                function openFeedbackPopup(buttonElement) {
+    const overlay = document.getElementById('feedbackPopupOverlay');
+    const form = document.getElementById('feedbackForm');
+    
+    // Lấy dữ liệu từ data-attributes của nút được bấm
+    const orderDetailId = buttonElement.getAttribute('data-id');
+    const productName = buttonElement.getAttribute('data-name');
+    const existingRating = parseInt(buttonElement.getAttribute('data-rating')) || 5;
+    const existingComment = buttonElement.getAttribute('data-comment') || '';
+
+    // Gán dữ liệu vào Form
+    document.getElementById('feedbackOrderDetailId').value = orderDetailId;
+    document.getElementById('feedbackProductName').textContent = productName;
+    
+    // Reset và set lại giá trị cũ
+    form.reset();
+    document.getElementById('feedbackRating').value = existingRating;
+    updateStars(existingRating); // Hàm của bro đã viết ở dưới, cứ gọi lại thôi
+    form.querySelector('textarea[name="comment"]').value = existingComment;
+
+    // Đổi Title của Popup tùy thuộc vào việc Thêm mới hay Sửa
+    const headerTitle = overlay.querySelector('.feedback-popup-header h3');
+    if (existingComment !== '' || existingRating !== 5 || buttonElement.classList.contains('btn-edit-feedback')) {
+        headerTitle.textContent = "Chỉnh sửa đánh giá";
+    } else {
+        headerTitle.textContent = "Đánh giá sản phẩm";
+    }
+
+    // Hiển thị Popup
+    overlay.style.display = 'flex';
+}
 
 
 

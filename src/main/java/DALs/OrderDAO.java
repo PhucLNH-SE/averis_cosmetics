@@ -705,51 +705,31 @@ public List<OrderDetail> getOrderDetailsWithReview(int orderId) {
 
         return list;
     }
-public List<Orders> getOrdersByStatus(String status) {
 
-    List<Orders> list = new ArrayList<>();
+public OrderDetail getOrderDetailById(int orderDetailId) {
+        String sql = "SELECT order_detail_id, order_id, variant_id, quantity, price_at_order, rating, review_comment, reviewed_at "
+                   + "FROM Order_Detail WHERE order_detail_id = ?";
 
-    String sql = "SELECT o.order_id, "
-            + "a.receiver_name, "
-            + "v.code AS voucher_code, "
-            + "o.discount_amount, "
-            + "o.payment_method, "
-            + "o.payment_status, "
-            + "o.order_status, "
-            + "o.total_amount "
-            + "FROM Orders o "
-            + "JOIN Address a ON o.address_id = a.address_id "
-            + "LEFT JOIN Voucher v ON o.voucher_id = v.voucher_id "
-            + "WHERE o.order_status = ? "
-            + "ORDER BY o.order_id DESC";
-
-    try {
-
-        PreparedStatement ps = connection.prepareStatement(sql);
-        ps.setString(1, status);
-
-        ResultSet rs = ps.executeQuery();
-
-        while (rs.next()) {
-
-            Orders order = new Orders();
-
-            order.setOrderId(rs.getInt("order_id"));
-            order.setReceiverName(rs.getString("receiver_name"));
-            order.setVoucherCode(rs.getString("voucher_code"));
-            order.setDiscountAmount(rs.getBigDecimal("discount_amount"));
-            order.setPaymentMethod(rs.getString("payment_method"));
-            order.setPaymentStatus(rs.getString("payment_status"));
-            order.setOrderStatus(rs.getString("order_status"));
-            order.setTotalAmount(rs.getBigDecimal("total_amount"));
-
-            list.add(order);
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, orderDetailId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    OrderDetail od = new OrderDetail();
+                    od.setOrderDetailId(rs.getInt("order_detail_id"));
+                    od.setOrderId(rs.getInt("order_id"));
+                    // Lấy các trường liên quan đến review để kiểm tra
+                    od.setRating(rs.getInt("rating"));
+                    od.setReviewComment(rs.getString("review_comment"));
+                    if (rs.getTimestamp("reviewed_at") != null) {
+                        od.setReviewedAt(rs.getTimestamp("reviewed_at").toLocalDateTime());
+                    }
+                    return od;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-
-    } catch (Exception e) {
-        e.printStackTrace();
+        return null;
     }
 
-    return list;
-}
 }
