@@ -2,30 +2,12 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <fmt:setLocale value="vi_VN"/>
-<section class="admin-content__section staff-orders-page">
+<section class="admin-content__section admin-orders-page">
     <div class="page-header">
         <div>
             <h4>Manage Orders</h4>
             <p class="text-muted mb-0">List of customer orders</p>
         </div>
-        <form method="get" action="${pageContext.request.contextPath}/staff/manage-orders" class="mb-3 d-flex align-items-center gap-2">
-
-    <label><strong>Filter by Status:</strong></label>
-
-    <select name="status" class="form-select" style="width:200px">
-        <option value="">All</option>
-        <option value="CREATED" ${param.status == 'CREATED' ? 'selected' : ''}>CREATED</option>
-        <option value="PROCESSING" ${param.status == 'PROCESSING' ? 'selected' : ''}>PROCESSING</option>
-        <option value="SHIPPING" ${param.status == 'SHIPPING' ? 'selected' : ''}>SHIPPING</option>
-        <option value="COMPLETED" ${param.status == 'COMPLETED' ? 'selected' : ''}>COMPLETED</option>
-        <option value="CANCELLED" ${param.status == 'CANCELLED' ? 'selected' : ''}>CANCELLED</option>
-    </select>
-
-    <button type="submit" class="btn btn-primary">
-        <i class="bi bi-funnel"></i> Filter
-    </button>
-
-</form>
     </div>
 
     <c:if test="${param.success == 'update'}">
@@ -43,7 +25,7 @@
 
     <div class="card table-card">
         <div class="card-body p-0">
-            <form action="${pageContext.request.contextPath}/staff/manage-orders" method="post">
+            <form action="${pageContext.request.contextPath}/admin/manage-orders" method="post">
                 <input type="hidden" name="action" value="update">
                 <div class="table-responsive">
                     <table class="table">
@@ -56,7 +38,6 @@
                                 <th>Payment Method</th>
                                 <th>Payment Status</th>
                                 <th>Order Status</th>
-                                <th>Action</th>
                                 <th>Total</th>
                             </tr>
                         </thead>
@@ -84,12 +65,6 @@
                                             <option value="COMPLETED" ${o.orderStatus == 'COMPLETED' ? 'selected' : ''}>COMPLETED</option>
                                             <option value="CANCELLED" ${o.orderStatus == 'CANCELLED' ? 'selected' : ''}>CANCELLED</option>
                                         </select>
-                                    </td>
-                                    <td>
-                                    <a href="${pageContext.request.contextPath}/staff/manage-orders?action=detail&orderId=${o.orderId}"
-   class="btn btn-sm btn-primary">
-   View Detail
-</a>
                                     </td>
                                     <td><strong><fmt:formatNumber value="${o.totalAmount}" pattern="#,##0"/> VND</strong></td>
                                 </tr>

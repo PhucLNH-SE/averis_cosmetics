@@ -18,7 +18,7 @@ public class Customer {
     private String fullName;                
     private String email;                  
     private String password;               
-
+    private String avatar;
     private String gender;                 
     private LocalDate dateOfBirth;          
 
@@ -31,6 +31,23 @@ public class Customer {
     private Boolean authTokenUsed;   
 
     public Customer() {
+    }
+
+    public Customer(int customerId, String username, String fullName, String email, String password, String avatar, String gender, LocalDate dateOfBirth, Boolean status, Boolean emailVerified, String authToken, String authTokenType, LocalDateTime authTokenExpiredAt, Boolean authTokenUsed) {
+        this.customerId = customerId;
+        this.username = username;
+        this.fullName = fullName;
+        this.email = email;
+        this.password = password;
+        this.avatar = avatar;
+        this.gender = gender;
+        this.dateOfBirth = dateOfBirth;
+        this.status = status;
+        this.emailVerified = emailVerified;
+        this.authToken = authToken;
+        this.authTokenType = authTokenType;
+        this.authTokenExpiredAt = authTokenExpiredAt;
+        this.authTokenUsed = authTokenUsed;
     }
 
     public int getCustomerId() {
@@ -71,6 +88,14 @@ public class Customer {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getAvatar() {
+        return avatar;
+    }
+
+    public void setAvatar(String avatar) {
+        this.avatar = avatar;
     }
 
     public String getGender() {
@@ -137,21 +162,5 @@ public class Customer {
         this.authTokenUsed = authTokenUsed;
     }
 
-    public Customer(int customerId, String username, String fullName, String email, String password, String gender, LocalDate dateOfBirth, Boolean status, Boolean emailVerified, String authToken, String authTokenType, LocalDateTime authTokenExpiredAt, Boolean authTokenUsed) {
-        this.customerId = customerId;
-        this.username = username;
-        this.fullName = fullName;
-        this.email = email;
-        this.password = password;
-        this.gender = gender;
-        this.dateOfBirth = dateOfBirth;
-        this.status = status;
-        this.emailVerified = emailVerified;
-        this.authToken = authToken;
-        this.authTokenType = authTokenType;
-        this.authTokenExpiredAt = authTokenExpiredAt;
-        this.authTokenUsed = authTokenUsed;
-    }
-
-    
+   
 }

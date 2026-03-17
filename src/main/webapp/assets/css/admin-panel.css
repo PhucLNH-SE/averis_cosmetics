@@ -178,3 +178,17 @@
         padding: 20px;
     }
 }
+/* Product image in table */
+.product-img{
+    width:70px;
+    height:70px;
+    object-fit:cover;
+    border-radius:8px;
+    display:block;
+    margin:auto;
+}
+
+/* Fix table row height */
+.table td{
+    vertical-align:middle;
+}
