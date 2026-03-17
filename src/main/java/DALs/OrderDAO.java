@@ -704,4 +704,31 @@ public List<OrderDetail> getOrderDetailsWithReview(int orderId) {
 
         return list;
     }
+
+public OrderDetail getOrderDetailById(int orderDetailId) {
+        String sql = "SELECT order_detail_id, order_id, variant_id, quantity, price_at_order, rating, review_comment, reviewed_at "
+                   + "FROM Order_Detail WHERE order_detail_id = ?";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, orderDetailId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    OrderDetail od = new OrderDetail();
+                    od.setOrderDetailId(rs.getInt("order_detail_id"));
+                    od.setOrderId(rs.getInt("order_id"));
+                    // Lấy các trường liên quan đến review để kiểm tra
+                    od.setRating(rs.getInt("rating"));
+                    od.setReviewComment(rs.getString("review_comment"));
+                    if (rs.getTimestamp("reviewed_at") != null) {
+                        od.setReviewedAt(rs.getTimestamp("reviewed_at").toLocalDateTime());
+                    }
+                    return od;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
 }

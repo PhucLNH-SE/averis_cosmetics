@@ -2,6 +2,7 @@ package Controllers.customer;
 
 import DALs.OrderDAO;
 import Model.Customer;
+import Model.OrderDetail; // Thêm import này
 import java.io.IOException;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -30,14 +31,47 @@ public class ReviewController extends HttpServlet {
             int orderId = Integer.parseInt(request.getParameter("orderId"));
             int rating = Integer.parseInt(request.getParameter("rating"));
             String comment = request.getParameter("comment");
+            if (comment == null) comment = "";
+
+            OrderDAO dao = new OrderDAO();
+            
+            // --- LOGIC MỚI: KIỂM TRA ĐÁNH GIÁ LẦN ĐẦU HAY LÀ SỬA ---
+            OrderDetail oldDetail = dao.getOrderDetailById(orderDetailId);
+            
+            if (oldDetail == null) {
+                session.setAttribute("error", "Không tìm thấy thông tin sản phẩm cần đánh giá!");
+                response.sendRedirect(request.getContextPath() + "/profile?action=orderDetail&orderId=" + orderId + "&tab=orderDetail");
+                return;
+            }
+
+            String finalComment = comment;
+
+            // Kiểm tra xem đã từng đánh giá chưa (rating cũ > 0)
+            if (oldDetail.getRating() > 0) {
+                String oldComment = oldDetail.getReviewComment();
+                
+                // Nếu comment cũ đã chứa tag [EDITED] -> Đã sửa 1 lần rồi -> Chặn
+                if (oldComment != null && oldComment.contains("[EDITED]")) {
+                    session.setAttribute("error", "Bạn chỉ được phép chỉnh sửa đánh giá 1 lần duy nhất!");
+                    response.sendRedirect(request.getContextPath() + "/profile?action=orderDetail&orderId=" + orderId + "&tab=orderDetail");
+                    return;
+                }
+                
+                // Nếu chưa có tag -> Đây là lần sửa đầu tiên -> Gắn thêm tag ẩn [EDITED]
+                finalComment = comment + "[EDITED]";
+            }
+            // ---------------------------------------------------------
 
             // 3. Gọi DAO để cập nhật đánh giá vào CSDL
-            OrderDAO dao = new OrderDAO();
-            boolean isSuccess = dao.updateReview(orderDetailId, rating, comment);
+            boolean isSuccess = dao.updateReview(orderDetailId, rating, finalComment);
 
             // 4. Trả về thông báo thành công hoặc thất bại qua session
             if (isSuccess) {
-                session.setAttribute("profileMessage", "Cảm ơn bạn đã đánh giá sản phẩm!");
+                if (oldDetail.getRating() > 0) {
+                    session.setAttribute("profileMessage", "Chỉnh sửa đánh giá thành công!");
+                } else {
+                    session.setAttribute("profileMessage", "Cảm ơn bạn đã đánh giá sản phẩm!");
+                }
             } else {
                 session.setAttribute("error", "Có lỗi xảy ra khi lưu đánh giá, vui lòng thử lại!");
             }
