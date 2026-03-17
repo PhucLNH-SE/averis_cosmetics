@@ -163,10 +163,6 @@
   <!-- Servlet Mappings -->
   <servlet-mapping>
     <servlet-name>UserManagerController</servlet-name>
-    <url-pattern>/admin/dashboard</url-pattern>
-  </servlet-mapping>
-  <servlet-mapping>
-    <servlet-name>UserManagerController</servlet-name>
     <url-pattern>/admin/manage-users</url-pattern>
   </servlet-mapping>
   <servlet-mapping>

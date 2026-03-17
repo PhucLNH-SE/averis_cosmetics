@@ -11,7 +11,7 @@ import java.util.List;
 
 public class AdminPanelController extends HttpServlet {
 
-    private static final String DEFAULT_VIEW = "dashboard";
+    private static final String DEFAULT_VIEW = "statistic";
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -50,13 +50,9 @@ public class AdminPanelController extends HttpServlet {
             case "statistic":
                 response.sendRedirect(request.getContextPath() + "/admin/manage-statistic");
                 return;
-            case "dashboard":
-                request.setAttribute("contentPage", "/views/admin/partials/dashboard-content.jsp");
-                break;
             default:
-                request.setAttribute("currentView", DEFAULT_VIEW);
-                request.setAttribute("contentPage", "/views/admin/partials/dashboard-content.jsp");
-                break;
+                response.sendRedirect(request.getContextPath() + "/admin/manage-statistic");
+                return;
         }
 
         request.getRequestDispatcher("/views/admin/admin-panel.jsp").forward(request, response);

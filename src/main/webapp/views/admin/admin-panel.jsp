@@ -43,10 +43,10 @@
                 </div>
 
                 <nav class="admin-sidebar__nav">
-                    <a class="admin-sidebar__link ${currentView == 'dashboard' ? 'active' : ''}"
-                       href="${pageContext.request.contextPath}/admin/panel?view=dashboard">
-                        <i class="bi bi-grid-1x2-fill"></i>
-                        <span>Dashboard</span>
+                    <a class="admin-sidebar__link ${currentView == 'statistic' ? 'active' : ''}"
+                       href="${pageContext.request.contextPath}/admin/manage-statistic">
+                        <i class="bi bi-bar-chart-fill"></i>
+                        <span>Manage Statistic</span>
                     </a>
                     <a class="admin-sidebar__link ${currentView == 'users' ? 'active' : ''}"
                        href="${pageContext.request.contextPath}/admin/panel?view=users">
@@ -78,11 +78,6 @@
                         <i class="bi bi-ticket-perforated-fill"></i>
                         <span>Manage Voucher</span>
                     </a>
-                    <a class="admin-sidebar__link ${currentView == 'statistic' ? 'active' : ''}"
-                       href="${pageContext.request.contextPath}/admin/manage-statistic">
-                        <i class="bi bi-bar-chart-fill"></i>
-                        <span>Manage Statistic</span>
-                    </a>
                     <a class="admin-sidebar__link ${currentView == 'staff' ? 'active' : ''}"
                        href="${pageContext.request.contextPath}/admin/manage-staff">
                         <i class="bi bi-person-badge-fill"></i>
@@ -102,7 +97,6 @@
 
                     </a>
                 </nav>
-
                 <div class="admin-sidebar__footer">
                     <a class="btn btn-outline-light w-100" href="${pageContext.request.contextPath}/logout">
                         <i class="bi bi-box-arrow-right me-1"></i>Dang xuat
