@@ -126,7 +126,7 @@
                                         data-desc="<c:out value='${p.description}' />"
                                         data-image="${not empty p.mainImage ? p.mainImage : 'Logo.png'}"
                                         onclick="openEditModal(this)">
-                                    <i class="fas fa-edit me-1"></i> Edit
+                                    <i class="fas fa-edit me-1"></i> Detail
                                 </button>
 
                                 <c:choose>
