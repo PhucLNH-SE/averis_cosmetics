@@ -35,6 +35,10 @@
     <servlet-class>Controllers.guest.GuestController</servlet-class>
   </servlet>
   <servlet>
+    <servlet-name>ProductController</servlet-name>
+    <servlet-class>Controllers.guest.ProductController</servlet-class>
+  </servlet>
+  <servlet>
     <servlet-name>StaffController</servlet-name>
     <servlet-class>Controllers.staff.StaffController</servlet-class>
   </servlet>
@@ -230,6 +234,10 @@
     <url-pattern>/contact</url-pattern>
   </servlet-mapping>
   <servlet-mapping>
+    <servlet-name>ProductController</servlet-name>
+    <url-pattern>/products</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
     <servlet-name>StaffController</servlet-name>
     <url-pattern>/StaffController</url-pattern>
   </servlet-mapping>
@@ -361,6 +369,18 @@
     <servlet-name>HeaderMenuController</servlet-name>
     <url-pattern>/header-menu-data</url-pattern>
   </servlet-mapping>  
+  <filter>
+    <filter-name>CharacterEncodingFilter</filter-name>
+    <filter-class>Filters.CharacterEncodingFilter</filter-class>
+    <init-param>
+      <param-name>encoding</param-name>
+      <param-value>UTF-8</param-value>
+    </init-param>
+  </filter>
+  <filter-mapping>
+    <filter-name>CharacterEncodingFilter</filter-name>
+    <url-pattern>/*</url-pattern>
+  </filter-mapping>
   <filter>
     <filter-name>ManagerAuthFilter</filter-name>
     <filter-class>Filters.ManagerAuthFilter</filter-class>
