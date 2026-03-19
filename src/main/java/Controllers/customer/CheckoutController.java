@@ -19,7 +19,7 @@ public class CheckoutController extends HttpServlet {
     private ProductDAO productDAO;
     private OrderDAO orderDAO;
     private CartDetailDAO cartDetailDAO;
-    private CustomerVoucherDAO customerVoucherDAO;
+    private VoucherDAO voucherDAO;
 
     @Override
     public void init() {
@@ -27,7 +27,7 @@ public class CheckoutController extends HttpServlet {
         productDAO = new ProductDAO();
         orderDAO = new OrderDAO();
         cartDetailDAO = new CartDetailDAO();
-        customerVoucherDAO = new CustomerVoucherDAO();
+        voucherDAO = new VoucherDAO();
     }
 
     @Override
@@ -130,7 +130,7 @@ public class CheckoutController extends HttpServlet {
             return;
         }
 
-        CustomerVoucher voucher = customerVoucherDAO
+        CustomerVoucher voucher = voucherDAO
                 .getActiveVoucherForCheckout(customer.getCustomerId(), voucherCode);
 
         if (voucher == null) {
@@ -193,7 +193,7 @@ public class CheckoutController extends HttpServlet {
         Integer customerVoucherId = null;
 
         if (!voucherCode.isEmpty()) {
-            voucher = customerVoucherDAO.getActiveVoucherForCheckout(customer.getCustomerId(), voucherCode);
+            voucher = voucherDAO.getActiveVoucherForCheckout(customer.getCustomerId(), voucherCode);
             if (voucher == null) {
                 redirectError(resp, req, "Invalid voucher!");
                 return;
@@ -230,7 +230,7 @@ public class CheckoutController extends HttpServlet {
         }
 
         if (customerVoucherId != null) {
-            customerVoucherDAO.markVoucherUsed(customerVoucherId);
+            voucherDAO.markVoucherUsed(customerVoucherId);
         }
 
         HttpSession session = req.getSession();
@@ -341,12 +341,12 @@ public class CheckoutController extends HttpServlet {
     }
 
     private List<CustomerVoucher> getCheckoutVouchers(int customerId) {
-        customerVoucherDAO.expireOutdatedVouchers();
+        voucherDAO.expireOutdatedVouchers();
 
         LocalDateTime now = LocalDateTime.now();
         List<CustomerVoucher> result = new ArrayList<CustomerVoucher>();
 
-        List<CustomerVoucher> all = customerVoucherDAO.getByCustomerId(customerId);
+        List<CustomerVoucher> all = voucherDAO.getByCustomerId(customerId);
         for (CustomerVoucher v : all) {
             if (v == null || v.getVoucher() == null) {
                 continue;

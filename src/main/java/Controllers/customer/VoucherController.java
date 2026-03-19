@@ -1,23 +1,21 @@
 package Controllers.customer;
 
-import DALs.CustomerVoucherDAO;
+import DALs.VoucherDAO;
 import Model.Customer;
-import Model.CustomerVoucher;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
-import java.util.List;
 
-public class CustomerVoucherController extends HttpServlet {
+public class VoucherController extends HttpServlet {
 
-    private CustomerVoucherDAO customerVoucherDAO;
+    private VoucherDAO voucherDAO;
 
     @Override
     public void init() throws ServletException {
-        customerVoucherDAO = new CustomerVoucherDAO();
+        voucherDAO = new VoucherDAO();
     }
 
     @Override
@@ -43,7 +41,7 @@ public class CustomerVoucherController extends HttpServlet {
             return;
         }
 
-        String result = customerVoucherDAO.claimVoucherWithReason(customer.getCustomerId(), code.trim());
+        String result = voucherDAO.claimVoucherWithReason(customer.getCustomerId(), code.trim());
         if ("ok".equals(result)) {
             response.sendRedirect(request.getContextPath() + "/profile?action=view&tab=voucher&success=claimed");
             return;
