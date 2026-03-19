@@ -1,7 +1,11 @@
 package Controllers.admin;
 
 import DALs.ManagerDAO;
+import DALs.OrderDAO;
+import DALs.FeedbackDAO;
 import Model.Manager;
+import Model.Orders;
+import Model.OrderDetail;
 import java.io.IOException;
 import java.util.List;
 import jakarta.servlet.ServletException;
@@ -26,7 +30,45 @@ public class ManageStaffController extends HttpServlet {
             return;
         }
 
+        String action = request.getParameter("action");
         ManagerDAO dao = new ManagerDAO();
+
+        if ("detail".equalsIgnoreCase(action)) {
+            String managerIdRaw = request.getParameter("managerId");
+            if (managerIdRaw == null || managerIdRaw.trim().isEmpty()) {
+                response.sendRedirect(request.getContextPath() + "/admin/manage-staff");
+                return;
+            }
+
+            int managerId;
+            try {
+                managerId = Integer.parseInt(managerIdRaw);
+            } catch (NumberFormatException ex) {
+                response.sendRedirect(request.getContextPath() + "/admin/manage-staff");
+                return;
+            }
+
+            Manager staff = dao.getById(managerId);
+            if (staff == null) {
+                session.setAttribute("errorMsg", "Staff not found.");
+                response.sendRedirect(request.getContextPath() + "/admin/manage-staff");
+                return;
+            }
+
+            OrderDAO orderDao = new OrderDAO();
+            FeedbackDAO feedbackDao = new FeedbackDAO();
+            List<Orders> handledOrders = orderDao.getOrdersHandledByManager(managerId);
+            List<OrderDetail> feedbacks = feedbackDao.getFeedbacksByManagerResponse(managerId);
+
+            request.setAttribute("staff", staff);
+            request.setAttribute("handledOrders", handledOrders);
+            request.setAttribute("feedbacks", feedbacks);
+            request.setAttribute("currentView", "staff");
+            request.setAttribute("contentPage", "/views/admin/partials/manage-staff-detail.jsp");
+            request.getRequestDispatcher("/views/admin/admin-panel.jsp").forward(request, response);
+            return;
+        }
+
         List<Manager> listStaff = dao.getAllManagers();
         request.setAttribute("listStaff", listStaff);
 

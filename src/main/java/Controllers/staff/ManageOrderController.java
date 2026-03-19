@@ -1,6 +1,7 @@
 package Controllers.staff;
 
 import DALs.OrderDAO;
+import DALs.ManagerDAO;
 import Model.Manager;
 import Model.OrderDetail;
 import Model.Orders;
@@ -56,6 +57,12 @@ public class ManageOrderController extends HttpServlet {
         request.setAttribute("orderList", orderList);
         request.setAttribute("selectedStatus", status);
 
+        HttpSession session = request.getSession(false);
+        Manager manager = session == null ? null : (Manager) session.getAttribute("manager");
+        if (manager != null) {
+            request.setAttribute("currentManagerId", manager.getManagerId());
+        }
+
         request.setAttribute("currentView", "orders");
         request.setAttribute("contentPage", "/views/staff/partials/manage-orders-content.jsp");
 
@@ -78,6 +85,11 @@ public class ManageOrderController extends HttpServlet {
 
     request.setAttribute("order", order);
     request.setAttribute("details", details);
+    if (order != null && order.getHandledBy() != null) {
+        ManagerDAO managerDAO = new ManagerDAO();
+        Manager handledStaff = managerDAO.getById(order.getHandledBy());
+        request.setAttribute("handledStaff", handledStaff);
+    }
 
     request.setAttribute("currentView", "orders");
     request.setAttribute("contentPage", "/views/staff/partials/order-detail-content.jsp");
@@ -95,23 +107,37 @@ public class ManageOrderController extends HttpServlet {
 
             HttpSession session = request.getSession(false);
             Manager manager = session == null ? null : (Manager) session.getAttribute("manager");
-
-            Integer handledBy = manager == null ? null : manager.getManagerId();
+            if (manager == null || !"STAFF".equalsIgnoreCase(manager.getManagerRole())) {
+                response.sendRedirect(request.getContextPath() + "/manager-auth");
+                return;
+            }
+            Integer handledBy = manager.getManagerId();
 
             String[] orderIds = request.getParameterValues("orderId");
             String[] paymentStatuses = request.getParameterValues("paymentStatus");
             String[] orderStatuses = request.getParameterValues("orderStatus");
 
             OrderDAO dao = new OrderDAO();
+            boolean hadForbidden = false;
 
             for (int i = 0; i < orderIds.length; i++) {
 
                 int orderId = Integer.parseInt(orderIds[i]);
+                Integer existingHandledBy = dao.getHandledBy(orderId);
+                boolean canUpdate = existingHandledBy == null || existingHandledBy.equals(handledBy);
+                if (!canUpdate) {
+                    hadForbidden = true;
+                    continue;
+                }
 
                 dao.updateOrder(orderId, paymentStatuses[i], orderStatuses[i], handledBy);
             }
 
-            response.sendRedirect(request.getContextPath() + "/staff/manage-orders?success=update");
+            if (hadForbidden) {
+                response.sendRedirect(request.getContextPath() + "/staff/manage-orders?error=notAllowed");
+            } else {
+                response.sendRedirect(request.getContextPath() + "/staff/manage-orders?success=update");
+            }
             return;
         }
 

@@ -93,6 +93,7 @@ public class ManagerAuthFilter implements Filter {
                 return "/admin/manage-voucher";
             case "/views/admin/manage-staff.jsp":
             case "/views/admin/partials/manage-staff-content.jsp":
+            case "/views/admin/partials/manage-staff-detail.jsp":
                 return "/admin/manage-staff";
             case "/views/admin/partials/manage-statistic-content.jsp":
                 return "/admin/manage-statistic";

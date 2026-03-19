@@ -24,7 +24,15 @@
     </p>
 
     <p><b>Payment Method:</b> ${order.paymentMethod}</p>
+    <p><b>Payment Status:</b> ${order.paymentStatus}</p>
     <p><b>Order Status:</b> ${order.orderStatus}</p>
+    <p>
+        <b>Handled By:</b>
+        <c:choose>
+            <c:when test="${not empty handledStaff}">${handledStaff.fullName}</c:when>
+            <c:otherwise>Chưa gán</c:otherwise>
+        </c:choose>
+    </p>
 </div>
 
 
@@ -73,6 +81,56 @@
     <fmt:formatNumber value="${order.totalAmount}" type="currency"/>
 </div>
 
+<div style="margin-top:28px;">
+    <h4>Feedback</h4>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Product</th>
+                <th>Rating</th>
+                <th>Review</th>
+                <th>Response</th>
+                <th>Responded At</th>
+            </tr>
+        </thead>
+        <tbody>
+            <c:forEach items="${details}" var="d">
+                <tr>
+                    <td>${d.productName}</td>
+                    <td>
+                        <c:choose>
+                            <c:when test="${d.rating != null}">${d.rating}</c:when>
+                            <c:otherwise>-</c:otherwise>
+                        </c:choose>
+                    </td>
+                    <td>
+                        <c:choose>
+                            <c:when test="${not empty d.reviewComment}">${d.reviewComment}</c:when>
+                            <c:otherwise>-</c:otherwise>
+                        </c:choose>
+                    </td>
+                    <td>
+                        <c:choose>
+                            <c:when test="${not empty d.responseContent}">${d.responseContent}</c:when>
+                            <c:otherwise>-</c:otherwise>
+                        </c:choose>
+                    </td>
+                    <td>
+                        <c:choose>
+                            <c:when test="${not empty d.respondedAt}">${d.respondedAt}</c:when>
+                            <c:otherwise>-</c:otherwise>
+                        </c:choose>
+                    </td>
+                </tr>
+            </c:forEach>
+            <c:if test="${empty details}">
+                <tr>
+                    <td colspan="5" class="text-center text-muted">No feedback found</td>
+                </tr>
+            </c:if>
+        </tbody>
+    </table>
+</div>
 
 </div>
 
