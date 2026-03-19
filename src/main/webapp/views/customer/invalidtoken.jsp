@@ -22,9 +22,8 @@
             <p>The password reset link is expired or does not exist.</p>
         </div>
 
-        <div class="error-message" style="text-align: center; padding: 15px;">
-            Please try the forgot password feature again.
-        </div>
+        <c:set var="popupMessage" scope="request" value="Please try the forgot password feature again." />
+        <c:set var="popupType" scope="request" value="error" />
 
         <div class="auth-links">
             <p>

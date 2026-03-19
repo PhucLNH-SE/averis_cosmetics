@@ -768,7 +768,7 @@
       searchDropdown.style.display = 'block';
     }
     
-    // Hàm gọi lên Server để lấy số lượng giỏ hàng thực tế trong Session
+    // Call the server to get the live cart count from the session
     function updateCartCountRealtime() {
         const cartCountEl = document.getElementById('cartCount');
         if (!cartCountEl) return;
@@ -781,7 +781,7 @@
             .catch(err => console.error('Failed to sync cart count:', err));
     }
 
-    // Lắng nghe sự kiện hiển thị trang (chạy cả khi nhấn nút Back)
+    // Listen for page show events (including Back navigation)
     window.addEventListener('pageshow', function(event) {
         updateCartCountRealtime();
     });

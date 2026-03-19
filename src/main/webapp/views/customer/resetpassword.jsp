@@ -24,9 +24,12 @@
 
         <!-- ERROR MESSAGE -->
         <c:if test="${not empty error}">
-            <div class="error-message">
-                ${error}
-            </div>
+            <c:set var="popupMessage" scope="request" value="${error}" />
+            <c:set var="popupType" scope="request" value="error" />
+        </c:if>
+        <c:if test="${empty error && not empty errors}">
+            <c:set var="popupMessage" scope="request" value="Please fix the highlighted fields and try again." />
+            <c:set var="popupType" scope="request" value="error" />
         </c:if>
 
         <form action="${pageContext.request.contextPath}/ResetPasswordController" 
@@ -61,13 +64,6 @@
             </button>
 
         </form>
-
-        <!-- ERROR MESSAGE -->
-        <c:if test="${not empty error}">
-            <div class="error-message">
-                ${error}
-            </div>
-        </c:if>
 
         <div class="auth-links">
             <p>

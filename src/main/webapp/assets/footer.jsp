@@ -136,3 +136,5 @@
         <div>All rights reserved</div>
     </div>
 </footer>
+
+<jsp:include page="/views/common/popup.jsp" />

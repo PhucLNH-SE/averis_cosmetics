@@ -1,7 +1,7 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
-<fmt:setLocale value="vi_VN"/>
+<fmt:setLocale value="en_US"/>
 <section class="admin-content__section staff-orders-page">
     <div class="page-header">
         <div>
@@ -29,16 +29,12 @@
     </div>
 
     <c:if test="${param.success == 'update'}">
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            Orders updated successfully!
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
+        <c:set var="popupMessage" scope="request" value="Orders updated successfully." />
+        <c:set var="popupType" scope="request" value="success" />
     </c:if>
     <c:if test="${param.error == 'updateFailed'}">
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            Failed to update orders!
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
+        <c:set var="popupMessage" scope="request" value="Failed to update orders." />
+        <c:set var="popupType" scope="request" value="error" />
     </c:if>
 
     <div class="card table-card">

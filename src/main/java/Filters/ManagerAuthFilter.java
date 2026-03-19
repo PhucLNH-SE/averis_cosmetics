@@ -39,7 +39,12 @@ public class ManagerAuthFilter implements Filter {
                 ? "GUEST"
                 : manager.getManagerRole().toUpperCase();
 
-        if (!requiredRole.equals(role)) {
+        if ("STAFF".equals(requiredRole)) {
+            if (!"STAFF".equals(role) && !"ADMIN".equals(role)) {
+                resp.sendRedirect(req.getContextPath() + "/manager-auth");
+                return;
+            }
+        } else if (!requiredRole.equals(role)) {
             resp.sendRedirect(req.getContextPath() + "/manager-auth");
             return;
         }

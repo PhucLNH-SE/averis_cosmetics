@@ -13,10 +13,8 @@
     </div>
 
     <c:if test="${not empty error}">
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            ${error}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
+        <c:set var="popupMessage" scope="request" value="${error}" />
+        <c:set var="popupType" scope="request" value="error" />
     </c:if>
 
     <div class="card table-card mb-4">

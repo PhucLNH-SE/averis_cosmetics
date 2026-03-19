@@ -1,8 +1,8 @@
-<%@page contentType="text/html" pageEncoding="UTF-8"%>
+﻿<%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
-<fmt:setLocale value="vi_VN"/>
+<fmt:setLocale value="en_US"/>
 
 <!DOCTYPE html>
 <html>
@@ -74,6 +74,10 @@
             <div style="flex:1">
 
                 <div class="profile-container">
+                    <c:if test="${not empty profileMessage}">
+                        <c:set var="popupMessage" scope="request" value="${profileMessage}" />
+                        <c:set var="popupType" scope="request" value="${profileMessage.contains('success') ? 'success' : 'error'}" />
+                    </c:if>
 
                     <c:choose>
 
@@ -107,7 +111,7 @@
                                         <div class="info-row info-row-email">
                                             <div class="info-label">Email:</div>
                                             <div class="info-value info-value-email">
-                                                <span>${customer.email != null ? customer.email : '—'}</span>
+                                                <span>${customer.email != null ? customer.email : 'N/A'}</span>
 
                                                 <c:if test="${customer.email != null && !customer.email.isEmpty()}">
                                                     <span class="email-status ${customer.emailVerified ? 'status-verified' : 'status-unverified'}">
@@ -126,15 +130,6 @@
                                                 </c:if>
                                             </div>
                                         </div>
-
-                                        <c:if test="${not empty profileMessage}">
-                                            <div class="info-row">
-                                                <div class="info-label"></div>
-                                                <div class="info-value" style="color: #b45309;">
-                                                    ${profileMessage}
-                                                </div>
-                                            </div>
-                                        </c:if>
 
                                         <div class="info-row">
                                             <div class="info-label">Gender:</div>
@@ -187,13 +182,6 @@
                                         <i class="fas fa-plus-circle"></i> Add New Address
                                     </button>
                                 </div>
-
-                                <c:if test="${not empty profileMessage}">
-                                    <div class="alert-message ${profileMessage.contains('success') ? 'alert-success' : 'alert-warning'}">
-                                        <i class="fas ${profileMessage.contains('success') ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
-                                        ${profileMessage}
-                                    </div>
-                                </c:if>
 
                                 <div class="address-grid">
                                     <c:choose>
@@ -304,13 +292,6 @@
                                     </div>
                                 </div>
 
-                                <c:if test="${not empty profileMessage}">
-                                    <div class="alert-message ${profileMessage.contains('success') ? 'alert-success' : 'alert-warning'}">
-                                        <i class="fas ${profileMessage.contains('success') ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
-                                        ${profileMessage}
-                                    </div>
-                                </c:if>
-
                                 <c:choose>
                                     <c:when test="${empty orders}">
                                         <div class="empty-orders">
@@ -366,9 +347,9 @@
                                                     <div class="order-footer">
                                                         <div class="order-total">
                                                             <span class="total-label">Total:</span>
-                                                            <span class="total-value"><fmt:formatNumber value="${o.totalAmount}" pattern="#,##0"/> ₫</span>
+                                                            <span class="total-value"><fmt:formatNumber value="${o.totalAmount}" pattern="#,##0"/> VND</span>
                                                             <c:if test="${o.discountAmount > 0}">
-                                                                <span class="discount-badge">-<fmt:formatNumber value="${o.discountAmount}" pattern="#,##0"/> ₫</span>
+                                                                <span class="discount-badge">-<fmt:formatNumber value="${o.discountAmount}" pattern="#,##0"/> VND</span>
                                                             </c:if>
                                                         </div>
                                                         <div class="order-actions">
@@ -469,11 +450,11 @@
                                                     </div>
                                                     <div class="item-price">
                                                         <span class="price-value">
-                                                            <fmt:formatNumber value="${d.priceAtOrder * d.quantity}" pattern="#,##0"/> ₫
+                                                            <fmt:formatNumber value="${d.priceAtOrder * d.quantity}" pattern="#,##0"/> VND
                                                         </span>
                                                         <c:if test="${d.quantity > 1}">
                                                             <div style="font-size: 0.85em; color: #9ca3af; text-decoration: none; margin-top: 4px;">
-                                                                (Original Price: <fmt:formatNumber value="${d.priceAtOrder}" pattern="#,##0"/> ₫)
+                                                                (Original Price: <fmt:formatNumber value="${d.priceAtOrder}" pattern="#,##0"/> VND)
                                                             </div>
                                                         </c:if>
                                                     </div>
@@ -534,17 +515,17 @@
                                         <div class="order-summary">
                                             <div class="summary-row">
                                                 <span>Subtotal</span>
-                                                <span><fmt:formatNumber value="${order.totalAmount + order.discountAmount}" pattern="#,##0"/> ₫</span>
+                                                <span><fmt:formatNumber value="${order.totalAmount + order.discountAmount}" pattern="#,##0"/> VND</span>
                                             </div>
                                             <c:if test="${order.discountAmount > 0}">
                                                 <div class="summary-row discount">
                                                     <span>Discount</span>
-                                                    <span>-<fmt:formatNumber value="${order.discountAmount}" pattern="#,##0"/> ₫</span>
+                                                    <span>-<fmt:formatNumber value="${order.discountAmount}" pattern="#,##0"/> VND</span>
                                                 </div>
                                             </c:if>
                                             <div class="summary-row total">
                                                 <span>Total</span>
-                                                <span><fmt:formatNumber value="${order.totalAmount}" pattern="#,##0"/> ₫</span>
+                                                <span><fmt:formatNumber value="${order.totalAmount}" pattern="#,##0"/> VND</span>
                                             </div>
                                         </div>
                                     </div>
@@ -553,7 +534,7 @@
                             <div class="feedback-popup-overlay" id="feedbackPopupOverlay" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
                                 <div class="feedback-popup-card" style="background: #fff; width: 100%; max-width: 500px; border-radius: 8px; padding: 24px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
                                     <div class="feedback-popup-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                                        <h3 style="margin: 0; font-size: 1.25rem;">Đánh giá sản phẩm</h3>
+                                        <h3 style="margin: 0; font-size: 1.25rem;">Product Review</h3>
                                         <button type="button" onclick="closeFeedbackPopup()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #6b7280;">&times;</button>
                                     </div>
 
@@ -572,14 +553,14 @@
                                                 <i class="fas fa-star" data-val="4" style="color: #f59e0b;"></i>
                                                 <i class="fas fa-star" data-val="5" style="color: #f59e0b;"></i>
                                             </div>
-                                            <div id="ratingText" style="font-size: 14px; color: #6b7280; margin-top: 8px;">Tuyệt vời</div>
+                                            <div id="ratingText" style="font-size: 14px; color: #6b7280; margin-top: 8px;">Excellent</div>
                                         </div>
 
-                                        <textarea name="comment" rows="4" style="width: 100%; padding: 12px; border-radius: 6px; border: 1px solid #d1d5db; resize: vertical;" placeholder="Chia sẻ cảm nhận của bạn về sản phẩm này... (tối đa 500 ký tự)" maxlength="500"></textarea>
+                                        <textarea name="comment" rows="4" style="width: 100%; padding: 12px; border-radius: 6px; border: 1px solid #d1d5db; resize: vertical;" placeholder="Share your thoughts about this product... (max 500 characters)" maxlength="500"></textarea>
 
                                         <div style="text-align: right; margin-top: 20px; display: flex; gap: 12px; justify-content: flex-end;">
-                                            <button type="button" onclick="closeFeedbackPopup()" style="padding: 10px 20px; border: 1px solid #d1d5db; background: #fff; border-radius: 4px; cursor: pointer; font-weight: 500;">Hủy</button>
-                                            <button type="submit" style="padding: 10px 20px; border: none; background: #111827; color: #fff; border-radius: 4px; cursor: pointer; font-weight: 500;">Gửi đánh giá</button>
+                                            <button type="button" onclick="closeFeedbackPopup()" style="padding: 10px 20px; border: 1px solid #d1d5db; background: #fff; border-radius: 4px; cursor: pointer; font-weight: 500;">Cancel</button>
+                                            <button type="submit" style="padding: 10px 20px; border: none; background: #111827; color: #fff; border-radius: 4px; cursor: pointer; font-weight: 500;">Submit Review</button>
                                         </div>
                                     </form>
                                 </div>
@@ -592,34 +573,43 @@
                                 <div class="voucher-header">
                                     <div>
                                         <h2>My Voucher</h2>
-                                        <p class="voucher-subtitle">Quản lý các voucher bạn đang sở hữu</p>
+                                        <p class="voucher-subtitle">Manage the vouchers you own</p>
                                     </div>
                                 </div>
 
                                 <div class="voucher-claim-card">
                                     <form method="post" action="${pageContext.request.contextPath}/my-voucher" class="voucher-claim-form">
-                                        <input type="text" name="voucherCode" placeholder="Nhập voucher code" required>
+                                        <input type="text" name="voucherCode" placeholder="Enter voucher code" required>
                                         <button type="submit">Add Voucher</button>
                                     </form>
                                 </div>
 
                                 <c:if test="${param.success == 'claimed'}">
-                                    <div class="alert-message alert-success">
-                                        <i class="fas fa-check-circle"></i> Claim voucher thành công.
-                                    </div>
+                                    <c:set var="popupMessage" scope="request" value="Voucher claimed successfully." />
+                                    <c:set var="popupType" scope="request" value="success" />
                                 </c:if>
                                 <c:if test="${not empty param.error}">
-                                    <div class="alert-message alert-warning">
-                                        <i class="fas fa-exclamation-circle"></i>
-                                        <c:choose>
-                                            <c:when test="${param.error == 'emptyCode'}">Vui lòng nhập mã voucher.</c:when>
-                                            <c:when test="${param.error == 'codeNotFound'}">Mã voucher không tồn tại hoặc đã bị tắt.</c:when>
-                                            <c:when test="${param.error == 'outOfStock'}">Voucher đã hết số lượng.</c:when>
-                                            <c:when test="${param.error == 'alreadyClaimed'}">Bạn đã nhận voucher này rồi.</c:when>
-                                            <c:when test="${param.error == 'voucherExpired'}">Voucher đã hết hạn nhận.</c:when>
-                                            <c:otherwise>Lỗi khi nhận voucher.</c:otherwise>
-                                        </c:choose>
-                                    </div>
+                                    <c:set var="popupType" scope="request" value="error" />
+                                    <c:choose>
+                                        <c:when test="${param.error == 'emptyCode'}">
+                                            <c:set var="popupMessage" scope="request" value="Please enter a voucher code." />
+                                        </c:when>
+                                        <c:when test="${param.error == 'codeNotFound'}">
+                                            <c:set var="popupMessage" scope="request" value="The voucher code does not exist or is disabled." />
+                                        </c:when>
+                                        <c:when test="${param.error == 'outOfStock'}">
+                                            <c:set var="popupMessage" scope="request" value="This voucher is out of stock." />
+                                        </c:when>
+                                        <c:when test="${param.error == 'alreadyClaimed'}">
+                                            <c:set var="popupMessage" scope="request" value="You have already claimed this voucher." />
+                                        </c:when>
+                                        <c:when test="${param.error == 'voucherExpired'}">
+                                            <c:set var="popupMessage" scope="request" value="This voucher can no longer be claimed." />
+                                        </c:when>
+                                        <c:otherwise>
+                                            <c:set var="popupMessage" scope="request" value="Failed to claim voucher." />
+                                        </c:otherwise>
+                                    </c:choose>
                                 </c:if>
 
                                 <div class="voucher-table-card">
@@ -629,8 +619,8 @@
                                                 <tr>
                                                     <th>Code</th>
                                                     <th>Discount</th>
-                                                    <th>Ngày bắt đầu</th>
-                                                    <th>Hạn sử dụng</th>
+                                                    <th>Start Date</th>
+                                                    <th>Expiration Date</th>
                                                     <th>Status</th>
                                                 </tr>
                                             </thead>
@@ -638,7 +628,7 @@
                                                 <c:choose>
                                                     <c:when test="${empty myVouchers}">
                                                         <tr>
-                                                            <td colspan="5" class="voucher-empty">Bạn chưa có voucher nào.</td>
+                                                            <td colspan="5" class="voucher-empty">You do not have any vouchers yet.</td>
                                                         </tr>
                                                     </c:when>
                                                     <c:otherwise>
@@ -654,7 +644,7 @@
                                                                             <fmt:formatNumber value="${cv.voucher.discountValue}" pattern="#,##0" />%
                                                                         </c:when>
                                                                         <c:otherwise>
-                                                                            <fmt:formatNumber value="${cv.voucher.discountValue}" pattern="#,##0" /> ₫
+                                                                            <fmt:formatNumber value="${cv.voucher.discountValue}" pattern="#,##0" /> VND
                                                                         </c:otherwise>
                                                                     </c:choose>
                                                                 </td>
@@ -703,19 +693,12 @@
 
                                     </div>
                                     <c:if test="${not empty error}">
-                                        <div class="alert alert-danger">
-                                            ${error}
-                                        </div>
+                                        <c:set var="popupMessage" scope="request" value="${error}" />
+                                        <c:set var="popupType" scope="request" value="error" />
                                     </c:if>
-                                    <c:if test="${not empty errors.errorPassword}">
-                                        <div class="alert alert-danger">
-                                            ${errors.errorPassword}
-                                        </div>
-                                    </c:if>
-                                    <c:if test="${not empty profileMessage}">
-                                        <div class="alert alert-success">
-                                            ${profileMessage}
-                                        </div>
+                                    <c:if test="${empty error && not empty errors.errorPassword}">
+                                        <c:set var="popupMessage" scope="request" value="${errors.errorPassword}" />
+                                        <c:set var="popupType" scope="request" value="error" />
                                     </c:if>
 
                                     <div class="btns">
@@ -744,7 +727,7 @@
 
 </div>
 
-<%-- (Các phần trên giữ nguyên) --%>
+<%-- (Sections above unchanged) --%>
 
 <%@include file="/assets/footer.jsp" %>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -752,7 +735,7 @@
                                                 function confirmCancel(orderId) {
                                                     Swal.fire({
                                                         title: 'Cancel Order',
-                                                        text: 'Bạn có chắc muốn hủy đơn này?',
+                                                        text: 'Are you sure you want to cancel this order?',
                                                         icon: 'warning',
                                                         showCancelButton: true,
                                                         confirmButtonText: 'Yes, Cancel',
@@ -850,39 +833,39 @@
                                                     });
                                                 });
 
-                                                // ===== PHẦN CODE MỚI DÀNH CHO FEEDBACK ===== //
-                                                // Biến lưu trữ mảng text tương ứng với số sao
-                                                const ratingTexts = ["Tệ", "Không hài lòng", "Bình thường", "Hài lòng", "Tuyệt vời"];
+                                                // ===== Feedback helper code ===== //
+                                                // Text labels for each star rating
+                                                const ratingTexts = ["Poor", "Not satisfied", "Average", "Satisfied", "Excellent"];
 
                                                 function openFeedbackPopup(buttonElement) {
                                                     const overlay = document.getElementById('feedbackPopupOverlay');
                                                     const form = document.getElementById('feedbackForm');
 
-                                                    // Lấy dữ liệu từ data-attributes của nút được bấm
+                                                    // Read data from the clicked button's data attributes
                                                     const orderDetailId = buttonElement.getAttribute('data-id');
                                                     const productName = buttonElement.getAttribute('data-name');
                                                     const existingRating = parseInt(buttonElement.getAttribute('data-rating')) || 5;
                                                     const existingComment = buttonElement.getAttribute('data-comment') || '';
 
-                                                    // Gán dữ liệu vào Form
+                                                    // Fill the form with existing data
                                                     document.getElementById('feedbackOrderDetailId').value = orderDetailId;
                                                     document.getElementById('feedbackProductName').textContent = productName;
 
-                                                    // Reset và set lại giá trị cũ
+                                                    // Reset and restore previous values
                                                     form.reset();
                                                     document.getElementById('feedbackRating').value = existingRating;
-                                                    updateStars(existingRating); // Hàm của bro đã viết ở dưới, cứ gọi lại thôi
+                                                    updateStars(existingRating); // Use the existing helper below
                                                     form.querySelector('textarea[name="comment"]').value = existingComment;
 
-                                                    // Đổi Title của Popup tùy thuộc vào việc Thêm mới hay Sửa
+                                                    // Update popup title based on add vs edit
                                                     const headerTitle = overlay.querySelector('.feedback-popup-header h3');
                                                     if (existingComment !== '' || existingRating !== 5 || buttonElement.classList.contains('btn-edit-feedback')) {
-                                                        headerTitle.textContent = "Chỉnh sửa đánh giá";
+                                                        headerTitle.textContent = "Edit Review";
                                                     } else {
-                                                        headerTitle.textContent = "Đánh giá sản phẩm";
+                                                        headerTitle.textContent = "Product Review";
                                                     }
 
-                                                    // Hiển thị Popup
+                                                    // Show popup
                                                     overlay.style.display = 'flex';
                                                 }
 
@@ -894,9 +877,9 @@
 
                                                     stars.forEach(s => {
                                                         if (parseInt(s.getAttribute('data-val')) <= value) {
-                                                            s.style.color = '#f59e0b'; // Màu vàng
+                                                            s.style.color = '#f59e0b'; // Yellow
                                                         } else {
-                                                            s.style.color = '#e5e7eb'; // Màu xám nhạt
+                                                            s.style.color = '#e5e7eb'; // Light gray
                                                         }
                                                     });
                                                     ratingText.textContent = ratingTexts[value - 1];
@@ -920,3 +903,6 @@
 </script> 
 </body>
 </html>
+
+
+

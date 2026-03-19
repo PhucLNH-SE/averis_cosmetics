@@ -1,7 +1,7 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -23,7 +23,7 @@
             <aside class="admin-sidebar">
                 <div class="admin-sidebar__brand">
                     <h1>Staff Panel</h1>
-                    <p>Menu chuc nang nhan vien</p>
+                    <p>Staff functions menu</p>
                 </div>
 
                 <nav class="admin-sidebar__nav">
@@ -55,14 +55,14 @@
                     <a class="admin-sidebar__link ${currentView == 'products' ? 'active' : ''}"
                        href="${pageContext.request.contextPath}/staff/manage-product">
                         <i class="bi bi-box-seam-fill"></i>
-                        <span>Manage Product</span>
+                        <span>View Products</span>
                     </a>
 
                 </nav>
 
                 <div class="admin-sidebar__footer">
                     <a class="btn btn-outline-light w-100" href="${pageContext.request.contextPath}/logout">
-                        <i class="bi bi-box-arrow-right me-1"></i>Dang xuat
+                        <i class="bi bi-box-arrow-right me-1"></i>Sign out
                     </a>
                 </div>
             </aside>
@@ -71,6 +71,8 @@
                 <jsp:include page="${contentPage}" />
             </main>
         </div>
+
+        <jsp:include page="/views/common/popup.jsp" />
 
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     </body>

@@ -30,7 +30,7 @@ public class AddressDAO extends DBContext {
     }
     
     public Address getAddressById(int addressId) {
-        String sql = "SELECT * FROM Address WHERE address_id = ?";
+        String sql = "SELECT * FROM Address WHERE address_id = ? AND is_deleted = 0";
         
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, addressId);
@@ -113,7 +113,7 @@ public class AddressDAO extends DBContext {
             e.printStackTrace();
         }
         
-        String sql = "DELETE FROM Address WHERE address_id = ? AND customer_id = ?";
+        String sql = "UPDATE Address SET is_deleted = 1, is_default = 0 WHERE address_id = ? AND customer_id = ?";
         
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, addressId);

@@ -31,7 +31,7 @@ public class MomoPaymentController extends HttpServlet {
 
         // Check login
         if (customer == null) {
-            response.sendRedirect(request.getContextPath() + "/login");
+            response.sendRedirect(request.getContextPath() + "/auth?action=login");
             return;
         }
 

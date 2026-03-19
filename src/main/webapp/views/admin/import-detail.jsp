@@ -17,9 +17,10 @@
                 <td><strong>${d.productName}</strong></td>
                 <td>${d.variantName}</td>
                 <td class="text-end">${d.quantity}</td>
-                <td class="text-end">${d.importPrice} VNĐ</td>
-                <td class="text-end amount">${d.quantity * d.importPrice} VNĐ</td>
+                <td class="text-end">${d.importPrice} VND</td>
+                <td class="text-end amount">${d.quantity * d.importPrice} VND</td>
             </tr>
         </c:forEach>
     </tbody>
 </table>
+

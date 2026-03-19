@@ -1,14 +1,14 @@
-<%@page contentType="text/html" pageEncoding="UTF-8"%>
+﻿<%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
-<fmt:setLocale value="vi_VN"/>
+<fmt:setLocale value="en_US"/>
 
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Giỏ hàng | Averis Cosmetics</title>
+    <title>Cart | Averis Cosmetics</title>
     
     <link rel="stylesheet" type="text/css" href="<%=request.getContextPath()%>/assets/css/cart.css">
 </head>
@@ -22,11 +22,11 @@
         
         <c:if test="${empty cart}">
             <div class="cart-main empty-cart">
-                <div class="empty-icon">🛒</div> 
-                <h3>Giỏ hàng của bạn đang trống</h3>
-                <p style="color: var(--muted); margin-bottom: 24px;">Hãy chọn thêm sản phẩm để mua sắm nhé.</p>
+                <div class="empty-icon">Cart</div>
+                <h3>Your cart is empty</h3>
+                <p style="color: var(--muted); margin-bottom: 24px;">Browse products and add items to get started.</p>
                 <a href="<%=request.getContextPath()%>/products" class="btn-checkout" style="width: 200px; margin: 0 auto; display: inline-block;">
-                    Tiếp tục mua hàng
+                    Continue Shopping
                 </a>
             </div>
         </c:if>
@@ -35,8 +35,8 @@
             
             <div class="cart-main">
                 <div class="cart-title-block">
-                    <h1 class="cart-heading">Giỏ hàng</h1>
-                    <span class="cart-count">(${cart.size()} sản phẩm)</span>
+                    <h1 class="cart-heading">Cart</h1>
+                    <span class="cart-count">(${cart.size()} items)</span>
                 </div>
 
                 <c:forEach items="${cart}" var="entry">
@@ -75,7 +75,7 @@ onerror="this.src='<%=request.getContextPath()%>/assets/img/Logo.png';">
                                 </form>
 
                                 <div class="item-price">
-                                    <fmt:formatNumber value="${entry.value.variant.price}" pattern="#,##0"/> ₫
+                                    <fmt:formatNumber value="${entry.value.variant.price}" pattern="#,##0"/> VND
                                 </div>
                             </div>
 
@@ -93,7 +93,7 @@ onerror="this.src='<%=request.getContextPath()%>/assets/img/Logo.png';">
                                     </div>
                                     
                                     <c:if test="${entry.value.quantity >= entry.value.variant.stock}">
-                                        <span style="color: red; font-size: 12px;">(Tối đa kho)</span>
+                                        <span style="color: red; font-size: 12px;">(Max in stock)</span>
                                     </c:if>
                                 </form>
 
@@ -102,14 +102,14 @@ onerror="this.src='<%=request.getContextPath()%>/assets/img/Logo.png';">
                                     <input type="hidden" name="quantity" value="0">
                                     
                                     <button type="submit" class="btn-delete">
-                                        Xóa
+                                        Remove
                                     </button>
                                 </form>
                             </div>
                         </div>
                         
                         <div style="font-weight:700; font-size:14px; align-self:flex-end; display:none;">
-                            <fmt:formatNumber value="${entry.value.subtotal}" pattern="#,##0"/> ₫
+                            <fmt:formatNumber value="${entry.value.subtotal}" pattern="#,##0"/> VND
                         </div>
                     </div>
                 </c:forEach>
@@ -117,27 +117,27 @@ onerror="this.src='<%=request.getContextPath()%>/assets/img/Logo.png';">
 
             <div class="cart-sidebar">
                 <div class="summary-row">
-                    <span>Tạm tính:</span>
-                    <span style="font-weight:600"><fmt:formatNumber value="${total}" pattern="#,##0"/> ₫</span>
+                    <span>Subtotal:</span>
+                    <span style="font-weight:600"><fmt:formatNumber value="${total}" pattern="#,##0"/> VND</span>
                 </div>
                 <div class="summary-row">
-                    <span>Giảm giá:</span>
-                    <span>0 ₫</span>
+                    <span>Discount:</span>
+                    <span>0 VND</span>
                 </div>
                 
                 <div class="summary-total">
-                    <span>Tổng cộng:</span>
-                    <span><fmt:formatNumber value="${total}" pattern="#,##0"/> ₫</span>
+                    <span>Total:</span>
+                    <span><fmt:formatNumber value="${total}" pattern="#,##0"/> VND</span>
                 </div>
                 
                 <div style="text-align:right; font-size:12px; color:var(--muted); margin-top:5px;">
-                    (Đã bao gồm VAT nếu có)
+                    (VAT included if applicable)
                 </div>
 
-                <a href="checkout" class="btn-checkout">Tiến hành đặt hàng</a>
+                <a href="checkout" class="btn-checkout">Proceed to Checkout</a>
                 
                 <a href="<%=request.getContextPath()%>/products" class="continue-link">
-                    &larr; Tiếp tục mua sắm
+                    &larr; Continue Shopping
                 </a>
             </div>
             
@@ -162,3 +162,4 @@ onerror="this.src='<%=request.getContextPath()%>/assets/img/Logo.png';">
 
 </body>
 </html>
+

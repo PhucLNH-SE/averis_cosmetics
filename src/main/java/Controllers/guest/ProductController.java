@@ -7,7 +7,6 @@ import Model.Product;
 import Model.ProductVariant;
 import java.io.IOException;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -21,7 +20,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-@WebServlet(name = "ProductController", urlPatterns = {"/products"})
 public class ProductController extends HttpServlet {
 
     private String escapeJson(String input) {

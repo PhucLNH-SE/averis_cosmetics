@@ -13,7 +13,9 @@ import java.io.IOException;
                 "/profile",
                 "/checkout",
                 "/order/*",
-                "/address/*"
+                "/address",
+                "/address/*",
+                "/address-api"
         })
 public class CustomerAuthFilter implements Filter {
 

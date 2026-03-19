@@ -1,11 +1,11 @@
-<%@ page contentType="text/html" pageEncoding="UTF-8"%>
+﻿<%@ page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Xác thực email | Averis Cosmetics</title>
+    <title>Email Verification | Averis Cosmetics</title>
     <style>
         body { font-family: Arial, sans-serif; background: #faf8f5; margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
         .box { max-width: 420px; padding: 32px; background: #fff; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); text-align: center; }
@@ -19,9 +19,9 @@
 </head>
 <body>
     <div class="box">
-        <h2 class="${success ? 'success' : 'error'}">${success ? 'Thành công' : 'Không thành công'}</h2>
+        <h2 class="${success ? 'success' : 'error'}">${success ? 'Success' : 'Verification failed'}</h2>
         <p>${message}</p>
-        <a href="${pageContext.request.contextPath}/auth?action=login">Đăng nhập</a>
+        <a href="${pageContext.request.contextPath}/auth?action=login">Sign in</a>
     </div>
 </body>
 </html>

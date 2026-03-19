@@ -28,7 +28,8 @@ request.setAttribute("geoapifyApiKey", geoapifyApiKey);
                 </div>
 
                 <c:if test="${not empty error}">
-                    <div class="alert alert-danger">${error}</div>
+                    <c:set var="popupMessage" scope="request" value="${error}" />
+                    <c:set var="popupType" scope="request" value="error" />
                 </c:if>
 
                 <form action="${pageContext.request.contextPath}/address" method="POST"

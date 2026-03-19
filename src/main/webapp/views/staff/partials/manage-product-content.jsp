@@ -1,7 +1,7 @@
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+﻿<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
-<fmt:setLocale value="vi_VN"/>
+<fmt:setLocale value="en_US"/>
 
 <section class="admin-content__section">
     <div class="d-flex justify-content-between align-items-center mb-4">
@@ -15,17 +15,13 @@
     </div>
 
     <c:if test="${not empty successMsg}">
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            ${successMsg}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
+        <c:set var="popupMessage" scope="request" value="${successMsg}" />
+        <c:set var="popupType" scope="request" value="success" />
     </c:if>
 
     <c:if test="${not empty errorMsg}">
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            ${errorMsg}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
+        <c:set var="popupMessage" scope="request" value="${errorMsg}" />
+        <c:set var="popupType" scope="request" value="error" />
     </c:if>
 
     <div class="card shadow-sm">
@@ -44,7 +40,7 @@
                         <th>Product Name</th>
                         <th>Category</th>
                         <th>Price Range</th>
-                        <th class="text-center">Price Stock (Giá nhập)</th>
+                        <th class="text-center">Import Price</th>
                         <th>Status</th>
                         <th class="text-center">Actions</th>
                     </tr>
@@ -86,18 +82,18 @@
                                 </c:choose>
                             </td>
                             
-                            <%-- HIỂN THỊ TÊN BIẾN THỂ KÈM GIÁ NHẬP --%>
+                            <%-- SHOW VARIANT NAME WITH IMPORT PRICE --%>
                             <td>
                                 <c:choose>
                                     <c:when test="${empty p.variants}">
-                                        <span class="text-muted small text-center d-block">Không có</span>
+                                        <span class="text-muted small text-center d-block">None</span>
                                     </c:when>
                                     <c:otherwise>
                                         <ul class="list-unstyled mb-0 small">
                                             <c:forEach items="${p.variants}" var="variant">
                                                 <li class="mb-1">
                                                     <span class="fw-bold">${variant.variantName}</span> - 
-                                                    <span class="text-success"><fmt:formatNumber value="${variant.importPrice}" pattern="#,##0"/> ₫</span>
+                                                    <span class="text-success"><fmt:formatNumber value="${variant.importPrice}" pattern="#,##0"/> VND</span>
                                                 </li>
                                             </c:forEach>
                                         </ul>
@@ -272,7 +268,7 @@
                     </div>
 
                     <div class="row bg-light p-3 rounded border mb-3 mx-0">
-                        <h6 class="fw-bold text-secondary mb-2 border-bottom pb-1">Pricing (Bản mặc định)</h6>
+                        <h6 class="fw-bold text-secondary mb-2 border-bottom pb-1">Pricing (Default Variant)</h6>
                         <div class="col-md-6 mb-2">
                             <label class="form-label text-danger fw-bold small">Sale Price</label>
                             <input type="number" step="0.01" name="price" class="form-control" required placeholder="Ex: 299000">
@@ -456,3 +452,5 @@
         bootstrap.Modal.getOrCreateInstance(document.getElementById('showModal')).show();
     }
 </script>
+
+

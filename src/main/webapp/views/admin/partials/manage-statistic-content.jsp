@@ -5,7 +5,7 @@
     <div class="statistic-page__header">
         <div>
             <h2 class="admin-content__title">Monthly Statistic</h2>
-            <p class="admin-content__subtitle">Tong hop doanh thu, loi nhuan, don hang va san pham theo thang.</p>
+            <p class="admin-content__subtitle">Summary of revenue, profit, orders, and products by month.</p>
         </div>
 
         <form class="statistic-filter" method="get" action="${pageContext.request.contextPath}/admin/manage-statistic">
@@ -13,7 +13,7 @@
                 <label for="statMonth">Month</label>
                 <select id="statMonth" name="month" class="form-select">
                     <c:forEach begin="1" end="12" var="monthValue">
-                        <option value="${monthValue}" ${selectedMonth == monthValue ? 'selected' : ''}>Thg ${monthValue}</option>
+                        <option value="${monthValue}" ${selectedMonth == monthValue ? 'selected' : ''}>Month ${monthValue}</option>
                     </c:forEach>
                 </select>
             </div>
@@ -83,7 +83,7 @@
         <div class="col-12 col-xl-7">
             <div class="table-card statistic-table-card">
                 <div class="table-card__head">
-                    <h3>Top Selling Products in Thg ${selectedMonth}</h3>
+                    <h3>Top Selling Products in Month ${selectedMonth}</h3>
                 </div>
                 <div class="table-responsive">
                     <table class="table align-middle mb-0">
