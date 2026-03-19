@@ -320,15 +320,11 @@ public class ProductDAO extends DBContext {
         return list;
     }
 
-    // Đã thay đổi tham số truyền vào: thêm int stock và double importPrice
     public void insertProduct(String name, String description, int brandId, int categoryId,
                               boolean status, String imageName, double price, int stock, double importPrice) {
-        
         String insertProductSql = "INSERT INTO Product (name, description, brand_id, category_id, status) "
                 + "VALUES (?, ?, ?, ?, ?)";
-        String insertImageSql = "INSERT INTO Product_Image (product_id, image_url, is_main) VALUES (?, ?, 1)";
-        
-        // CHỖ SỬA QUAN TRỌNG NHẤT LÀ ĐÂY: Thêm avg_cost và stock vào câu Query
+        String insertImageSql = "INSERT INTO Product_Image (product_id, image_url, is_main) VALUES (?, ?, 1)"; 
         String insertVariantSql = "INSERT INTO Product_Variant (product_id, variant_name, price, stock, avg_cost, status) "
                 + "VALUES (?, 'Standard', ?, ?, ?, 1)";
 
@@ -336,7 +332,6 @@ public class ProductDAO extends DBContext {
             connection.setAutoCommit(false);
 
             int newId = 0;
-            // 1. Insert Product
             try (PreparedStatement psProduct = connection.prepareStatement(insertProductSql, Statement.RETURN_GENERATED_KEYS)) {
                 psProduct.setString(1, name);
                 psProduct.setString(2, description);
@@ -353,7 +348,6 @@ public class ProductDAO extends DBContext {
             }
 
             if (newId > 0) {
-                // 2. Insert Image
                 if (imageName != null && !imageName.isEmpty()) {
                     try (PreparedStatement psImage = connection.prepareStatement(insertImageSql)) {
                         psImage.setInt(1, newId);
@@ -362,12 +356,11 @@ public class ProductDAO extends DBContext {
                     }
                 }
 
-                // 3. Insert Variant (với số lượng và giá nhập)
                 try (PreparedStatement psVariant = connection.prepareStatement(insertVariantSql)) {
                     psVariant.setInt(1, newId);
                     psVariant.setDouble(2, price);
-                    psVariant.setInt(3, stock);         // Gán Số lượng
-                    psVariant.setDouble(4, importPrice);// Gán Giá nhập (avg_cost)
+                    psVariant.setInt(3, stock);
+                    psVariant.setDouble(4, importPrice);
                     psVariant.executeUpdate();
                 }
             }
