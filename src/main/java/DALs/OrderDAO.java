@@ -286,7 +286,7 @@ public class OrderDAO extends DBContext {
         updateOrder(orderId, paymentStatus, orderStatus, null);
     }
 
-    public boolean updateOrder(int orderId, String paymentStatus, String orderStatus, Integer changedBy) {
+  public boolean updateOrder(int orderId, String paymentStatus, String orderStatus, Integer handledBy) {
         Connection conn = null;
 
         try {
@@ -332,19 +332,15 @@ public class OrderDAO extends DBContext {
             try (PreparedStatement ps = conn.prepareStatement(sql)) {
                 ps.setString(1, paymentStatus);
                 ps.setString(2, orderStatus);
-                if (changedBy == null) {
-                    ps.setNull(3, java.sql.Types.INTEGER);
-                } else {
-                    ps.setInt(3, changedBy);
-                }
+              if (handledBy == null) {
+                  ps.setNull(3, java.sql.Types.INTEGER);
+              } else {
+                  ps.setInt(3, handledBy);
+              }
                 ps.setString(4, paymentStatus);
                 ps.setString(5, orderStatus);
                 ps.setInt(6, orderId);
                 ps.executeUpdate();
-            }
-
-            if (changedBy != null && !equalsIgnoreCase(snapshot.orderStatus, orderStatus)) {
-                insertOrderStatusHistory(conn, orderId, snapshot.orderStatus, orderStatus, changedBy);
             }
 
             conn.commit();
@@ -635,30 +631,6 @@ public class OrderDAO extends DBContext {
         }
 
         return null;
-    }
-
-    private void insertOrderStatusHistory(Connection conn, int orderId, String oldStatus, String newStatus, int changedBy)
-            throws SQLException {
-        String sql = "INSERT INTO Order_Status_History (order_id, old_status, new_status, changed_by) "
-                + "VALUES (?, ?, ?, ?)";
-
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, orderId);
-            ps.setString(2, oldStatus);
-            ps.setString(3, newStatus);
-            ps.setInt(4, changedBy);
-            ps.executeUpdate();
-        }
-    }
-
-    private boolean equalsIgnoreCase(String left, String right) {
-        if (left == null && right == null) {
-            return true;
-        }
-        if (left == null || right == null) {
-            return false;
-        }
-        return left.equalsIgnoreCase(right);
     }
 
     private static class OrderSnapshot {

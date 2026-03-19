@@ -96,7 +96,7 @@ public class ManageOrderController extends HttpServlet {
             HttpSession session = request.getSession(false);
             Manager manager = session == null ? null : (Manager) session.getAttribute("manager");
 
-            Integer changedBy = manager == null ? null : manager.getManagerId();
+            Integer handledBy = manager == null ? null : manager.getManagerId();
 
             String[] orderIds = request.getParameterValues("orderId");
             String[] paymentStatuses = request.getParameterValues("paymentStatus");
@@ -108,7 +108,7 @@ public class ManageOrderController extends HttpServlet {
 
                 int orderId = Integer.parseInt(orderIds[i]);
 
-                dao.updateOrder(orderId, paymentStatuses[i], orderStatuses[i], changedBy);
+                dao.updateOrder(orderId, paymentStatuses[i], orderStatuses[i], handledBy);
             }
 
             response.sendRedirect(request.getContextPath() + "/staff/manage-orders?success=update");
