@@ -18,13 +18,13 @@ import java.util.List;
 public class OrderDAO extends DBContext {
 
     public int placeOrder(int customerId, int addressId, String paymentMethod,
-                          java.math.BigDecimal totalAmount, List<CartItem> items) {
+            java.math.BigDecimal totalAmount, List<CartItem> items) {
         return placeOrder(customerId, addressId, paymentMethod, totalAmount, items, null, java.math.BigDecimal.ZERO);
     }
 
     public int placeOrder(int customerId, int addressId, String paymentMethod,
-                          java.math.BigDecimal totalAmount, List<CartItem> items,
-                          Integer voucherId, java.math.BigDecimal discountAmount) {
+            java.math.BigDecimal totalAmount, List<CartItem> items,
+            Integer voucherId, java.math.BigDecimal discountAmount) {
         Connection conn = null;
         PreparedStatement psOrder = null;
         PreparedStatement psDetail = null;
@@ -68,25 +68,25 @@ public class OrderDAO extends DBContext {
             }
 
             String sqlDetail = "INSERT INTO Order_Detail (order_id, variant_id, quantity, price_at_order, cost_price_at_order) VALUES (?, ?, ?, ?, ?)";
-            
-psDetail = conn.prepareStatement(sqlDetail);
 
-for (CartItem item : items) {
+            psDetail = conn.prepareStatement(sqlDetail);
 
-    if (item.getVariant() == null || item.getVariant().getPrice() == null) {
-        throw new SQLException("Invalid cart item");
-    }
+            for (CartItem item : items) {
 
-    psDetail.setInt(1, orderId);
-    psDetail.setInt(2, item.getVariant().getVariantId());
-    psDetail.setInt(3, item.getQuantity());
-    psDetail.setBigDecimal(4, item.getVariant().getPrice());
-    psDetail.setBigDecimal(5, item.getVariant().getImportPrice() == null ? java.math.BigDecimal.ZERO : item.getVariant().getImportPrice());
+                if (item.getVariant() == null || item.getVariant().getPrice() == null) {
+                    throw new SQLException("Invalid cart item");
+                }
 
-    psDetail.addBatch();
-}
+                psDetail.setInt(1, orderId);
+                psDetail.setInt(2, item.getVariant().getVariantId());
+                psDetail.setInt(3, item.getQuantity());
+                psDetail.setBigDecimal(4, item.getVariant().getPrice());
+                psDetail.setBigDecimal(5, item.getVariant().getImportPrice() == null ? java.math.BigDecimal.ZERO : item.getVariant().getImportPrice());
 
-psDetail.executeBatch();
+                psDetail.addBatch();
+            }
+
+            psDetail.executeBatch();
 
             conn.commit();
             return orderId;
@@ -110,7 +110,7 @@ psDetail.executeBatch();
                 }
             }
 
-            closeResources(rs, psOrder, psDetail,psStock);
+            closeResources(rs, psOrder, psDetail, psStock);
         }
     }
 
@@ -135,10 +135,10 @@ psDetail.executeBatch();
 
     public Orders getOrderById(int orderId) {
 
-        String sql = "SELECT o.*, a.receiver_name, a.phone, a.street_address, a.ward, a.district, a.province " +
-                     "FROM Orders o " +
-                     "LEFT JOIN Address a ON o.address_id = a.address_id " +
-                     "WHERE o.order_id = ?";
+        String sql = "SELECT o.*, a.receiver_name, a.phone, a.street_address, a.ward, a.district, a.province "
+                + "FROM Orders o "
+                + "LEFT JOIN Address a ON o.address_id = a.address_id "
+                + "WHERE o.order_id = ?";
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
 
@@ -169,7 +169,7 @@ psDetail.executeBatch();
                     if (rs.getTimestamp("completed_at") != null) {
                         order.setCompletedAt(rs.getTimestamp("completed_at").toLocalDateTime());
                     }
-                    
+
                     // Address info
                     order.setReceiverName(rs.getString("receiver_name"));
                     order.setReceiverPhone(rs.getString("phone"));
@@ -188,29 +188,23 @@ psDetail.executeBatch();
 
         return null;
     }
- 
-
-
-
-  
-
 
     public List<Orders> getAllOrders() {
 
         List<Orders> list = new ArrayList<>();
 
-    String sql = "SELECT o.order_id, "
-            + "a.receiver_name, "
-            + "v.code AS voucher_code, "
-            + "o.discount_amount, "
-            + "o.payment_method, "
-            + "o.payment_status, "
-            + "o.order_status, "
-            + "o.total_amount "
-            + "FROM Orders o "
-            + "JOIN Address a ON o.address_id = a.address_id "
-            + "LEFT JOIN Voucher v ON o.voucher_id = v.voucher_id "
-            + "ORDER BY o.order_id DESC";
+        String sql = "SELECT o.order_id, "
+                + "a.receiver_name, "
+                + "v.code AS voucher_code, "
+                + "o.discount_amount, "
+                + "o.payment_method, "
+                + "o.payment_status, "
+                + "o.order_status, "
+                + "o.total_amount "
+                + "FROM Orders o "
+                + "JOIN Address a ON o.address_id = a.address_id "
+                + "LEFT JOIN Voucher v ON o.voucher_id = v.voucher_id "
+                + "ORDER BY o.order_id DESC";
 
         try {
 
@@ -240,181 +234,178 @@ psDetail.executeBatch();
         return list;
     }
 
+    public List<OrderDetail> getOrderDetailsByOrderId(int orderId) {
 
-  public List<OrderDetail> getOrderDetailsByOrderId(int orderId) {
+        List<OrderDetail> list = new ArrayList<>();
 
-    List<OrderDetail> list = new ArrayList<>();
-
-String sql = "SELECT "
-        + "p.name AS product_name, "
-        + "b.name AS brand_name, "
-        + "c.name AS category_name, "
-        + "od.quantity, "
-        + "od.price_at_order, "
-        + "(SELECT TOP 1 image_url "
-        + " FROM Product_Image "
-        + " WHERE product_id = p.product_id) AS image_url "
-        + "FROM Order_Detail od "
-        + "JOIN Product_Variant v ON od.variant_id = v.variant_id "
-        + "JOIN Product p ON v.product_id = p.product_id "
-        + "JOIN Brand b ON p.brand_id = b.brand_id "
-        + "JOIN Category c ON p.category_id = c.category_id "
-        + "WHERE od.order_id = ?";
-
-    try {
-
-        PreparedStatement ps = connection.prepareStatement(sql);
-        ps.setInt(1, orderId);
-
-        ResultSet rs = ps.executeQuery();
-
-        while (rs.next()) {
-
-            OrderDetail od = new OrderDetail();
-
-            od.setProductName(rs.getString("product_name"));
-            od.setImageUrl(rs.getString("image_url"));
-            od.setBrandName(rs.getString("brand_name"));
-            od.setCategoryName(rs.getString("category_name"));
-            od.setQuantity(rs.getInt("quantity"));
-            od.setPriceAtOrder(rs.getBigDecimal("price_at_order"));
-
-            list.add(od);
-        }
-
-    } catch (Exception e) {
-        e.printStackTrace();
-    }
-
-    return list;
-}
-  public void updateOrder(int orderId, String paymentStatus, String orderStatus) {
-      updateOrder(orderId, paymentStatus, orderStatus, null);
-  }
-
-  public boolean updateOrder(int orderId, String paymentStatus, String orderStatus, Integer changedBy) {
-      Connection conn = null;
-
-      try {
-          conn = this.connection;
-          if (conn == null) {
-              return false;
-          }
-
-          conn.setAutoCommit(false);
-
-          OrderSnapshot snapshot = getOrderSnapshot(conn, orderId);
-          if (snapshot == null) {
-              conn.rollback();
-              return false;
-          }
-
-          boolean shouldDeductStock = !"SUCCESS".equalsIgnoreCase(snapshot.paymentStatus)
-                  && "SUCCESS".equalsIgnoreCase(paymentStatus)
-                  && !"COD".equalsIgnoreCase(snapshot.paymentMethod);
-
-          boolean shouldRestoreStock = !"CANCELLED".equalsIgnoreCase(snapshot.orderStatus)
-                  && "CANCELLED".equalsIgnoreCase(orderStatus)
-                  && ("COD".equalsIgnoreCase(snapshot.paymentMethod)
-                  || "SUCCESS".equalsIgnoreCase(snapshot.paymentStatus)
-                  || "SUCCESS".equalsIgnoreCase(paymentStatus));
-
-          if (shouldDeductStock && !deductStockForOrder(conn, orderId)) {
-              throw new SQLException("Cannot deduct stock for order " + orderId);
-          }
-
-          if (shouldRestoreStock && !restoreStockForOrder(conn, orderId)) {
-              throw new SQLException("Cannot restore stock for order " + orderId);
-          }
-
-          String sql = "UPDATE Orders "
-                  + "SET payment_status = ?, "
-                  + "    order_status = ?, "
-                  + "    handled_by = COALESCE(?, handled_by), "
-                  + "    paid_at = CASE WHEN ? = 'SUCCESS' AND paid_at IS NULL THEN GETDATE() ELSE paid_at END, "
-                  + "    completed_at = CASE WHEN ? = 'COMPLETED' THEN ISNULL(completed_at, GETDATE()) ELSE NULL END "
-                  + "WHERE order_id = ?";
-
-          try (PreparedStatement ps = conn.prepareStatement(sql)) {
-              ps.setString(1, paymentStatus);
-              ps.setString(2, orderStatus);
-              if (changedBy == null) {
-                  ps.setNull(3, java.sql.Types.INTEGER);
-              } else {
-                  ps.setInt(3, changedBy);
-              }
-              ps.setString(4, paymentStatus);
-              ps.setString(5, orderStatus);
-              ps.setInt(6, orderId);
-              ps.executeUpdate();
-          }
-
-          if (changedBy != null && !equalsIgnoreCase(snapshot.orderStatus, orderStatus)) {
-              insertOrderStatusHistory(conn, orderId, snapshot.orderStatus, orderStatus, changedBy);
-          }
-
-          conn.commit();
-          return true;
-
-      } catch (Exception e) {
-          if (conn != null) {
-              try {
-                  conn.rollback();
-              } catch (SQLException ignored) {
-              }
-          }
-          e.printStackTrace();
-      } finally {
-          if (conn != null) {
-              try {
-                  conn.setAutoCommit(true);
-              } catch (SQLException ignored) {
-              }
-          }
-      }
-
-      return false;
-  }
-
-
-
-    public boolean updatePaymentSuccess(int orderId) {
-
-        Connection conn = null;
+        String sql = "SELECT "
+                + "p.name AS product_name, "
+                + "b.name AS brand_name, "
+                + "c.name AS category_name, "
+                + "od.quantity, "
+                + "od.price_at_order, "
+                + "(SELECT TOP 1 image_url "
+                + " FROM Product_Image "
+                + " WHERE product_id = p.product_id) AS image_url "
+                + "FROM Order_Detail od "
+                + "JOIN Product_Variant v ON od.variant_id = v.variant_id "
+                + "JOIN Product p ON v.product_id = p.product_id "
+                + "JOIN Brand b ON p.brand_id = b.brand_id "
+                + "JOIN Category c ON p.category_id = c.category_id "
+                + "WHERE od.order_id = ?";
 
         try {
 
-            conn = this.connection;
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setInt(1, orderId);
 
-            conn.setAutoCommit(false);
+            ResultSet rs = ps.executeQuery();
 
-            String sql = "UPDATE Orders SET payment_status = 'SUCCESS', paid_at = GETDATE() WHERE order_id = ?";
+            while (rs.next()) {
 
-            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                OrderDetail od = new OrderDetail();
 
-                ps.setInt(1, orderId);
-                ps.executeUpdate();
+                od.setProductName(rs.getString("product_name"));
+                od.setImageUrl(rs.getString("image_url"));
+                od.setBrandName(rs.getString("brand_name"));
+                od.setCategoryName(rs.getString("category_name"));
+                od.setQuantity(rs.getInt("quantity"));
+                od.setPriceAtOrder(rs.getBigDecimal("price_at_order"));
+
+                list.add(od);
             }
-
-            if (!deductStockForOrder(conn, orderId)) {
-                throw new SQLException("Cannot deduct stock for order " + orderId);
-            }
-
-            conn.commit();
-
-            return true;
 
         } catch (Exception e) {
-
-            try {
-                if (conn != null) conn.rollback();
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
-
             e.printStackTrace();
         }
 
+        return list;
+    }
+
+    public void updateOrder(int orderId, String paymentStatus, String orderStatus) {
+        updateOrder(orderId, paymentStatus, orderStatus, null);
+    }
+
+    public boolean updateOrder(int orderId, String paymentStatus, String orderStatus, Integer changedBy) {
+        Connection conn = null;
+
+        try {
+            conn = this.connection;
+            if (conn == null) {
+                return false;
+            }
+
+            conn.setAutoCommit(false);
+
+            OrderSnapshot snapshot = getOrderSnapshot(conn, orderId);
+            if (snapshot == null) {
+                conn.rollback();
+                return false;
+            }
+
+            boolean shouldDeductStock
+                    = !"PROCESSING".equalsIgnoreCase(snapshot.orderStatus)
+                    && "PROCESSING".equalsIgnoreCase(orderStatus);
+
+            boolean shouldRestoreStock = !"CANCELLED".equalsIgnoreCase(snapshot.orderStatus)
+                    && "CANCELLED".equalsIgnoreCase(orderStatus)
+                    && ("COD".equalsIgnoreCase(snapshot.paymentMethod)
+                    || "SUCCESS".equalsIgnoreCase(snapshot.paymentStatus)
+                    || "SUCCESS".equalsIgnoreCase(paymentStatus));
+
+            if (shouldDeductStock && !deductStockForOrder(conn, orderId)) {
+                throw new SQLException("Cannot deduct stock for order " + orderId);
+            }
+
+            if (shouldRestoreStock && !restoreStockForOrder(conn, orderId)) {
+                throw new SQLException("Cannot restore stock for order " + orderId);
+            }
+
+            String sql = "UPDATE Orders "
+                    + "SET payment_status = ?, "
+                    + "    order_status = ?, "
+                    + "    handled_by = COALESCE(?, handled_by), "
+                    + "    paid_at = CASE WHEN ? = 'SUCCESS' AND paid_at IS NULL THEN GETDATE() ELSE paid_at END, "
+                    + "    completed_at = CASE WHEN ? = 'COMPLETED' THEN ISNULL(completed_at, GETDATE()) ELSE NULL END "
+                    + "WHERE order_id = ?";
+
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setString(1, paymentStatus);
+                ps.setString(2, orderStatus);
+                if (changedBy == null) {
+                    ps.setNull(3, java.sql.Types.INTEGER);
+                } else {
+                    ps.setInt(3, changedBy);
+                }
+                ps.setString(4, paymentStatus);
+                ps.setString(5, orderStatus);
+                ps.setInt(6, orderId);
+                ps.executeUpdate();
+            }
+
+            if (changedBy != null && !equalsIgnoreCase(snapshot.orderStatus, orderStatus)) {
+                insertOrderStatusHistory(conn, orderId, snapshot.orderStatus, orderStatus, changedBy);
+            }
+
+            conn.commit();
+            return true;
+
+        } catch (Exception e) {
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                } catch (SQLException ignored) {
+                }
+            }
+            e.printStackTrace();
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.setAutoCommit(true);
+                } catch (SQLException ignored) {
+                }
+            }
+        }
+
+        return false;
+    }
+
+    public boolean updatePaymentSuccess(int orderId) {
+        Connection conn = null;
+        try {
+            conn = new DBContext().connection; // ✅ FIX QUAN TRỌNG
+            conn.setAutoCommit(false);
+
+            // 2. update payment
+            String sql = "UPDATE Orders SET payment_status = 'SUCCESS', paid_at = GETDATE() WHERE order_id = ?";
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setInt(1, orderId);
+                int rows = ps.executeUpdate();
+
+                if (rows == 0) {
+                    throw new SQLException("Update failed");
+                }
+            }
+
+            conn.commit();
+            return true;
+
+        } catch (Exception e) {
+            try {
+                if (conn != null) {
+                    conn.rollback();
+                }
+            } catch (Exception ignored) {
+            }
+            e.printStackTrace();
+        } finally {
+            try {
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (Exception ignored) {
+            }
+        }
         return false;
     }
 
@@ -443,153 +434,156 @@ String sql = "SELECT "
         }
         return false;
     }
-   public List<Orders> getOrdersByCustomerId(int customerId) {
 
-    List<Orders> list = new ArrayList<>();
+    public List<Orders> getOrdersByCustomerId(int customerId) {
 
-    String sql = "SELECT " +
-                 "o.order_id, " +              // thêm dòng này
-                 "a.receiver_name, " +
-                 "v.code AS voucher_code, " +
-                 "o.discount_amount, " +
-                 "o.order_status, " +
-                 "o.total_amount, " +
-                 "o.created_at " +
-                 "FROM Orders o " +
-                 "JOIN Address a ON o.address_id = a.address_id " +
-                 "LEFT JOIN Voucher v ON o.voucher_id = v.voucher_id " +
-                 "WHERE o.customer_id = ? " +
-                 "ORDER BY o.created_at DESC";
+        List<Orders> list = new ArrayList<>();
 
-    try {
-        PreparedStatement ps = connection.prepareStatement(sql);
-        ps.setInt(1, customerId);
+        String sql = "SELECT "
+                + "o.order_id, "
+                + // thêm dòng này
+                "a.receiver_name, "
+                + "v.code AS voucher_code, "
+                + "o.discount_amount, "
+                + "o.order_status, "
+                + "o.total_amount, "
+                + "o.created_at "
+                + "FROM Orders o "
+                + "JOIN Address a ON o.address_id = a.address_id "
+                + "LEFT JOIN Voucher v ON o.voucher_id = v.voucher_id "
+                + "WHERE o.customer_id = ? "
+                + "ORDER BY o.created_at DESC";
 
-        ResultSet rs = ps.executeQuery();
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setInt(1, customerId);
 
-        while (rs.next()) {
+            ResultSet rs = ps.executeQuery();
 
-            Orders order = new Orders();
+            while (rs.next()) {
 
-            order.setOrderId(rs.getInt("order_id"));   // thêm dòng này
-            order.setReceiverName(rs.getString("receiver_name"));
-            order.setVoucherCode(rs.getString("voucher_code"));
-            order.setDiscountAmount(rs.getBigDecimal("discount_amount"));
-            order.setOrderStatus(rs.getString("order_status"));
-            order.setTotalAmount(rs.getBigDecimal("total_amount"));
+                Orders order = new Orders();
 
-            Timestamp ts = rs.getTimestamp("created_at");
-            if (ts != null) {
-                order.setCreatedAt(ts.toLocalDateTime());
+                order.setOrderId(rs.getInt("order_id"));   // thêm dòng này
+                order.setReceiverName(rs.getString("receiver_name"));
+                order.setVoucherCode(rs.getString("voucher_code"));
+                order.setDiscountAmount(rs.getBigDecimal("discount_amount"));
+                order.setOrderStatus(rs.getString("order_status"));
+                order.setTotalAmount(rs.getBigDecimal("total_amount"));
+
+                Timestamp ts = rs.getTimestamp("created_at");
+                if (ts != null) {
+                    order.setCreatedAt(ts.toLocalDateTime());
+                }
+
+                list.add(order);
             }
 
-            list.add(order);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
-    } catch (Exception e) {
-        e.printStackTrace();
+        return list;
     }
 
-    return list;
-}
-public boolean cancelOrder(int orderId) {
-    Connection conn = null;
+    public boolean cancelOrder(int orderId) {
+        Connection conn = null;
 
-    try {
-        conn = this.connection;
-        if (conn == null) {
-            return false;
-        }
+        try {
+            conn = this.connection;
+            if (conn == null) {
+                return false;
+            }
 
-        conn.setAutoCommit(false);
+            conn.setAutoCommit(false);
 
-        OrderSnapshot snapshot = getOrderSnapshot(conn, orderId);
-        if (snapshot == null
-                || (!"CREATED".equalsIgnoreCase(snapshot.orderStatus)
-                && !"PROCESSING".equalsIgnoreCase(snapshot.orderStatus))) {
-            conn.rollback();
-            return false;
-        }
-
-        boolean shouldRestoreStock = "COD".equalsIgnoreCase(snapshot.paymentMethod)
-                || "SUCCESS".equalsIgnoreCase(snapshot.paymentStatus);
-
-        if (shouldRestoreStock && !restoreStockForOrder(conn, orderId)) {
-            throw new SQLException("Cannot restore stock for order " + orderId);
-        }
-
-        String sql = "UPDATE Orders "
-                   + "SET order_status = 'CANCELLED', completed_at = NULL "
-                   + "WHERE order_id = ?";
-
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, orderId);
-            boolean updated = ps.executeUpdate() > 0;
-            if (!updated) {
+            OrderSnapshot snapshot = getOrderSnapshot(conn, orderId);
+            if (snapshot == null
+                    || (!"CREATED".equalsIgnoreCase(snapshot.orderStatus)
+                    && !"PROCESSING".equalsIgnoreCase(snapshot.orderStatus))) {
                 conn.rollback();
                 return false;
             }
-        }
 
-        conn.commit();
-        return true;
+            boolean shouldRestoreStock = "COD".equalsIgnoreCase(snapshot.paymentMethod)
+                    || "SUCCESS".equalsIgnoreCase(snapshot.paymentStatus);
 
-    } catch (Exception e) {
-        if (conn != null) {
-            try {
-                conn.rollback();
-            } catch (SQLException ignored) {
+            if (shouldRestoreStock && !restoreStockForOrder(conn, orderId)) {
+                throw new SQLException("Cannot restore stock for order " + orderId);
+            }
+
+            String sql = "UPDATE Orders "
+                    + "SET order_status = 'CANCELLED', completed_at = NULL "
+                    + "WHERE order_id = ?";
+
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setInt(1, orderId);
+                boolean updated = ps.executeUpdate() > 0;
+                if (!updated) {
+                    conn.rollback();
+                    return false;
+                }
+            }
+
+            conn.commit();
+            return true;
+
+        } catch (Exception e) {
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                } catch (SQLException ignored) {
+                }
+            }
+            e.printStackTrace();
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.setAutoCommit(true);
+                } catch (SQLException ignored) {
+                }
             }
         }
-        e.printStackTrace();
-    } finally {
-        if (conn != null) {
-            try {
-                conn.setAutoCommit(true);
-            } catch (SQLException ignored) {
+
+        return false;
+    }
+
+    public List<Orders> getOrdersByStatus(String status) {
+        List<Orders> list = new ArrayList<>();
+        String sql = "SELECT o.order_id, "
+                + "a.receiver_name, "
+                + "v.code AS voucher_code, "
+                + "o.discount_amount, "
+                + "o.payment_method, "
+                + "o.payment_status, "
+                + "o.order_status, "
+                + "o.total_amount "
+                + "FROM Orders o "
+                + "JOIN Address a ON o.address_id = a.address_id "
+                + "LEFT JOIN Voucher v ON o.voucher_id = v.voucher_id "
+                + "WHERE o.order_status = ? "
+                + "ORDER BY o.order_id DESC";
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setString(1, status);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                Orders order = new Orders();
+                order.setOrderId(rs.getInt("order_id"));
+                order.setReceiverName(rs.getString("receiver_name"));
+                order.setVoucherCode(rs.getString("voucher_code"));
+                order.setDiscountAmount(rs.getBigDecimal("discount_amount"));
+                order.setPaymentMethod(rs.getString("payment_method"));
+                order.setPaymentStatus(rs.getString("payment_status"));
+                order.setOrderStatus(rs.getString("order_status"));
+                order.setTotalAmount(rs.getBigDecimal("total_amount"));
+                list.add(order);
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+        return list;
     }
-
-    return false;
-}
-
-public List<Orders> getOrdersByStatus(String status) {
-    List<Orders> list = new ArrayList<>();
-    String sql = "SELECT o.order_id, "
-            + "a.receiver_name, "
-            + "v.code AS voucher_code, "
-            + "o.discount_amount, "
-            + "o.payment_method, "
-            + "o.payment_status, "
-            + "o.order_status, "
-            + "o.total_amount "
-            + "FROM Orders o "
-            + "JOIN Address a ON o.address_id = a.address_id "
-            + "LEFT JOIN Voucher v ON o.voucher_id = v.voucher_id "
-            + "WHERE o.order_status = ? "
-            + "ORDER BY o.order_id DESC";
-    try {
-        PreparedStatement ps = connection.prepareStatement(sql);
-        ps.setString(1, status);
-        ResultSet rs = ps.executeQuery();
-        while (rs.next()) {
-            Orders order = new Orders();
-            order.setOrderId(rs.getInt("order_id"));
-            order.setReceiverName(rs.getString("receiver_name"));
-            order.setVoucherCode(rs.getString("voucher_code"));
-            order.setDiscountAmount(rs.getBigDecimal("discount_amount"));
-            order.setPaymentMethod(rs.getString("payment_method"));
-            order.setPaymentStatus(rs.getString("payment_status"));
-            order.setOrderStatus(rs.getString("order_status"));
-            order.setTotalAmount(rs.getBigDecimal("total_amount"));
-            list.add(order);
-        }
-    } catch (Exception e) {
-        e.printStackTrace();
-    }
-    return list;
-}
 
     private boolean deductStockForOrder(Connection conn, int orderId) throws SQLException {
         String sql = "UPDATE pv "
@@ -600,7 +594,13 @@ public List<Orders> getOrdersByStatus(String status) {
 
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, orderId);
-            return ps.executeUpdate() > 0;
+            int rows = ps.executeUpdate();
+
+            if (rows == 0) {
+                throw new SQLException("Stock not enough");
+            }
+
+            return true;
         }
     }
 
@@ -662,15 +662,16 @@ public List<Orders> getOrdersByStatus(String status) {
     }
 
     private static class OrderSnapshot {
+
         private String paymentMethod;
         private String paymentStatus;
         private String orderStatus;
     }
 
-public boolean updateReview(int orderDetailId, int rating, String comment) {
+    public boolean updateReview(int orderDetailId, int rating, String comment) {
         String sql = "UPDATE Order_Detail "
-                   + "SET rating = ?, review_comment = ?, reviewed_at = GETDATE() "
-                   + "WHERE order_detail_id = ?";
+                + "SET rating = ?, review_comment = ?, reviewed_at = GETDATE() "
+                + "WHERE order_detail_id = ?";
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, rating);
@@ -685,7 +686,7 @@ public boolean updateReview(int orderDetailId, int rating, String comment) {
         return false;
     }
 
-public List<OrderDetail> getOrderDetailsWithReview(int orderId) {
+    public List<OrderDetail> getOrderDetailsWithReview(int orderId) {
         List<OrderDetail> list = new ArrayList<>();
 
         String sql = "SELECT "
@@ -743,9 +744,9 @@ public List<OrderDetail> getOrderDetailsWithReview(int orderId) {
         return list;
     }
 
-public OrderDetail getOrderDetailById(int orderDetailId) {
+    public OrderDetail getOrderDetailById(int orderDetailId) {
         String sql = "SELECT order_detail_id, order_id, variant_id, quantity, price_at_order, rating, review_comment, reviewed_at "
-                   + "FROM Order_Detail WHERE order_detail_id = ?";
+                + "FROM Order_Detail WHERE order_detail_id = ?";
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, orderDetailId);
