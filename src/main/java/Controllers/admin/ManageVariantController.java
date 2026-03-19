@@ -49,10 +49,22 @@ public class ManageVariantController extends HttpServlet {
     }
 
     private String buildManageProductRedirect(HttpServletRequest request) throws IOException {
-        String keyword = trimToNull(request.getParameter("keyword"));
-        String brandId = trimToNull(request.getParameter("brandId"));
-        String categoryId = trimToNull(request.getParameter("categoryId"));
-        String status = trimToNull(request.getParameter("status"));
+        String keyword = firstNonBlank(
+                request.getParameter("returnKeyword"),
+                request.getParameter("keyword")
+        );
+        String brandId = firstNonBlank(
+                request.getParameter("returnBrandId"),
+                request.getParameter("brandId")
+        );
+        String categoryId = firstNonBlank(
+                request.getParameter("returnCategoryId"),
+                request.getParameter("categoryId")
+        );
+        String status = firstNonBlank(
+                request.getParameter("returnStatus"),
+                request.getParameter("status")
+        );
         String redirectUrl = request.getContextPath() + "/admin/manage-product";
         StringBuilder query = new StringBuilder();
 
@@ -82,5 +94,15 @@ public class ManageVariantController extends HttpServlet {
         }
         String trimmed = value.trim();
         return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    private String firstNonBlank(String... values) {
+        for (String value : values) {
+            String trimmed = trimToNull(value);
+            if (trimmed != null) {
+                return trimmed;
+            }
+        }
+        return null;
     }
 }
