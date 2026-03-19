@@ -10,6 +10,9 @@
         <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
         <link href="${pageContext.request.contextPath}/css/admin-brand.css" rel="stylesheet">
         <link href="${pageContext.request.contextPath}/assets/css/admin-panel.css" rel="stylesheet">
+        <c:if test="${currentView == 'products'}">
+            <link href="${pageContext.request.contextPath}/assets/css/manage-product.css" rel="stylesheet">
+        </c:if>
         <c:if test="${currentView == 'orders'}">
             <link href="${pageContext.request.contextPath}/assets/css/staff-orders.css" rel="stylesheet">
         </c:if>

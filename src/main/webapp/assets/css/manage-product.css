@@ -46,3 +46,336 @@ body {
     object-fit: cover; 
     border-radius: 5px; 
 }
+
+.staff-products-page {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.staff-products-hero,
+.staff-products-card,
+.staff-product-detail__card {
+    background: #ffffff;
+    border-radius: 20px;
+    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+}
+
+.staff-products-hero,
+.staff-product-detail__card {
+    padding: 24px 28px;
+}
+
+.staff-products-card {
+    padding: 24px;
+}
+
+.staff-products-title,
+.staff-product-detail__title {
+    margin: 0;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.staff-products-title {
+    font-size: 1.85rem;
+}
+
+.staff-product-detail__title {
+    font-size: 1.9rem;
+}
+
+.staff-products-subtitle,
+.staff-product-detail__subtitle {
+    color: #64748b;
+}
+
+.staff-products-subtitle {
+    margin: 8px 0 0;
+}
+
+.staff-product-detail__subtitle {
+    margin: 10px 0 0;
+}
+
+.staff-products-stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+    margin-top: 24px;
+}
+
+.staff-products-stat {
+    background: linear-gradient(180deg, #f8fbff 0%, #eef4ff 100%);
+    border: 1px solid #dbe7ff;
+    border-radius: 18px;
+    padding: 18px 20px;
+}
+
+.staff-products-stat--success {
+    background: linear-gradient(180deg, #f4fff7 0%, #eafbf0 100%);
+    border-color: #c8efd6;
+}
+
+.staff-products-stat--danger {
+    background: linear-gradient(180deg, #fff7f7 0%, #fff0f0 100%);
+    border-color: #f6d0d0;
+}
+
+.staff-products-stat__label,
+.staff-product-detail__meta-label {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #64748b;
+}
+
+.staff-products-stat__value {
+    display: block;
+    margin-top: 10px;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.staff-products-filter {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+    align-items: end;
+}
+
+.staff-products-table {
+    margin-top: 22px;
+}
+
+.staff-products-thumb {
+    width: 64px;
+    height: 64px;
+    border-radius: 16px;
+    object-fit: cover;
+    border: 1px solid #e2e8f0;
+    background: #f8fafc;
+}
+
+.staff-products-name {
+    margin: 0;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.staff-products-desc {
+    margin-top: 4px;
+    color: #64748b;
+    font-size: 0.92rem;
+    line-height: 1.45;
+    max-width: 380px;
+}
+
+.staff-products-badge,
+.staff-product-detail__badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border-radius: 999px;
+    font-weight: 600;
+}
+
+.staff-products-badge {
+    padding: 6px 12px;
+    font-size: 0.82rem;
+}
+
+.staff-product-detail__badge {
+    padding: 7px 14px;
+    font-size: 0.86rem;
+}
+
+.staff-products-badge--active,
+.staff-product-detail__badge--active {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.staff-products-badge--inactive,
+.staff-product-detail__badge--inactive {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.staff-products-empty,
+.staff-product-detail__empty {
+    text-align: center;
+    color: #64748b;
+}
+
+.staff-products-empty {
+    padding: 48px 20px;
+}
+
+.staff-product-detail {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.staff-product-detail__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+}
+
+.staff-product-detail__grid {
+    display: grid;
+    grid-template-columns: minmax(320px, 420px) minmax(0, 1fr);
+    gap: 24px;
+}
+
+.staff-product-detail__main-image {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    border-radius: 22px;
+    object-fit: cover;
+    border: 1px solid #e2e8f0;
+    background: #f8fafc;
+}
+
+.staff-product-detail__thumbs {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.staff-product-detail__thumb {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    border-radius: 16px;
+    border: 2px solid transparent;
+    object-fit: cover;
+    cursor: pointer;
+    background: #f8fafc;
+}
+
+.staff-product-detail__thumb.is-active {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+}
+
+.staff-product-detail__meta {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+    margin-top: 20px;
+}
+
+.staff-product-detail__meta-item {
+    border: 1px solid #e2e8f0;
+    border-radius: 18px;
+    padding: 16px;
+    background: #f8fafc;
+}
+
+.staff-product-detail__meta-value {
+    display: block;
+    margin-top: 10px;
+    color: #0f172a;
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.staff-product-detail__description {
+    margin-top: 20px;
+    padding: 20px;
+    border-radius: 18px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    color: #334155;
+    line-height: 1.7;
+    white-space: pre-line;
+}
+
+.staff-product-detail__variants-title {
+    margin: 0 0 18px;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.staff-product-detail__empty {
+    padding: 28px;
+    border-radius: 18px;
+    background: #f8fafc;
+    border: 1px dashed #cbd5e1;
+}
+
+@media (max-width: 1199.98px) {
+    .staff-products-filter {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 991.98px) {
+    .staff-product-detail__grid {
+        grid-template-columns: 1fr;
+    }
+
+    .staff-product-detail__meta {
+        grid-template-columns: 1fr;
+    }
+
+    .staff-product-detail__header {
+        flex-direction: column;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .staff-products-stats,
+    .staff-products-filter {
+        grid-template-columns: 1fr;
+    }
+}
+
+.staff-detail-preview {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+}
+
+.staff-readonly-field {
+    min-height: 56px;
+    display: flex;
+    align-items: center;
+    background-color: #f8f9fa;
+    color: #212529;
+    overflow: hidden;
+}
+
+.staff-readonly-field--textarea {
+    min-height: 130px;
+    display: block;
+    line-height: 1.7;
+    white-space: pre-wrap;
+    overflow-y: auto;
+}
+
+.staff-import-box {
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
+    background: #f8f9fa;
+    padding: 14px 16px;
+    min-height: 80px;
+}
+
+.staff-status-active {
+    color: #198754;
+    font-weight: 700;
+}
+
+.staff-status-inactive {
+    color: #dc3545;
+    font-weight: 700;
+}
