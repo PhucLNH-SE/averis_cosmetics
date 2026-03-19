@@ -14,8 +14,8 @@ public class CategoryController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        CategoryDAO dao = new CategoryDAO();
-        List<Category> categories = dao.getAllCategories();
+        CategoryDAO categoryDAO = new CategoryDAO();
+        List<Category> categories = categoryDAO.getAllCategories();
         request.setAttribute("categories", categories);
         request.setAttribute("currentView", "categories");
         request.setAttribute("contentPage", "/views/staff/partials/manage-category-content.jsp");
@@ -25,6 +25,6 @@ public class CategoryController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        doGet(request, response);
+        response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
     }
 }

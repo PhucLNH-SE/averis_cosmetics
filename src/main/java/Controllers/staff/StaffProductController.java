@@ -1,58 +1,120 @@
 package Controllers.staff;
 
 import DALs.ProductDAO;
-import Model.Product;
 import Model.Brand;
 import Model.Category;
-import Model.Manager; // Thêm model Manager 
-import java.io.IOException;
-import java.util.List;
+import Model.Product;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
+import java.io.IOException;
+import java.util.List;
 
 public class StaffProductController extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        String keyword = trimToNull(request.getParameter("keyword"));
+        Integer brandId = parsePositiveInteger(request.getParameter("brandId"));
+        Integer categoryId = parsePositiveInteger(request.getParameter("categoryId"));
+        String status = normalizeStatus(request.getParameter("status"));
+        ProductDAO productDAO = new ProductDAO();
 
-        HttpSession session = request.getSession();
-        
-        // 1. Phân quyền: Chỉ Staff (hoặc Admin) mới được xem
-        Manager manager = (Manager) session.getAttribute("manager"); // Lấy account đăng nhập
-        if (manager == null || (!"STAFF".equals(manager.getManagerRole()) && !"ADMIN".equals(manager.getManagerRole()))) {
-            response.sendRedirect(request.getContextPath() + "/manager-auth");
-            return;
-        }
-
-        ProductDAO dao = new ProductDAO();
-
-        // 2. Lấy dữ liệu (Chỉ cần list Product là đủ để view)
-        List<Product> listP = dao.getAllProducts();
-        
-        // Truyền thêm Brand và Category nếu bro có làm chức năng Filter tìm kiếm
-        List<Brand> listB = dao.getAllBrands();
-        List<Category> listC = dao.getAllCategories();
+        List<Product> listP = productDAO.getProductsForStaff(keyword, brandId, categoryId, parseStatus(status));
+        List<Brand> listB = productDAO.getAllBrands();
+        List<Category> listC = productDAO.getAllCategories();
+        int activeCount = countActiveProducts(listP);
+        int inactiveCount = listP.size() - activeCount;
 
         request.setAttribute("listP", listP);
         request.setAttribute("listB", listB);
         request.setAttribute("listC", listC);
-        
-        // 3. Đẩy sang view của Staff
+        request.setAttribute("searchKeyword", keyword);
+        request.setAttribute("selectedBrandId", brandId);
+        request.setAttribute("selectedCategoryId", categoryId);
+        request.setAttribute("selectedStatus", status);
+        request.setAttribute("resultCount", listP.size());
+        request.setAttribute("activeCount", activeCount);
+        request.setAttribute("inactiveCount", inactiveCount);
+        request.setAttribute("totalProductCount", productDAO.countAllProducts());
         request.setAttribute("currentView", "products");
-        request.setAttribute("contentPage", "/views/staff/partials/manage-product-content.jsp"); // TRỎ ĐÚNG FILE JSP CỦA STAFF
-
-        // Render ra layout chung của panel (dùng chung layout với Admin)
+        request.setAttribute("contentPage", "/views/staff/partials/manage-product-content.jsp");
         request.getRequestDispatcher("/views/staff/staff-panel.jsp").forward(request, response);
     }
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        // Staff không có quyền Post (Add/Update/Delete) nên chặn luôn ở đây
-        response.sendError(HttpServletResponse.SC_FORBIDDEN, "Staff only has read access.");
+        response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+    }
+
+    private String trimToNull(String value) {
+        if (value == null) {
+            return null;
+        }
+
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    private Integer parsePositiveInteger(String value) {
+        String normalized = trimToNull(value);
+        if (normalized == null) {
+            return null;
+        }
+
+        try {
+            int parsed = Integer.parseInt(normalized);
+            return parsed > 0 ? parsed : null;
+        } catch (NumberFormatException ex) {
+            return null;
+        }
+    }
+
+    private String normalizeStatus(String status) {
+        String normalized = trimToNull(status);
+        if (normalized == null) {
+            return null;
+        }
+
+        if ("active".equalsIgnoreCase(normalized)) {
+            return "active";
+        }
+
+        if ("inactive".equalsIgnoreCase(normalized)) {
+            return "inactive";
+        }
+
+        return null;
+    }
+
+    private Boolean parseStatus(String status) {
+        if (status == null) {
+            return null;
+        }
+
+        if ("active".equalsIgnoreCase(status)) {
+            return Boolean.TRUE;
+        }
+
+        if ("inactive".equalsIgnoreCase(status)) {
+            return Boolean.FALSE;
+        }
+
+        return null;
+    }
+
+    private int countActiveProducts(List<Product> products) {
+        int count = 0;
+
+        for (Product product : products) {
+            if (product.isStatus()) {
+                count++;
+            }
+        }
+
+        return count;
     }
 }

@@ -1,456 +1,323 @@
-﻿<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
-<fmt:setLocale value="en_US"/>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<fmt:setLocale value="en_US" />
 
-<section class="admin-content__section">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h3 class="fw-bold mb-0">Product Management</h3>
-            <p class="text-muted small mb-0">Manage your cosmetics inventory</p>
+<section class="admin-content__section staff-product-page">
+    <div class="card shadow-sm staff-product-page__hero">
+        <div class="card-body p-4">
+            <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap mb-4">
+                <div>
+                    <h3 class="fw-bold mb-1">View Product List</h3>
+                    <p class="text-muted mb-0">Staff can review product information here without edit permissions.</p>
+                </div>
+                <a class="btn btn-outline-secondary px-3" href="${pageContext.request.contextPath}/staff/panel?view=dashboard">
+                    <i class="bi bi-arrow-left me-1"></i>Back to Dashboard
+                </a>
+            </div>
+
+            <div class="product-overview">
+                <div class="product-overview__card product-overview__card--results">
+                    <span class="product-overview__label">Results</span>
+                    <strong class="product-overview__value">${resultCount}</strong>
+                </div>
+                <div class="product-overview__card product-overview__card--active">
+                    <span class="product-overview__label">Active</span>
+                    <strong class="product-overview__value">${activeCount}</strong>
+                </div>
+                <div class="product-overview__card product-overview__card--inactive">
+                    <span class="product-overview__label">Inactive</span>
+                    <strong class="product-overview__value">${inactiveCount}</strong>
+                </div>
+            </div>
         </div>
-        <a class="btn btn-outline-secondary px-3" href="${pageContext.request.contextPath}/admin/panel?view=dashboard">
-            Back to Dashboard
-        </a>
     </div>
-
-    <c:if test="${not empty successMsg}">
-        <c:set var="popupMessage" scope="request" value="${successMsg}" />
-        <c:set var="popupType" scope="request" value="success" />
-    </c:if>
-
-    <c:if test="${not empty errorMsg}">
-        <c:set var="popupMessage" scope="request" value="${errorMsg}" />
-        <c:set var="popupType" scope="request" value="error" />
-    </c:if>
 
     <div class="card shadow-sm">
         <div class="card-body p-4">
-            <div class="d-flex justify-content-end mb-3">
-                <button class="btn btn-success px-3" data-bs-toggle="modal" data-bs-target="#addModal">
-                    <i class="fas fa-plus-circle me-1"></i> Add Product
-                </button>
-            </div>
+            <form action="${pageContext.request.contextPath}/staff/manage-product" method="get" class="product-search-form">
+                <div class="product-filter-grid">
+                    <div>
+                        <label class="form-label fw-semibold mb-2" for="staffProductKeyword">Keyword</label>
+                        <div class="product-search-form__input-wrap">
+                            <i class="bi bi-search product-search-form__icon"></i>
+                            <input
+                                id="staffProductKeyword"
+                                type="text"
+                                name="keyword"
+                                class="form-control product-search-form__input"
+                                placeholder="Search by id, name, brand or category"
+                                value="<c:out value='${searchKeyword}'/>"
+                                autocomplete="off">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="form-label fw-semibold mb-2" for="staffProductBrand">Brand</label>
+                        <select id="staffProductBrand" name="brandId" class="form-select product-filter-select">
+                            <option value="">All brands</option>
+                            <c:forEach items="${listB}" var="brand">
+                                <option value="${brand.brandId}" <c:if test="${selectedBrandId == brand.brandId}">selected</c:if>>
+                                    ${brand.name}
+                                </option>
+                            </c:forEach>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label fw-semibold mb-2" for="staffProductCategory">Category</label>
+                        <select id="staffProductCategory" name="categoryId" class="form-select product-filter-select">
+                            <option value="">All categories</option>
+                            <c:forEach items="${listC}" var="category">
+                                <option value="${category.categoryId}" <c:if test="${selectedCategoryId == category.categoryId}">selected</c:if>>
+                                    ${category.name}
+                                </option>
+                            </c:forEach>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label fw-semibold mb-2" for="staffProductStatus">Status</label>
+                        <select id="staffProductStatus" name="status" class="form-select product-filter-select">
+                            <option value="">All status</option>
+                            <option value="active" <c:if test="${selectedStatus == 'active'}">selected</c:if>>Active</option>
+                            <option value="inactive" <c:if test="${selectedStatus == 'inactive'}">selected</c:if>>Inactive</option>
+                        </select>
+                    </div>
+                </div>
 
-            <table class="table table-hover align-middle">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Image</th>
-                        <th>Product Name</th>
-                        <th>Category</th>
-                        <th>Price Range</th>
-                        <th class="text-center">Import Price</th>
-                        <th>Status</th>
-                        <th class="text-center">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <c:forEach items="${listP}" var="p">
+                <div class="product-search-form__row">
+                    <button type="submit" class="btn btn-primary px-4">
+                        <i class="bi bi-funnel me-1"></i>Apply filters
+                    </button>
+                    <a class="btn btn-outline-secondary px-4" href="${pageContext.request.contextPath}/staff/manage-product">
+                        Reset
+                    </a>
+                    <p class="text-muted mb-0 staff-product-page__result-text">
+                        Showing ${resultCount} of ${totalProductCount} products
+                    </p>
+                </div>
+            </form>
+        </div>
+
+        <div class="card-body pt-0 px-4 pb-4">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle staff-product-table">
+                    <thead>
                         <tr>
-                            <td class="fw-bold">${p.productId}</td>
-                            <td>
-                                <c:choose>
-                                    <c:when test="${not empty p.mainImage}">
-                                        <img src="${pageContext.request.contextPath}/assets/img/${p.mainImage}"
-                                             class="product-img-td border" width="50" height="50" style="object-fit:cover;"
-                                             onerror="this.src='${pageContext.request.contextPath}/assets/img/Logo.png';">
-                                    </c:when>
-                                    <c:otherwise>
-                                        <img src="${pageContext.request.contextPath}/assets/img/Logo.png" class="product-img-td border" width="50" height="50">
-                                    </c:otherwise>
-                                </c:choose>
-                            </td>
-                            <td>${p.name}</td>
-                            <td>${p.category.name}</td>
-                            <td>
-                                <c:choose>
-                                    <c:when test="${p.price == 0}">
-                                        <span class="text-muted small">No variants</span>
-                                    </c:when>
-                                    <c:when test="${p.price == p.maxPrice}">
-                                        <span class="text-primary fw-bold">
-                                            <fmt:formatNumber value="${p.price}" pattern="#,##0"/> VND
-                                        </span>
-                                    </c:when>
-                                    <c:otherwise>
-                                        <span class="text-primary fw-bold">
-                                            <fmt:formatNumber value="${p.price}" pattern="#,##0"/> VND -
-                                            <fmt:formatNumber value="${p.maxPrice}" pattern="#,##0"/> VND
-                                        </span>
-                                    </c:otherwise>
-                                </c:choose>
-                            </td>
-                            
-                            <%-- SHOW VARIANT NAME WITH IMPORT PRICE --%>
-                            <td>
-                                <c:choose>
-                                    <c:when test="${empty p.variants}">
-                                        <span class="text-muted small text-center d-block">None</span>
-                                    </c:when>
-                                    <c:otherwise>
-                                        <ul class="list-unstyled mb-0 small">
-                                            <c:forEach items="${p.variants}" var="variant">
-                                                <li class="mb-1">
-                                                    <span class="fw-bold">${variant.variantName}</span> - 
-                                                    <span class="text-success"><fmt:formatNumber value="${variant.importPrice}" pattern="#,##0"/> VND</span>
-                                                </li>
-                                            </c:forEach>
-                                        </ul>
-                                    </c:otherwise>
-                                </c:choose>
-                            </td>
-
-                            <td>
-                                <span class="${p.status ? 'text-success' : 'text-danger'} fw-bold">
-                                    <i class="fas ${p.status ? 'fa-check-circle' : 'fa-times-circle'} me-1"></i>${p.status ? 'Active' : 'Inactive'}
-                                </span>
-                            </td>
-                            <td class="text-center">
-                                <button class="btn btn-info btn-sm px-3 text-white me-1"
-                                        data-id="${p.productId}"
-                                        data-name="<c:out value='${p.name}' />"
-                                        onclick="openVariantModal(this)">
-                                    <i class="fas fa-tags me-1"></i> Variants
-                                </button>
-
-                                <button class="btn btn-primary btn-sm px-3 me-1"
-                                        data-id="${p.productId}"
-                                        data-name="<c:out value='${p.name}' />"
-                                        data-brand="${p.brand.brandId}"
-                                        data-category="${p.category.categoryId}"
-                                        data-status="${p.status}"
-                                        data-desc="<c:out value='${p.description}' />"
-                                        data-image="${not empty p.mainImage ? p.mainImage : 'Logo.png'}"
-                                        onclick="openEditModal(this)">
-                                    <i class="fas fa-edit me-1"></i> Edit
-                                </button>
-
-                                <c:choose>
-                                    <c:when test="${p.status}">
-                                        <button class="btn btn-danger btn-sm px-3"
-                                                data-id="${p.productId}"
-                                                data-name="<c:out value='${p.name}' />"
-                                                onclick="openHideModal(this)">
-                                            <i class="fas fa-eye-slash me-1"></i> Hide
-                                        </button>
-                                    </c:when>
-                                    <c:otherwise>
-                                        <button class="btn btn-success btn-sm px-3"
-                                                data-id="${p.productId}"
-                                                data-name="<c:out value='${p.name}' />"
-                                                onclick="openShowModal(this)">
-                                            <i class="fas fa-eye me-1"></i> Show
-                                        </button>
-                                    </c:otherwise>
-                                </c:choose>
-                            </td>
+                            <th>ID</th>
+                            <th>Image</th>
+                            <th>Product</th>
+                            <th>Brand</th>
+                            <th>Category</th>
+                            <th>Price Range</th>
+                            <th>Variants</th>
+                            <th>Status</th>
+                            <th class="text-center">Action</th>
                         </tr>
-                    </c:forEach>
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        <c:forEach items="${listP}" var="product">
+                            <tr>
+                                <td class="fw-semibold">#${product.productId}</td>
+                                <td>
+                                    <div class="staff-product-table__image-wrap">
+                                        <c:choose>
+                                            <c:when test="${not empty product.mainImage}">
+                                                <img
+                                                    src="${pageContext.request.contextPath}/assets/img/${product.mainImage}"
+                                                    alt="${product.name}"
+                                                    class="staff-product-table__image">
+                                            </c:when>
+                                            <c:otherwise>
+                                                <img
+                                                    src="${pageContext.request.contextPath}/assets/img/Logo.png"
+                                                    alt="${product.name}"
+                                                    class="staff-product-table__image">
+                                            </c:otherwise>
+                                        </c:choose>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="staff-product-table__name"><c:out value="${product.name}" /></div>
+                                </td>
+                                <td><c:out value="${product.brand.name}" /></td>
+                                <td><c:out value="${product.category.name}" /></td>
+                                <td class="staff-product-table__price">
+                                    <c:choose>
+                                        <c:when test="${empty product.variants}">
+                                            <span class="text-muted">No variants</span>
+                                        </c:when>
+                                        <c:when test="${product.price == product.maxPrice}">
+                                            <fmt:formatNumber value="${product.price}" pattern="#,##0" /> VND
+                                        </c:when>
+                                        <c:otherwise>
+                                            <fmt:formatNumber value="${product.price}" pattern="#,##0" />
+                                            -
+                                            <fmt:formatNumber value="${product.maxPrice}" pattern="#,##0" /> VND
+                                        </c:otherwise>
+                                    </c:choose>
+                                </td>
+                                <td>
+                                    <span class="staff-product-table__variant-count">
+                                        ${fn:length(product.variants)} variant(s)
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="staff-product-table__status ${product.status ? 'staff-product-table__status--active' : 'staff-product-table__status--inactive'}">
+                                        <i class="bi ${product.status ? 'bi-check-circle-fill' : 'bi-x-circle-fill'}"></i>
+                                        ${product.status ? 'Active' : 'Inactive'}
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <button
+                                        type="button"
+                                        class="btn btn-outline-primary btn-sm staff-product-table__detail-btn"
+                                        data-staff-product-detail-trigger="true"
+                                        data-detail-id="staff-product-detail-${product.productId}"
+                                        data-product-name="<c:out value='${product.name}' />">
+                                        <i class="bi bi-eye me-1"></i>View detail
+                                    </button>
+                                </td>
+                            </tr>
+                        </c:forEach>
+                        <c:if test="${empty listP}">
+                            <tr>
+                                <td colspan="9" class="text-center py-5 text-muted">
+                                    No products matched your filters.
+                                </td>
+                            </tr>
+                        </c:if>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </section>
 
-<div id="all-variants-storage" class="d-none">
-    <c:forEach items="${listP}" var="p">
-        <div id="variants-data-${p.productId}">
-            <c:choose>
-                <c:when test="${empty p.variants}">
-                    <div class="alert alert-warning py-3 text-center mb-0">
-                        <i class="fas fa-exclamation-circle me-1"></i> No variants.
+<div class="d-none">
+    <c:forEach items="${listP}" var="product">
+        <div id="staff-product-detail-${product.productId}">
+            <div class="staff-product-detail">
+                <div class="staff-product-detail__hero">
+                    <div class="staff-product-detail__image-box">
+                        <c:choose>
+                            <c:when test="${not empty product.mainImage}">
+                                <img
+                                    src="${pageContext.request.contextPath}/assets/img/${product.mainImage}"
+                                    alt="${product.name}"
+                                    class="staff-product-detail__image">
+                            </c:when>
+                            <c:otherwise>
+                                <img
+                                    src="${pageContext.request.contextPath}/assets/img/Logo.png"
+                                    alt="${product.name}"
+                                    class="staff-product-detail__image">
+                            </c:otherwise>
+                        </c:choose>
                     </div>
-                </c:when>
-                <c:otherwise>
-                    <c:forEach items="${p.variants}" var="v">
-                        <div class="d-flex gap-2 mb-2 p-2 border-bottom align-items-center bg-white rounded">
-                            <form action="${pageContext.request.contextPath}/admin/manage-variant" method="post" class="d-flex gap-2 flex-grow-1 align-items-center mb-0">
-                                <input type="hidden" name="action" value="update">
-                                <input type="hidden" name="variantId" value="${v.variantId}">
-                                <input type="hidden" name="productId" value="${p.productId}">
-                                <input type="hidden" name="stock" value="${v.stock}">
 
-                                <div class="flex-grow-1">
-                                    <label class="small text-muted mb-1 fw-bold">Variant Name</label>
-                                    <input type="text" name="variantName" class="form-control form-control-sm text-primary fw-bold" value="${v.variantName}" required>
-                                </div>
-                                <div class="flex-grow-1" style="max-width: 150px;">
-                                    <label class="small text-muted mb-1 fw-bold">Sale Price (VND)</label>
-                                    <input type="number" step="0.01" name="price" class="form-control form-control-sm text-danger fw-bold" value="${v.price}" required>
-                                </div>
-                                
-                                <div class="ms-2 me-3 text-center" style="min-width: 80px;">
-                                    <label class="small text-muted mb-1 fw-bold d-block">Stock</label>
-                                    <span class="badge ${v.stock > 10 ? 'bg-success' : (v.stock > 0 ? 'bg-warning text-dark' : 'bg-danger')}">
-                                        ${v.stock}
-                                    </span>
-                                </div>
-
-                                <button type="submit" class="btn btn-success btn-sm px-3 mt-3" title="Save">
-                                    <i class="fas fa-save"></i>
-                                </button>
-                            </form>
-
-                            <form action="${pageContext.request.contextPath}/admin/manage-variant" method="post" class="mb-0 mt-3" onsubmit="return confirm('Do you want delete?');">
-                                <input type="hidden" name="action" value="delete">
-                                <input type="hidden" name="variantId" value="${v.variantId}">
-                                <button type="submit" class="btn btn-danger btn-sm px-3" title="Delete">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </form>
+                    <div class="staff-product-detail__summary">
+                        <div class="staff-product-detail__meta-grid">
+                            <div class="staff-product-detail__meta-item">
+                                <span class="staff-product-detail__meta-label">Product ID</span>
+                                <strong>#${product.productId}</strong>
+                            </div>
+                            <div class="staff-product-detail__meta-item">
+                                <span class="staff-product-detail__meta-label">Brand</span>
+                                <strong><c:out value="${product.brand.name}" /></strong>
+                            </div>
+                            <div class="staff-product-detail__meta-item">
+                                <span class="staff-product-detail__meta-label">Category</span>
+                                <strong><c:out value="${product.category.name}" /></strong>
+                            </div>
+                            <div class="staff-product-detail__meta-item">
+                                <span class="staff-product-detail__meta-label">Status</span>
+                                <strong>${product.status ? 'Active' : 'Inactive'}</strong>
+                            </div>
+                            <div class="staff-product-detail__meta-item">
+                                <span class="staff-product-detail__meta-label">Price Range</span>
+                                <strong>
+                                    <c:choose>
+                                        <c:when test="${empty product.variants}">
+                                            No variants
+                                        </c:when>
+                                        <c:when test="${product.price == product.maxPrice}">
+                                            <fmt:formatNumber value="${product.price}" pattern="#,##0" /> VND
+                                        </c:when>
+                                        <c:otherwise>
+                                            <fmt:formatNumber value="${product.price}" pattern="#,##0" />
+                                            -
+                                            <fmt:formatNumber value="${product.maxPrice}" pattern="#,##0" /> VND
+                                        </c:otherwise>
+                                    </c:choose>
+                                </strong>
+                            </div>
+                            <div class="staff-product-detail__meta-item">
+                                <span class="staff-product-detail__meta-label">Variants</span>
+                                <strong>${fn:length(product.variants)} variant(s)</strong>
+                            </div>
                         </div>
-                    </c:forEach>
-                </c:otherwise>
-            </c:choose>
+                    </div>
+                </div>
+
+                <div class="staff-product-detail__section">
+                    <h6 class="staff-product-detail__section-title">Description</h6>
+                    <c:choose>
+                        <c:when test="${not empty product.description}">
+                            <p class="staff-product-detail__description"><c:out value="${product.description}" /></p>
+                        </c:when>
+                        <c:otherwise>
+                            <p class="staff-product-detail__description text-muted">No description available.</p>
+                        </c:otherwise>
+                    </c:choose>
+                </div>
+
+                <div class="staff-product-detail__section">
+                    <h6 class="staff-product-detail__section-title">Variant Information</h6>
+                    <c:choose>
+                        <c:when test="${empty product.variants}">
+                            <div class="staff-product-detail__empty">
+                                No active variants available for this product.
+                            </div>
+                        </c:when>
+                        <c:otherwise>
+                            <div class="table-responsive">
+                                <table class="table table-sm align-middle staff-product-detail__variant-table mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>Variant</th>
+                                            <th>Sale Price</th>
+                                            <th>Stock</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <c:forEach items="${product.variants}" var="variant">
+                                            <tr>
+                                                <td><c:out value="${variant.variantName}" /></td>
+                                                <td><fmt:formatNumber value="${variant.price}" pattern="#,##0" /> VND</td>
+                                                <td>${variant.stock}</td>
+                                            </tr>
+                                        </c:forEach>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </c:otherwise>
+                    </c:choose>
+                </div>
+            </div>
         </div>
     </c:forEach>
 </div>
 
-<div class="modal fade" id="variantModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg"> 
-        <div class="modal-content">
-            <div class="modal-header bg-info text-white">
-                <h5 class="modal-title fw-bold"><i class="fas fa-tags me-2"></i>Type: <span id="varModalProductName"></span></h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+<div class="modal fade" id="staffProductDetailModal" tabindex="-1" aria-labelledby="staffProductDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content staff-product-detail-modal">
+            <div class="modal-header staff-product-detail-modal__header">
+                <h5 class="modal-title fw-bold" id="staffProductDetailModalLabel">Product Detail</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body bg-light p-4">
-                <div class="card shadow-sm mb-4 border-0">
-                    <div class="card-body p-3 bg-white rounded">
-                        <h6 class="fw-bold mb-3 text-primary border-bottom pb-2">Add new type</h6>
-                        <form action="${pageContext.request.contextPath}/admin/manage-variant" method="post" class="row g-2 align-items-end">
-                            <input type="hidden" name="action" value="add">
-                            <input type="hidden" name="productId" id="addVarProductId">
-                            <input type="hidden" name="stock" value="0">
-                            
-                            <div class="col-md-6">
-                                <label class="small text-muted mb-1 fw-bold">Variant Name</label>
-                                <input type="text" name="variantName" class="form-control form-control-sm" placeholder="Ex: 50ml" required>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="small text-muted mb-1 fw-bold">Sale Price</label>
-                                <input type="number" step="0.01" name="price" class="form-control form-control-sm" placeholder="Price" required>
-                            </div>
-                            <div class="col-md-2">
-                                <button type="submit" class="btn btn-primary btn-sm w-100"><i class="fas fa-plus"></i> Add</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-
-                <h6 class="fw-bold mb-3 text-secondary">Type List</h6>
-                <div id="variantListContainer" class="bg-white p-3 rounded shadow-sm"></div>
+            <div class="modal-body staff-product-detail-modal__body" id="staffProductDetailModalBody">
+                <p class="text-muted mb-0">Select a product to view more information.</p>
             </div>
         </div>
     </div>
 </div>
-
-<div class="modal fade" id="addModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <form action="${pageContext.request.contextPath}/admin/manage-product" method="post" enctype="multipart/form-data">
-                <input type="hidden" name="action" value="add">
-                <input type="hidden" name="stock" value="0">
-                <div class="modal-header bg-success text-white">
-                    <h5 class="modal-title fw-bold">Add New Product</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Product Image</label>
-                        <input type="file" name="image" class="form-control" accept="image/*" required onchange="previewImage(this, 'addPreview')">
-                        <img id="addPreview" class="img-preview mt-2 rounded border" src="#" style="display:none; width:100px; height:100px; object-fit:cover;">
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Product Name</label>
-                        <input type="text" name="name" class="form-control" required>
-                    </div>
-
-                    <div class="row bg-light p-3 rounded border mb-3 mx-0">
-                        <h6 class="fw-bold text-secondary mb-2 border-bottom pb-1">Pricing (Default Variant)</h6>
-                        <div class="col-md-6 mb-2">
-                            <label class="form-label text-danger fw-bold small">Sale Price</label>
-                            <input type="number" step="0.01" name="price" class="form-control" required placeholder="Ex: 299000">
-                        </div>
-                        <div class="col-md-6 mb-2">
-                            <label class="form-label text-success fw-bold small">Import Price</label>
-                            <input type="number" step="0.01" name="importPrice" class="form-control" required placeholder="Ex: 150000">
-                        </div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Description</label>
-                        <textarea name="description" class="form-control" rows="3"></textarea>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Brand</label>
-                            <select name="brandId" class="form-select">
-                                <c:forEach items="${listB}" var="b">
-                                    <option value="${b.brandId}">${b.name}</option>
-                                </c:forEach>
-                            </select>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Category</label>
-                            <select name="categoryId" class="form-select">
-                                <c:forEach items="${listC}" var="c">
-                                    <option value="${c.categoryId}">${c.name}</option>
-                                </c:forEach>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="form-check form-switch mt-2">
-                        <input class="form-check-input" type="checkbox" name="status" value="true" checked id="addStatus">
-                        <label class="form-check-label fw-bold text-success" for="addStatus">Active Status</label>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-success px-4"><i class="fas fa-check me-1"></i> Save Product</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <form action="${pageContext.request.contextPath}/admin/manage-product" method="post" enctype="multipart/form-data">
-                <input type="hidden" name="action" value="update">
-                <input type="hidden" name="productId" id="editId">
-                <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title fw-bold">Edit Product Info</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="mb-3 text-center">
-                         <img id="editImageDisplay" src="" width="100" height="100" class="rounded border mb-2" style="object-fit: cover;">
-                         <p class="text-muted small">Current Image</p>
-                         <input type="file" name="image" class="form-control mt-2" accept="image/*" onchange="previewImage(this, 'editImageDisplay')">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Product Name</label>
-                        <input type="text" name="name" id="editName" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Description</label>
-                        <textarea name="description" id="editDesc" class="form-control" rows="3"></textarea>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Brand</label>
-                            <select name="brandId" id="editBrand" class="form-select">
-                                <c:forEach items="${listB}" var="b"><option value="${b.brandId}">${b.name}</option></c:forEach>
-                            </select>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Category</label>
-                            <select name="categoryId" id="editCategory" class="form-select">
-                                <c:forEach items="${listC}" var="c"><option value="${c.categoryId}">${c.name}</option></c:forEach>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="form-check form-switch mt-2">
-                        <input class="form-check-input" type="checkbox" name="status" value="true" id="editStatus">
-                        <label class="form-check-label fw-bold" for="editStatus">Active</label>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary px-4">Update Changes</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<div class="modal fade" id="hideModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-sm modal-dialog-centered">
-        <div class="modal-content text-center border-0 shadow">
-            <form action="${pageContext.request.contextPath}/admin/manage-product" method="post">
-                <input type="hidden" name="action" value="delete">
-                <input type="hidden" name="productId" id="hideId">
-                <div class="modal-body p-4">
-                    <i class="fas fa-eye-slash text-danger mb-3" style="font-size: 3rem;"></i>
-                    <h5 class="fw-bold mb-3">Hide Product?</h5>
-                    <p class="text-muted small mb-4">Are you sure you want to hide <strong id="hideName" class="text-dark"></strong>?</p>
-                    <div class="d-flex justify-content-center gap-2">
-                        <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-danger px-4">Yes, Hide</button>
-                    </div>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<div class="modal fade" id="showModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-sm modal-dialog-centered">
-        <div class="modal-content text-center border-0 shadow">
-            <form action="${pageContext.request.contextPath}/admin/manage-product" method="post">
-                <input type="hidden" name="action" value="show">
-                <input type="hidden" name="productId" id="showId">
-                <div class="modal-body p-4">
-                    <i class="fas fa-eye text-success mb-3" style="font-size: 3rem;"></i>
-                    <h5 class="fw-bold mb-3">Show Product?</h5>
-                    <p class="text-muted small mb-4">Do you want to make <strong id="showName" class="text-dark"></strong> visible?</p>
-                    <div class="d-flex justify-content-center gap-2">
-                        <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-success px-4">Yes, Show</button>
-                    </div>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<script>
-    function openVariantModal(button) {
-        const productId = button.getAttribute('data-id');
-        const productName = button.getAttribute('data-name');
-        document.getElementById('varModalProductName').innerText = productName;
-        document.getElementById('addVarProductId').value = productId;
-        document.getElementById('variantListContainer').innerHTML = document.getElementById('variants-data-' + productId).innerHTML;
-        bootstrap.Modal.getOrCreateInstance(document.getElementById('variantModal')).show();
-    }
-
-    function previewImage(input, previewId) {
-        const preview = document.getElementById(previewId);
-        if (input.files && input.files[0]) {
-            const reader = new FileReader();
-            reader.onload = function (e) {
-                preview.src = e.target.result;
-                preview.style.display = 'inline-block';
-            };
-            reader.readAsDataURL(input.files[0]);
-        }
-    }
-
-    function openEditModal(button) {
-        document.getElementById('editId').value = button.getAttribute('data-id');
-        document.getElementById('editName').value = button.getAttribute('data-name');
-        document.getElementById('editBrand').value = button.getAttribute('data-brand');
-        document.getElementById('editCategory').value = button.getAttribute('data-category');
-        document.getElementById('editStatus').checked = button.getAttribute('data-status') === 'true';
-        document.getElementById('editDesc').value = button.getAttribute('data-desc');
-        document.getElementById('editImageDisplay').src = '${pageContext.request.contextPath}/assets/img/' + button.getAttribute('data-image');
-        bootstrap.Modal.getOrCreateInstance(document.getElementById('editModal')).show();
-    }
-
-    function openHideModal(button) {
-        document.getElementById('hideId').value = button.getAttribute('data-id');
-        document.getElementById('hideName').innerText = button.getAttribute('data-name');
-        bootstrap.Modal.getOrCreateInstance(document.getElementById('hideModal')).show();
-    }
-
-    function openShowModal(button) {
-        document.getElementById('showId').value = button.getAttribute('data-id');
-        document.getElementById('showName').innerText = button.getAttribute('data-name');
-        bootstrap.Modal.getOrCreateInstance(document.getElementById('showModal')).show();
-    }
-</script>
-
-
