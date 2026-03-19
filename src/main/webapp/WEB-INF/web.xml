@@ -226,10 +226,6 @@
     <url-pattern>/GuestController</url-pattern>
   </servlet-mapping>
   <servlet-mapping>
-    <servlet-name>ProductController</servlet-name>
-    <url-pattern>/products</url-pattern>
-  </servlet-mapping>
-  <servlet-mapping>
     <servlet-name>GuestController</servlet-name>
     <url-pattern>/introduce</url-pattern>
   </servlet-mapping>

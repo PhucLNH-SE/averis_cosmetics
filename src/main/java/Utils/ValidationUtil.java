@@ -7,7 +7,7 @@ import org.mindrot.jbcrypt.BCrypt;
 
 public class ValidationUtil {
 
-    private ValidationUtil() {
+    public ValidationUtil() {
     }
 
     private static final String USERNAME_REGEX = "^[A-Za-z0-9_]{3,20}$";
