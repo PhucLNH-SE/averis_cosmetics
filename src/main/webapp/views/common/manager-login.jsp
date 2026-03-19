@@ -1,7 +1,7 @@
 <%@ page contentType="text/html" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,10 +12,11 @@
 <main class="manager-auth-main">
     <section class="manager-auth-card">
         <h1 class="manager-auth-title">Admin / Staff Login</h1>
-        <p class="manager-auth-subtitle">Dang nhap de vao trang quan tri he thong.</p>
+        <p class="manager-auth-subtitle">Sign in to access the management system.</p>
 
         <c:if test="${not empty errorMessage}">
-            <div class="manager-auth-error">${errorMessage}</div>
+            <c:set var="popupMessage" scope="request" value="${errorMessage}" />
+            <c:set var="popupType" scope="request" value="error" />
         </c:if>
 
         <form action="${pageContext.request.contextPath}/manager-auth" method="post" class="manager-auth-form">
@@ -30,5 +31,7 @@
         </form>
     </section>
 </main>
+
+<jsp:include page="/views/common/popup.jsp" />
 </body>
 </html>

@@ -608,7 +608,6 @@ public class ProductDAO extends DBContext {
     }
 
     public void deleteProduct(int id) {
-        String deleteReviewSql = "DELETE FROM Review WHERE product_id = ?";
         String deleteCartDetailSql = "DELETE FROM Cart_Detail WHERE variant_id IN "
                 + "(SELECT variant_id FROM Product_Variant WHERE product_id = ?)";
         String deleteOrderDetailSql = "DELETE FROM Order_Detail WHERE variant_id IN "
@@ -620,10 +619,6 @@ public class ProductDAO extends DBContext {
         try {
             connection.setAutoCommit(false);
 
-            try (PreparedStatement ps = connection.prepareStatement(deleteReviewSql)) {
-                ps.setInt(1, id);
-                ps.executeUpdate();
-            }
             try (PreparedStatement ps = connection.prepareStatement(deleteCartDetailSql)) {
                 ps.setInt(1, id);
                 ps.executeUpdate();

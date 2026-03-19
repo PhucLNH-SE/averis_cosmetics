@@ -1,7 +1,7 @@
-<%@page contentType="text/html" pageEncoding="UTF-8"%>
+﻿<%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
-<fmt:setLocale value="vi_VN"/>
+<fmt:setLocale value="en_US"/>
 <!DOCTYPE html>
 <html>
     <head>
@@ -96,8 +96,8 @@
                                                 <div class="product-category">${product.category.name}</div>
                                                 <div class="product-price">
                                                     <c:choose>
-                                                        <c:when test="${product.price > 0}">
-                                                            <fmt:formatNumber value="${product.price}" pattern="#,##0"/> ₫
+                                                        <c:when test="${not empty product.variants}">
+                                                            <fmt:formatNumber value="${product.variants[0].price}" pattern="#,##0"/> VND
                                                         </c:when>
                                                         <c:otherwise>
                                                             Contact
@@ -127,6 +127,5 @@
         <%@include file="/assets/footer.jsp" %>
     </body>
 </html>
-
 
 

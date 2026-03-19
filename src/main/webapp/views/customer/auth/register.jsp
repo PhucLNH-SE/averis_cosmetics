@@ -27,6 +27,10 @@
                 ${successMessage}
             </div>
         </c:if>
+        <c:if test="${not empty errors}">
+            <c:set var="popupMessage" scope="request" value="Please fix the highlighted fields and try again." />
+            <c:set var="popupType" scope="request" value="error" />
+        </c:if>
 
         <form action="${pageContext.request.contextPath}/auth?action=register"
               method="post">

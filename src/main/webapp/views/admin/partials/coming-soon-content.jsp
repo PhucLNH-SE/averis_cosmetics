@@ -4,10 +4,10 @@
         <div class="admin-placeholder__icon">
             <i class="bi bi-tools"></i>
         </div>
-        <h2>Module dang duoc dua vao admin shell</h2>
+        <h2>This module is being moved into the admin shell</h2>
         <p>
-            Muc <strong>${currentView}</strong> da co cho trong sidebar. Buoc tiep theo minh se migrate
-            tung chuc nang vao vung content ben phai ma van giu nguyen layout shell.
+            The <strong>${currentView}</strong> menu item is already in the sidebar. Next, each feature
+            will be migrated into the right-side content area while keeping the shell layout intact.
         </p>
     </div>
 </section>

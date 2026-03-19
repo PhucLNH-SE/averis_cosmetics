@@ -12,16 +12,12 @@
     </div>
 
     <c:if test="${param.success == 'update'}">
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            User status updated successfully!
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
+        <c:set var="popupMessage" scope="request" value="User status updated successfully." />
+        <c:set var="popupType" scope="request" value="success" />
     </c:if>
     <c:if test="${param.error == 'updateFailed'}">
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            Failed to update user status!
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
+        <c:set var="popupMessage" scope="request" value="Failed to update user status." />
+        <c:set var="popupType" scope="request" value="error" />
     </c:if>
 
     <div class="card table-card">

@@ -229,6 +229,10 @@ public class CheckoutController extends HttpServlet {
             return;
         }
 
+        if (customerVoucherId != null) {
+            customerVoucherDAO.markVoucherUsed(customerVoucherId);
+        }
+
         HttpSession session = req.getSession();
 
         switch (paymentMethod) {

@@ -1,51 +1,38 @@
 ﻿<%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
-<fmt:setLocale value="vi_VN"/>
+<fmt:setLocale value="en_US"/>
 
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Thanh toán | Averis Cosmetics</title>
+    <title>Checkout | Averis Cosmetics</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/checkout.css">
 </head>
 <body>
-
-    <div class="popup-overlay" id="resultPopup">
-        <div class="popup-content">
-            <div class="popup-icon" id="popupIcon">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                    </svg>
-                </div>
-                <h2 class="popup-title" id="popupTitle">Thành công!</h2>
-                <p class="popup-message" id="popupMessage">
-                    Đặt hàng thành công!
-                </p>
-                <a href="${pageContext.request.contextPath}/home" class="popup-btn" id="popupBtn">
-                    Quay về trang chủ
-                </a>
-            </div>
-        </div>
-    </div>
 
     <div class="header-wrapper">
         <jsp:include page="/assets/header.jsp" />
     </div>
 
     <div class="checkout-container">
-        <h1 class="page-title">Thanh toán</h1>
+        <h1 class="page-title">Checkout</h1>
+
+        <c:if test="${not empty error}">
+            <c:set var="popupMessage" scope="request" value="${error}" />
+            <c:set var="popupType" scope="request" value="error" />
+        </c:if>
 
         <c:if test="${orderSuccess}">
             <div class="checkout-section" style="text-align: center; padding: 40px;">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 60px; height: 60px; color: var(--success); margin-bottom: 16px;">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <h2 style="color: var(--success); margin-bottom: 8px;">Đơn hàng đã được đặt thành công!</h2>
-                <p style="color: var(--muted);">Cảm ơn bạn đã mua sắm tại Averis Cosmetics.</p>
-                <a href="${pageContext.request.contextPath}/home" class="popup-btn" style="display: inline-block; margin-top: 20px;">Về trang chủ</a>
+                <h2 style="color: var(--success); margin-bottom: 8px;">Your order has been placed successfully!</h2>
+                <p style="color: var(--muted);">Thank you for shopping with Averis Cosmetics.</p>
+                <a href="${pageContext.request.contextPath}/home" class="popup-btn" style="display: inline-block; margin-top: 20px;">Back to home</a>
             </div>
         </c:if>
 
@@ -56,7 +43,7 @@
                     <div class="checkout-section">
                         <h2 class="section-title">
                             <span class="number">1</span>
-                            Thông tin giao hàng
+                            Shipping Information
                         </h2>
 
                         <c:if test="${not empty addresses}">
@@ -70,7 +57,7 @@
                                                 ${addr.streetAddress}, ${addr.ward}, ${addr.district}, ${addr.province}
                                             </div>
                                             <c:if test="${addr.isDefault}">
-                                                <span class="address-default">Mặc định</span>
+                                                <span class="address-default">Default</span>
                                             </c:if>
                                         </div>
                                     </label>
@@ -81,18 +68,18 @@
                             <a href="${pageContext.request.contextPath}/address?action=add"
                                    id="openCheckoutAddressLink"
                                    class="checkout-address-popup-trigger checkout-address-add-link">
-                                    + Thêm địa chỉ mới
+                                    + Add new address
                                 </a>
                             </div>
                         </c:if>
 
                         <c:if test="${empty addresses}">
                             <p style="color: var(--muted); margin-bottom: 16px;">
-                                Bạn chưa có địa chỉ giao hàng. Vui lòng thêm địa chỉ mới.
+                                You do not have a delivery address yet. Please add a new address.
                             </p>
                             <a href="${pageContext.request.contextPath}/address?action=add"
                                class="checkout-address-popup-trigger checkout-address-add-link">
-                                + Thêm địa chỉ
+                                + Add address
                             </a>
                         </c:if>
                     </div>
@@ -100,7 +87,7 @@
                     <div class="checkout-section">
                         <h2 class="section-title">
                             <span class="number">2</span>
-                            Sản phẩm (${cart.size()})
+                            Items (${cart.size()})
                         </h2>
 
                         <c:forEach items="${cart}" var="entry">
@@ -118,10 +105,10 @@
                                 <div class="product-info">
                                     <div class="product-name">${entry.value.variant.productName}</div>
                                     <div class="product-variant">${entry.value.variant.variantName}</div>
-                                    <div class="product-qty">Số lượng: ${entry.value.quantity}</div>
+                                    <div class="product-qty">Quantity: ${entry.value.quantity}</div>
                                 </div>
                                 <div class="product-price">
-                                    <fmt:formatNumber value="${entry.value.subtotal}" pattern="#,##0"/> ₫
+                                    <fmt:formatNumber value="${entry.value.subtotal}" pattern="#,##0"/> VND
                                 </div>
                             </div>
                         </c:forEach>
@@ -130,16 +117,16 @@
                     <div class="checkout-section">
                         <h2 class="section-title">
                             <span class="number">3</span>
-                            Phương thức thanh toán
+                            Payment Method
                         </h2>
 
                         <div class="address-list">
                             <label class="address-item selected">
                                 <input type="radio" name="paymentMethod" value="COD" checked>
                                 <div class="address-details">
-                                    <div class="address-name">Thanh toán khi nhận hàng (COD)</div>
+                                    <div class="address-name">Cash on Delivery (COD)</div>
                                     <div class="address-text">
-                                        Bạn sẽ thanh toán tiền mặt cho nhân viên giao hàng khi nhận được sản phẩm.
+                                        Pay cash to the courier when you receive your items.
                                     </div>
                                 </div>
                             </label>
@@ -147,32 +134,26 @@
                                 <label class="address-item">
                                     <input type="radio" name="paymentMethod" value="MOMO">
                                     <div class="address-details">
-                                        <div class="address-name">Thanh toán qua ví MoMo</div>
+                                        <div class="address-name">Pay with MoMo</div>
                                         <div class="address-text">
-                                            Thanh toán nhanh chóng và an toàn qua ví MoMo.
+                                            Fast and secure payment via MoMo.
                                         </div>
                                     </div>
                                 </label>
                         </div>
-
-                        <c:if test="${not empty error}">
-                            <div style="margin-top: 16px; padding: 12px; background: #fee2e2; border: 1px solid #fecaca; border-radius: 6px; color: #dc2626; font-size: 14px;">
-                                ${error}
-                            </div>
-                        </c:if>
                     </div>
                 </div>
 
                 <div class="checkout-sidebar">
-                    <h3 class="summary-title">Đơn hàng của bạn</h3>
+                    <h3 class="summary-title">Your Order</h3>
 
                     <div class="summary-row">
-                        <span>Tạm tính (${cart.size()} sản phẩm):</span>
-                        <span style="font-weight:600"><fmt:formatNumber value="${total}" pattern="#,##0"/> ₫</span>
+                        <span>Subtotal (${cart.size()} items):</span>
+                        <span style="font-weight:600"><fmt:formatNumber value="${total}" pattern="#,##0"/> VND</span>
                     </div>
                     <div class="summary-row">
-                        <span>Phí vận chuyển:</span>
-                        <span>Miễn phí</span>
+                        <span>Shipping:</span>
+                        <span>Free</span>
                     </div>
 
                     <div class="voucher-section">
@@ -180,54 +161,54 @@
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 14.25l6-6m4.5-3.493V21.75l-3.75-1.5-3.75 1.5-3.75-1.5-3.75 1.5V4.757c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0c1.1.128 1.907 1.077 1.907 2.185zM9.75 9h.008v.008H9.75V9zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm4.125 4.5h.008v.008h-.008V13.5zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
                             </svg>
-                            Mã giảm giá
+                            Voucher
                         </div>
                         <div class="voucher-input-group">
-                            <input type="text" name="voucherCode" id="voucherCode" placeholder="Nhấn để chọn voucher"
+                            <input type="text" name="voucherCode" id="voucherCode" placeholder="Click to choose a voucher"
                                    value="${not empty appliedVoucherCode ? appliedVoucherCode : param.voucherCode}" readonly>
-                            <button type="button" class="voucher-open-btn" id="openVoucherPopupBtn">Chọn voucher</button>
+                            <button type="button" class="voucher-open-btn" id="openVoucherPopupBtn">Choose voucher</button>
                         </div>
 
                     </div>
 
                     <div class="summary-row">
-                        <span>Giảm giá:</span>
-                        <span class="discount" id="discountAmount"><fmt:formatNumber value="${discountAmount}" pattern="#,##0"/> ₫</span>
+                        <span>Discount:</span>
+                        <span class="discount" id="discountAmount"><fmt:formatNumber value="${discountAmount}" pattern="#,##0"/> VND</span>
                     </div>
 
                     <div class="summary-divider"></div>
 
                     <div class="summary-total">
-                        <span>Tổng cộng:</span>
-                        <span id="totalAmount"><fmt:formatNumber value="${finalTotal}" pattern="#,##0"/> ₫</span>
+                        <span>Total:</span>
+                        <span id="totalAmount"><fmt:formatNumber value="${finalTotal}" pattern="#,##0"/> VND</span>
                     </div>
 
                     <div style="text-align:right; font-size:12px; color:var(--muted); margin-top:5px;">
-                        (Đã bao gồm VAT nếu có)
+                        (VAT included if applicable)
                     </div>
 
-                    <button type="submit" class="btn-place-order" name="action" value="placeOrder">Đặt hàng</button>
+                    <button type="submit" class="btn-place-order" name="action" value="placeOrder">Place order</button>
 
-                    <a href="${pageContext.request.contextPath}/cart" class="btn-back">← Quay về giỏ hàng</a>
+                    <a href="${pageContext.request.contextPath}/cart" class="btn-back">&larr; Back to cart</a>
                 </div>
 
                 <div id="voucherSelectPopup" class="checkout-voucher-popup" onclick="closeVoucherSelectPopup(event)">
                     <div class="checkout-voucher-popup-card">
                         <div class="checkout-voucher-popup-head">
-                            <h4>Chọn voucher của bạn</h4>
+                            <h4>Choose your voucher</h4>
                             <button type="button" class="checkout-voucher-popup-close" onclick="closeVoucherSelectPopup()">&times;</button>
                         </div>
 
                         <div class="checkout-voucher-popup-body">
                             <div class="voucher-manual-row">
-                                <input type="text" id="manualVoucherCode" placeholder="Nhập mã voucher">
-                                <button type="button" onclick="applyManualVoucherCode()">Dùng mã</button>
+                                <input type="text" id="manualVoucherCode" placeholder="Enter voucher code">
+                                <button type="button" onclick="applyManualVoucherCode()">Apply code</button>
                             </div>
 
                             <div class="checkout-voucher-list">
                                 <c:choose>
                                     <c:when test="${empty checkoutVouchers}">
-                                        <div class="checkout-voucher-empty">Bạn chưa có voucher khả dụng.</div>
+                                        <div class="checkout-voucher-empty">You have no available vouchers.</div>
                                     </c:when>
                                     <c:otherwise>
                                         <c:forEach items="${checkoutVouchers}" var="cv">
@@ -240,14 +221,14 @@
                                                 <div class="voucher-item-mid">
                                                     <c:choose>
                                                         <c:when test="${cv.voucher.discountType eq 'PERCENT'}">
-                                                            Giảm ${popupDiscountRaw}%
+                                                            Discount ${popupDiscountRaw}%
                                                         </c:when>
                                                         <c:otherwise>
-                                                            Giảm ${popupDiscountRaw} ₫
+                                                            Discount ${popupDiscountRaw} VND
                                                         </c:otherwise>
                                                     </c:choose>
                                                 </div>
-                                                <div class="voucher-item-bottom">Hiệu lực đến: ${cv.effectiveTo}</div>
+                                                <div class="voucher-item-bottom">Valid until: ${cv.effectiveTo}</div>
                                             </div>
                                         </c:forEach>
                                     </c:otherwise>
@@ -261,7 +242,7 @@
                     <div class="checkout-address-popup-card">
                         <div class="checkout-address-popup-head">
                             <div>
-                                <h4>Thêm địa chỉ giao hàng</h4>
+                                <h4>Add delivery address</h4>
                             </div>
                             <button type="button" class="checkout-address-popup-close" onclick="closeCheckoutAddressPopup()">&times;</button>
                         </div>
@@ -284,32 +265,32 @@
 
             if (urlParams.get('success') === 'true') {
                 const orderId = urlParams.get('orderId');
-                showPopup(true, 'Đặt hàng thành công!<br>Mã đơn hàng: #' + orderId);
+                showPopup(true, 'Order placed successfully!<br>Order ID: #' + orderId, 'Success');
                 window.history.replaceState({}, document.title, window.location.pathname);
             }
 
             if (urlParams.get('error')) {
                 const errorMsg = decodeURIComponent(urlParams.get('error'));
-                showPopup(false, errorMsg);
+                showPopup(false, errorMsg, 'Error');
                 window.history.replaceState({}, document.title, window.location.pathname);
             }
 
             const defaultAddress = document.querySelector('input[name="addressId"][checked]');
-if (defaultAddress) {
-    const parentItem = defaultAddress.closest('.address-item');
-    if (parentItem) {
-        parentItem.classList.add('selected');
-    }
-} else {
-    const firstAddress = document.querySelector('input[name="addressId"]');
-    if (firstAddress) {
-        firstAddress.checked = true;
-        const parentItem = firstAddress.closest('.address-item');
-        if (parentItem) {
-            parentItem.classList.add('selected');
-        }
-    }
-}
+            if (defaultAddress) {
+                const parentItem = defaultAddress.closest('.address-item');
+                if (parentItem) {
+                    parentItem.classList.add('selected');
+                }
+            } else {
+                const firstAddress = document.querySelector('input[name="addressId"]');
+                if (firstAddress) {
+                    firstAddress.checked = true;
+                    const parentItem = firstAddress.closest('.address-item');
+                    if (parentItem) {
+                        parentItem.classList.add('selected');
+                    }
+                }
+            }
 
             initVoucherSelector();
             initCheckoutAddressPopup();
@@ -481,40 +462,6 @@ if (defaultAddress) {
             actionInput.value = 'applyVoucher';
             form.appendChild(actionInput);
             form.submit();
-        }
-
-        function showPopup(success, message) {
-            const popup = document.getElementById('resultPopup');
-            const icon = document.getElementById('popupIcon');
-            const title = document.getElementById('popupTitle');
-            const msg = document.getElementById('popupMessage');
-            const btn = document.getElementById('popupBtn');
-
-            if (!popup) {
-                return;
-            }
-
-            if (success) {
-                icon.classList.remove('error');
-                icon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>';
-                title.textContent = 'Đặt hàng thành công!';
-                btn.style.display = 'inline-block';
-                btn.textContent = 'Quay về trang chủ';
-                btn.onclick = null;
-            } else {
-                icon.classList.add('error');
-                icon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>';
-                title.textContent = 'Đặt hàng thất bại';
-                btn.style.display = 'inline-block';
-                btn.textContent = 'Đóng';
-                btn.onclick = function () {
-                    popup.classList.remove('show');
-                    return false;
-                };
-            }
-
-            msg.innerHTML = message;
-            popup.classList.add('show');
         }
     </script>
 </body>

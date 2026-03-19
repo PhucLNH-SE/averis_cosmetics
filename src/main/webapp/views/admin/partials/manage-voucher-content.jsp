@@ -13,40 +13,28 @@
     </div>
 
     <c:if test="${param.success == 'created'}">
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            Voucher created successfully!
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
+        <c:set var="popupMessage" scope="request" value="Voucher created successfully." />
+        <c:set var="popupType" scope="request" value="success" />
     </c:if>
     <c:if test="${param.success == 'updated'}">
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            Voucher updated successfully!
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
+        <c:set var="popupMessage" scope="request" value="Voucher updated successfully." />
+        <c:set var="popupType" scope="request" value="success" />
     </c:if>
     <c:if test="${param.success == 'deleted'}">
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            Voucher deleted successfully!
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
+        <c:set var="popupMessage" scope="request" value="Voucher deleted successfully." />
+        <c:set var="popupType" scope="request" value="success" />
     </c:if>
     <c:if test="${param.error == 'duplicateCode'}">
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            Voucher code already exists.
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
+        <c:set var="popupMessage" scope="request" value="Voucher code already exists." />
+        <c:set var="popupType" scope="request" value="error" />
     </c:if>
     <c:if test="${param.error == 'invalidData'}">
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            Voucher data is invalid.
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
+        <c:set var="popupMessage" scope="request" value="Voucher data is invalid." />
+        <c:set var="popupType" scope="request" value="error" />
     </c:if>
     <c:if test="${param.error == 'invalidId' || param.error == 'notFound' || param.success == 'failed'}">
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            Voucher action failed.
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
+        <c:set var="popupMessage" scope="request" value="Voucher action failed." />
+        <c:set var="popupType" scope="request" value="error" />
     </c:if>
 
     <div class="card table-card">

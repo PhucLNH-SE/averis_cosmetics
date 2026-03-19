@@ -55,6 +55,10 @@
     <servlet-class>Controllers.staff.CategoryController</servlet-class>
   </servlet>
   <servlet>
+    <servlet-name>StaffProductController</servlet-name>
+    <servlet-class>Controllers.staff.StaffProductController</servlet-class>
+  </servlet>
+  <servlet>
     <servlet-name>CartController</servlet-name>
     <servlet-class>Controllers.customer.CartController</servlet-class>
   </servlet>
@@ -91,20 +95,20 @@
     <servlet-class>Controllers.customer.ResetPasswordController</servlet-class>
   </servlet>
   <servlet>
+    <servlet-name>OrderSuccessController</servlet-name>
+    <servlet-class>Controllers.customer.OrderSuccessController</servlet-class>
+  </servlet>
+  <servlet>
+    <servlet-name>ReviewController</servlet-name>
+    <servlet-class>Controllers.customer.ReviewController</servlet-class>
+  </servlet>
+  <servlet>
     <servlet-name>BrandController</servlet-name>
     <servlet-class>Controllers.admin.BrandController</servlet-class>
   </servlet>
   <servlet>
     <servlet-name>CategoryController</servlet-name>
     <servlet-class>Controllers.admin.CategoryController</servlet-class>
-  </servlet>
-  <servlet>
-    <servlet-name>QuantityManagerController</servlet-name>
-    <servlet-class>Controllers.admin.QuantityManagerController</servlet-class>
-  </servlet>
-  <servlet>
-    <servlet-name>PQuantityManagerController</servlet-name>
-    <servlet-class>Controllers.admin.PQuantityManagerController</servlet-class>
   </servlet>
   <servlet>
     <servlet-name>AdminManageOrderController</servlet-name>
@@ -222,6 +226,10 @@
     <url-pattern>/GuestController</url-pattern>
   </servlet-mapping>
   <servlet-mapping>
+    <servlet-name>ProductController</servlet-name>
+    <url-pattern>/products</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
     <servlet-name>GuestController</servlet-name>
     <url-pattern>/introduce</url-pattern>
   </servlet-mapping>
@@ -256,6 +264,10 @@
   <servlet-mapping>
     <servlet-name>StaffCategoryController</servlet-name>
     <url-pattern>/staff/manage-category</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>StaffProductController</servlet-name>
+    <url-pattern>/staff/manage-product</url-pattern>
   </servlet-mapping>
   <servlet-mapping>
     <servlet-name>CartController</servlet-name>
@@ -306,12 +318,12 @@
     <url-pattern>/ResetPasswordController</url-pattern>
   </servlet-mapping>
   <servlet-mapping>
-    <servlet-name>QuantityManagerController</servlet-name>
-    <url-pattern>/QuantityManagerController</url-pattern>
+    <servlet-name>OrderSuccessController</servlet-name>
+    <url-pattern>/order-success</url-pattern>
   </servlet-mapping>
   <servlet-mapping>
-    <servlet-name>PQuantityManagerController</servlet-name>
-    <url-pattern>/PQuantityManagerController</url-pattern>
+    <servlet-name>ReviewController</servlet-name>
+    <url-pattern>/review</url-pattern>
   </servlet-mapping>
   <servlet-mapping>
     <servlet-name>ManageProductController</servlet-name>

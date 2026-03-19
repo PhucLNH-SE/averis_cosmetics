@@ -52,7 +52,8 @@ public class MomoReturnController extends HttpServlet {
 
                 if (!"SUCCESS".equalsIgnoreCase(order.getPaymentStatus())) {
 
-                    boolean success = orderDAO.updatePaymentSuccess(orderId);
+                    String targetStatus = resolvePaidOrderStatus(order);
+                    boolean success = orderDAO.updateOrder(orderId, "SUCCESS", targetStatus, null);
                     System.out.println("Update result = " + success);
 
                     if (success) {
@@ -128,7 +129,8 @@ public class MomoReturnController extends HttpServlet {
         }
 
         if ("0".equals(resultCode)) {
-            orderDAO.updatePaymentSuccess(orderId);
+            String targetStatus = resolvePaidOrderStatus(order);
+            orderDAO.updateOrder(orderId, "SUCCESS", targetStatus, null);
             LOGGER.info("Payment SUCCESS (IPN) for order " + orderId);
         } else {
             orderDAO.updatePaymentFailed(orderId);
@@ -149,5 +151,15 @@ public class MomoReturnController extends HttpServlet {
             LOGGER.warning("Cannot parse orderId from: " + momoOrderId);
             return 0;
         }
+    }
+
+    private String resolvePaidOrderStatus(Orders order) {
+        if (order == null || order.getOrderStatus() == null) {
+            return "PROCESSING";
+        }
+        if ("CREATED".equalsIgnoreCase(order.getOrderStatus())) {
+            return "PROCESSING";
+        }
+        return order.getOrderStatus();
     }
 }

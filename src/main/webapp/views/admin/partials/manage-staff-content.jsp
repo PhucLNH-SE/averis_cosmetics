@@ -15,16 +15,12 @@
         </div>
 
         <c:if test="${not empty successMsg}">
-            <div class="alert alert-success alert-dismissible fade show shadow-sm border-0 mb-4">
-                <i class="fas fa-check-circle me-2"></i> ${successMsg}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
+            <c:set var="popupMessage" scope="request" value="${successMsg}" />
+            <c:set var="popupType" scope="request" value="success" />
         </c:if>
         <c:if test="${not empty errorMsg}">
-            <div class="alert alert-danger alert-dismissible fade show shadow-sm border-0 mb-4">
-                <i class="fas fa-exclamation-triangle me-2"></i> ${errorMsg}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
+            <c:set var="popupMessage" scope="request" value="${errorMsg}" />
+            <c:set var="popupType" scope="request" value="error" />
         </c:if>
 
         <div class="card staff-table-card">
@@ -41,7 +37,7 @@
                     </thead>
                     <tbody>
                         <c:forEach items="${listStaff}" var="s">
-                            <%-- CHỈ HIỂN THỊ STAFF, ẨN ADMIN --%>
+                            <%-- Only show STAFF, hide ADMIN --%>
                             <c:if test="${s.managerRole == 'STAFF'}">
                                 <tr>
                                     <td>
@@ -258,7 +254,7 @@
         document.getElementById('editId').value = id;
         document.getElementById('editName').value = name;
         document.getElementById('editEmail').value = email;
-        // Dữ liệu 'role' vẫn được gán vào thẻ ẩn <input type="hidden" id="editRole">
+        // The role value is still assigned to the hidden <input type="hidden" id="editRole">
         document.getElementById('editRole').value = role; 
         document.getElementById('editStatus').checked = (status === 'true');
         new bootstrap.Modal(document.getElementById('editModal')).show();

@@ -11,10 +11,12 @@
             </div>
         </div>
         <c:if test="${not empty successMsg}">
-            <div class="alert alert-success border-0 shadow-sm mb-4">${successMsg}</div>
+            <c:set var="popupMessage" scope="request" value="${successMsg}" />
+            <c:set var="popupType" scope="request" value="success" />
         </c:if>
         <c:if test="${not empty errorMsg}">
-            <div class="alert alert-danger border-0 shadow-sm mb-4">${errorMsg}</div>
+            <c:set var="popupMessage" scope="request" value="${errorMsg}" />
+            <c:set var="popupType" scope="request" value="error" />
         </c:if>
 
         <div class="card fb-table-card">

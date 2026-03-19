@@ -3,7 +3,7 @@
     <div class="admin-content__header">
         <div>
             <h2 class="admin-content__title">Staff Dashboard</h2>
-            <p class="admin-content__subtitle">Chon chuc nang nhan vien tu menu ben trai.</p>
+            <p class="admin-content__subtitle">Choose a staff function from the left menu.</p>
         </div>
     </div>
 
@@ -12,8 +12,8 @@
             <div class="card admin-feature-card h-100">
                 <div class="card-body">
                     <h3>Manage Orders</h3>
-                    <p>Theo doi va cap nhat trang thai don hang trong staff shell.</p>
-                    <a class="btn btn-primary" href="${pageContext.request.contextPath}/staff/manage-orders">Mo chuc nang</a>
+                    <p>Track and update order statuses from the staff shell.</p>
+                    <a class="btn btn-primary" href="${pageContext.request.contextPath}/staff/manage-orders">Open</a>
                 </div>
             </div>
         </div>
@@ -22,8 +22,8 @@
             <div class="card admin-feature-card h-100">
                 <div class="card-body">
                     <h3>Manage Feedback</h3>
-                    <p>Quan ly review san pham va phan hoi khach hang ngay trong shell.</p>
-                    <a class="btn btn-outline-primary" href="${pageContext.request.contextPath}/staff/manage-feedback">Mo chuc nang</a>
+                    <p>Manage product reviews and customer replies directly in the shell.</p>
+                    <a class="btn btn-outline-primary" href="${pageContext.request.contextPath}/staff/manage-feedback">Open</a>
                 </div>
             </div>
         </div>
@@ -32,8 +32,8 @@
             <div class="card admin-feature-card h-100">
                 <div class="card-body">
                     <h3>View Brands</h3>
-                    <p>Xem danh sach thuong hieu trong khu vuc content ben phai.</p>
-                    <a class="btn btn-outline-primary" href="${pageContext.request.contextPath}/staff/manage-brand">Mo chuc nang</a>
+                    <p>View the brand list in the right content area.</p>
+                    <a class="btn btn-outline-primary" href="${pageContext.request.contextPath}/staff/manage-brand">Open</a>
                 </div>
             </div>
         </div>
@@ -42,8 +42,8 @@
             <div class="card admin-feature-card h-100">
                 <div class="card-body">
                     <h3>View Categories</h3>
-                    <p>Xem danh sach danh muc trong cung giao dien shell.</p>
-                    <a class="btn btn-outline-primary" href="${pageContext.request.contextPath}/staff/manage-category">Mo chuc nang</a>
+                    <p>View the category list in the same shell layout.</p>
+                    <a class="btn btn-outline-primary" href="${pageContext.request.contextPath}/staff/manage-category">Open</a>
                 </div>
             </div>
         </div>

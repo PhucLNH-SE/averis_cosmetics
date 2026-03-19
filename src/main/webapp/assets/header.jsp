@@ -792,7 +792,7 @@
       searchDropdown.style.display = 'block';
     }
     
-    // H�m g?i l�n Server d? l?y s? lu?ng gi? h�ng th?c t? trong Session
+    // Call the server to get the live cart count from the session
     function updateCartCountRealtime() {
         const cartCountEl = document.getElementById('cartCount');
         if (!cartCountEl) return;
@@ -805,7 +805,7 @@
             .catch(err => console.error('Failed to sync cart count:', err));
     }
 
-    // L?ng nghe s? ki?n hi?n th? trang (ch?y c? khi nh?n n�t Back)
+    // Listen for page show events (including Back navigation)
     window.addEventListener('pageshow', function(event) {
         updateCartCountRealtime();
     });

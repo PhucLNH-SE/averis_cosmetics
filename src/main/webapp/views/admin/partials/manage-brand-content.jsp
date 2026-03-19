@@ -13,46 +13,32 @@
         </div>
 
         <c:if test="${param.success == 'add'}">
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                Brand added successfully!
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
+            <c:set var="popupMessage" scope="request" value="Brand added successfully." />
+            <c:set var="popupType" scope="request" value="success" />
         </c:if>
         <c:if test="${param.success == 'update'}">
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                Brand updated successfully!
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
+            <c:set var="popupMessage" scope="request" value="Brand updated successfully." />
+            <c:set var="popupType" scope="request" value="success" />
         </c:if>
         <c:if test="${param.success == 'delete'}">
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                Brand deleted successfully!
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
+            <c:set var="popupMessage" scope="request" value="Brand deleted successfully." />
+            <c:set var="popupType" scope="request" value="success" />
         </c:if>
         <c:if test="${param.error == 'addFailed'}">
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                Failed to add brand!
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
+            <c:set var="popupMessage" scope="request" value="Failed to add brand." />
+            <c:set var="popupType" scope="request" value="error" />
         </c:if>
         <c:if test="${param.error == 'updateFailed'}">
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                Failed to update brand!
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
+            <c:set var="popupMessage" scope="request" value="Failed to update brand." />
+            <c:set var="popupType" scope="request" value="error" />
         </c:if>
         <c:if test="${param.error == 'deleteFailed'}">
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                Failed to delete brand!
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
+            <c:set var="popupMessage" scope="request" value="Failed to delete brand." />
+            <c:set var="popupType" scope="request" value="error" />
         </c:if>
         <c:if test="${not empty error}">
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                ${error}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
+            <c:set var="popupMessage" scope="request" value="${error}" />
+            <c:set var="popupType" scope="request" value="error" />
         </c:if>
 
         <div class="card table-card">

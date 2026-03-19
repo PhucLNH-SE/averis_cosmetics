@@ -152,29 +152,29 @@ public class CartController extends HttpServlet {
                 default:
                     ProductVariant v = variantDAO.getVariantById(variantId);
                     if (v != null) {
-                        // --- LOGIC KIỂM TRA SỐ LƯỢNG TỒN KHO ---
+                        // --- Check stock before adding ---
                         int currentQtyInCart = cart.containsKey(variantId) ? cart.get(variantId).getQuantity() : 0;
                         
                         if (currentQtyInCart + quantity > v.getStock()) {
-                            String errorMsg = "Vượt quá tồn kho! Cửa hàng chỉ còn " + v.getStock() + " sản phẩm loại này.";
+                            String errorMsg = "Stock limit exceeded. Only " + v.getStock() + " item(s) available for this variant.";
                             
-                            // Trả về lỗi 400 (Bad Request) nếu là gọi qua AJAX
+                            // Return 400 (Bad Request) for AJAX
                             if ("true".equals(request.getParameter("ajax"))) {
                                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                                 response.setContentType("text/plain;charset=UTF-8");
                                 response.getWriter().write(errorMsg);
-                                return; // Dừng, không cho add tiếp
+                                return; // Stop: do not add
                             } else {
-                                // Nếu gọi qua Form submit bình thường
+                                // Non-AJAX form submit
                                 session.setAttribute("errorMsg", errorMsg);
                                 String referer = request.getHeader("referer");
                                 response.sendRedirect(referer != null ? referer : "products");
-                                return; // Dừng, không cho add tiếp
+                                return; // Stop: do not add
                             }
                         }
                         // ----------------------------------------
 
-                        // Nếu qua được vòng kiểm tra trên, tiến hành add như bình thường
+                        // Passed stock check: proceed to add
                         int finalQty = cartDetailDAO.addOrUpdate(customer.getCustomerId(), variantId, quantity);
                         if (finalQty > 0) {
                             if (cart.containsKey(variantId)) {

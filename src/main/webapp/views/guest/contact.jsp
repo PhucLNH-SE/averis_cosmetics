@@ -1,4 +1,4 @@
-<%@page contentType="text/html" pageEncoding="UTF-8"%>
+﻿<%@page contentType="text/html" pageEncoding="UTF-8"%>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -27,22 +27,22 @@
                         <h3>Contact Information</h3>
                         <div class="info-grid">
                             <div class="info-item">
-                                <div class="info-icon">🏢</div>
+                                <div class="info-icon">+</div>
                                 <h5>Address</h5>
                                 <p>123 Beauty Street<br>Cosmo City, BC 12345</p>
                             </div>
                             <div class="info-item">
-                                <div class="info-icon">📞</div>
+                                <div class="info-icon">+</div>
                                 <h5>Phone</h5>
                                 <p>+1 (555) 123-4567</p>
                             </div>
                             <div class="info-item">
-                                <div class="info-icon">✉️</div>
+                                <div class="info-icon">+</div>
                                 <h5>Email</h5>
                                 <p>info@averiscosmetics.com</p>
                             </div>
                             <div class="info-item">
-                                <div class="info-icon">🕒</div>
+                                <div class="info-icon">+</div>
                                 <h5>Hours</h5>
                                 <p>Mon-Fri: 9AM-6PM<br>Sat-Sun: 10AM-4PM</p>
                             </div>

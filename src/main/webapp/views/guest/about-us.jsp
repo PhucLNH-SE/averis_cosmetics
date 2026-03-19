@@ -1,4 +1,4 @@
-<%@page contentType="text/html" pageEncoding="UTF-8"%>
+﻿<%@page contentType="text/html" pageEncoding="UTF-8"%>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -40,42 +40,42 @@
             <div class="row">
                 <div class="col-md-4">
                     <div class="feature-card">
-                        <div class="feature-icon">✨</div>
+                        <div class="feature-icon">+</div>
                         <h3>High Quality</h3>
                         <p>Our products are carefully selected from reputable brands, renowned for their quality formulas and proven effectiveness.</p>
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="feature-card">
-                        <div class="feature-icon">🌿</div>
+                        <div class="feature-icon">+</div>
                         <h3>Natural Ingredients</h3>
                         <p>We prioritize products made from natural ingredients, cruelty-free, gentle on the skin, and environmentally friendly.</p>
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="feature-card">
-                        <div class="feature-icon">💰</div>
+                        <div class="feature-icon">+</div>
                         <h3>Best Value</h3>
                         <p>Experience high-quality products at competitive prices with regular promotions and special offers for loyal customers.</p>
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="feature-card">
-                        <div class="feature-icon">🚚</div>
+                        <div class="feature-icon">+</div>
                         <h3>Fast Delivery</h3>
                         <p>Fast and reliable delivery to get your favorite products to you as quickly as possible.</p>
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="feature-card">
-                        <div class="feature-icon">🛡️</div>
+                        <div class="feature-icon">+</div>
                         <h3>Safety & Security</h3>
                         <p>All transactions are secured with advanced encryption technology to ensure your peace of mind.</p>
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="feature-card">
-                        <div class="feature-icon">💬</div>
+                        <div class="feature-icon">+</div>
                         <h3>Professional Support</h3>
                         <p>Our beauty experts are always ready to help you find the perfect product that suits your needs.</p>
                     </div>

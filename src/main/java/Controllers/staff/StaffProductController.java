@@ -8,13 +8,11 @@ import Model.Manager; // Thêm model Manager
 import java.io.IOException;
 import java.util.List;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
-@WebServlet(name = "StaffProductController", urlPatterns = {"/staff/manage-product"})
 public class StaffProductController extends HttpServlet {
 
     @Override
@@ -26,7 +24,7 @@ public class StaffProductController extends HttpServlet {
         // 1. Phân quyền: Chỉ Staff (hoặc Admin) mới được xem
         Manager manager = (Manager) session.getAttribute("manager"); // Lấy account đăng nhập
         if (manager == null || (!"STAFF".equals(manager.getManagerRole()) && !"ADMIN".equals(manager.getManagerRole()))) {
-            response.sendRedirect(request.getContextPath() + "/auth?action=login");
+            response.sendRedirect(request.getContextPath() + "/manager-auth");
             return;
         }
 

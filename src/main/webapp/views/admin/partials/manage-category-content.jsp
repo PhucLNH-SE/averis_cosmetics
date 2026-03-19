@@ -13,40 +13,28 @@
         </div>
 
         <c:if test="${param.success == 'add'}">
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                Category added successfully!
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
+            <c:set var="popupMessage" scope="request" value="Category added successfully." />
+            <c:set var="popupType" scope="request" value="success" />
         </c:if>
         <c:if test="${param.success == 'update'}">
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                Category updated successfully!
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
+            <c:set var="popupMessage" scope="request" value="Category updated successfully." />
+            <c:set var="popupType" scope="request" value="success" />
         </c:if>
         <c:if test="${param.success == 'delete'}">
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                Category deleted successfully!
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
+            <c:set var="popupMessage" scope="request" value="Category deleted successfully." />
+            <c:set var="popupType" scope="request" value="success" />
         </c:if>
         <c:if test="${param.error == 'addFailed'}">
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                Failed to add category!
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
+            <c:set var="popupMessage" scope="request" value="Failed to add category." />
+            <c:set var="popupType" scope="request" value="error" />
         </c:if>
         <c:if test="${param.error == 'updateFailed'}">
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                Failed to update category!
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
+            <c:set var="popupMessage" scope="request" value="Failed to update category." />
+            <c:set var="popupType" scope="request" value="error" />
         </c:if>
         <c:if test="${param.error == 'deleteFailed'}">
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                Failed to delete category!
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
+            <c:set var="popupMessage" scope="request" value="Failed to delete category." />
+            <c:set var="popupType" scope="request" value="error" />
         </c:if>
 
         <div class="card table-card">

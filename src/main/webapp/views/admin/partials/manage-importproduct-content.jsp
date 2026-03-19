@@ -18,16 +18,12 @@
     </div>
 
     <c:if test="${param.success == 'import'}">
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            Product imported successfully!
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
+        <c:set var="popupMessage" scope="request" value="Product imported successfully." />
+        <c:set var="popupType" scope="request" value="success" />
     </c:if>
     <c:if test="${param.error == 'importFailed'}">
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            Failed to import product!
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
+        <c:set var="popupMessage" scope="request" value="Failed to import product." />
+        <c:set var="popupType" scope="request" value="error" />
     </c:if>
 
     <div class="card table-card">

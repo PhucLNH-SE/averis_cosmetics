@@ -1,4 +1,4 @@
-<%@page contentType="text/html" pageEncoding="UTF-8"%>
+﻿<%@page contentType="text/html" pageEncoding="UTF-8"%>
 
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
@@ -6,7 +6,7 @@
 <div class="order-detail-container">
 <a href="${pageContext.request.contextPath}/staff/manage-orders"
    class="btn btn-secondary">
-   ← Back to Orders
+   &larr; Back to Orders
 </a>
 
 <h2>Order Detail - #${order.orderId}</h2>
@@ -75,3 +75,4 @@
 
 
 </div>
+

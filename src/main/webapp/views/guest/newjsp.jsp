@@ -13,5 +13,5 @@
     <div>${p.brand.name} - ${p.category.name}</div>
   </div>
 </c:forEach>
-<p>helolo </p>
+<p>Hello</p>
 <%@ include file="/assets/footer.jsp" %>

@@ -48,9 +48,8 @@
 
         <!-- ERROR MESSAGE -->
         <c:if test="${not empty error}">
-            <div class="error-message">
-                ${error}
-            </div>
+            <c:set var="popupMessage" scope="request" value="${error}" />
+            <c:set var="popupType" scope="request" value="error" />
         </c:if>
 
         <div class="auth-links">

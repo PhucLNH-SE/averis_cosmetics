@@ -22,7 +22,7 @@ public class ManageStaffController extends HttpServlet {
         
         // Block nếu không phải ADMIN
         if (admin == null || !"ADMIN".equals(admin.getManagerRole())) {
-            response.sendRedirect(request.getContextPath() + "/login");
+            response.sendRedirect(request.getContextPath() + "/manager-auth");
             return;
         }
 
