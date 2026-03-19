@@ -61,10 +61,10 @@
                                         </span>
                                     </td>
                                     <td class="text-center">
-                                        <button class="btn btn-info btn-sm text-white px-2 me-1"
-                                                onclick="openViewModal('${s.managerId}', '${fn:escapeXml(s.fullName)}', '${s.email}', '${s.managerRole}', '${s.status}')">
+                                        <a class="btn btn-info btn-sm text-white px-2 me-1"
+                                           href="${pageContext.request.contextPath}/admin/manage-staff?action=detail&managerId=${s.managerId}">
                                             <i class="fas fa-eye"></i>
-                                        </button>
+                                        </a>
 
                                         <button class="btn btn-primary btn-sm px-2 me-1"
                                                 onclick="openEditModal('${s.managerId}', '${fn:escapeXml(s.fullName)}', '${s.email}', '${s.managerRole}', '${s.status}')">
@@ -175,39 +175,6 @@
         </div>
     </div>
 
-    <div class="modal fade" id="viewModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow">
-                <div class="modal-header bg-info text-white">
-                    <h5 class="modal-title fw-bold"><i class="fas fa-id-card me-2"></i>Staff Details</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body p-4">
-                    <div class="view-detail-row">
-                        <div class="view-detail-label">Staff ID:</div>
-                        <div class="view-detail-value" id="viewId"></div>
-                    </div>
-                    <div class="view-detail-row">
-                        <div class="view-detail-label">Staff Name:</div>
-                        <div class="view-detail-value" id="viewName"></div>
-                    </div>
-                    <div class="view-detail-row">
-                        <div class="view-detail-label">Email:</div>
-                        <div class="view-detail-value" id="viewEmail"></div>
-                    </div>
-                    <div class="view-detail-row">
-                        <div class="view-detail-label">Role:</div>
-                        <div class="view-detail-value" id="viewRole"></div>
-                    </div>
-                    <div class="view-detail-row border-0 mb-0 pb-0">
-                        <div class="view-detail-label">Status:</div>
-                        <div class="view-detail-value" id="viewStatus"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <div class="modal fade" id="deleteModal" tabindex="-1">
         <div class="modal-dialog modal-sm modal-dialog-centered">
             <div class="modal-content text-center border-0 shadow">
@@ -260,18 +227,6 @@
         new bootstrap.Modal(document.getElementById('editModal')).show();
     }
 
-    function openViewModal(id, name, email, role, status) {
-        document.getElementById('viewId').innerText = '#' + id;
-        document.getElementById('viewName').innerText = name;
-        document.getElementById('viewEmail').innerText = email;
-        document.getElementById('viewRole').innerHTML = role === 'ADMIN'
-                ? '<span class="role-badge-admin">ADMIN</span>'
-                : '<span class="role-badge-staff">STAFF</span>';
-        document.getElementById('viewStatus').innerHTML = status === 'true'
-                ? '<span class="status-active"><i class="fas fa-check-circle"></i> Active</span>'
-                : '<span class="status-inactive"><i class="fas fa-ban"></i> Banned</span>';
-        new bootstrap.Modal(document.getElementById('viewModal')).show();
-    }
 
     function openDeleteModal(id, name) {
         document.getElementById('deleteId').value = id;
@@ -284,4 +239,5 @@
         document.getElementById('unbanName').innerText = name;
         new bootstrap.Modal(document.getElementById('unbanModal')).show();
     }
+
 </script>

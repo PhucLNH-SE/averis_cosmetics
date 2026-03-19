@@ -149,7 +149,7 @@
   </servlet>
   <servlet>
     <servlet-name>CustomerVoucherController</servlet-name>
-    <servlet-class>Controllers.customer.CustomerVoucherController</servlet-class>
+    <servlet-class>Controllers.customer.VoucherController</servlet-class>
   </servlet>
   <servlet>
     <servlet-name>MomoPaymentController</servlet-name>
@@ -214,6 +214,10 @@
     <url-pattern>/profile</url-pattern>
   </servlet-mapping>
   <servlet-mapping>
+    <servlet-name>ProductController</servlet-name>
+    <url-pattern>/products</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
     <servlet-name>AuthController</servlet-name>
     <url-pattern>/auth</url-pattern>
   </servlet-mapping>
@@ -236,6 +240,10 @@
   <servlet-mapping>
     <servlet-name>GuestController</servlet-name>
     <url-pattern>/home</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>ProductController</servlet-name>
+    <url-pattern>/products</url-pattern>
   </servlet-mapping>
   <servlet-mapping>
     <servlet-name>GuestController</servlet-name>

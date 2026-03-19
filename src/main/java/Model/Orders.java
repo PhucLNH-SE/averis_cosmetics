@@ -33,12 +33,13 @@ public class Orders {
     // them username
  private String username; 
  private String receiverName;
- private String receiverPhone;
- private String voucherCode;
- private String streetAddress;
- private String ward;
- private String district;
- private String province;
+    private String receiverPhone;
+    private String voucherCode;
+    private String streetAddress;
+    private String ward;
+    private String district;
+    private String province;
+    private String handledByName;
 
     public Orders() {
     }
@@ -209,6 +210,14 @@ public class Orders {
 
     public void setProvince(String province) {
         this.province = province;
+    }
+
+    public String getHandledByName() {
+        return handledByName;
+    }
+
+    public void setHandledByName(String handledByName) {
+        this.handledByName = handledByName;
     }
 
     public Orders(int orderId, int customerId, int addressId, Integer handledBy, Integer voucherId, BigDecimal discountAmount, String paymentMethod, String paymentStatus, String orderStatus, BigDecimal totalAmount, LocalDateTime createdAt, LocalDateTime paidAt, String username, String receiverName, String voucherCode) {
