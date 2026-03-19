@@ -96,8 +96,8 @@
                                                 <div class="product-category">${product.category.name}</div>
                                                 <div class="product-price">
                                                     <c:choose>
-                                                        <c:when test="${not empty product.variants}">
-                                                            <fmt:formatNumber value="${product.variants[0].price}" pattern="#,##0"/> ₫
+                                                        <c:when test="${product.price > 0}">
+                                                            <fmt:formatNumber value="${product.price}" pattern="#,##0"/> ₫
                                                         </c:when>
                                                         <c:otherwise>
                                                             Contact
@@ -127,3 +127,6 @@
         <%@include file="/assets/footer.jsp" %>
     </body>
 </html>
+
+
+
