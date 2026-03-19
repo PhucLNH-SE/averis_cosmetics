@@ -55,6 +55,13 @@
                         </li>
 
                         <li>
+                            <a class="${tab == 'feedback' ? 'active' : ''}"
+                               href="${pageContext.request.contextPath}/profile?action=view&tab=feedback">
+                                My Feedback
+                            </a>
+                        </li>
+
+                        <li>
                             <a class="${tab == 'password' ? 'active' : ''}"
                                href="${pageContext.request.contextPath}/profile?action=view&tab=password">
                                 Change password
@@ -74,9 +81,9 @@
             <div style="flex:1">
 
                 <div class="profile-container">
-                    <c:if test="${not empty profileMessage}">
-                        <c:set var="popupMessage" scope="request" value="${profileMessage}" />
-                        <c:set var="popupType" scope="request" value="${profileMessage.contains('success') ? 'success' : 'error'}" />
+                    <c:if test="${not empty requestScope.profileMessage}">
+                        <c:set var="popupMessage" scope="request" value="${requestScope.profileMessage}" />
+                        <c:set var="popupType" scope="request" value="${requestScope.profileMessage.contains('success') ? 'success' : 'error'}" />
                     </c:if>
 
                     <c:choose>
@@ -663,6 +670,96 @@
                                         </table>
                                     </div>
                                 </div>
+                            </div>
+
+                        </c:when>
+
+
+                        <c:when test="${tab == 'feedback'}">
+
+                            <div class="feedback-history">
+                                <div class="feedback-history__header">
+                                    <div>
+                                        <h2>My Feedback</h2>
+                                        <p class="feedback-history__subtitle">View all reviews you have submitted for products.</p>
+                                    </div>
+                                </div>
+
+                                <c:choose>
+                                    <c:when test="${empty myFeedbacks}">
+                                        <div class="feedback-history__empty">
+                                            <div class="feedback-history__empty-icon">
+                                                <i class="fas fa-star-half-alt"></i>
+                                            </div>
+                                            <h3>No feedback yet</h3>
+                                            <p>You have not submitted any product reviews yet.</p>
+                                            <a href="${pageContext.request.contextPath}/products" class="btn-shop-now">
+                                                <i class="fas fa-shopping-bag"></i> Explore Products
+                                            </a>
+                                        </div>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <div class="feedback-history__list">
+                                            <c:forEach items="${myFeedbacks}" var="fb">
+                                                <c:set var="reviewedAtStr" value="${fb.reviewedAt != null ? fn:replace(fb.reviewedAt, 'T', ' ') : ''}" />
+                                                <c:set var="respondedAtStr" value="${fb.respondedAt != null ? fn:replace(fb.respondedAt, 'T', ' ') : ''}" />
+                                                <div class="feedback-history__card">
+                                                    <div class="feedback-history__product">
+                                                        <img
+                                                            src="${pageContext.request.contextPath}/assets/img/${not empty fb.imageUrl ? fb.imageUrl : 'Logo.png'}"
+                                                            alt="${fb.productName}"
+                                                            class="feedback-history__image"
+                                                            onerror="this.src='${pageContext.request.contextPath}/assets/img/Logo.png';">
+                                                        <div class="feedback-history__product-info">
+                                                            <div class="feedback-history__product-name"><c:out value="${fb.productName}" /></div>
+                                                            <c:if test="${not empty fb.variantName}">
+                                                                <div class="feedback-history__variant"><c:out value="${fb.variantName}" /></div>
+                                                            </c:if>
+                                                            <div class="feedback-history__meta">
+                                                                Order #${fb.orderId}
+                                                                <c:if test="${not empty reviewedAtStr}">
+                                                                    • Reviewed ${fn:length(reviewedAtStr) > 16 ? fn:substring(reviewedAtStr, 0, 16) : reviewedAtStr}
+                                                                </c:if>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="feedback-history__rating">
+                                                        <div class="feedback-history__stars">
+                                                            <c:forEach begin="1" end="5" var="star">
+                                                                <i class="fas fa-star ${star <= fb.rating ? 'is-filled' : ''}"></i>
+                                                            </c:forEach>
+                                                        </div>
+                                                        <span class="feedback-history__rating-value">${fb.rating}/5</span>
+                                                    </div>
+
+                                                    <div class="feedback-history__comment">
+                                                        <c:choose>
+                                                            <c:when test="${not empty fb.reviewComment}">
+                                                                <c:out value="${fb.reviewComment}" />
+                                                            </c:when>
+                                                            <c:otherwise>
+                                                                No written comment.
+                                                            </c:otherwise>
+                                                        </c:choose>
+                                                    </div>
+
+                                                    <c:if test="${not empty fb.responseContent}">
+                                                        <div class="feedback-history__reply">
+                                                            <div class="feedback-history__reply-label">Shop reply</div>
+                                                            <div class="feedback-history__reply-content"><c:out value="${fb.responseContent}" /></div>
+                                                            <c:if test="${not empty respondedAtStr}">
+                                                                <div class="feedback-history__reply-time">
+                                                                    Replied ${fn:length(respondedAtStr) > 16 ? fn:substring(respondedAtStr, 0, 16) : respondedAtStr}
+                                                                </div>
+                                                            </c:if>
+                                                        </div>
+                                                    </c:if>
+                                                </div>
+                                            </c:forEach>
+                                        </div>
+                                    </c:otherwise>
+                                </c:choose>
                             </div>
 
                         </c:when>

@@ -8,6 +8,7 @@ import DALs.CustomerDAO;
 import DALs.AddressDAO;
 import DALs.OrderDAO;
 import DALs.CustomerVoucherDAO;
+import DALs.FeedbackDAO;
 import Model.Customer;
 import Model.Address;
 import Model.OrderDetail;
@@ -64,10 +65,7 @@ public class ProfileController extends HttpServlet {
             request.setAttribute("addresses", addresses);
         }
 
-        if (session.getAttribute("profileMessage") != null) {
-            request.setAttribute("profileMessage", session.getAttribute("profileMessage"));
-            session.removeAttribute("profileMessage");
-        }
+        consumeProfileFlashMessage(session, request);
 
         request.setAttribute("tab", tab);
 
@@ -144,6 +142,7 @@ public class ProfileController extends HttpServlet {
         List<Orders> orders = dao.getOrdersByCustomerId(customer.getCustomerId());
 
         request.setAttribute("orders", orders);
+        consumeProfileFlashMessage(request.getSession(false), request);
 
         request.setAttribute("tab", "orders");
 
@@ -166,6 +165,7 @@ public class ProfileController extends HttpServlet {
 
         request.setAttribute("order", order);
         request.setAttribute("details", details);
+        consumeProfileFlashMessage(request.getSession(false), request);
         request.setAttribute("tab", "orderDetail");
 
         request.getRequestDispatcher("/views/customer/profile.jsp")
@@ -180,10 +180,32 @@ public class ProfileController extends HttpServlet {
         List<CustomerVoucher> vouchers = dao.getActiveByCustomerId(customer.getCustomerId());
 
         request.setAttribute("myVouchers", vouchers);
+        consumeProfileFlashMessage(request.getSession(false), request);
         request.setAttribute("tab", "voucher");
 
         request.getRequestDispatcher("/views/customer/profile.jsp")
                 .forward(request, response);
+    }
+
+    private void showFeedbacks(HttpServletRequest request, HttpServletResponse response,
+            Customer customer) throws ServletException, IOException {
+
+        FeedbackDAO dao = new FeedbackDAO();
+        List<OrderDetail> feedbacks = dao.getFeedbacksByCustomerId(customer.getCustomerId());
+
+        request.setAttribute("myFeedbacks", feedbacks);
+        consumeProfileFlashMessage(request.getSession(false), request);
+        request.setAttribute("tab", "feedback");
+
+        request.getRequestDispatcher("/views/customer/profile.jsp")
+                .forward(request, response);
+    }
+
+    private void consumeProfileFlashMessage(HttpSession session, HttpServletRequest request) {
+        if (session != null && session.getAttribute("profileMessage") != null) {
+            request.setAttribute("profileMessage", session.getAttribute("profileMessage"));
+            session.removeAttribute("profileMessage");
+        }
     }
 
     private void changePassword(HttpServletRequest request,
@@ -314,6 +336,8 @@ public class ProfileController extends HttpServlet {
             case "view":
                 if ("orders".equals(tab)) {
                     showOrders(request, response, customer);
+                } else if ("feedback".equals(tab)) {
+                    showFeedbacks(request, response, customer);
                 } else if ("voucher".equals(tab)) {
                     showVouchers(request, response, customer);
                 } else {
@@ -333,6 +357,9 @@ public class ProfileController extends HttpServlet {
                 break;
             case "voucher":
                 showVouchers(request, response, customer);
+                break;
+            case "feedback":
+                showFeedbacks(request, response, customer);
                 break;
             case "cancelOrder":
                 cancelOrder(request, response, customer);

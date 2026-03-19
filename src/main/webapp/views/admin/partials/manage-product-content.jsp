@@ -25,13 +25,87 @@
     </c:if>
 
     <div class="card shadow-sm">
+        <div class="card-body p-4 pb-0">
+            <div class="product-overview">
+                <div class="product-overview__card product-overview__card--results">
+                    <span class="product-overview__label">Results</span>
+                    <strong class="product-overview__value">${resultCount}</strong>
+                </div>
+                <div class="product-overview__card product-overview__card--active">
+                    <span class="product-overview__label">Active</span>
+                    <strong class="product-overview__value">${activeCount}</strong>
+                </div>
+                <div class="product-overview__card product-overview__card--inactive">
+                    <span class="product-overview__label">Inactive</span>
+                    <strong class="product-overview__value">${inactiveCount}</strong>
+                </div>
+            </div>
+        </div>
         <div class="card-body p-4">
-            <div class="d-flex justify-content-end mb-3">
-                <button class="btn btn-success px-3" data-bs-toggle="modal" data-bs-target="#addModal">
-                    <i class="fas fa-plus-circle me-1"></i> Add Product
-                </button>
+            <div class="product-toolbar mb-4">
+                <form action="${pageContext.request.contextPath}/admin/manage-product" method="get" class="product-search-form">
+                    <div class="product-filter-grid">
+                        <div>
+                            <label class="form-label fw-semibold mb-2" for="productSearchKeyword">Keyword</label>
+                            <div class="product-search-form__input-wrap">
+                                <i class="fas fa-search product-search-form__icon"></i>
+                                <input
+                                    id="productSearchKeyword"
+                                    type="text"
+                                    name="keyword"
+                                    class="form-control product-search-form__input"
+                                    placeholder="Search by product ID, name, brand, category..."
+                                    value="<c:out value='${searchKeyword}'/>">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="form-label fw-semibold mb-2" for="productBrandFilter">Brand</label>
+                            <select id="productBrandFilter" name="brandId" class="form-select product-filter-select">
+                                <option value="">All brands</option>
+                                <c:forEach items="${listB}" var="b">
+                                    <option value="${b.brandId}" ${selectedBrandId == b.brandId ? 'selected' : ''}>${b.name}</option>
+                                </c:forEach>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="form-label fw-semibold mb-2" for="productCategoryFilter">Category</label>
+                            <select id="productCategoryFilter" name="categoryId" class="form-select product-filter-select">
+                                <option value="">All categories</option>
+                                <c:forEach items="${listC}" var="c">
+                                    <option value="${c.categoryId}" ${selectedCategoryId == c.categoryId ? 'selected' : ''}>${c.name}</option>
+                                </c:forEach>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="form-label fw-semibold mb-2" for="productStatusFilter">Status</label>
+                            <select id="productStatusFilter" name="status" class="form-select product-filter-select">
+                                <option value="">All status</option>
+                                <option value="active" ${selectedStatus == 'active' ? 'selected' : ''}>Active</option>
+                                <option value="inactive" ${selectedStatus == 'inactive' ? 'selected' : ''}>Inactive</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="product-search-form__row">
+                        <button type="submit" class="btn btn-primary px-4">
+                            <i class="fas fa-filter me-1"></i> Search
+                        </button>
+                        <a class="btn btn-outline-secondary px-4" href="${pageContext.request.contextPath}/admin/manage-product">
+                            Reset
+                        </a>
+                    </div>
+                    <p class="text-muted small mb-0 mt-2">
+                        Showing ${resultCount} product(s)<c:if test="${not empty searchKeyword}"> for "<c:out value="${searchKeyword}"/>"</c:if>
+                    </p>
+                </form>
+
+                <div class="product-toolbar__actions">
+                    <button class="btn btn-success px-3" data-bs-toggle="modal" data-bs-target="#addModal">
+                        <i class="fas fa-plus-circle me-1"></i> Add Product
+                    </button>
+                </div>
             </div>
 
+            <div class="table-responsive">
             <table class="table table-hover align-middle">
                 <thead>
                     <tr>
@@ -146,8 +220,16 @@
                             </td>
                         </tr>
                     </c:forEach>
+                    <c:if test="${empty listP}">
+                        <tr>
+                            <td colspan="8" class="text-center py-5 text-muted">
+                                No products matched your search.
+                            </td>
+                        </tr>
+                    </c:if>
                 </tbody>
             </table>
+            </div>
         </div>
     </div>
 </section>
@@ -169,6 +251,10 @@
                                 <input type="hidden" name="variantId" value="${v.variantId}">
                                 <input type="hidden" name="productId" value="${p.productId}">
                                 <input type="hidden" name="stock" value="${v.stock}">
+                                <input type="hidden" name="keyword" value="<c:out value='${searchKeyword}'/>">
+                                <input type="hidden" name="brandId" value="<c:out value='${selectedBrandId}'/>">
+                                <input type="hidden" name="categoryId" value="<c:out value='${selectedCategoryId}'/>">
+                                <input type="hidden" name="status" value="<c:out value='${selectedStatus}'/>">
 
                                 <div class="flex-grow-1">
                                     <label class="small text-muted mb-1 fw-bold">Variant Name</label>
@@ -191,6 +277,10 @@
                             <form action="${pageContext.request.contextPath}/admin/manage-variant" method="post" class="mb-1" onsubmit="return confirm('Do you want to delete this variant?');">
                                 <input type="hidden" name="action" value="delete">
                                 <input type="hidden" name="variantId" value="${v.variantId}">
+                                <input type="hidden" name="keyword" value="<c:out value='${searchKeyword}'/>">
+                                <input type="hidden" name="brandId" value="<c:out value='${selectedBrandId}'/>">
+                                <input type="hidden" name="categoryId" value="<c:out value='${selectedCategoryId}'/>">
+                                <input type="hidden" name="status" value="<c:out value='${selectedStatus}'/>">
                                 <button type="submit" class="btn btn-danger btn-sm px-3" title="Delete">
                                     <i class="fas fa-trash"></i>
                                 </button>
@@ -218,6 +308,10 @@
                             <input type="hidden" name="action" value="add">
                             <input type="hidden" name="productId" id="addVarProductId">
                             <input type="hidden" name="stock" value="0">
+                            <input type="hidden" name="keyword" value="<c:out value='${searchKeyword}'/>">
+                            <input type="hidden" name="brandId" value="<c:out value='${selectedBrandId}'/>">
+                            <input type="hidden" name="categoryId" value="<c:out value='${selectedCategoryId}'/>">
+                            <input type="hidden" name="status" value="<c:out value='${selectedStatus}'/>">
                             
                             <div class="col-md-5">
                                 <label class="small text-muted mb-1 fw-bold">Variant Name</label>
@@ -246,6 +340,10 @@
         <div class="modal-content">
             <form action="${pageContext.request.contextPath}/admin/manage-product" method="post" enctype="multipart/form-data">
                 <input type="hidden" name="action" value="add">
+                <input type="hidden" name="keyword" value="<c:out value='${searchKeyword}'/>">
+                <input type="hidden" name="brandId" value="<c:out value='${selectedBrandId}'/>">
+                <input type="hidden" name="categoryId" value="<c:out value='${selectedCategoryId}'/>">
+                <input type="hidden" name="status" value="<c:out value='${selectedStatus}'/>">
                 <div class="modal-header bg-success text-white">
                     <h5 class="modal-title fw-bold">Add New Product</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
@@ -318,6 +416,10 @@
             <form action="${pageContext.request.contextPath}/admin/manage-product" method="post" enctype="multipart/form-data">
                 <input type="hidden" name="action" value="update">
                 <input type="hidden" name="productId" id="editId">
+                <input type="hidden" name="keyword" value="<c:out value='${searchKeyword}'/>">
+                <input type="hidden" name="brandId" value="<c:out value='${selectedBrandId}'/>">
+                <input type="hidden" name="categoryId" value="<c:out value='${selectedCategoryId}'/>">
+                <input type="hidden" name="status" value="<c:out value='${selectedStatus}'/>">
                 <div class="modal-header bg-primary text-white">
                     <h5 class="modal-title fw-bold">Edit Product Info</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
@@ -370,6 +472,10 @@
             <form action="${pageContext.request.contextPath}/admin/manage-product" method="post">
                 <input type="hidden" name="action" value="delete">
                 <input type="hidden" name="productId" id="hideId">
+                <input type="hidden" name="keyword" value="<c:out value='${searchKeyword}'/>">
+                <input type="hidden" name="brandId" value="<c:out value='${selectedBrandId}'/>">
+                <input type="hidden" name="categoryId" value="<c:out value='${selectedCategoryId}'/>">
+                <input type="hidden" name="status" value="<c:out value='${selectedStatus}'/>">
                 <div class="modal-body p-4">
                     <i class="fas fa-eye-slash text-danger mb-3" style="font-size: 3rem;"></i>
                     <h5 class="fw-bold mb-3">Hide Product?</h5>
@@ -390,6 +496,10 @@
             <form action="${pageContext.request.contextPath}/admin/manage-product" method="post">
                 <input type="hidden" name="action" value="show">
                 <input type="hidden" name="productId" id="showId">
+                <input type="hidden" name="keyword" value="<c:out value='${searchKeyword}'/>">
+                <input type="hidden" name="brandId" value="<c:out value='${selectedBrandId}'/>">
+                <input type="hidden" name="categoryId" value="<c:out value='${selectedCategoryId}'/>">
+                <input type="hidden" name="status" value="<c:out value='${selectedStatus}'/>">
                 <div class="modal-body p-4">
                     <i class="fas fa-eye text-success mb-3" style="font-size: 3rem;"></i>
                     <h5 class="fw-bold mb-3">Show Product?</h5>
