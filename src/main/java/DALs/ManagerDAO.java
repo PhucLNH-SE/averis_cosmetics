@@ -35,6 +35,31 @@ public class ManagerDAO extends DBContext {
         return null;
     }
 
+    public Manager getById(int managerId) {
+        String sql = "SELECT manager_id, full_name, email, password, manager_role, status "
+                + "FROM Manager WHERE manager_id = ?";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, managerId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    Manager manager = new Manager();
+                    manager.setManagerId(rs.getInt("manager_id"));
+                    manager.setFullName(rs.getString("full_name"));
+                    manager.setEmail(rs.getString("email"));
+                    manager.setPassword(rs.getString("password"));
+                    manager.setManagerRole(rs.getString("manager_role"));
+                    manager.setStatus(rs.getBoolean("status"));
+                    return manager;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
    
     
     // ========================================================

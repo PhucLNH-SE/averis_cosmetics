@@ -223,6 +223,47 @@ public class FeedbackDAO extends DBContext {
         return list;
     }
 
+    public List<OrderDetail> getFeedbacksByManagerResponse(int managerId) {
+        List<OrderDetail> list = new ArrayList<>();
+        String sql = "SELECT od.order_detail_id, od.order_id, od.rating, od.review_comment, "
+                + "od.reviewed_at, od.response_content, od.responded_at, "
+                + "p.name AS product_name, c.full_name AS customer_name "
+                + "FROM Order_Detail od "
+                + "JOIN Orders o ON od.order_id = o.order_id "
+                + "JOIN Customers c ON o.customer_id = c.customer_id "
+                + "JOIN Product_Variant pv ON od.variant_id = pv.variant_id "
+                + "JOIN Product p ON pv.product_id = p.product_id "
+                + "WHERE od.manager_response = ? AND od.responded_at IS NOT NULL "
+                + "ORDER BY od.responded_at DESC";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, managerId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    OrderDetail od = new OrderDetail();
+                    od.setOrderDetailId(rs.getInt("order_detail_id"));
+                    od.setOrderId(rs.getInt("order_id"));
+                    od.setRating(rs.getInt("rating"));
+                    od.setReviewComment(rs.getString("review_comment"));
+                    if (rs.getTimestamp("reviewed_at") != null) {
+                        od.setReviewedAt(rs.getTimestamp("reviewed_at").toLocalDateTime());
+                    }
+                    od.setResponseContent(rs.getString("response_content"));
+                    if (rs.getTimestamp("responded_at") != null) {
+                        od.setRespondedAt(rs.getTimestamp("responded_at").toLocalDateTime());
+                    }
+                    od.setProductName(rs.getString("product_name"));
+                    od.setCustomerName(rs.getString("customer_name"));
+                    list.add(od);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
+
     // MỚI: Lấy danh sách tổng hợp Feedback theo từng sản phẩm (Group By Product)
     public List<ProductFeedbackSummary> getFeedbackSummaryList() {
         List<ProductFeedbackSummary> list = new ArrayList<>();

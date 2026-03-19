@@ -36,6 +36,10 @@
         <c:set var="popupMessage" scope="request" value="Failed to update orders." />
         <c:set var="popupType" scope="request" value="error" />
     </c:if>
+    <c:if test="${param.error == 'notAllowed'}">
+        <c:set var="popupMessage" scope="request" value="You can only update orders assigned to you." />
+        <c:set var="popupType" scope="request" value="error" />
+    </c:if>
 
     <div class="card table-card">
         <div class="card-body p-0">
@@ -52,12 +56,15 @@
                                 <th>Payment Method</th>
                                 <th>Payment Status</th>
                                 <th>Order Status</th>
+                                <th>Handled By</th>
                                 <th>Action</th>
                                 <th>Total</th>
                             </tr>
                         </thead>
                         <tbody>
                             <c:forEach var="o" items="${orderList}">
+                                <c:set var="canEdit"
+                                       value="${not empty currentManagerId && (o.handledBy == null || o.handledBy == currentManagerId)}" />
                                 <tr>
                                     <td class="px-4">#${o.orderId}</td>
                                     <td><strong>${o.receiverName}</strong></td>
@@ -66,20 +73,52 @@
                                     <td>${o.paymentMethod}</td>
                                     <td>
                                         <input type="hidden" name="orderId" value="${o.orderId}">
-                                        <select name="paymentStatus" class="action-select">
-                                            <option value="PENDING" ${o.paymentStatus == 'PENDING' ? 'selected' : ''}>PENDING</option>
-                                            <option value="SUCCESS" ${o.paymentStatus == 'SUCCESS' ? 'selected' : ''}>SUCCESS</option>
-                                            <option value="FAILED" ${o.paymentStatus == 'FAILED' ? 'selected' : ''}>FAILED</option>
-                                        </select>
+                                        <c:choose>
+                                            <c:when test="${canEdit}">
+                                                <select name="paymentStatus" class="action-select">
+                                                    <option value="PENDING" ${o.paymentStatus == 'PENDING' ? 'selected' : ''}>PENDING</option>
+                                                    <option value="SUCCESS" ${o.paymentStatus == 'SUCCESS' ? 'selected' : ''}>SUCCESS</option>
+                                                    <option value="FAILED" ${o.paymentStatus == 'FAILED' ? 'selected' : ''}>FAILED</option>
+                                                </select>
+                                            </c:when>
+                                            <c:otherwise>
+                                                <select name="paymentStatus" class="action-select" disabled>
+                                                    <option value="PENDING" ${o.paymentStatus == 'PENDING' ? 'selected' : ''}>PENDING</option>
+                                                    <option value="SUCCESS" ${o.paymentStatus == 'SUCCESS' ? 'selected' : ''}>SUCCESS</option>
+                                                    <option value="FAILED" ${o.paymentStatus == 'FAILED' ? 'selected' : ''}>FAILED</option>
+                                                </select>
+                                                <input type="hidden" name="paymentStatus" value="${o.paymentStatus}">
+                                            </c:otherwise>
+                                        </c:choose>
                                     </td>
                                     <td>
-                                        <select name="orderStatus" class="action-select">
-                                            <option value="CREATED" ${o.orderStatus == 'CREATED' ? 'selected' : ''}>CREATED</option>
-                                            <option value="PROCESSING" ${o.orderStatus == 'PROCESSING' ? 'selected' : ''}>PROCESSING</option>
-                                            <option value="SHIPPING" ${o.orderStatus == 'SHIPPING' ? 'selected' : ''}>SHIPPING</option>
-                                            <option value="COMPLETED" ${o.orderStatus == 'COMPLETED' ? 'selected' : ''}>COMPLETED</option>
-                                            <option value="CANCELLED" ${o.orderStatus == 'CANCELLED' ? 'selected' : ''}>CANCELLED</option>
-                                        </select>
+                                        <c:choose>
+                                            <c:when test="${canEdit}">
+                                                <select name="orderStatus" class="action-select">
+                                                    <option value="CREATED" ${o.orderStatus == 'CREATED' ? 'selected' : ''}>CREATED</option>
+                                                    <option value="PROCESSING" ${o.orderStatus == 'PROCESSING' ? 'selected' : ''}>PROCESSING</option>
+                                                    <option value="SHIPPING" ${o.orderStatus == 'SHIPPING' ? 'selected' : ''}>SHIPPING</option>
+                                                    <option value="COMPLETED" ${o.orderStatus == 'COMPLETED' ? 'selected' : ''}>COMPLETED</option>
+                                                    <option value="CANCELLED" ${o.orderStatus == 'CANCELLED' ? 'selected' : ''}>CANCELLED</option>
+                                                </select>
+                                            </c:when>
+                                            <c:otherwise>
+                                                <select name="orderStatus" class="action-select" disabled>
+                                                    <option value="CREATED" ${o.orderStatus == 'CREATED' ? 'selected' : ''}>CREATED</option>
+                                                    <option value="PROCESSING" ${o.orderStatus == 'PROCESSING' ? 'selected' : ''}>PROCESSING</option>
+                                                    <option value="SHIPPING" ${o.orderStatus == 'SHIPPING' ? 'selected' : ''}>SHIPPING</option>
+                                                    <option value="COMPLETED" ${o.orderStatus == 'COMPLETED' ? 'selected' : ''}>COMPLETED</option>
+                                                    <option value="CANCELLED" ${o.orderStatus == 'CANCELLED' ? 'selected' : ''}>CANCELLED</option>
+                                                </select>
+                                                <input type="hidden" name="orderStatus" value="${o.orderStatus}">
+                                            </c:otherwise>
+                                        </c:choose>
+                                    </td>
+                                    <td>
+                                        <c:choose>
+                                            <c:when test="${not empty o.handledByName}">${o.handledByName}</c:when>
+                                            <c:otherwise>Chưa gán</c:otherwise>
+                                        </c:choose>
                                     </td>
                                     <td>
                                     <a href="${pageContext.request.contextPath}/staff/manage-orders?action=detail&orderId=${o.orderId}"
@@ -92,7 +131,7 @@
                             </c:forEach>
                             <c:if test="${empty orderList}">
                                 <tr>
-                                    <td colspan="8" class="text-center empty-state">
+                                    <td colspan="10" class="text-center empty-state">
                                         <i class="bi bi-inbox d-block"></i>
                                         No orders found
                                     </td>

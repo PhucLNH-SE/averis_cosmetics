@@ -67,7 +67,11 @@ public class ManageFeedbackController extends HttpServlet {
             throws ServletException, IOException {
         HttpSession session = request.getSession();
         Manager manager = (Manager) session.getAttribute("manager");
-        int currentManagerId = manager != null ? manager.getManagerId() : 1;
+        if (manager == null || !"STAFF".equalsIgnoreCase(manager.getManagerRole())) {
+            response.sendRedirect(request.getContextPath() + "/manager-auth");
+            return;
+        }
+        int currentManagerId = manager.getManagerId();
 
         String action = request.getParameter("action");
         if (!"reply".equals(action)) {
@@ -111,7 +115,11 @@ public class ManageFeedbackController extends HttpServlet {
             int orderDetailId = Integer.parseInt(request.getParameter("id"));
             OrderDetail currentFb = feedbackDAO.getFeedbackDetail(orderDetailId);
             Manager manager = (Manager) session.getAttribute("manager");
-            int currentManagerId = manager != null ? manager.getManagerId() : 1;
+            if (manager == null || !"STAFF".equalsIgnoreCase(manager.getManagerRole())) {
+                response.sendRedirect(request.getContextPath() + "/manager-auth");
+                return;
+            }
+            int currentManagerId = manager.getManagerId();
 
             if (currentFb.getManagerResponse() != null && !currentFb.getManagerResponse().equals(currentManagerId)) {
                 session.setAttribute("errorMsg",

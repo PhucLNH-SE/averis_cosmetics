@@ -8,6 +8,21 @@
             <h4>Manage Orders</h4>
             <p class="text-muted mb-0">List of customer orders</p>
         </div>
+        <form method="get" action="${pageContext.request.contextPath}/admin/manage-orders" class="mb-3 d-flex align-items-center gap-2">
+            <label><strong>Filter by Staff:</strong></label>
+            <select name="staffId" class="form-select" style="width:220px">
+                <option value="">All</option>
+                <option value="0" ${selectedStaffId != null && selectedStaffId == 0 ? 'selected' : ''}>Chưa gán</option>
+                <c:forEach items="${staffList}" var="s">
+                    <option value="${s.managerId}" ${selectedStaffId != null && selectedStaffId == s.managerId ? 'selected' : ''}>
+                        ${s.fullName}
+                    </option>
+                </c:forEach>
+            </select>
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-funnel"></i> Filter
+            </button>
+        </form>
     </div>
 
     <c:if test="${param.success == 'update'}">
@@ -34,6 +49,8 @@
                                 <th>Payment Method</th>
                                 <th>Payment Status</th>
                                 <th>Order Status</th>
+                                <th>Handled By</th>
+                                <th>Action</th>
                                 <th>Total</th>
                             </tr>
                         </thead>
@@ -62,12 +79,24 @@
                                             <option value="CANCELLED" ${o.orderStatus == 'CANCELLED' ? 'selected' : ''}>CANCELLED</option>
                                         </select>
                                     </td>
+                                    <td>
+                                        <c:choose>
+                                            <c:when test="${not empty o.handledByName}">${o.handledByName}</c:when>
+                                            <c:otherwise>Chưa gán</c:otherwise>
+                                        </c:choose>
+                                    </td>
+                                    <td>
+                                        <a href="${pageContext.request.contextPath}/admin/manage-orders?action=detail&orderId=${o.orderId}"
+                                           class="btn btn-sm btn-primary">
+                                            View Detail
+                                        </a>
+                                    </td>
                                     <td><strong><fmt:formatNumber value="${o.totalAmount}" pattern="#,##0"/> VND</strong></td>
                                 </tr>
                             </c:forEach>
                             <c:if test="${empty orderList}">
                                 <tr>
-                                    <td colspan="8" class="text-center empty-state">
+                                    <td colspan="10" class="text-center empty-state">
                                         <i class="bi bi-inbox d-block"></i>
                                         No orders found
                                     </td>

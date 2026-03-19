@@ -200,10 +200,13 @@ public class OrderDAO extends DBContext {
                 + "o.payment_method, "
                 + "o.payment_status, "
                 + "o.order_status, "
-                + "o.total_amount "
+                + "o.total_amount, "
+                + "o.handled_by, "
+                + "m.full_name AS handled_by_name "
                 + "FROM Orders o "
                 + "JOIN Address a ON o.address_id = a.address_id "
                 + "LEFT JOIN Voucher v ON o.voucher_id = v.voucher_id "
+                + "LEFT JOIN Manager m ON o.handled_by = m.manager_id "
                 + "ORDER BY o.order_id DESC";
 
         try {
@@ -223,6 +226,8 @@ public class OrderDAO extends DBContext {
                 order.setPaymentStatus(rs.getString("payment_status"));
                 order.setOrderStatus(rs.getString("order_status"));
                 order.setTotalAmount(rs.getBigDecimal("total_amount"));
+                order.setHandledBy(rs.getObject("handled_by", Integer.class));
+                order.setHandledByName(rs.getString("handled_by_name"));
 
                 list.add(order);
             }
@@ -244,6 +249,11 @@ public class OrderDAO extends DBContext {
                 + "c.name AS category_name, "
                 + "od.quantity, "
                 + "od.price_at_order, "
+                + "od.rating, "
+                + "od.review_comment, "
+                + "od.reviewed_at, "
+                + "od.response_content, "
+                + "od.responded_at, "
                 + "(SELECT TOP 1 image_url "
                 + " FROM Product_Image "
                 + " WHERE product_id = p.product_id) AS image_url "
@@ -271,10 +281,55 @@ public class OrderDAO extends DBContext {
                 od.setCategoryName(rs.getString("category_name"));
                 od.setQuantity(rs.getInt("quantity"));
                 od.setPriceAtOrder(rs.getBigDecimal("price_at_order"));
+                od.setRating((Integer) rs.getObject("rating"));
+                od.setReviewComment(rs.getString("review_comment"));
+                if (rs.getTimestamp("reviewed_at") != null) {
+                    od.setReviewedAt(rs.getTimestamp("reviewed_at").toLocalDateTime());
+                }
+                od.setResponseContent(rs.getString("response_content"));
+                if (rs.getTimestamp("responded_at") != null) {
+                    od.setRespondedAt(rs.getTimestamp("responded_at").toLocalDateTime());
+                }
 
                 list.add(od);
             }
 
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
+
+    public List<Orders> getOrdersHandledByManager(int managerId) {
+        List<Orders> list = new ArrayList<>();
+
+        String sql = "SELECT o.order_id, a.receiver_name, o.order_status, "
+                + "o.payment_status, o.total_amount, o.created_at "
+                + "FROM Orders o "
+                + "JOIN Address a ON o.address_id = a.address_id "
+                + "WHERE o.handled_by = ? "
+                + "ORDER BY o.order_id DESC";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, managerId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Orders order = new Orders();
+                    order.setOrderId(rs.getInt("order_id"));
+                    order.setReceiverName(rs.getString("receiver_name"));
+                    order.setOrderStatus(rs.getString("order_status"));
+                    order.setPaymentStatus(rs.getString("payment_status"));
+                    order.setTotalAmount(rs.getBigDecimal("total_amount"));
+
+                    Timestamp ts = rs.getTimestamp("created_at");
+                    if (ts != null) {
+                        order.setCreatedAt(ts.toLocalDateTime());
+                    }
+
+                    list.add(order);
+                }
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -553,10 +608,13 @@ public class OrderDAO extends DBContext {
                 + "o.payment_method, "
                 + "o.payment_status, "
                 + "o.order_status, "
-                + "o.total_amount "
+                + "o.total_amount, "
+                + "o.handled_by, "
+                + "m.full_name AS handled_by_name "
                 + "FROM Orders o "
                 + "JOIN Address a ON o.address_id = a.address_id "
                 + "LEFT JOIN Voucher v ON o.voucher_id = v.voucher_id "
+                + "LEFT JOIN Manager m ON o.handled_by = m.manager_id "
                 + "WHERE o.order_status = ? "
                 + "ORDER BY o.order_id DESC";
         try {
@@ -573,12 +631,81 @@ public class OrderDAO extends DBContext {
                 order.setPaymentStatus(rs.getString("payment_status"));
                 order.setOrderStatus(rs.getString("order_status"));
                 order.setTotalAmount(rs.getBigDecimal("total_amount"));
+                order.setHandledBy(rs.getObject("handled_by", Integer.class));
+                order.setHandledByName(rs.getString("handled_by_name"));
                 list.add(order);
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
         return list;
+    }
+
+    public List<Orders> getOrdersByHandledBy(Integer handledBy) {
+        List<Orders> list = new ArrayList<>();
+        StringBuilder sql = new StringBuilder("SELECT o.order_id, "
+                + "a.receiver_name, "
+                + "v.code AS voucher_code, "
+                + "o.discount_amount, "
+                + "o.payment_method, "
+                + "o.payment_status, "
+                + "o.order_status, "
+                + "o.total_amount, "
+                + "o.handled_by, "
+                + "m.full_name AS handled_by_name "
+                + "FROM Orders o "
+                + "JOIN Address a ON o.address_id = a.address_id "
+                + "LEFT JOIN Voucher v ON o.voucher_id = v.voucher_id "
+                + "LEFT JOIN Manager m ON o.handled_by = m.manager_id ");
+
+        if (handledBy == null) {
+            sql.append("ORDER BY o.order_id DESC");
+        } else if (handledBy == 0) {
+            sql.append("WHERE o.handled_by IS NULL ORDER BY o.order_id DESC");
+        } else {
+            sql.append("WHERE o.handled_by = ? ORDER BY o.order_id DESC");
+        }
+
+        try (PreparedStatement ps = connection.prepareStatement(sql.toString())) {
+            if (handledBy != null && handledBy != 0) {
+                ps.setInt(1, handledBy);
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Orders order = new Orders();
+                    order.setOrderId(rs.getInt("order_id"));
+                    order.setReceiverName(rs.getString("receiver_name"));
+                    order.setVoucherCode(rs.getString("voucher_code"));
+                    order.setDiscountAmount(rs.getBigDecimal("discount_amount"));
+                    order.setPaymentMethod(rs.getString("payment_method"));
+                    order.setPaymentStatus(rs.getString("payment_status"));
+                    order.setOrderStatus(rs.getString("order_status"));
+                    order.setTotalAmount(rs.getBigDecimal("total_amount"));
+                    order.setHandledBy(rs.getObject("handled_by", Integer.class));
+                    order.setHandledByName(rs.getString("handled_by_name"));
+                    list.add(order);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
+
+    public Integer getHandledBy(int orderId) {
+        String sql = "SELECT handled_by FROM Orders WHERE order_id = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, orderId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getObject("handled_by", Integer.class);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     private boolean deductStockForOrder(Connection conn, int orderId) throws SQLException {
@@ -666,6 +793,8 @@ public class OrderDAO extends DBContext {
                 + "od.rating, "
                 + "od.review_comment, "
                 + "od.reviewed_at, "
+                + "od.response_content, "
+                + "od.responded_at, "
                 + "p.name AS product_name, "
                 + "b.name AS brand_name, "
                 + "c.name AS category_name, "
@@ -696,6 +825,10 @@ public class OrderDAO extends DBContext {
                 od.setReviewComment(rs.getString("review_comment"));
                 if (rs.getTimestamp("reviewed_at") != null) {
                     od.setReviewedAt(rs.getTimestamp("reviewed_at").toLocalDateTime());
+                }
+                od.setResponseContent(rs.getString("response_content"));
+                if (rs.getTimestamp("responded_at") != null) {
+                    od.setRespondedAt(rs.getTimestamp("responded_at").toLocalDateTime());
                 }
 
                 // Các trường thông tin sản phẩm
