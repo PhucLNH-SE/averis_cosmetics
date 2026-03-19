@@ -9,6 +9,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.*;
 import java.io.File;
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.util.List;
 import java.util.UUID;
 
@@ -90,13 +91,32 @@ public class ManageProductController extends HttpServlet {
             session.removeAttribute("errorMsg");
         }
 
-        List<Product> listP = dao.getAllProductsWithImportPrice();
+        String keyword = trimToNull(request.getParameter("keyword"));
+        String brandId = trimToNull(request.getParameter("brandId"));
+        String categoryId = trimToNull(request.getParameter("categoryId"));
+        String status = trimToNull(request.getParameter("status"));
+
+        List<Product> listP = dao.getProductsForAdminWithImportPrice(keyword, brandId, categoryId, status);
         List<Brand> listB = dao.getAllBrands();
         List<Category> listC = dao.getAllCategories();
+
+        int activeCount = 0;
+        for (Product product : listP) {
+            if (product.isStatus()) {
+                activeCount++;
+            }
+        }
 
         request.setAttribute("listP", listP);
         request.setAttribute("listB", listB);
         request.setAttribute("listC", listC);
+        request.setAttribute("searchKeyword", keyword);
+        request.setAttribute("selectedBrandId", brandId);
+        request.setAttribute("selectedCategoryId", categoryId);
+        request.setAttribute("selectedStatus", status);
+        request.setAttribute("resultCount", listP.size());
+        request.setAttribute("activeCount", activeCount);
+        request.setAttribute("inactiveCount", listP.size() - activeCount);
 
         request.setAttribute("currentView", "products");
         request.setAttribute("contentPage", "/views/admin/partials/manage-product-content.jsp");
@@ -118,7 +138,7 @@ public class ManageProductController extends HttpServlet {
             session.setAttribute("errorMsg", "Lỗi: Không thể ẩn sản phẩm.");
         }
 
-        response.sendRedirect(request.getContextPath() + "/admin/manage-product");
+        response.sendRedirect(buildManageProductRedirect(request));
     }
 
     // ================== SHOW ==================
@@ -134,7 +154,7 @@ public class ManageProductController extends HttpServlet {
             session.setAttribute("errorMsg", "Lỗi: Không thể hiển thị lại sản phẩm.");
         }
 
-        response.sendRedirect(request.getContextPath() + "/admin/manage-product");
+        response.sendRedirect(buildManageProductRedirect(request));
     }
 
     // ================== ADD ==================
@@ -157,7 +177,7 @@ public class ManageProductController extends HttpServlet {
         dao.insertProduct(name, desc, bid, cid, status, image, price, 0, importPrice);
 
         session.setAttribute("successMsg", "Thêm sản phẩm thành công!");
-        response.sendRedirect(request.getContextPath() + "/admin/manage-product");
+        response.sendRedirect(buildManageProductRedirect(request));
     }
 
     // ================== UPDATE ==================
@@ -179,7 +199,7 @@ public class ManageProductController extends HttpServlet {
         dao.updateProduct(id, name, desc, bid, cid, status, image);
 
         session.setAttribute("successMsg", "Cập nhật sản phẩm thành công!");
-        response.sendRedirect(request.getContextPath() + "/admin/manage-product");
+        response.sendRedirect(buildManageProductRedirect(request));
     }
 
     // ================== UPLOAD IMAGE ==================
@@ -235,5 +255,46 @@ public class ManageProductController extends HttpServlet {
             }
         }
         return null;
+    }
+
+    private String trimToNull(String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    private String buildManageProductRedirect(HttpServletRequest request) throws IOException {
+        String keyword = trimToNull(request.getParameter("keyword"));
+        String brandId = trimToNull(request.getParameter("brandId"));
+        String categoryId = trimToNull(request.getParameter("categoryId"));
+        String status = trimToNull(request.getParameter("status"));
+        String redirectUrl = request.getContextPath() + "/admin/manage-product";
+        StringBuilder query = new StringBuilder();
+
+        if (keyword != null) {
+            appendQueryParam(query, "keyword", keyword);
+        }
+        if (brandId != null) {
+            appendQueryParam(query, "brandId", brandId);
+        }
+        if (categoryId != null) {
+            appendQueryParam(query, "categoryId", categoryId);
+        }
+        if (status != null) {
+            appendQueryParam(query, "status", status);
+        }
+
+        return query.length() == 0 ? redirectUrl : redirectUrl + "?" + query;
+    }
+
+    private void appendQueryParam(StringBuilder query, String key, String value) throws IOException {
+        if (query.length() > 0) {
+            query.append("&");
+        }
+        query.append(key)
+                .append("=")
+                .append(URLEncoder.encode(value, "UTF-8"));
     }
 }

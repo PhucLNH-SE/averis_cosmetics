@@ -3,6 +3,7 @@ package Controllers.admin;
 import DALs.ProductVariantDAO;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.net.URLEncoder;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -44,7 +45,42 @@ public class ManageVariantController extends HttpServlet {
         }
 
         // Cập nhật giá xong thì chuyển hướng lại về trang danh sách sản phẩm
-        response.sendRedirect(request.getContextPath() + "/admin/manage-product");
+        response.sendRedirect(buildManageProductRedirect(request));
     }
-    
+
+    private String buildManageProductRedirect(HttpServletRequest request) throws IOException {
+        String keyword = trimToNull(request.getParameter("keyword"));
+        String brandId = trimToNull(request.getParameter("brandId"));
+        String categoryId = trimToNull(request.getParameter("categoryId"));
+        String status = trimToNull(request.getParameter("status"));
+        String redirectUrl = request.getContextPath() + "/admin/manage-product";
+        StringBuilder query = new StringBuilder();
+
+        appendQueryParam(query, "keyword", keyword);
+        appendQueryParam(query, "brandId", brandId);
+        appendQueryParam(query, "categoryId", categoryId);
+        appendQueryParam(query, "status", status);
+
+        return query.length() == 0 ? redirectUrl : redirectUrl + "?" + query;
+    }
+
+    private void appendQueryParam(StringBuilder query, String key, String value) throws IOException {
+        if (value == null) {
+            return;
+        }
+        if (query.length() > 0) {
+            query.append("&");
+        }
+        query.append(key)
+                .append("=")
+                .append(URLEncoder.encode(value, "UTF-8"));
+    }
+
+    private String trimToNull(String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
+    }
 }

@@ -242,10 +242,6 @@
     <url-pattern>/contact</url-pattern>
   </servlet-mapping>
   <servlet-mapping>
-    <servlet-name>ProductController</servlet-name>
-    <url-pattern>/products</url-pattern>
-  </servlet-mapping>
-  <servlet-mapping>
     <servlet-name>StaffController</servlet-name>
     <url-pattern>/StaffController</url-pattern>
   </servlet-mapping>

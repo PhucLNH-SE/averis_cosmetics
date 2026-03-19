@@ -154,6 +154,15 @@ import java.time.LocalDateTime;
     public void setCategoryName(String CategoryName) {
         this.CategoryName = CategoryName;
     }
+
+    public String getVariantName() {
+        return variantName;
+    }
+
+    public void setVariantName(String variantName) {
+        this.variantName = variantName;
+    }
+
     public Integer getRating() {
         return rating;
     }
