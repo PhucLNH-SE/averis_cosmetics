@@ -7,7 +7,7 @@ package Controllers.customer;
 import DALs.CustomerDAO;
 import DALs.AddressDAO;
 import DALs.OrderDAO;
-import DALs.CustomerVoucherDAO;
+import DALs.VoucherDAO;
 import DALs.FeedbackDAO;
 import Model.Customer;
 import Model.Address;
@@ -175,7 +175,7 @@ public class ProfileController extends HttpServlet {
     private void showVouchers(HttpServletRequest request, HttpServletResponse response,
             Customer customer) throws ServletException, IOException {
 
-        CustomerVoucherDAO dao = new CustomerVoucherDAO();
+        VoucherDAO dao = new VoucherDAO();
         dao.expireOutdatedVouchers();
         List<CustomerVoucher> vouchers = dao.getActiveByCustomerId(customer.getCustomerId());
 
