@@ -11,6 +11,7 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -85,7 +86,6 @@ public class ProductDAO extends DBContext {
                     product = mapBaseProduct(rs, productId, true);
                     product.setPrice(rs.getDouble("min_price"));
                     product.setMaxPrice(rs.getDouble("max_price"));
-                    product.setVariants(getProductVariants(productId));
                     productMap.put(productId, product);
                 }
 
@@ -192,7 +192,8 @@ public class ProductDAO extends DBContext {
     private List<ProductVariant> getProductVariants(int productId) {
         List<ProductVariant> variants = new ArrayList<>();
         String sql = "SELECT variant_id, product_id, variant_name, price, stock, status "
-                + "FROM Product_Variant WHERE product_id = ? AND status = 1";
+                + "FROM Product_Variant WHERE product_id = ? AND status = 1 "
+                + "ORDER BY price ASC, variant_id ASC";
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, productId);
@@ -255,14 +256,20 @@ public class ProductDAO extends DBContext {
                 + "  p.product_id, p.name, p.description, p.status, "
                 + "  b.brand_id, b.name AS brand_name, b.status AS brand_status, "
                 + "  c.category_id, c.name AS category_name, c.status AS category_status, "
-                + "  pi.image_id, pi.image_url, pi.is_main "
+                + "  pi.image_id, pi.image_url, pi.is_main, "
+                + "  MIN(pv.price) AS min_price, MAX(pv.price) AS max_price "
                 + "FROM Product p "
                 + "JOIN Brand b ON p.brand_id = b.brand_id "
                 + "JOIN Category c ON p.category_id = c.category_id "
                 + "LEFT JOIN Product_Image pi ON p.product_id = pi.product_id "
+                + "LEFT JOIN Product_Variant pv ON p.product_id = pv.product_id AND pv.status = 1 "
                 + "WHERE (p.name LIKE ? OR b.name LIKE ? OR c.name LIKE ?) AND p.status = 1 " // <-- ĐÃ SỬA
+                + "GROUP BY p.product_id, p.name, p.description, p.status, "
+                + "         b.brand_id, b.name, b.status, "
+                + "         c.category_id, c.name, c.status, "
+                + "         pi.image_id, pi.image_url, pi.is_main "
                 + "ORDER BY p.product_id DESC, pi.is_main DESC, pi.image_id ASC";
-        return searchProductsByKeyword(keyword, sql, true);
+        return searchProductsByKeyword(keyword, sql, false);
     }
 
     public List<Product> searchProductsForAutoSuggest(String keyword) {
@@ -270,14 +277,198 @@ public class ProductDAO extends DBContext {
                 + "  p.product_id, p.name, p.description, p.status, "
                 + "  b.brand_id, b.name AS brand_name, b.status AS brand_status, "
                 + "  c.category_id, c.name AS category_name, c.status AS category_status, "
-                + "  pi.image_id, pi.image_url, pi.is_main "
+                + "  pi.image_id, pi.image_url, pi.is_main, "
+                + "  MIN(pv.price) AS min_price, MAX(pv.price) AS max_price "
                 + "FROM Product p "
                 + "JOIN Brand b ON p.brand_id = b.brand_id "
                 + "JOIN Category c ON p.category_id = c.category_id "
                 + "LEFT JOIN Product_Image pi ON p.product_id = pi.product_id "
+                + "LEFT JOIN Product_Variant pv ON p.product_id = pv.product_id AND pv.status = 1 "
                 + "WHERE (p.name LIKE ? OR b.name LIKE ? OR c.name LIKE ?) AND p.status = 1 " // <-- ĐÃ SỬA
+                + "GROUP BY p.product_id, p.name, p.description, p.status, "
+                + "         b.brand_id, b.name, b.status, "
+                + "         c.category_id, c.name, c.status, "
+                + "         pi.image_id, pi.image_url, pi.is_main "
                 + "ORDER BY p.product_id DESC, pi.is_main DESC, pi.image_id ASC";
         return searchProductsByKeyword(keyword, sql, false);
+    }
+
+    public List<Product> getActiveProductsForGuest(String keyword, String brandFilter, String categoryFilter, String sortBy) {
+        boolean sortTopSales = "top_sales".equalsIgnoreCase(sortBy);
+        StringBuilder sql = new StringBuilder();
+        sql.append("SELECT ")
+                .append("  p.product_id, p.name, p.description, p.status, ")
+                .append("  b.brand_id, b.name AS brand_name, b.status AS brand_status, ")
+                .append("  c.category_id, c.name AS category_name, c.status AS category_status, ")
+                .append("  pi.image_id, pi.image_url, pi.is_main, ")
+                .append("  MIN(pv.price) AS min_price, MAX(pv.price) AS max_price ");
+        if (sortTopSales) {
+            sql.append(", COALESCE(SUM(CASE WHEN o.order_status <> 'CANCELLED' THEN od.quantity ELSE 0 END), 0) AS total_sold ");
+        }
+        sql.append("FROM Product p ")
+                .append("JOIN Brand b ON p.brand_id = b.brand_id ")
+                .append("JOIN Category c ON p.category_id = c.category_id ")
+                .append("LEFT JOIN Product_Image pi ON p.product_id = pi.product_id ")
+                .append("LEFT JOIN Product_Variant pv ON p.product_id = pv.product_id AND pv.status = 1 ");
+        if (sortTopSales) {
+            sql.append("LEFT JOIN Order_Detail od ON pv.variant_id = od.variant_id ")
+                    .append("LEFT JOIN Orders o ON od.order_id = o.order_id ");
+        }
+
+        sql.append("WHERE p.status = 1 ");
+
+        List<Object> params = new ArrayList<>();
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            sql.append("AND (p.name LIKE ? OR b.name LIKE ? OR c.name LIKE ?) ");
+            String searchParam = "%" + keyword.trim() + "%";
+            params.add(searchParam);
+            params.add(searchParam);
+            params.add(searchParam);
+        }
+        if (brandFilter != null && !brandFilter.trim().isEmpty()) {
+            sql.append("AND b.name = ? ");
+            params.add(brandFilter.trim());
+        }
+        if (categoryFilter != null && !categoryFilter.trim().isEmpty()) {
+            sql.append("AND c.name = ? ");
+            params.add(categoryFilter.trim());
+        }
+
+        sql.append("GROUP BY p.product_id, p.name, p.description, p.status, ")
+                .append("         b.brand_id, b.name, b.status, ")
+                .append("         c.category_id, c.name, c.status, ")
+                .append("         pi.image_id, pi.image_url, pi.is_main ");
+
+        if (sortBy != null) {
+            switch (sortBy.toLowerCase()) {
+                case "price_asc":
+                    sql.append("ORDER BY min_price ASC, p.product_id DESC, pi.is_main DESC, pi.image_id ASC ");
+                    break;
+                case "price_desc":
+                    sql.append("ORDER BY min_price DESC, p.product_id DESC, pi.is_main DESC, pi.image_id ASC ");
+                    break;
+                case "name_asc":
+                    sql.append("ORDER BY p.name ASC, p.product_id DESC, pi.is_main DESC, pi.image_id ASC ");
+                    break;
+                case "name_desc":
+                    sql.append("ORDER BY p.name DESC, p.product_id DESC, pi.is_main DESC, pi.image_id ASC ");
+                    break;
+                case "top_sales":
+                    sql.append("ORDER BY total_sold DESC, p.product_id DESC, pi.is_main DESC, pi.image_id ASC ");
+                    break;
+                default:
+                    sql.append("ORDER BY p.product_id DESC, pi.is_main DESC, pi.image_id ASC ");
+                    break;
+            }
+        } else {
+            sql.append("ORDER BY p.product_id DESC, pi.is_main DESC, pi.image_id ASC ");
+        }
+
+        List<Product> list = new ArrayList<>();
+        try (PreparedStatement ps = connection.prepareStatement(sql.toString())) {
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
+            }
+
+            try (ResultSet rs = ps.executeQuery()) {
+                Map<Integer, Product> productMap = new LinkedHashMap<>();
+
+                while (rs.next()) {
+                    int productId = rs.getInt("product_id");
+                    Product product = productMap.get(productId);
+
+                    if (product == null) {
+                        product = mapBaseProduct(rs, productId, true);
+                        product.setPrice(rs.getDouble("min_price"));
+                        product.setMaxPrice(rs.getDouble("max_price"));
+                        productMap.put(productId, product);
+                    }
+
+                    addImageFromRow(rs, product, productId);
+                }
+
+                finalizeMainImages(productMap);
+                list.addAll(productMap.values());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
+
+    public List<Product> getFeaturedProductsForGuest(int topLimit, int randomLimit) {
+        String sql = "WITH TopSales AS ( "
+                + " SELECT TOP (?) p.product_id, SUM(od.quantity) AS total_sold "
+                + " FROM Product p "
+                + " JOIN Product_Variant pv ON p.product_id = pv.product_id AND pv.status = 1 "
+                + " JOIN Order_Detail od ON pv.variant_id = od.variant_id "
+                + " JOIN Orders o ON od.order_id = o.order_id "
+                + " WHERE p.status = 1 AND o.order_status <> 'CANCELLED' "
+                + " GROUP BY p.product_id "
+                + " ORDER BY SUM(od.quantity) DESC, p.product_id DESC "
+                + "), TopSalesOrdered AS ( "
+                + " SELECT product_id, ROW_NUMBER() OVER (ORDER BY total_sold DESC, product_id DESC) AS rn "
+                + " FROM TopSales "
+                + "), RandomFill AS ( "
+                + " SELECT TOP (?) p.product_id, ROW_NUMBER() OVER (ORDER BY NEWID()) AS rn "
+                + " FROM Product p "
+                + " WHERE p.status = 1 AND p.product_id NOT IN (SELECT product_id FROM TopSales) "
+                + " ORDER BY NEWID() "
+                + "), Featured AS ( "
+                + " SELECT product_id, 1 AS ord, rn FROM TopSalesOrdered "
+                + " UNION ALL "
+                + " SELECT product_id, 2 AS ord, rn FROM RandomFill "
+                + ") "
+                + "SELECT "
+                + "  p.product_id, p.name, p.description, p.status, "
+                + "  b.brand_id, b.name AS brand_name, b.status AS brand_status, "
+                + "  c.category_id, c.name AS category_name, c.status AS category_status, "
+                + "  pi.image_id, pi.image_url, pi.is_main, "
+                + "  MIN(pv.price) AS min_price, MAX(pv.price) AS max_price, "
+                + "  f.ord, f.rn "
+                + "FROM Featured f "
+                + "JOIN Product p ON f.product_id = p.product_id "
+                + "JOIN Brand b ON p.brand_id = b.brand_id "
+                + "JOIN Category c ON p.category_id = c.category_id "
+                + "LEFT JOIN Product_Image pi ON p.product_id = pi.product_id "
+                + "LEFT JOIN Product_Variant pv ON p.product_id = pv.product_id AND pv.status = 1 "
+                + "GROUP BY p.product_id, p.name, p.description, p.status, "
+                + "         b.brand_id, b.name, b.status, "
+                + "         c.category_id, c.name, c.status, "
+                + "         pi.image_id, pi.image_url, pi.is_main, f.ord, f.rn "
+                + "ORDER BY f.ord, f.rn, p.product_id DESC, pi.is_main DESC, pi.image_id ASC";
+
+        List<Product> list = new ArrayList<>();
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, topLimit);
+            ps.setInt(2, randomLimit);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                Map<Integer, Product> productMap = new LinkedHashMap<>();
+
+                while (rs.next()) {
+                    int productId = rs.getInt("product_id");
+                    Product product = productMap.get(productId);
+
+                    if (product == null) {
+                        product = mapBaseProduct(rs, productId, true);
+                        product.setPrice(rs.getDouble("min_price"));
+                        product.setMaxPrice(rs.getDouble("max_price"));
+                        productMap.put(productId, product);
+                    }
+
+                    addImageFromRow(rs, product, productId);
+                }
+
+                finalizeMainImages(productMap);
+                list.addAll(productMap.values());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return list;
     }
 
     public List<Brand> getAllBrands() {
@@ -496,7 +687,7 @@ public class ProductDAO extends DBContext {
             ps.setString(3, searchParam);
 
             try (ResultSet rs = ps.executeQuery()) {
-                Map<Integer, Product> productMap = new HashMap<>();
+                Map<Integer, Product> productMap = new LinkedHashMap<>();
 
                 while (rs.next()) {
                     int productId = rs.getInt("product_id");
@@ -504,6 +695,8 @@ public class ProductDAO extends DBContext {
 
                     if (product == null) {
                         product = mapBaseProduct(rs, productId, true);
+                        product.setPrice(rs.getDouble("min_price"));
+                        product.setMaxPrice(rs.getDouble("max_price"));
                         if (includeVariants) {
                             product.setVariants(getProductVariants(productId));
                         }
@@ -601,7 +794,6 @@ public class ProductDAO extends DBContext {
     }
     
     
-    // MỚI: Dành riêng cho trang Khách (Shop / Home) - Chỉ hiển thị sản phẩm Active
     public List<Product> getAllActiveProducts() {
         List<Product> list = new ArrayList<>();
         String sql = "SELECT "
@@ -650,7 +842,6 @@ public class ProductDAO extends DBContext {
         return list;
     }
     
-    // MỚI: Dùng cho trang Product Detail của KHÁCH HÀNG (Tránh việc gõ URL truy cập sản phẩm đã ẩn)
     public Product getActiveProductById(int productId) {
         String sql = "SELECT "
                 + "  p.product_id, p.name, p.description, p.status, "
@@ -661,7 +852,7 @@ public class ProductDAO extends DBContext {
                 + "JOIN Brand b ON p.brand_id = b.brand_id "
                 + "JOIN Category c ON p.category_id = c.category_id "
                 + "LEFT JOIN Product_Image pi ON p.product_id = pi.product_id "
-                + "WHERE p.product_id = ? AND p.status = 1 " // <-- Bắt buộc status = 1
+                + "WHERE p.product_id = ? AND p.status = 1 " //
                 + "ORDER BY pi.is_main DESC, pi.image_id ASC";
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -772,7 +963,8 @@ public class ProductDAO extends DBContext {
         List<ProductVariant> variants = new ArrayList<>();
         // Đã thêm avg_cost vào câu SELECT
         String sql = "SELECT variant_id, product_id, variant_name, price, stock, avg_cost, status "
-                + "FROM Product_Variant WHERE product_id = ? AND status = 1";
+                + "FROM Product_Variant WHERE product_id = ? AND status = 1 "
+                + "ORDER BY price ASC, variant_id ASC";
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, productId);
@@ -799,3 +991,4 @@ public class ProductDAO extends DBContext {
     }
     
 }
+
