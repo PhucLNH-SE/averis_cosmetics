@@ -136,4 +136,19 @@ public class Product {
     public void setVariants(List<ProductVariant> variants) {
         this.variants = (variants != null) ? variants : new ArrayList<>();
     }
+
+    public int getTotalStock() {
+        int totalStock = 0;
+        if (variants == null) {
+            return 0;
+        }
+
+        for (ProductVariant variant : variants) {
+            if (variant != null && variant.isStatus()) {
+                totalStock += variant.getStock();
+            }
+        }
+
+        return totalStock;
+    }
 }

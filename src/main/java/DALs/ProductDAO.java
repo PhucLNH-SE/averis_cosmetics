@@ -511,10 +511,10 @@ public class ProductDAO extends DBContext {
         return list;
     }
 
-    public void insertProduct(String name, String description, int brandId, int categoryId,
-                              boolean status, String imageName, double price, int stock, double importPrice) {
+    public boolean insertProduct(String name, String description, int brandId, int categoryId,
+                              boolean status, String imageName, double price, int stock) {
         String insertProductSql = "INSERT INTO Product (name, description, brand_id, category_id, status) "
-                + "VALUES (?, ?, ?, ?, ?)";
+                + "OUTPUT INSERTED.product_id VALUES (?, ?, ?, ?, ?)";
         String insertImageSql = "INSERT INTO Product_Image (product_id, image_url, is_main) VALUES (?, ?, 1)"; 
         String insertVariantSql = "INSERT INTO Product_Variant (product_id, variant_name, price, stock, avg_cost, status) "
                 + "VALUES (?, 'Standard', ?, ?, ?, 1)";
@@ -523,41 +523,42 @@ public class ProductDAO extends DBContext {
             connection.setAutoCommit(false);
 
             int newId = 0;
-            try (PreparedStatement psProduct = connection.prepareStatement(insertProductSql, Statement.RETURN_GENERATED_KEYS)) {
+            try (PreparedStatement psProduct = connection.prepareStatement(insertProductSql)) {
                 psProduct.setString(1, name);
                 psProduct.setString(2, description);
                 psProduct.setInt(3, brandId);
                 psProduct.setInt(4, categoryId);
                 psProduct.setBoolean(5, status);
-                psProduct.executeUpdate();
-
-                try (ResultSet rs = psProduct.getGeneratedKeys()) {
+                try (ResultSet rs = psProduct.executeQuery()) {
                     if (rs.next()) {
-                        newId = rs.getInt(1);
+                        newId = rs.getInt("product_id");
                     }
                 }
             }
 
-            if (newId > 0) {
-                if (imageName != null && !imageName.isEmpty()) {
-                    try (PreparedStatement psImage = connection.prepareStatement(insertImageSql)) {
-                        psImage.setInt(1, newId);
-                        psImage.setString(2, imageName);
-                        psImage.executeUpdate();
-                    }
-                }
+            if (newId <= 0) {
+                throw new IllegalStateException("No product_id returned after insert.");
+            }
 
-                try (PreparedStatement psVariant = connection.prepareStatement(insertVariantSql)) {
-                    psVariant.setInt(1, newId);
-                    psVariant.setDouble(2, price);
-                    psVariant.setInt(3, stock);
-                    psVariant.setDouble(4, importPrice);
-                    psVariant.executeUpdate();
+            if (imageName != null && !imageName.isEmpty()) {
+                try (PreparedStatement psImage = connection.prepareStatement(insertImageSql)) {
+                    psImage.setInt(1, newId);
+                    psImage.setString(2, imageName);
+                    psImage.executeUpdate();
                 }
+            }
+
+            try (PreparedStatement psVariant = connection.prepareStatement(insertVariantSql)) {
+                psVariant.setInt(1, newId);
+                psVariant.setDouble(2, price);
+                psVariant.setInt(3, stock);
+                psVariant.setDouble(4, 0);
+                psVariant.executeUpdate();
             }
 
             connection.commit();
             connection.setAutoCommit(true);
+            return true;
         } catch (Exception e) {
             try {
                 connection.rollback();
@@ -565,10 +566,17 @@ public class ProductDAO extends DBContext {
                 ex.printStackTrace();
             }
             e.printStackTrace();
+        } finally {
+            try {
+                connection.setAutoCommit(true);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
         }
+        return false;
     }
 
-    public void updateProduct(int id, String name, String description, int brandId, int categoryId,
+    public boolean updateProduct(int id, String name, String description, int brandId, int categoryId,
                               boolean status, String imageName) {
         String updateProductSql = "UPDATE Product SET name = ?, description = ?, brand_id = ?, "
                 + "category_id = ?, status = ? WHERE product_id = ?";
@@ -577,6 +585,7 @@ public class ProductDAO extends DBContext {
         try {
             connection.setAutoCommit(false);
 
+            int affectedRows;
             try (PreparedStatement psProduct = connection.prepareStatement(updateProductSql)) {
                 psProduct.setString(1, name);
                 psProduct.setString(2, description);
@@ -584,7 +593,11 @@ public class ProductDAO extends DBContext {
                 psProduct.setInt(4, categoryId);
                 psProduct.setBoolean(5, status);
                 psProduct.setInt(6, id);
-                psProduct.executeUpdate();
+                affectedRows = psProduct.executeUpdate();
+            }
+
+            if (affectedRows == 0) {
+                throw new IllegalStateException("No product updated for product_id=" + id);
             }
 
             if (imageName != null && !imageName.isEmpty()) {
@@ -597,6 +610,7 @@ public class ProductDAO extends DBContext {
 
             connection.commit();
             connection.setAutoCommit(true);
+            return true;
         } catch (Exception e) {
             try {
                 connection.rollback();
@@ -604,7 +618,14 @@ public class ProductDAO extends DBContext {
                 ex.printStackTrace();
             }
             e.printStackTrace();
+        } finally {
+            try {
+                connection.setAutoCommit(true);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
         }
+        return false;
     }
 
     public void deleteProduct(int id) {

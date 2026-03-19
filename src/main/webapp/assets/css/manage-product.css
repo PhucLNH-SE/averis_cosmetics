@@ -160,6 +160,90 @@ body {
     align-items: center;
 }
 
+.variant-item {
+    display: flex;
+    gap: 0.85rem;
+    align-items: flex-end;
+    margin-bottom: 0.85rem;
+    padding: 0.9rem 1rem;
+    border: 1px solid #e8edf6;
+    border-radius: 16px;
+    background: linear-gradient(180deg, #ffffff 0%, #fbfcff 100%);
+    box-shadow: 0 10px 22px rgba(15, 23, 42, 0.05);
+}
+
+.variant-item:last-child {
+    margin-bottom: 0;
+}
+
+.variant-item__form {
+    display: flex;
+    gap: 0.85rem;
+    align-items: flex-end;
+    flex: 1 1 auto;
+    margin-bottom: 0;
+}
+
+.variant-item__field {
+    display: flex;
+    flex-direction: column;
+}
+
+.variant-item__field--name {
+    flex: 1 1 320px;
+}
+
+.variant-item__field--price {
+    flex: 0 0 150px;
+}
+
+.variant-item__field--stock {
+    flex: 0 0 96px;
+}
+
+.variant-item__delete-form {
+    margin-bottom: 0;
+}
+
+.variant-action-btn {
+    min-width: 110px;
+    height: 42px;
+    border: none;
+    border-radius: 12px;
+    padding: 0 1rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: #fff;
+    transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease;
+}
+
+.variant-action-btn:hover {
+    transform: translateY(-1px);
+    color: #fff;
+}
+
+.variant-action-btn--save {
+    background: linear-gradient(135deg, #1dbf73 0%, #14995b 100%);
+    box-shadow: 0 10px 20px rgba(29, 191, 115, 0.28);
+}
+
+.variant-action-btn--save:hover {
+    box-shadow: 0 14px 24px rgba(29, 191, 115, 0.34);
+}
+
+.variant-action-btn--delete {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    box-shadow: 0 10px 20px rgba(239, 68, 68, 0.24);
+}
+
+.variant-action-btn--delete:hover {
+    box-shadow: 0 14px 24px rgba(239, 68, 68, 0.3);
+}
+
 @media (max-width: 991px) {
     .product-overview {
         grid-template-columns: 1fr;
@@ -184,5 +268,20 @@ body {
     .product-toolbar__actions,
     .product-toolbar__actions .btn {
         width: 100%;
+    }
+
+    .variant-item,
+    .variant-item__form {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .variant-item__field--name,
+    .variant-item__field--price,
+    .variant-item__field--stock,
+    .variant-action-btn,
+    .variant-item__delete-form {
+        width: 100%;
+        flex: 1 1 auto;
     }
 }

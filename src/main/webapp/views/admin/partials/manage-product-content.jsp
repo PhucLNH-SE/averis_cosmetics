@@ -115,6 +115,7 @@
                         <th>Category</th>
                         <th>Price Range</th>
                         <th class="text-center">Import Price</th>
+                        <th class="text-center">Total Stock</th>
                         <th>Status</th>
                         <th class="text-center">Actions</th>
                     </tr>
@@ -174,6 +175,12 @@
                                 </c:choose>
                             </td>
 
+                            <td class="text-center">
+                                <span class="fw-bold ${p.totalStock > 0 ? 'text-dark' : 'text-danger'}">
+                                    ${p.totalStock}
+                                </span>
+                            </td>
+
                             <td>
                                 <span class="${p.status ? 'text-success' : 'text-danger'} fw-bold">
                                     <i class="fas ${p.status ? 'fa-check-circle' : 'fa-times-circle'} me-1"></i>${p.status ? 'Active' : 'Inactive'}
@@ -222,7 +229,7 @@
                     </c:forEach>
                     <c:if test="${empty listP}">
                         <tr>
-                            <td colspan="8" class="text-center py-5 text-muted">
+                            <td colspan="9" class="text-center py-5 text-muted">
                                 No products matched your search.
                             </td>
                         </tr>
@@ -245,44 +252,43 @@
                 </c:when>
                 <c:otherwise>
                     <c:forEach items="${p.variants}" var="v">
-                        <div class="d-flex gap-2 mb-2 p-2 border-bottom align-items-end bg-white rounded">
-                            <form action="${pageContext.request.contextPath}/admin/manage-variant" method="post" class="d-flex gap-2 flex-grow-1 align-items-end mb-0">
+                        <div class="variant-item">
+                            <form action="${pageContext.request.contextPath}/admin/manage-variant" method="post" class="variant-item__form">
                                 <input type="hidden" name="action" value="update">
                                 <input type="hidden" name="variantId" value="${v.variantId}">
                                 <input type="hidden" name="productId" value="${p.productId}">
-                                <input type="hidden" name="stock" value="${v.stock}">
-                                <input type="hidden" name="keyword" value="<c:out value='${searchKeyword}'/>">
-                                <input type="hidden" name="brandId" value="<c:out value='${selectedBrandId}'/>">
-                                <input type="hidden" name="categoryId" value="<c:out value='${selectedCategoryId}'/>">
-                                <input type="hidden" name="status" value="<c:out value='${selectedStatus}'/>">
+                                <input type="hidden" name="returnKeyword" value="<c:out value='${searchKeyword}'/>">
+                                <input type="hidden" name="returnBrandId" value="<c:out value='${selectedBrandId}'/>">
+                                <input type="hidden" name="returnCategoryId" value="<c:out value='${selectedCategoryId}'/>">
+                                <input type="hidden" name="returnStatus" value="<c:out value='${selectedStatus}'/>">
 
-                                <div class="flex-grow-1">
+                                <div class="variant-item__field variant-item__field--name">
                                     <label class="small text-muted mb-1 fw-bold">Variant Name</label>
                                     <input type="text" name="variantName" class="form-control form-control-sm text-primary fw-bold" value="${v.variantName}" required>
                                 </div>
-                                <div class="flex-grow-1" style="max-width: 150px;">
+                                <div class="variant-item__field variant-item__field--price">
                                     <label class="small text-muted mb-1 fw-bold">Price (VND)</label>
                                     <input type="number" step="0.01" name="price" class="form-control form-control-sm text-danger fw-bold" value="${v.price}" required>
                                 </div>
-                                <div class="flex-grow-1" style="max-width: 80px;">
+                                <div class="variant-item__field variant-item__field--stock">
                                     <label class="small text-muted mb-1 fw-bold text-success">Stock</label>
-                                    <input type="text" class="form-control form-control-sm text-center fw-bold bg-light text-success" value="${v.stock}" readonly title="Stock is read-only">
+                                    <input type="number" min="0" name="stock" class="form-control form-control-sm text-center fw-bold text-success" value="${v.stock}" required>
                                 </div>
 
-                                <button type="submit" class="btn btn-success btn-sm px-3 mb-1" title="Save">
-                                    <i class="fas fa-save"></i>
+                                <button type="submit" class="variant-action-btn variant-action-btn--save" title="Save changes">
+                                    <i class="fas fa-save me-1"></i> Save
                                 </button>
                             </form>
 
-                            <form action="${pageContext.request.contextPath}/admin/manage-variant" method="post" class="mb-1" onsubmit="return confirm('Do you want to delete this variant?');">
+                            <form action="${pageContext.request.contextPath}/admin/manage-variant" method="post" class="variant-item__delete-form" onsubmit="return confirm('Do you want to delete this variant?');">
                                 <input type="hidden" name="action" value="delete">
                                 <input type="hidden" name="variantId" value="${v.variantId}">
-                                <input type="hidden" name="keyword" value="<c:out value='${searchKeyword}'/>">
-                                <input type="hidden" name="brandId" value="<c:out value='${selectedBrandId}'/>">
-                                <input type="hidden" name="categoryId" value="<c:out value='${selectedCategoryId}'/>">
-                                <input type="hidden" name="status" value="<c:out value='${selectedStatus}'/>">
-                                <button type="submit" class="btn btn-danger btn-sm px-3" title="Delete">
-                                    <i class="fas fa-trash"></i>
+                                <input type="hidden" name="returnKeyword" value="<c:out value='${searchKeyword}'/>">
+                                <input type="hidden" name="returnBrandId" value="<c:out value='${selectedBrandId}'/>">
+                                <input type="hidden" name="returnCategoryId" value="<c:out value='${selectedCategoryId}'/>">
+                                <input type="hidden" name="returnStatus" value="<c:out value='${selectedStatus}'/>">
+                                <button type="submit" class="variant-action-btn variant-action-btn--delete" title="Delete variant">
+                                    <i class="fas fa-trash me-1"></i> Delete
                                 </button>
                             </form>
                         </div>
@@ -307,11 +313,10 @@
                         <form action="${pageContext.request.contextPath}/admin/manage-variant" method="post" class="row g-2 align-items-end">
                             <input type="hidden" name="action" value="add">
                             <input type="hidden" name="productId" id="addVarProductId">
-                            <input type="hidden" name="stock" value="0">
-                            <input type="hidden" name="keyword" value="<c:out value='${searchKeyword}'/>">
-                            <input type="hidden" name="brandId" value="<c:out value='${selectedBrandId}'/>">
-                            <input type="hidden" name="categoryId" value="<c:out value='${selectedCategoryId}'/>">
-                            <input type="hidden" name="status" value="<c:out value='${selectedStatus}'/>">
+                            <input type="hidden" name="returnKeyword" value="<c:out value='${searchKeyword}'/>">
+                            <input type="hidden" name="returnBrandId" value="<c:out value='${selectedBrandId}'/>">
+                            <input type="hidden" name="returnCategoryId" value="<c:out value='${selectedCategoryId}'/>">
+                            <input type="hidden" name="returnStatus" value="<c:out value='${selectedStatus}'/>">
                             
                             <div class="col-md-5">
                                 <label class="small text-muted mb-1 fw-bold">Variant Name</label>
@@ -321,7 +326,11 @@
                                 <label class="small text-muted mb-1 fw-bold">Price</label>
                                 <input type="number" step="0.01" name="price" class="form-control form-control-sm" placeholder="Price" required>
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-2">
+                                <label class="small text-muted mb-1 fw-bold text-success">Stock</label>
+                                <input type="number" min="0" name="stock" class="form-control form-control-sm" placeholder="0" required>
+                            </div>
+                            <div class="col-md-1">
                                 <button type="submit" class="btn btn-primary btn-sm w-100"><i class="fas fa-plus"></i> Add</button>
                             </div>
                         </form>
@@ -340,10 +349,10 @@
         <div class="modal-content">
             <form action="${pageContext.request.contextPath}/admin/manage-product" method="post" enctype="multipart/form-data">
                 <input type="hidden" name="action" value="add">
-                <input type="hidden" name="keyword" value="<c:out value='${searchKeyword}'/>">
-                <input type="hidden" name="brandId" value="<c:out value='${selectedBrandId}'/>">
-                <input type="hidden" name="categoryId" value="<c:out value='${selectedCategoryId}'/>">
-                <input type="hidden" name="status" value="<c:out value='${selectedStatus}'/>">
+                <input type="hidden" name="returnKeyword" value="<c:out value='${searchKeyword}'/>">
+                <input type="hidden" name="returnBrandId" value="<c:out value='${selectedBrandId}'/>">
+                <input type="hidden" name="returnCategoryId" value="<c:out value='${selectedCategoryId}'/>">
+                <input type="hidden" name="returnStatus" value="<c:out value='${selectedStatus}'/>">
                 <div class="modal-header bg-success text-white">
                     <h5 class="modal-title fw-bold">Add New Product</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
@@ -364,13 +373,9 @@
                         <h6 class="fw-bold text-secondary mb-2 border-bottom pb-1">Pricing & Inventory (Default Variant)</h6>
                         <input type="hidden" name="stock" value="0">
 
-                        <div class="col-md-6 mb-2">
+                        <div class="col-md-12 mb-2">
                             <label class="form-label text-danger fw-bold small">Sale Price</label>
                             <input type="number" step="0.01" name="price" class="form-control" required placeholder="e.g., 299000">
-                        </div>
-                        <div class="col-md-6 mb-2">
-                            <label class="form-label text-success fw-bold small">Import Price</label>
-                            <input type="number" step="0.01" name="importPrice" class="form-control" required placeholder="e.g., 150000">
                         </div>
                     </div>
 
@@ -416,10 +421,10 @@
             <form action="${pageContext.request.contextPath}/admin/manage-product" method="post" enctype="multipart/form-data">
                 <input type="hidden" name="action" value="update">
                 <input type="hidden" name="productId" id="editId">
-                <input type="hidden" name="keyword" value="<c:out value='${searchKeyword}'/>">
-                <input type="hidden" name="brandId" value="<c:out value='${selectedBrandId}'/>">
-                <input type="hidden" name="categoryId" value="<c:out value='${selectedCategoryId}'/>">
-                <input type="hidden" name="status" value="<c:out value='${selectedStatus}'/>">
+                <input type="hidden" name="returnKeyword" value="<c:out value='${searchKeyword}'/>">
+                <input type="hidden" name="returnBrandId" value="<c:out value='${selectedBrandId}'/>">
+                <input type="hidden" name="returnCategoryId" value="<c:out value='${selectedCategoryId}'/>">
+                <input type="hidden" name="returnStatus" value="<c:out value='${selectedStatus}'/>">
                 <div class="modal-header bg-primary text-white">
                     <h5 class="modal-title fw-bold">Edit Product Info</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
@@ -472,10 +477,10 @@
             <form action="${pageContext.request.contextPath}/admin/manage-product" method="post">
                 <input type="hidden" name="action" value="delete">
                 <input type="hidden" name="productId" id="hideId">
-                <input type="hidden" name="keyword" value="<c:out value='${searchKeyword}'/>">
-                <input type="hidden" name="brandId" value="<c:out value='${selectedBrandId}'/>">
-                <input type="hidden" name="categoryId" value="<c:out value='${selectedCategoryId}'/>">
-                <input type="hidden" name="status" value="<c:out value='${selectedStatus}'/>">
+                <input type="hidden" name="returnKeyword" value="<c:out value='${searchKeyword}'/>">
+                <input type="hidden" name="returnBrandId" value="<c:out value='${selectedBrandId}'/>">
+                <input type="hidden" name="returnCategoryId" value="<c:out value='${selectedCategoryId}'/>">
+                <input type="hidden" name="returnStatus" value="<c:out value='${selectedStatus}'/>">
                 <div class="modal-body p-4">
                     <i class="fas fa-eye-slash text-danger mb-3" style="font-size: 3rem;"></i>
                     <h5 class="fw-bold mb-3">Hide Product?</h5>
@@ -496,10 +501,10 @@
             <form action="${pageContext.request.contextPath}/admin/manage-product" method="post">
                 <input type="hidden" name="action" value="show">
                 <input type="hidden" name="productId" id="showId">
-                <input type="hidden" name="keyword" value="<c:out value='${searchKeyword}'/>">
-                <input type="hidden" name="brandId" value="<c:out value='${selectedBrandId}'/>">
-                <input type="hidden" name="categoryId" value="<c:out value='${selectedCategoryId}'/>">
-                <input type="hidden" name="status" value="<c:out value='${selectedStatus}'/>">
+                <input type="hidden" name="returnKeyword" value="<c:out value='${searchKeyword}'/>">
+                <input type="hidden" name="returnBrandId" value="<c:out value='${selectedBrandId}'/>">
+                <input type="hidden" name="returnCategoryId" value="<c:out value='${selectedCategoryId}'/>">
+                <input type="hidden" name="returnStatus" value="<c:out value='${selectedStatus}'/>">
                 <div class="modal-body p-4">
                     <i class="fas fa-eye text-success mb-3" style="font-size: 3rem;"></i>
                     <h5 class="fw-bold mb-3">Show Product?</h5>
