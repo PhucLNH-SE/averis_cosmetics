@@ -35,21 +35,7 @@ public class ManagerDAO extends DBContext {
         return null;
     }
 
-    public boolean checkLogin(String inputPassword, String storedPassword) {
-        if (inputPassword == null || storedPassword == null) {
-            return false;
-        }
-
-        if (inputPassword.equals(storedPassword)) {
-            return true;
-        }
-
-        try {
-            return BCrypt.checkpw(inputPassword, storedPassword);
-        } catch (Exception ex) {
-            return false;
-        }
-    }
+   
     
     // ========================================================
     // CÁC HÀM MỚI BỔ SUNG CHO CHỨC NĂNG MANAGE STAFF

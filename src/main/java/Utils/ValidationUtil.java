@@ -3,6 +3,7 @@ package Utils;
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
+import org.mindrot.jbcrypt.BCrypt;
 
 public class ValidationUtil {
 
@@ -96,12 +97,23 @@ public class ValidationUtil {
                 "Password must be at least 8 characters, include uppercase, lowercase, number and special character.");
     }
 
-    if (confirmPassword == null || confirmPassword.trim().isEmpty()) {
-        errors.put("errorConfirmPassword", "Confirm password is required.");
-    } else if (!password.equals(confirmPassword)) {
-        errors.put("errorConfirmPassword", "Passwords do not match.");
-    }
-
-    return errors;
+  
+   return errors;
 }
+     public boolean checkLogin(String inputPassword, String storedPassword) {
+        if (inputPassword == null || storedPassword == null) {
+            return false;
+        }
+
+        if (inputPassword.equals(storedPassword)) {
+            return true;
+        }
+
+        try {
+            return BCrypt.checkpw(inputPassword, storedPassword);
+        } catch (Exception ex) {
+            return false;
+        }
+    }
+    
 }

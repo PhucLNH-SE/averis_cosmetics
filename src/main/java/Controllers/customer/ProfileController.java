@@ -193,8 +193,11 @@ public class ProfileController extends HttpServlet {
         String oldPassword = request.getParameter("oldPassword");
         String newPassword = request.getParameter("newPassword");
         String confirmPassword = request.getParameter("confirmPassword");
+        
+      CustomerDAO dao = new CustomerDAO();
+     
 
-        // luôn set tab
+        String currentHash = dao.getPasswordByCustomerId(customer.getCustomerId());
         request.setAttribute("tab", "password");
 
         if (oldPassword == null || oldPassword.isBlank()
@@ -218,9 +221,7 @@ public class ProfileController extends HttpServlet {
             return;
         }
 
-        CustomerDAO dao = new CustomerDAO();
-
-        String currentHash = dao.getPasswordByCustomerId(customer.getCustomerId());
+  
 
         if (currentHash == null) {
             request.setAttribute("error", "Unable to retrieve the current password.");

@@ -271,7 +271,7 @@
     display: block;
   }
 
-  .search-popover {
+        .search-popover {
     position: absolute;
     top: calc(100% + 8px);
     left: 0;
@@ -284,8 +284,7 @@
     z-index: 1100;
     display: none;
   }
-
-  .search-popover.show {
+.search-popover.show {
     display: block;
   }
 
@@ -325,8 +324,10 @@
     border-radius: 12px;
     box-shadow: 0 12px 30px rgba(0,0,0,0.15);
     z-index: 1200;
-    max-height: 400px;
+    max-height: min(60vh, 520px);
+    min-height: 160px;
     overflow-y: auto;
+    overflow-x: hidden;
     display: none;
   }
 
@@ -349,6 +350,8 @@
   }
 
   .search-item {
+    width: 100%;
+    box-sizing: border-box;
     padding: 14px 16px;
     cursor: pointer;
     border-bottom: 1px solid var(--border);
@@ -412,8 +415,7 @@
     text-overflow: ellipsis;
     font-weight: 500;
   }
-
-  @media (max-width: 1200px) {
+@media (max-width: 1200px) {
     .menu-wrap,
     .right {
       width: 340px;
@@ -430,9 +432,20 @@
       letter-spacing: 2px;
     }
 
-    .search-popover { width: 280px; }
-
-    .products-dropdown {
+      .search-popover {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    width: 300px;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+    padding: 10px;
+    z-index: 1100;
+    display: none;
+  }
+.products-dropdown {
       min-width: 500px;
     }
     .products-dropdown-right {
@@ -474,9 +487,20 @@
       flex-wrap: wrap;
     }
 
-    .search-popover { width: min(86vw, 320px); }
-
-    .products-dropdown {
+      .search-popover {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    width: 300px;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+    padding: 10px;
+    z-index: 1100;
+    display: none;
+  }
+.products-dropdown {
       left: 50%;
       transform: translateX(-50%);
       min-width: min(92vw, 560px);
@@ -715,7 +739,7 @@
     }
 
     function fetchSuggestions(keyword) {
-      fetch('<%=request.getContextPath()%>/products?keyword=' + encodeURIComponent(keyword), {
+      fetch('<%=request.getContextPath()%>/products/suggest?keyword=' + encodeURIComponent(keyword), {
         headers: {
           'X-Requested-With': 'XMLHttpRequest'
         }
@@ -788,3 +812,19 @@
     
   });
 </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -2,11 +2,13 @@ package Controllers.common;
 
 import DALs.ManagerDAO;
 import Model.Manager;
+import Utils.ValidationUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+
 import java.io.IOException;
 
 public class ManagerAuthController extends HttpServlet {
@@ -16,6 +18,7 @@ public class ManagerAuthController extends HttpServlet {
     @Override
     public void init() throws ServletException {
         managerDAO = new ManagerDAO();
+      
     }
 
     @Override
@@ -44,9 +47,9 @@ public class ManagerAuthController extends HttpServlet {
             request.getRequestDispatcher("/views/common/manager-login.jsp").forward(request, response);
             return;
         }
-
+        ValidationUtil util = new ValidationUtil();
         Manager manager = managerDAO.getByEmail(email.trim());
-        if (manager == null || !managerDAO.checkLogin(password, manager.getPassword())) {
+        if (manager == null || !util.checkLogin(password, manager.getPassword())) {
             request.setAttribute("errorMessage", "Sai email hoac password.");
             request.getRequestDispatcher("/views/common/manager-login.jsp").forward(request, response);
             return;
