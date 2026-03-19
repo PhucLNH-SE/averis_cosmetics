@@ -114,6 +114,9 @@ public class ManagerAuthFilter implements Filter {
             case "/views/staff/manage-category.jsp":
             case "/views/staff/partials/manage-category-content.jsp":
                 return "/staff/manage-category";
+            case "/views/staff/manage-product.jsp":
+            case "/views/staff/partials/manage-product-content.jsp":
+                return "/staff/manage-product";
             default:
                 return null;
         }

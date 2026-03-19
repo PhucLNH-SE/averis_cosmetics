@@ -4,8 +4,8 @@
     <div class="container py-4">
         <div class="page-header d-flex justify-content-between align-items-center mb-3">
             <div>
-                <h4>Manage Categories</h4>
-                <p class="text-muted mb-0">Category list</p>
+                <h4>View Category List</h4>
+                <p class="text-muted mb-0">Staff can review category information here.</p>
             </div>
         </div>
 
@@ -21,13 +21,13 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <c:forEach var="cat" items="${categories}">
+                            <c:forEach var="category" items="${categories}">
                                 <tr>
-                                    <td class="px-4">${cat.categoryId}</td>
-                                    <td><strong>${cat.name}</strong></td>
+                                    <td class="px-4">${category.categoryId}</td>
+                                    <td><strong>${category.name}</strong></td>
                                     <td>
                                         <c:choose>
-                                            <c:when test="${cat.status}">
+                                            <c:when test="${category.status}">
                                                 <span class="status-active">Active</span>
                                             </c:when>
                                             <c:otherwise>

@@ -1057,6 +1057,105 @@ public class ProductDAO extends DBContext {
         return list;
     }
 
+    public List<Product> getProductsForStaff(String keyword, Integer brandId, Integer categoryId, Boolean status) {
+        List<Product> list = new ArrayList<>();
+        StringBuilder sql = new StringBuilder();
+        sql.append("SELECT ")
+                .append("  p.product_id, p.name, p.description, p.status, ")
+                .append("  b.brand_id, b.name AS brand_name, b.status AS brand_status, ")
+                .append("  c.category_id, c.name AS category_name, c.status AS category_status, ")
+                .append("  pi.image_id, pi.image_url, pi.is_main, ")
+                .append("  MIN(pv.price) AS min_price, MAX(pv.price) AS max_price ")
+                .append("FROM Product p ")
+                .append("JOIN Brand b ON p.brand_id = b.brand_id ")
+                .append("JOIN Category c ON p.category_id = c.category_id ")
+                .append("LEFT JOIN Product_Image pi ON p.product_id = pi.product_id ")
+                .append("LEFT JOIN Product_Variant pv ON p.product_id = pv.product_id AND pv.status = 1 ")
+                .append("WHERE 1 = 1 ");
+
+        List<Object> params = new ArrayList<>();
+
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            sql.append("AND (p.name LIKE ? ")
+                    .append("OR p.description LIKE ? ")
+                    .append("OR b.name LIKE ? ")
+                    .append("OR c.name LIKE ? ")
+                    .append("OR CAST(p.product_id AS VARCHAR(20)) LIKE ?) ");
+            String searchValue = "%" + keyword.trim() + "%";
+            for (int i = 0; i < 5; i++) {
+                params.add(searchValue);
+            }
+        }
+
+        if (brandId != null) {
+            sql.append("AND b.brand_id = ? ");
+            params.add(brandId);
+        }
+
+        if (categoryId != null) {
+            sql.append("AND c.category_id = ? ");
+            params.add(categoryId);
+        }
+
+        if (status != null) {
+            sql.append("AND p.status = ? ");
+            params.add(status);
+        }
+
+        sql.append("GROUP BY p.product_id, p.name, p.description, p.status, ")
+                .append("         b.brand_id, b.name, b.status, ")
+                .append("         c.category_id, c.name, c.status, ")
+                .append("         pi.image_id, pi.image_url, pi.is_main ")
+                .append("ORDER BY p.product_id ASC, pi.is_main DESC, pi.image_id ASC");
+
+        try (PreparedStatement ps = connection.prepareStatement(sql.toString())) {
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
+            }
+
+            try (ResultSet rs = ps.executeQuery()) {
+                Map<Integer, Product> productMap = new LinkedHashMap<>();
+
+                while (rs.next()) {
+                    int productId = rs.getInt("product_id");
+                    Product product = productMap.get(productId);
+
+                    if (product == null) {
+                        product = mapBaseProduct(rs, productId, true);
+                        product.setPrice(rs.getDouble("min_price"));
+                        product.setMaxPrice(rs.getDouble("max_price"));
+                        product.setVariants(getProductVariants(productId));
+                        productMap.put(productId, product);
+                    }
+
+                    addImageFromRow(rs, product, productId);
+                }
+
+                finalizeMainImages(productMap);
+                list.addAll(productMap.values());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
+
+    public int countAllProducts() {
+        String sql = "SELECT COUNT(*) FROM Product";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return 0;
+    }
+
     private List<ProductVariant> getProductVariantsWithImportPrice(int productId) {
         List<ProductVariant> variants = new ArrayList<>();
         // Đã thêm avg_cost vào câu SELECT

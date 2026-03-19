@@ -10,6 +10,9 @@
         <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
         <link href="${pageContext.request.contextPath}/css/admin-brand.css" rel="stylesheet">
         <link href="${pageContext.request.contextPath}/assets/css/admin-panel.css" rel="stylesheet">
+        <c:if test="${currentView == 'products'}">
+            <link href="${pageContext.request.contextPath}/assets/css/manage-product.css" rel="stylesheet">
+        </c:if>
         <c:if test="${currentView == 'orders'}">
             <link href="${pageContext.request.contextPath}/assets/css/staff-orders.css" rel="stylesheet">
         </c:if>
@@ -75,5 +78,8 @@
         <jsp:include page="/views/common/popup.jsp" />
 
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+        <c:if test="${currentView == 'products'}">
+            <script src="${pageContext.request.contextPath}/assets/js/staff-product.js"></script>
+        </c:if>
     </body>
 </html>
