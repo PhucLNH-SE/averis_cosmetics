@@ -84,7 +84,7 @@ request.setAttribute("geoapifyApiKey", geoapifyApiKey);
 
                     <div class="address-form-group">
                         <label class="address-form-label" for="addressMap">Map Location</label>
-                        <div id="addressMap" class="address-map-box" style="min-height: 320px;"></div>
+                        <div id="addressMap" class="address-map-box"></div>
                         <small id="geoAddressStatus" class="form-text text-muted"></small>
                     </div>
 

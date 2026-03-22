@@ -11,7 +11,7 @@
     <title>Checkout | Averis Cosmetics</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css">
 </head>
-<body>
+<body class="checkout-page">
 
     <div class="header-wrapper">
         <jsp:include page="/assets/header.jsp" />
@@ -26,13 +26,13 @@
         </c:if>
 
         <c:if test="${orderSuccess}">
-            <div class="checkout-section" style="text-align: center; padding: 40px;">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 60px; height: 60px; color: var(--success); margin-bottom: 16px;">
+            <div class="checkout-section checkout-success">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="checkout-success-icon">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <h2 style="color: var(--success); margin-bottom: 8px;">Your order has been placed successfully!</h2>
-                <p style="color: var(--muted);">Thank you for shopping with Averis Cosmetics.</p>
-                <a href="${pageContext.request.contextPath}/home" class="popup-btn" style="display: inline-block; margin-top: 20px;">Back to home</a>
+                <h2 class="checkout-success-title">Your order has been placed successfully!</h2>
+                <p class="checkout-success-copy">Thank you for shopping with Averis Cosmetics.</p>
+                <a href="${pageContext.request.contextPath}/home" class="popup-btn checkout-success-link">Back to home</a>
             </div>
         </c:if>
 
@@ -64,8 +64,8 @@
                                 </c:forEach>
                             </div>
 
-                            <div style="margin-top: 16px;">
-                            <a href="${pageContext.request.contextPath}/address?action=add"
+                            <div class="checkout-address-add-row">
+                                <a href="${pageContext.request.contextPath}/address?action=add"
                                    id="openCheckoutAddressLink"
                                    class="checkout-address-popup-trigger checkout-address-add-link">
                                     + Add new address
@@ -74,7 +74,7 @@
                         </c:if>
 
                         <c:if test="${empty addresses}">
-                            <p style="color: var(--muted); margin-bottom: 16px;">
+                            <p class="checkout-empty-address-note">
                                 You do not have a delivery address yet. Please add a new address.
                             </p>
                             <a href="${pageContext.request.contextPath}/address?action=add"
@@ -149,7 +149,7 @@
 
                     <div class="summary-row">
                         <span>Subtotal (${cart.size()} items):</span>
-                        <span style="font-weight:600"><fmt:formatNumber value="${total}" pattern="#,##0"/> VND</span>
+                        <span class="summary-value-strong"><fmt:formatNumber value="${total}" pattern="#,##0"/> VND</span>
                     </div>
                     <div class="summary-row">
                         <span>Shipping:</span>
@@ -183,7 +183,7 @@
                         <span id="totalAmount"><fmt:formatNumber value="${finalTotal}" pattern="#,##0"/> VND</span>
                     </div>
 
-                    <div style="text-align:right; font-size:12px; color:var(--muted); margin-top:5px;">
+                    <div class="checkout-vat-note">
                         (VAT included if applicable)
                     </div>
 

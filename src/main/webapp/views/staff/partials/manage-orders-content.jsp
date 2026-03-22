@@ -12,7 +12,7 @@
 
     <label><strong>Filter by Status:</strong></label>
 
-    <select name="status" class="form-select" style="width:200px">
+    <select name="status" class="form-select staff-order-filter-select">
         <option value="">All</option>
         <option value="CREATED" ${param.status == 'CREATED' ? 'selected' : ''}>CREATED</option>
         <option value="PROCESSING" ${param.status == 'PROCESSING' ? 'selected' : ''}>PROCESSING</option>
