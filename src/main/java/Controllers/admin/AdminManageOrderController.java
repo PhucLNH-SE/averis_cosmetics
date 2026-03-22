@@ -34,41 +34,50 @@ public class AdminManageOrderController extends HttpServlet {
     }
 
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+  protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
         String action = request.getParameter("action");
 
         if ("update".equals(action)) {
 
+            HttpSession session = request.getSession(false);
+            Manager manager = session == null ? null : (Manager) session.getAttribute("manager");
+            if (manager == null || !"ADMIN".equalsIgnoreCase(manager.getManagerRole())) {
+                response.sendRedirect(request.getContextPath() + "/manager-auth");
+                return;
+            }
+            Integer handledBy = manager.getManagerId();
+
             String[] orderIds = request.getParameterValues("orderId");
             String[] paymentStatuses = request.getParameterValues("paymentStatus");
             String[] orderStatuses = request.getParameterValues("orderStatus");
 
             OrderDAO dao = new OrderDAO();
+            boolean hadForbidden = false;
 
-            try {
+            for (int i = 0; i < orderIds.length; i++) {
 
-                for (int i = 0; i < orderIds.length; i++) {
-
-                    int orderId = Integer.parseInt(orderIds[i]);
-                    String paymentStatus = paymentStatuses[i];
-                    String orderStatus = orderStatuses[i];
-
-                    dao.updateOrder(orderId, paymentStatus, orderStatus);
+                int orderId = Integer.parseInt(orderIds[i]);
+                Integer existingHandledBy = dao.getHandledBy(orderId);
+                boolean canUpdate = existingHandledBy == null || existingHandledBy.equals(handledBy);
+                if (!canUpdate) {
+                    hadForbidden = true;
+                    continue;
                 }
 
-                response.sendRedirect(request.getContextPath()
-                        + "/admin/manage-orders?success=update");
-
-            } catch (Exception e) {
-
-                e.printStackTrace();
-
-                response.sendRedirect(request.getContextPath()
-                        + "/admin/manage-orders?error=updateFailed");
+                dao.updateOrder(orderId, paymentStatuses[i], orderStatuses[i], handledBy);
             }
+
+            if (hadForbidden) {
+                response.sendRedirect(request.getContextPath() + "/staff/manage-orders?error=notAllowed");
+            } else {
+                response.sendRedirect(request.getContextPath() + "/staff/manage-orders?success=update");
+            }
+            return;
         }
+
+        doGet(request, response);
     }
 
     private void listOrders(HttpServletRequest request, HttpServletResponse response)
