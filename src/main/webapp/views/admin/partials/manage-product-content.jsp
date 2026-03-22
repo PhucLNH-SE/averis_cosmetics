@@ -128,7 +128,7 @@
                                 <c:choose>
                                     <c:when test="${not empty p.mainImage}">
                                         <img src="${pageContext.request.contextPath}/assets/img/${p.mainImage}"
-                                             class="product-img-td border" width="50" height="50" style="object-fit:cover;"
+                                             class="product-img-td product-img-td--cover border" width="50" height="50"
                                              onerror="this.src='${pageContext.request.contextPath}/assets/img/Logo.png';">
                                     </c:when>
                                     <c:otherwise>
@@ -361,7 +361,7 @@
                     <div class="mb-3">
                         <label class="form-label fw-bold">Product Image</label>
                         <input type="file" name="image" class="form-control" accept="image/*" required onchange="previewImage(this, 'addPreview')">
-                        <img id="addPreview" class="img-preview mt-2 rounded border" src="#" style="display:none; width:100px; height:100px; object-fit:cover;">
+                        <img id="addPreview" class="img-preview mt-2 rounded border" src="#">
                     </div>
 
                     <div class="mb-3">
@@ -431,7 +431,7 @@
                 </div>
                 <div class="modal-body">
                     <div class="mb-3 text-center">
-                         <img id="editImageDisplay" src="" width="100" height="100" class="rounded border mb-2" style="object-fit: cover;">
+                         <img id="editImageDisplay" src="" width="100" height="100" class="rounded border mb-2 product-image-current">
                          <p class="text-muted small">Current Image</p>
                          <input type="file" name="image" class="form-control mt-2" accept="image/*" onchange="previewImage(this, 'editImageDisplay')">
                     </div>
@@ -482,7 +482,7 @@
                 <input type="hidden" name="returnCategoryId" value="<c:out value='${selectedCategoryId}'/>">
                 <input type="hidden" name="returnStatus" value="<c:out value='${selectedStatus}'/>">
                 <div class="modal-body p-4">
-                    <i class="fas fa-eye-slash text-danger mb-3" style="font-size: 3rem;"></i>
+                    <i class="fas fa-eye-slash text-danger mb-3 product-modal-icon"></i>
                     <h5 class="fw-bold mb-3">Hide Product?</h5>
                     <p class="text-muted small mb-4">Are you sure you want to hide <strong id="hideName" class="text-dark"></strong>?</p>
                     <div class="d-flex justify-content-center gap-2">
@@ -506,7 +506,7 @@
                 <input type="hidden" name="returnCategoryId" value="<c:out value='${selectedCategoryId}'/>">
                 <input type="hidden" name="returnStatus" value="<c:out value='${selectedStatus}'/>">
                 <div class="modal-body p-4">
-                    <i class="fas fa-eye text-success mb-3" style="font-size: 3rem;"></i>
+                    <i class="fas fa-eye text-success mb-3 product-modal-icon"></i>
                     <h5 class="fw-bold mb-3">Show Product?</h5>
                     <p class="text-muted small mb-4">Do you want to make <strong id="showName" class="text-dark"></strong> visible?</p>
                     <div class="d-flex justify-content-center gap-2">

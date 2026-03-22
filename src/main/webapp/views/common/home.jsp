@@ -151,14 +151,8 @@
                     <c:choose>
                         <c:when test="${not empty featuredCategories}">
                             <c:forEach items="${featuredCategories}" var="cat" varStatus="loop">
-                                <c:choose>
-                                    <c:when test="${loop.index == 0}"><c:set var="categoryImage" value="https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=900&q=80"/></c:when>
-                                    <c:when test="${loop.index == 1}"><c:set var="categoryImage" value="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=900&q=80"/></c:when>
-                                    <c:when test="${loop.index == 2}"><c:set var="categoryImage" value="https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=900&q=80"/></c:when>
-                                    <c:otherwise><c:set var="categoryImage" value="https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=900&q=80"/></c:otherwise>
-                                </c:choose>
                                 <a class="category-card" href="<%=request.getContextPath()%>/products?category=${cat.name}">
-                                    <div class="category-image" style="background-image: url('${categoryImage}')"></div>
+                                    <div class="category-image category-image--featured-${loop.index + 1}"></div>
                                     <div class="category-overlay"></div>
                                     <div class="category-content">
                                         <div class="category-title">${cat.name}</div>
@@ -169,7 +163,7 @@
                         </c:when>
                         <c:otherwise>
                             <a class="category-card" href="<%=request.getContextPath()%>/products">
-                                <div class="category-image" style="background-image: url('https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=900&q=80')"></div>
+                                <div class="category-image category-image--featured-1"></div>
                                 <div class="category-overlay"></div>
                                 <div class="category-content">
                                     <div class="category-title">Skincare</div>
@@ -177,7 +171,7 @@
                                 </div>
                             </a>
                             <a class="category-card" href="<%=request.getContextPath()%>/products">
-                                <div class="category-image" style="background-image: url('https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=900&q=80')"></div>
+                                <div class="category-image category-image--featured-2"></div>
                                 <div class="category-overlay"></div>
                                 <div class="category-content">
                                     <div class="category-title">Makeup</div>
@@ -185,7 +179,7 @@
                                 </div>
                             </a>
                             <a class="category-card" href="<%=request.getContextPath()%>/products">
-                                <div class="category-image" style="background-image: url('https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=900&q=80')"></div>
+                                <div class="category-image category-image--featured-3"></div>
                                 <div class="category-overlay"></div>
                                 <div class="category-content">
                                     <div class="category-title">Body Care</div>
@@ -193,7 +187,7 @@
                                 </div>
                             </a>
                             <a class="category-card" href="<%=request.getContextPath()%>/products">
-                                <div class="category-image" style="background-image: url('https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=900&q=80')"></div>
+                                <div class="category-image category-image--featured-4"></div>
                                 <div class="category-overlay"></div>
                                 <div class="category-content">
                                     <div class="category-title">Fragrance</div>

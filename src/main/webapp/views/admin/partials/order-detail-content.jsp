@@ -10,7 +10,7 @@
 
     <h2>Order Detail - #${order.orderId}</h2>
 
-    <div style="margin-bottom:20px;">
+    <div class="order-detail-meta">
         <p><b>Receiver:</b> ${order.receiverName}</p>
         <p><b>Phone:</b> ${order.receiverPhone}</p>
 
@@ -64,12 +64,12 @@
         </tbody>
     </table>
 
-    <div style="margin-top:20px; font-size:18px;">
+    <div class="order-detail-total">
         <b>Total:</b>
         <fmt:formatNumber value="${order.totalAmount}" pattern="#,##0"/> VND
     </div>
 
-    <div style="margin-top:28px;">
+    <div class="order-detail-feedback">
         <h4>Feedback</h4>
         <table class="table table-bordered">
             <thead>

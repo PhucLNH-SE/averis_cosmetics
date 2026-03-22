@@ -8,17 +8,9 @@
         <title>Staff Panel</title>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
         <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-        <link href="${pageContext.request.contextPath}/css/admin-brand.css" rel="stylesheet">
-        <link href="${pageContext.request.contextPath}/assets/css/admin-panel.css" rel="stylesheet">
-        <c:if test="${currentView == 'products'}">
-            <link href="${pageContext.request.contextPath}/assets/css/manage-product.css" rel="stylesheet">
-        </c:if>
-        <c:if test="${currentView == 'orders'}">
-            <link href="${pageContext.request.contextPath}/assets/css/staff-orders.css" rel="stylesheet">
-        </c:if>
+        <link href="${pageContext.request.contextPath}/assets/css/style.css" rel="stylesheet">
         <c:if test="${currentView == 'feedback'}">
             <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-            <link href="${pageContext.request.contextPath}/assets/css/manage-feedback.css" rel="stylesheet">
         </c:if>
     </head>
     <body class="admin-shell-body">

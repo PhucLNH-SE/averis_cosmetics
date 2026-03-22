@@ -32,7 +32,7 @@
                 <table class="table">
                     <thead>
                         <tr>
-                            <th class="px-4" style="width: 50px;"></th>
+                            <th class="px-4 purchase-history-toggle-col"></th>
                             <th>Order ID</th>
                             <th>Brand</th>
                             <th>Manager</th>
@@ -58,7 +58,7 @@
                                 <td>${h.createdAt}</td>
                             </tr>
 
-                            <tr id="detail-${h.purchaseOrderId}" class="detail-row" style="display: none;">
+                            <tr id="detail-${h.purchaseOrderId}" class="detail-row detail-row--hidden">
                                 <td colspan="6">
                                     <div id="detail-content-${h.purchaseOrderId}" class="detail-content">
                                         <div class="text-center">

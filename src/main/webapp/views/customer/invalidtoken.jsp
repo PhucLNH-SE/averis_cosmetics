@@ -18,7 +18,7 @@
     <div class="auth-container">
 
         <div class="auth-header">
-            <h2 style="color: #e74c3c;">Invalid link</h2>
+            <h2 class="auth-title--error">Invalid link</h2>
             <p>The password reset link is expired or does not exist.</p>
         </div>
 

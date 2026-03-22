@@ -14,7 +14,7 @@
                         <div>
                             <div class="d-flex align-items-center gap-2 mb-1">
                                 <h6 class="fw-bold mb-0">${c.customerName}</h6>
-                                <span class="badge bg-secondary" style="font-size: 0.7rem; font-weight: 500;">
+                                <span class="badge bg-secondary feedback-order-badge">
                                     Order #${c.orderId}
                                 </span>
                             </div>
