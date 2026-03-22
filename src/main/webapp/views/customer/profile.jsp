@@ -2,7 +2,7 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
-<fmt:setLocale value="en_US"/>
+<fmt:setLocale value="vi_VN"/>
 
 <!DOCTYPE html>
 <html>
@@ -12,10 +12,10 @@
         <title>Profile - Averis Cosmetics</title>
         <link rel="stylesheet" href="<%=request.getContextPath()%>/assets/css/style.css">
     </head>
-    <body>
-        <%@include file="/assets/header.jsp" %>
+    <body class="profile-page">
+        <jsp:include page="/assets/header.jsp" />
 
-        <div class="container" style="display:flex; gap:24px; align-items:flex-start; margin-top:40px">
+        <div class="profile-shell">
             <div class="account-sidebar">
 
                 <div class="account-card">
@@ -24,7 +24,7 @@
 
                     <ul class="account-menu">
                         <li>
-                            <div class="profile-header">
+                            <div class="account-header">
                                 <div class="info-value">${customer.username}</div>
                             </div>
                             <a class="${tab == null || tab == 'profile' ? 'active' : ''}"
@@ -78,7 +78,7 @@
             </div>
 
 
-            <div style="flex:1">
+            <div class="profile-main">
 
                 <div class="profile-container">
                     <c:if test="${not empty requestScope.profileMessage}">
@@ -155,7 +155,7 @@
 
                                     </div>
 
-                                    <div style="text-align:right; margin-top:20px;">
+                                    <div class="profile-actions">
                                         <a href="<%=request.getContextPath()%>/profile?action=edit"
                                            class="btn-edit-profile">
                                             Edit Profile
@@ -826,7 +826,7 @@
 
 <%-- (Sections above unchanged) --%>
 
-<%@include file="/assets/footer.jsp" %>
+<jsp:include page="/assets/footer.jsp" />
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
                                                 function confirmCancel(orderId) {
@@ -1000,6 +1000,8 @@
 </script> 
 </body>
 </html>
+
+
 
 
 

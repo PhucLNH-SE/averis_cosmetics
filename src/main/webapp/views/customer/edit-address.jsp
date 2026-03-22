@@ -1,4 +1,4 @@
-<%@page contentType="text/html" pageEncoding="UTF-8"%>
+﻿<%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%
 String geoapifyApiKey = application.getInitParameter("GEOAPIFY_API_KEY");
@@ -18,7 +18,7 @@ request.setAttribute("geoapifyApiKey", geoapifyApiKey);
         <link href="${pageContext.request.contextPath}/assets/css/style.css" rel="stylesheet">
     </head>
     <body>
-        <%@include file="/assets/header.jsp" %>
+        <jsp:include page="/assets/header.jsp" />
 
         <div class="container">
             <div class="address-form-container">
@@ -110,10 +110,11 @@ request.setAttribute("geoapifyApiKey", geoapifyApiKey);
             </div>
         </div>
 
-        <%@include file="/assets/footer.jsp" %>
+        <jsp:include page="/assets/footer.jsp" />
 
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
         <script src="${pageContext.request.contextPath}/assets/js/address-api.js"></script>
     </body>
 </html>
+

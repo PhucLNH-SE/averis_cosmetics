@@ -66,7 +66,7 @@
                 <td>${d.quantity}</td>
 
                 <td>
-                    <fmt:formatNumber value="${d.priceAtOrder}" type="currency"/>
+                    <fmt:formatNumber value="${d.priceAtOrder}" pattern="#,##0"/> VND
                 </td>
 
             </tr>
@@ -78,7 +78,7 @@
 
 <div style="margin-top:20px; font-size:18px;">
     <b>Total:</b>
-    <fmt:formatNumber value="${order.totalAmount}" type="currency"/>
+    <fmt:formatNumber value="${order.totalAmount}" pattern="#,##0"/> VND
 </div>
 
 <div style="margin-top:28px;">

@@ -49,13 +49,15 @@ public class ProductController extends HttpServlet {
                                           List<String> availableCategories,
                                           String brandFilter,
                                           String categoryFilter,
-                                          String sortBy) {
+                                          String sortBy,
+                                          boolean topSalesLanding) {
         request.setAttribute("products", products);
         request.setAttribute("availableBrands", availableBrands);
         request.setAttribute("availableCategories", availableCategories);
         request.setAttribute("filterBrand", brandFilter);
         request.setAttribute("filterCategory", categoryFilter);
         request.setAttribute("sortBy", sortBy);
+        request.setAttribute("isTopSalesLanding", topSalesLanding);
     }
 
     private void handleDetail(HttpServletRequest request, HttpServletResponse response, ProductDAO dao)
@@ -95,9 +97,15 @@ public class ProductController extends HttpServlet {
                 && brandFilter == null
                 && categoryFilter == null
                 && sortBy == null;
+        boolean isTopSalesLanding = keyword == null
+                && brandFilter == null
+                && categoryFilter == null
+                && "top_sales".equalsIgnoreCase(sortBy);
 
         List<Product> products;
         if (isDefaultLanding) {
+            products = dao.getFeaturedProductsForGuest(30, 20);
+        } else if (isTopSalesLanding) {
             products = dao.getFeaturedProductsForGuest(30, 20);
         } else {
             products = dao.getActiveProductsForGuest(keyword, brandFilter, categoryFilter, sortBy);
@@ -110,7 +118,8 @@ public class ProductController extends HttpServlet {
                 availableCategories,
                 brandFilter,
                 categoryFilter,
-                sortBy
+                sortBy,
+                isTopSalesLanding
         );
         forwardProductListView(request, response);
     }

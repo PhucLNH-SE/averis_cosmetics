@@ -1,31 +1,55 @@
 ﻿<%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
-<fmt:setLocale value="en_US"/>
+<fmt:setLocale value="vi_VN"/>
 <!DOCTYPE html>
 <html>
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Products - Averis Cosmetics</title>
         <link rel="stylesheet" href="<%=request.getContextPath()%>/assets/css/style.css">
     </head>
-    <body>
-        <%@include file="/assets/header.jsp" %>
+    <body class="products-page">
+        <jsp:include page="/assets/header.jsp" />
 
-        <div class="container products-list-container">
-            <div class="products-layout">
-                <aside class="search-tools">
-                    <c:if test="${not empty searchKeyword}">
-                        <div class="search-result-info">
-                            Found ${products.size()} product(s) for "${searchKeyword}"
-                        </div>
-                    </c:if>
+        <main class="catalog-shell">
+            <section class="catalog-hero">
+                <div>
+                    <c:choose>
+                        <c:when test="${isTopSalesLanding}">
+                            <span class="catalog-pill">Top Sales</span>
+                            <h1 class="catalog-title">Best-selling products customers love most</h1>
+                            <p class="catalog-subtitle">
+                                Explore our strongest sellers first, then discover a few extra curated picks
+                                to round out the collection.
+                            </p>
+                        </c:when>
+                        <c:otherwise>
+                            <span class="catalog-pill">Curated Beauty Picks</span>
+                            <h1 class="catalog-title">Find products that fit your routine</h1>
+                            <p class="catalog-subtitle">
+                                Explore skincare and makeup from trusted brands, compare categories quickly,
+                                and move from discovery to checkout with a cleaner shopping flow.
+                            </p>
+                        </c:otherwise>
+                    </c:choose>
+                </div>
+            </section>
 
-                    <form class="filter-form" method="get" action="<%=request.getContextPath()%>/products">
+            <section class="catalog-layout">
+                <aside class="catalog-filter-card">
+                    <div class="catalog-filter-head">
+                        <h2 class="catalog-filter-title">Refine results</h2>
+                        <p class="catalog-filter-subtitle">Filter by brand, category, or your preferred ordering.</p>
+                    </div>
+
+                    <form class="catalog-filter-form" method="get" action="<%=request.getContextPath()%>/products">
                         <c:if test="${not empty searchKeyword}">
                             <input type="hidden" name="keyword" value="${searchKeyword}">
                         </c:if>
-                        <div class="filter-group">
+
+                        <div class="catalog-filter-group">
                             <label for="brandFilter">Brand</label>
                             <select id="brandFilter" name="brand">
                                 <option value="">All brands</option>
@@ -35,7 +59,7 @@
                             </select>
                         </div>
 
-                        <div class="filter-group">
+                        <div class="catalog-filter-group">
                             <label for="categoryFilter">Category</label>
                             <select id="categoryFilter" name="category">
                                 <option value="">All categories</option>
@@ -45,7 +69,7 @@
                             </select>
                         </div>
 
-                        <div class="filter-group">
+                        <div class="catalog-filter-group">
                             <label for="sortFilter">Sort</label>
                             <select id="sortFilter" name="sort">
                                 <option value="" <c:if test="${empty sortBy}">selected</c:if>>Most relevant</option>
@@ -56,76 +80,88 @@
                             </select>
                         </div>
 
-                        <div class="filter-actions">
-                            <button type="submit" class="filter-btn">Apply Filters</button>
+                        <div class="catalog-filter-actions">
+                            <button type="submit" class="catalog-filter-btn">Apply filters</button>
                             <c:choose>
                                 <c:when test="${not empty searchKeyword}">
-                                    <a class="reset-btn" href="<%=request.getContextPath()%>/products?keyword=${searchKeyword}">Reset</a>
+                                    <a class="catalog-reset-btn" href="<%=request.getContextPath()%>/products?keyword=${searchKeyword}">Reset</a>
                                 </c:when>
                                 <c:otherwise>
-                                    <a class="reset-btn" href="<%=request.getContextPath()%>/products">Reset</a>
+                                    <a class="catalog-reset-btn" href="<%=request.getContextPath()%>/products">Reset</a>
                                 </c:otherwise>
                             </c:choose>
                         </div>
                     </form>
                 </aside>
 
-                <section class="products-content">
+                <section class="catalog-results">
                     <c:choose>
                         <c:when test="${not empty products and products.size() > 0}">
-                            <div class="products-grid">
+                            <div class="catalog-grid">
                                 <c:forEach items="${products}" var="product">
-                                    <a href="<%=request.getContextPath()%>/products?id=${product.productId}"
-                                       class="product-card">
-                                        <c:choose>
-                                            <c:when test="${not empty product.mainImage}">
-                                                <img class="product-image"
-                                                     src="<%=request.getContextPath()%>/assets/img/${product.mainImage}"
-                                                     alt="${product.name}"
-                                                     onerror="this.src='<%=request.getContextPath()%>/assets/img/Logo.png';">
-                                            </c:when>
-                                            <c:otherwise>
-                                                <img class="product-image" src="<%=request.getContextPath()%>/assets/img/Logo.png" alt="No image">
-                                            </c:otherwise>
-                                        </c:choose>
+                                    <a href="<%=request.getContextPath()%>/products?id=${product.productId}" class="catalog-card">
+                                        <div class="catalog-image-wrap">
+                                            <c:choose>
+                                                <c:when test="${not empty product.mainImage}">
+                                                    <img class="catalog-image"
+                                                         src="<%=request.getContextPath()%>/assets/img/${product.mainImage}"
+                                                         alt="${product.name}"
+                                                         onerror="this.src='<%=request.getContextPath()%>/assets/img/Logo.png';">
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <img class="catalog-image" src="<%=request.getContextPath()%>/assets/img/Logo.png" alt="No image">
+                                                </c:otherwise>
+                                            </c:choose>
+                                        </div>
 
-                                        <div class="product-info">
-                                            <div class="product-details-container">
-                                                <div class="product-name">${product.name}</div>
-                                                <div class="product-brand">${product.brand.name}</div>
-                                                <div class="product-category">${product.category.name}</div>
-                                                <div class="product-price">
+                                        <div class="catalog-card-body">
+                                            <div class="catalog-brand-row">
+                                                <span class="catalog-brand">${product.brand.name}</span>
+                                                <span class="catalog-category">${product.category.name}</span>
+                                            </div>
+
+                                            <h3 class="catalog-name">${product.name}</h3>
+
+                                            <div class="catalog-price-row">
+                                                <div class="catalog-price">
                                                     <c:choose>
-                                                        <c:when test="${not empty product.variants}">
-                                                            <fmt:formatNumber value="${product.variants[0].price}" pattern="#,##0"/> VND
+                                                        <c:when test="${product.price > 0}">
+                                                            <c:choose>
+                                                                <c:when test="${product.maxPrice > product.price}">
+                                                                    <fmt:formatNumber value="${product.price}" pattern="#,##0"/>
+                                                                    -
+                                                                    <fmt:formatNumber value="${product.maxPrice}" pattern="#,##0"/> VND
+                                                                </c:when>
+                                                                <c:otherwise>
+                                                                    <fmt:formatNumber value="${product.price}" pattern="#,##0"/> VND
+                                                                </c:otherwise>
+                                                            </c:choose>
                                                         </c:when>
                                                         <c:otherwise>
                                                             Contact
                                                         </c:otherwise>
                                                     </c:choose>
                                                 </div>
-                                                <div class="view-detail-btn">View Details</div>
+                                                <span class="catalog-link">View details</span>
                                             </div>
                                         </div>
-                                                
-                                                
                                     </a>
                                 </c:forEach>
                             </div>
                         </c:when>
                         <c:otherwise>
-                            <div class="no-products">
+                            <div class="catalog-empty-state">
                                 <h3>No products found</h3>
                                 <p>Try a different keyword or adjust your filter options.</p>
+                                <a href="<%=request.getContextPath()%>/products" class="catalog-filter-btn">Browse all products</a>
                             </div>
                         </c:otherwise>
                     </c:choose>
                 </section>
-            </div>
-        </div>
+            </section>
+        </main>
 
-        <%@include file="/assets/footer.jsp" %>
+        <jsp:include page="/assets/footer.jsp" />
     </body>
 </html>
-
 

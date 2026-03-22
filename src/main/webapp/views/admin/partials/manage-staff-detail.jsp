@@ -75,7 +75,7 @@
                                     <td>${o.orderStatus}</td>
                                     <td>${o.paymentStatus}</td>
                                     <td>
-                                        <fmt:formatNumber value="${o.totalAmount}" type="number" groupingUsed="true" />
+                                        <fmt:formatNumber value="${o.totalAmount}" pattern="#,##0" /> VND
                                     </td>
                                     <td>${o.createdAt}</td>
                                 </tr>

@@ -214,10 +214,6 @@
     <url-pattern>/profile</url-pattern>
   </servlet-mapping>
   <servlet-mapping>
-    <servlet-name>ProductController</servlet-name>
-    <url-pattern>/products</url-pattern>
-  </servlet-mapping>
-  <servlet-mapping>
     <servlet-name>AuthController</servlet-name>
     <url-pattern>/auth</url-pattern>
   </servlet-mapping>
@@ -228,10 +224,6 @@
   <servlet-mapping>
     <servlet-name>GuestController</servlet-name>
     <url-pattern>/GuestController</url-pattern>
-  </servlet-mapping>
-  <servlet-mapping>
-    <servlet-name>ProductController</servlet-name>
-    <url-pattern>/products</url-pattern>
   </servlet-mapping>
   <servlet-mapping>
     <servlet-name>GuestController</servlet-name>

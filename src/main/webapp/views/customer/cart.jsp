@@ -1,7 +1,7 @@
 ﻿<%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
-<fmt:setLocale value="en_US"/>
+<fmt:setLocale value="vi_VN"/>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -10,9 +10,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cart | Averis Cosmetics</title>
     
-    <link rel="stylesheet" type="text/css" href="<%=request.getContextPath()%>/assets/css/cart.css">
+    <link rel="stylesheet" type="text/css" href="<%=request.getContextPath()%>/assets/css/style.css">
 </head>
-<body>
+<body class="cart-page">
 
     <div class="header-wrapper">
         <jsp:include page="/assets/header.jsp" />
@@ -22,10 +22,10 @@
         
         <c:if test="${empty cart}">
             <div class="cart-main empty-cart">
-                <div class="empty-icon">Cart</div>
+                <div class="empty-icon"><i class="fa-solid fa-bag-shopping"></i></div>
                 <h3>Your cart is empty</h3>
-                <p style="color: var(--muted); margin-bottom: 24px;">Browse products and add items to get started.</p>
-                <a href="<%=request.getContextPath()%>/products" class="btn-checkout" style="width: 200px; margin: 0 auto; display: inline-block;">
+                <p class="empty-cart-copy">Browse products and add items to get started.</p>
+                <a href="<%=request.getContextPath()%>/products" class="btn-checkout empty-cart-btn">
                     Continue Shopping
                 </a>
             </div>
@@ -35,25 +35,29 @@
             
             <div class="cart-main">
                 <div class="cart-title-block">
-                    <h1 class="cart-heading">Cart</h1>
-                    <span class="cart-count">(${cart.size()} items)</span>
+                    <div>
+                        <span class="cart-pill">Shopping Bag</span>
+                        <h1 class="cart-heading">Your cart</h1>
+                    </div>
+                    <span class="cart-count">${cart.size()} items</span>
                 </div>
 
                 <c:forEach items="${cart}" var="entry">
                     <div class="cart-item">
                         <div class="item-image">
                             <c:choose>
-    <c:when test="${not empty entry.value.variant.imageUrl}">
-<img src="<%=request.getContextPath()%>/assets/img/${entry.value.variant.imageUrl}"
-alt="Product"
-style="width:100%; height:100%; object-fit:contain; padding: 5px;"
-onerror="this.src='<%=request.getContextPath()%>/assets/img/Logo.png';">
-</c:when>
-    <c:otherwise>
-        <img src="<%=request.getContextPath()%>/assets/img/Logo.png" alt="No Image" 
-             style="width:100%; height:100%; object-fit:contain; padding: 5px;">
-    </c:otherwise>
-</c:choose>
+                                <c:when test="${not empty entry.value.variant.imageUrl}">
+                                    <img class="cart-product-image"
+                                         src="<%=request.getContextPath()%>/assets/img/${entry.value.variant.imageUrl}"
+                                         alt="Product"
+                                         onerror="this.src='<%=request.getContextPath()%>/assets/img/Logo.png';">
+                                </c:when>
+                                <c:otherwise>
+                                    <img class="cart-product-image"
+                                         src="<%=request.getContextPath()%>/assets/img/Logo.png"
+                                         alt="No Image">
+                                </c:otherwise>
+                            </c:choose>
                         </div>
 
                         <div class="item-details">
@@ -62,7 +66,7 @@ onerror="this.src='<%=request.getContextPath()%>/assets/img/Logo.png';">
                                     ${entry.value.variant.productName} 
                                 </a>
                                 
-                                <form action="cart" method="post" id="form-variant-${entry.key}">
+                                <form action="cart" method="post" id="form-variant-${entry.key}" class="cart-variant-form">
                                     <input type="hidden" name="action" value="changeVariant">
                                     <input type="hidden" name="variantId" value="${entry.key}">
                                     <select name="newVariantId" onchange="document.getElementById('form-variant-${entry.key}').submit()">
@@ -93,11 +97,11 @@ onerror="this.src='<%=request.getContextPath()%>/assets/img/Logo.png';">
                                     </div>
                                     
                                     <c:if test="${entry.value.quantity >= entry.value.variant.stock}">
-                                        <span style="color: red; font-size: 12px;">(Max in stock)</span>
+                                        <span class="cart-stock-note">(Max in stock)</span>
                                     </c:if>
                                 </form>
 
-                                <form action="cart" method="post" style="margin:0;">
+                                <form action="cart" method="post" class="cart-remove-form">
                                     <input type="hidden" name="action" value="update"> <input type="hidden" name="variantId" value="${entry.key}">
                                     <input type="hidden" name="quantity" value="0">
                                     
@@ -108,7 +112,7 @@ onerror="this.src='<%=request.getContextPath()%>/assets/img/Logo.png';">
                             </div>
                         </div>
                         
-                        <div style="font-weight:700; font-size:14px; align-self:flex-end; display:none;">
+                        <div class="cart-line-total">
                             <fmt:formatNumber value="${entry.value.subtotal}" pattern="#,##0"/> VND
                         </div>
                     </div>
@@ -130,7 +134,7 @@ onerror="this.src='<%=request.getContextPath()%>/assets/img/Logo.png';">
                     <span><fmt:formatNumber value="${total}" pattern="#,##0"/> VND</span>
                 </div>
                 
-                <div style="text-align:right; font-size:12px; color:var(--muted); margin-top:5px;">
+                <div class="cart-vat-note">
                     (VAT included if applicable)
                 </div>
 
@@ -162,4 +166,5 @@ onerror="this.src='<%=request.getContextPath()%>/assets/img/Logo.png';">
 
 </body>
 </html>
+
 
