@@ -33,6 +33,10 @@
         <c:set var="popupMessage" scope="request" value="Failed to update orders." />
         <c:set var="popupType" scope="request" value="error" />
     </c:if>
+    <c:if test="${param.error == 'notAllowed'}">
+        <c:set var="popupMessage" scope="request" value="Some orders could not be updated because they are already handled by someone else." />
+        <c:set var="popupType" scope="request" value="error" />
+    </c:if>
 
     <div class="card table-card">
         <div class="card-body p-0">
