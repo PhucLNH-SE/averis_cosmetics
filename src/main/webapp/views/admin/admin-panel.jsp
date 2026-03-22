@@ -38,59 +38,72 @@
         <div class="admin-shell">
             <aside class="admin-sidebar">
                 <div class="admin-sidebar__brand">
-                    <h1>Admin Panel</h1>
-                    <p>Administration menu</p>
+                    <div class="admin-sidebar__brand-mark" aria-hidden="true">A</div>
+                    <div class="admin-sidebar__brand-copy">
+                        <h1>Admin Panel</h1>
+                        <p>Administration menu</p>
+                    </div>
                 </div>
 
                 <nav class="admin-sidebar__nav">
                     <a class="admin-sidebar__link ${currentView == 'statistic' ? 'active' : ''}"
-                       href="${pageContext.request.contextPath}/admin/manage-statistic">
+                       href="${pageContext.request.contextPath}/admin/manage-statistic"
+                       title="Manage Statistics">
                         <i class="bi bi-bar-chart-fill"></i>
                         <span>Manage Statistics</span>
                     </a>
                     <a class="admin-sidebar__link ${currentView == 'users' ? 'active' : ''}"
-                       href="${pageContext.request.contextPath}/admin/panel?view=users">
+                       href="${pageContext.request.contextPath}/admin/panel?view=users"
+                       title="Manage Users">
                         <i class="bi bi-people-fill"></i>
                         <span>Manage Users</span>
                     </a>
                     <a class="admin-sidebar__link ${currentView == 'brands' ? 'active' : ''}"
-                       href="${pageContext.request.contextPath}/admin/manage-brand">
+                       href="${pageContext.request.contextPath}/admin/manage-brand"
+                       title="Manage Brands">
                         <i class="bi bi-bookmark-star-fill"></i>
                         <span>Manage Brands</span>
                     </a>
                     <a class="admin-sidebar__link ${currentView == 'categories' ? 'active' : ''}"
-                       href="${pageContext.request.contextPath}/admin/manage-category">
+                       href="${pageContext.request.contextPath}/admin/manage-category"
+                       title="Manage Categories">
                         <i class="bi bi-grid-fill"></i>
                         <span>Manage Categories</span>
                     </a>
                     <a class="admin-sidebar__link ${currentView == 'products' ? 'active' : ''}"
-                       href="${pageContext.request.contextPath}/admin/manage-product">
+                       href="${pageContext.request.contextPath}/admin/manage-product"
+                       title="Manage Products">
                         <i class="bi bi-box-seam-fill"></i>
                         <span>Manage Products</span>
                     </a>
                     <a class="admin-sidebar__link ${currentView == 'inventory' ? 'active' : ''}"
-                       href="${pageContext.request.contextPath}/admin/import-product?action=history">
+                       href="${pageContext.request.contextPath}/admin/import-product?action=history"
+                       title="Manage Inventory">
                         <i class="bi bi-boxes"></i>
                         <span>Manage Inventory</span>
                     </a>
                     <a class="admin-sidebar__link ${currentView == 'voucher' ? 'active' : ''}"
-                       href="${pageContext.request.contextPath}/admin/manage-voucher">
+                       href="${pageContext.request.contextPath}/admin/manage-voucher"
+                       title="Manage Vouchers">
                         <i class="bi bi-ticket-perforated-fill"></i>
                         <span>Manage Vouchers</span>
                     </a>
                     <a class="admin-sidebar__link ${currentView == 'staff' ? 'active' : ''}"
-                       href="${pageContext.request.contextPath}/admin/manage-staff">
+                       href="${pageContext.request.contextPath}/admin/manage-staff"
+                       title="Manage Staff">
                         <i class="bi bi-person-badge-fill"></i>
                         <span>Manage Staff</span>
                     </a>
 
                     <a class="admin-sidebar__link ${currentView == 'orders' ? 'active' : ''}"
-                       href="${pageContext.request.contextPath}/admin/manage-orders">
+                       href="${pageContext.request.contextPath}/admin/manage-orders"
+                       title="Manage Orders">
                         <i class="bi bi-receipt"></i>
                         <span>Manage Orders</span>
                     </a>
                     <a class="admin-sidebar__link ${currentView == 'feedback' ? 'active' : ''}"
-                       href="${pageContext.request.contextPath}/admin/manage-feedback">
+                       href="${pageContext.request.contextPath}/admin/manage-feedback"
+                       title="Manage Feedback">
 
                         <i class="bi bi-chat-square-text-fill"></i>
                         <span>Manage Feedback</span>
@@ -98,8 +111,9 @@
                     </a>
                 </nav>
                 <div class="admin-sidebar__footer">
-                    <a class="btn btn-outline-light w-100" href="${pageContext.request.contextPath}/logout">
-                        <i class="bi bi-box-arrow-right me-1"></i>Sign out
+                    <a class="btn btn-outline-light w-100" href="${pageContext.request.contextPath}/logout" title="Sign out">
+                        <i class="bi bi-box-arrow-right"></i>
+                        <span class="admin-sidebar__footer-text">Sign out</span>
                     </a>
                 </div>
             </aside>
