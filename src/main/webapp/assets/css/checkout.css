@@ -1,4 +1,4 @@
-:root {
+﻿:root {
     --bg: #fff;
     --surface: #faf8f5;
     --border: #e9e2d8;
@@ -12,7 +12,7 @@
 }
 
 body {
-    font-family: 'Segoe UI', Arial, sans-serif;
+    font-family: var(--font-body, "Manrope", Arial, sans-serif);
     background: var(--surface);
     color: var(--text);
     margin: 0;

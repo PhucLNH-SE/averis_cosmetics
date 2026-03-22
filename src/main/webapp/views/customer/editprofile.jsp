@@ -1,4 +1,4 @@
-<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+﻿<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <!DOCTYPE html>
 <html>
@@ -9,7 +9,7 @@
     </head>
 
     <body>
-        <%@include file="/assets/header.jsp" %>
+        <jsp:include page="/assets/header.jsp" />
 
         <div class="page-wrap">
             <div class="profile-card">
@@ -51,5 +51,5 @@
         </div>
     </body>
 
-    <%@include file="/assets/footer.jsp" %>
+    <jsp:include page="/assets/footer.jsp" />
 </html>

@@ -1,7 +1,7 @@
 ﻿<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
-<fmt:setLocale value="en_US"/>
+<fmt:setLocale value="vi_VN"/>
 
 <section class="admin-content__section">
     <div class="d-flex justify-content-between align-items-center mb-4">
@@ -564,5 +564,6 @@
         bootstrap.Modal.getOrCreateInstance(document.getElementById('showModal')).show();
     }
 </script>
+
 
 

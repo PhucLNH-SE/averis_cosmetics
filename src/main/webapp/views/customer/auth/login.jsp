@@ -1,4 +1,4 @@
-<%@page contentType="text/html" pageEncoding="UTF-8"%>
+﻿<%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 
 <!DOCTYPE html>
@@ -11,11 +11,11 @@
           href="${pageContext.request.contextPath}/assets/css/style.css">
 </head>
 
-<body class="auth-page">
+<body class="auth-page customer-login-page">
 
-    <%@include file="/assets/header.jsp" %>
+    <jsp:include page="/assets/header.jsp" />
 
-    <div class="auth-container">
+    <div class="auth-container customer-login-card">
 
         <div class="auth-header">
             <h2>Welcome Back</h2>
@@ -94,7 +94,8 @@
         </div>
     </div>
 
-    <%@include file="/assets/footer.jsp" %>
+    <jsp:include page="/assets/footer.jsp" />
 
 </body>
 </html>
+
