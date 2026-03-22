@@ -29,10 +29,6 @@ public class VoucherController extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         HttpSession session = request.getSession(false);
-        if (session == null || session.getAttribute("customer") == null) {
-            response.sendRedirect(request.getContextPath() + "/auth?action=login");
-            return;
-        }
 
         Customer customer = (Customer) session.getAttribute("customer");
         String code = request.getParameter("voucherCode");
