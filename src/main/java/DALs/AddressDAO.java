@@ -30,8 +30,7 @@ public class AddressDAO extends DBContext {
     }
 
     public Address getAddressById(int addressId) {
-        String sql = "SELECT * FROM Address \n"
-                + "WHERE address_id = ? AND customer_id = ? AND is_deleted = 0";
+        String sql = "SELECT * FROM Address WHERE address_id = ? AND is_deleted = 0";
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, addressId);
