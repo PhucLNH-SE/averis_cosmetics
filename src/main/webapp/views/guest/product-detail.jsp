@@ -185,12 +185,12 @@
 
                                             <div class="stars-orange">
                                                 <c:forEach begin="1" end="5" var="i">
-                                                    <i class="fas fa-star" style="${i <= r.rating ? '' : 'color: #e2e8f0;'}"></i>
+                                                    <i class="fas fa-star ${i <= r.rating ? '' : 'review-star--empty'}"></i>
                                                 </c:forEach>
                                             </div>
 
                                             <div class="comment-text">
-                                                ${not empty r.reviewComment ? r.reviewComment : '<span style="color:#cbd5e1; font-style:italic;">(No comment left by the customer)</span>'}
+                                                ${not empty r.reviewComment ? r.reviewComment : '<span class="review-comment-empty">(No comment left by the customer)</span>'}
                                             </div>
 
                                             <c:if test="${not empty r.responseContent}">

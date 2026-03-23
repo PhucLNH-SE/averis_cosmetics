@@ -182,7 +182,7 @@
                     <input type="hidden" name="action" value="delete">
                     <input type="hidden" name="managerId" id="deleteId">
                     <div class="modal-body p-4">
-                        <i class="fas fa-user-slash text-danger mb-3" style="font-size: 3rem;"></i>
+                        <i class="fas fa-user-slash text-danger mb-3 staff-modal-icon"></i>
                         <h5 class="fw-bold mb-3">Ban Account?</h5>
                         <p class="text-muted small mb-4">Are you sure you want to deactivate <strong id="deleteName" class="text-dark"></strong>? They will no longer be able to log in.</p>
                         <div class="d-flex justify-content-center gap-2">
@@ -202,7 +202,7 @@
                     <input type="hidden" name="action" value="unban">
                     <input type="hidden" name="managerId" id="unbanId">
                     <div class="modal-body p-4">
-                        <i class="fas fa-unlock text-success mb-3" style="font-size: 3rem;"></i>
+                        <i class="fas fa-unlock text-success mb-3 staff-modal-icon"></i>
                         <h5 class="fw-bold mb-3">Unlock Account?</h5>
                         <p class="text-muted small mb-4">Are you sure you want to restore access for <strong id="unbanName" class="text-dark"></strong>? They will be able to log in again.</p>
                         <div class="d-flex justify-content-center gap-2">

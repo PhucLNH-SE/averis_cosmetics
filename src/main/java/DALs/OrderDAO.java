@@ -708,6 +708,29 @@ public class OrderDAO extends DBContext {
         return null;
     }
 
+    public Orders getOrderUpdateInfo(int orderId) {
+        String sql = "SELECT order_id, handled_by, payment_status, order_status "
+                + "FROM Orders WHERE order_id = ?";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, orderId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    Orders order = new Orders();
+                    order.setOrderId(rs.getInt("order_id"));
+                    order.setHandledBy(rs.getObject("handled_by", Integer.class));
+                    order.setPaymentStatus(rs.getString("payment_status"));
+                    order.setOrderStatus(rs.getString("order_status"));
+                    return order;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
     private boolean deductStockForOrder(Connection conn, int orderId) throws SQLException {
         String sql = "UPDATE pv "
                 + "SET pv.stock = pv.stock - od.quantity "

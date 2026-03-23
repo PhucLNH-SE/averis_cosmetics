@@ -10,7 +10,7 @@
         </div>
         <form method="get" action="${pageContext.request.contextPath}/admin/manage-orders" class="mb-3 d-flex align-items-center gap-2">
             <label><strong>Filter by Staff:</strong></label>
-            <select name="staffId" class="form-select" style="width:220px">
+            <select name="staffId" class="form-select admin-order-filter-select">
                 <option value="">All</option>
                 <option value="0" ${selectedStaffId != null && selectedStaffId == 0 ? 'selected' : ''}>Chưa gán</option>
                 <c:forEach items="${staffList}" var="s">
@@ -31,6 +31,10 @@
     </c:if>
     <c:if test="${param.error == 'updateFailed'}">
         <c:set var="popupMessage" scope="request" value="Failed to update orders." />
+        <c:set var="popupType" scope="request" value="error" />
+    </c:if>
+    <c:if test="${param.error == 'notAllowed'}">
+        <c:set var="popupMessage" scope="request" value="Some orders could not be updated because they are already handled by someone else." />
         <c:set var="popupType" scope="request" value="error" />
     </c:if>
 

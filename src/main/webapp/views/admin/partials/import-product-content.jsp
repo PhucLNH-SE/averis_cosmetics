@@ -63,8 +63,8 @@
                                     <th>Product</th>
                                     <th>Variant</th>
                                     <th>Current Stock</th>
-                                    <th style="width: 180px;">Import Price</th>
-                                    <th style="width: 150px;">Quantity</th>
+                                    <th class="import-price-col">Import Price</th>
+                                    <th class="import-quantity-col">Quantity</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -83,7 +83,7 @@
                                         <td>
                                             <input type="number" class="form-control" name="quantity" placeholder="0" min="0">
                                         </td>
-                                        <td style="display: none;">
+                                        <td class="import-hidden-cell">
                                             <input type="hidden" name="variantId" value="${v.variantId}">
                                         </td>
                                     </tr>

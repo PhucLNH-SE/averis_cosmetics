@@ -122,7 +122,7 @@
             <div class="cart-sidebar">
                 <div class="summary-row">
                     <span>Subtotal:</span>
-                    <span style="font-weight:600"><fmt:formatNumber value="${total}" pattern="#,##0"/> VND</span>
+                    <span class="summary-value-strong"><fmt:formatNumber value="${total}" pattern="#,##0"/> VND</span>
                 </div>
                 <div class="summary-row">
                     <span>Discount:</span>

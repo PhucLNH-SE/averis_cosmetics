@@ -460,18 +460,17 @@
                                                             <fmt:formatNumber value="${d.priceAtOrder * d.quantity}" pattern="#,##0"/> VND
                                                         </span>
                                                         <c:if test="${d.quantity > 1}">
-                                                            <div style="font-size: 0.85em; color: #9ca3af; text-decoration: none; margin-top: 4px;">
+                                                            <div class="item-price-note">
                                                                 (Original Price: <fmt:formatNumber value="${d.priceAtOrder}" pattern="#,##0"/> VND)
                                                             </div>
                                                         </c:if>
                                                     </div>
 
-                                                    <div class="item-feedback" style="margin-left: auto; padding-left: 20px;">
+                                                    <div class="item-feedback">
                                                         <c:if test="${order.orderStatus == 'COMPLETED'}">
                                                             <c:choose>
                                                                 <c:when test="${empty d.rating || d.rating == 0}">
-                                                                    <button type="button" class="btn-feedback" 
-                                                                            style="padding: 6px 12px; background: #000; color: #fff; border: none; border-radius: 4px; cursor: pointer;"
+                                                                    <button type="button" class="btn-feedback btn-feedback--primary"
                                                                             data-id="${d.orderDetailId}"
                                                                             data-name="${fn:escapeXml(d.productName)}"
                                                                             data-rating="5"
@@ -481,12 +480,12 @@
                                                                     </button>
                                                                 </c:when>
                                                                 <c:otherwise>
-                                                                    <div class="rated-stars" style="color: #f59e0b; font-size: 14px; text-align: right;">
+                                                                    <div class="rated-stars">
                                                                         <c:forEach begin="1" end="5" var="i">
-                                                                            <i class="fas fa-star ${i <= d.rating ? '' : 'text-muted'}" style="${i > d.rating ? 'color: #e5e7eb;' : ''}"></i>
+                                                                            <i class="fas fa-star ${i <= d.rating ? '' : 'rated-star--empty'}"></i>
                                                                         </c:forEach>
 
-                                                                        <div style="font-size: 12px; color: #059669; margin-top: 4px; font-weight: 600;">
+                                                                        <div class="rated-status">
                                                                             <i class="fas fa-check-circle"></i> Reviewed
                                                                         </div>
 
@@ -494,14 +493,13 @@
                                                                         <c:set var="displayComment" value="${fn:replace(d.reviewComment, '[EDITED]', '')}" />
 
                                                                         <c:if test="${not empty displayComment}">
-                                                                            <div class="user-comment-display" style="font-size: 13px; color: #4b5563; margin-top: 8px; font-style: italic; max-width: 250px; line-height: 1.4; word-wrap: break-word;">
+                                                                            <div class="user-comment-display">
                                                                                 "${displayComment}"
                                                                             </div>
                                                                         </c:if>
 
                                                                         <c:if test="${!isEdited}">
-                                                                            <button type="button" class="btn-edit-feedback"
-                                                                                    style="margin-top: 8px; padding: 4px 8px; font-size: 12px; background: #f3f4f6; color: #374151; border: 1px solid #d1d5db; border-radius: 4px; cursor: pointer; transition: 0.2s;"
+                                                                            <button type="button" class="btn-edit-feedback btn-edit-feedback--secondary"
                                                                                     data-id="${d.orderDetailId}"
                                                                                     data-name="${fn:escapeXml(d.productName)}"
                                                                                     data-rating="${d.rating}"
@@ -538,36 +536,36 @@
                                     </div>
                                 </c:if>
                             </div>
-                            <div class="feedback-popup-overlay" id="feedbackPopupOverlay" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
-                                <div class="feedback-popup-card" style="background: #fff; width: 100%; max-width: 500px; border-radius: 8px; padding: 24px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-                                    <div class="feedback-popup-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                                        <h3 style="margin: 0; font-size: 1.25rem;">Product Review</h3>
-                                        <button type="button" onclick="closeFeedbackPopup()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #6b7280;">&times;</button>
+                            <div class="feedback-popup-overlay" id="feedbackPopupOverlay">
+                                <div class="feedback-popup-card">
+                                    <div class="feedback-popup-header">
+                                        <h3 class="feedback-popup-title">Product Review</h3>
+                                        <button type="button" class="feedback-popup-close" onclick="closeFeedbackPopup()">&times;</button>
                                     </div>
 
                                     <form action="${pageContext.request.contextPath}/review" method="POST" id="feedbackForm">
                                         <input type="hidden" name="orderDetailId" id="feedbackOrderDetailId">
                                         <input type="hidden" name="orderId" value="${order.orderId}">
 
-                                        <p id="feedbackProductName" style="font-weight: 500; margin-bottom: 16px; color: #374151;"></p>
+                                        <p id="feedbackProductName" class="feedback-product-name"></p>
 
-                                        <div style="text-align: center; margin-bottom: 20px;">
+                                        <div class="feedback-rating-block">
                                             <input type="hidden" name="rating" id="feedbackRating" value="5">
-                                            <div class="star-rating-select" style="font-size: 32px; color: #e5e7eb; cursor: pointer; display: inline-flex; gap: 8px;">
-                                                <i class="fas fa-star" data-val="1" style="color: #f59e0b;"></i>
-                                                <i class="fas fa-star" data-val="2" style="color: #f59e0b;"></i>
-                                                <i class="fas fa-star" data-val="3" style="color: #f59e0b;"></i>
-                                                <i class="fas fa-star" data-val="4" style="color: #f59e0b;"></i>
-                                                <i class="fas fa-star" data-val="5" style="color: #f59e0b;"></i>
+                                            <div class="star-rating-select">
+                                                <i class="fas fa-star" data-val="1"></i>
+                                                <i class="fas fa-star" data-val="2"></i>
+                                                <i class="fas fa-star" data-val="3"></i>
+                                                <i class="fas fa-star" data-val="4"></i>
+                                                <i class="fas fa-star" data-val="5"></i>
                                             </div>
-                                            <div id="ratingText" style="font-size: 14px; color: #6b7280; margin-top: 8px;">Excellent</div>
+                                            <div id="ratingText" class="feedback-rating-text">Excellent</div>
                                         </div>
 
-                                        <textarea name="comment" rows="4" style="width: 100%; padding: 12px; border-radius: 6px; border: 1px solid #d1d5db; resize: vertical;" placeholder="Share your thoughts about this product... (max 500 characters)" maxlength="500"></textarea>
+                                        <textarea name="comment" rows="4" class="feedback-comment-input" placeholder="Share your thoughts about this product... (max 500 characters)" maxlength="500"></textarea>
 
-                                        <div style="text-align: right; margin-top: 20px; display: flex; gap: 12px; justify-content: flex-end;">
-                                            <button type="button" onclick="closeFeedbackPopup()" style="padding: 10px 20px; border: 1px solid #d1d5db; background: #fff; border-radius: 4px; cursor: pointer; font-weight: 500;">Cancel</button>
-                                            <button type="submit" style="padding: 10px 20px; border: none; background: #111827; color: #fff; border-radius: 4px; cursor: pointer; font-weight: 500;">Submit Review</button>
+                                        <div class="feedback-popup-actions">
+                                            <button type="button" class="feedback-action-btn feedback-action-btn--secondary" onclick="closeFeedbackPopup()">Cancel</button>
+                                            <button type="submit" class="feedback-action-btn feedback-action-btn--primary">Submit Review</button>
                                         </div>
                                     </form>
                                 </div>
@@ -973,11 +971,7 @@
                                                     const ratingText = document.getElementById('ratingText');
 
                                                     stars.forEach(s => {
-                                                        if (parseInt(s.getAttribute('data-val')) <= value) {
-                                                            s.style.color = '#f59e0b'; // Yellow
-                                                        } else {
-                                                            s.style.color = '#e5e7eb'; // Light gray
-                                                        }
+                                                        s.classList.toggle('is-active', parseInt(s.getAttribute('data-val')) <= value);
                                                     });
                                                     ratingText.textContent = ratingTexts[value - 1];
                                                 }
