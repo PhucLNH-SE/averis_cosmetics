@@ -100,7 +100,7 @@ request.setAttribute("geoapifyApiKey", geoapifyApiKey);
                         <button type="submit" class="btn btn-primary address-btn-submit">
                             <i class="fas fa-save"></i> Save Address
                         </button>
-                        <a href="${pageContext.request.contextPath}/profile?action=view&tab=address"
+                        <a href="${pageContext.request.contextPath}/address"
                            class="btn btn-secondary">
                             <i class="fas fa-arrow-left"></i> Back to Addresses
                         </a>

@@ -343,11 +343,14 @@
                     const frameWindow = frame.contentWindow;
                     const doc = frame.contentDocument || frameWindow.document;
                     const frameUrl = new URL(frameWindow.location.href);
-                    const isProfileAddressPage = frameUrl.pathname.endsWith('/profile')
+                    const action = frameUrl.searchParams.get('action');
+                    const isAddressListPage = frameUrl.pathname.endsWith('/address')
+                            && (!action || action === 'view' || action === 'list');
+                    const isLegacyProfileAddressPage = frameUrl.pathname.endsWith('/profile')
                             && frameUrl.searchParams.get('action') === 'view'
                             && frameUrl.searchParams.get('tab') === 'address';
 
-                    if (isProfileAddressPage) {
+                    if (isAddressListPage || isLegacyProfileAddressPage) {
                         closeCheckoutAddressPopup();
                         window.location.href = '${pageContext.request.contextPath}/checkout';
                         return;
