@@ -27,7 +27,7 @@
 
         <div class="auth-links">
             <p>
-                <a href="${pageContext.request.contextPath}/ForgetPasswordController">
+                <a href="${pageContext.request.contextPath}/ForgetPasswordController?action=forget">
                     Resend password reset link
                 </a>
             </p>
