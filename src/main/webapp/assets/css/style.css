@@ -8348,17 +8348,86 @@ body {
     gap: 18px;
 }
 
-.admin-shell-body .admin-page--order-detail .order-detail-container > .btn {
-    justify-self: flex-start;
+.admin-shell-body .admin-page--order-detail .order-detail-card {
+    background: var(--admin-ui-surface);
+    border: 1px solid var(--admin-ui-border);
+    border-radius: 22px;
+    box-shadow: var(--admin-ui-shadow);
+    overflow: hidden;
 }
 
-.admin-shell-body .admin-page--order-detail .order-detail-meta {
+.admin-shell-body .admin-page--order-detail .order-detail-card__header {
+    padding: 18px 22px;
+    border-bottom: 1px solid var(--admin-ui-border);
+    background: linear-gradient(180deg, #fbfdff 0%, #f3f7fc 100%);
+}
+
+.admin-shell-body .admin-page--order-detail .order-detail-card__header h5 {
+    margin: 0;
+    color: var(--admin-ui-text);
+    font-size: 1.05rem;
+    font-weight: 700;
+}
+
+.admin-shell-body .admin-page--order-detail .order-detail-card--summary {
+    padding: 22px;
+}
+
+.admin-shell-body .admin-page--order-detail .order-detail-summary-grid {
     display: grid;
-    gap: 10px;
-    box-shadow: var(--admin-ui-shadow);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.admin-shell-body .admin-page--order-detail .order-detail-summary-item {
+    padding: 16px 18px;
+    border: 1px solid #e3eaf5;
+    border-radius: 18px;
+    background: #fbfcfe;
+    min-height: 96px;
+}
+
+.admin-shell-body .admin-page--order-detail .order-detail-summary-item--wide {
+    grid-column: span 2;
+}
+
+.admin-shell-body .admin-page--order-detail .order-detail-label {
+    display: block;
+    margin-bottom: 8px;
+    color: #64748b;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.admin-shell-body .admin-page--order-detail .order-detail-value {
+    display: block;
+    color: var(--admin-ui-text);
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1.55;
+}
+
+.admin-shell-body .admin-page--order-detail .order-detail-table-card .table-responsive {
+    padding: 0;
+}
+
+.admin-shell-body .admin-page--order-detail .order-detail-image {
+    width: 70px;
+    height: 70px;
+    object-fit: cover;
+    border-radius: 14px;
+    border: 1px solid #e2e8f0;
+    background: #fff;
+    padding: 6px;
 }
 
 .admin-shell-body .admin-page--order-detail .order-detail-total {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
     padding: 18px 22px;
     border-radius: 18px;
     background: linear-gradient(135deg, #eff6ff 0%, #f8fbff 100%);
@@ -8366,13 +8435,6 @@ body {
     font-size: 1.05rem;
     font-weight: 700;
     color: #1e3a8a;
-}
-
-.admin-shell-body .admin-page--order-detail .order-detail-feedback h4 {
-    margin-bottom: 14px;
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: var(--admin-ui-text);
 }
 
 .admin-shell-body .admin-page--product .product-overview__card,
@@ -8711,6 +8773,10 @@ body {
 }
 
 @media (max-width: 991.98px) {
+    .admin-shell-body .admin-page--order-detail .order-detail-summary-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
     .admin-shell-body .staff-page--orders .page-header form {
         width: 100%;
     }
@@ -8718,6 +8784,21 @@ body {
     .admin-shell-body .staff-page--orders .staff-order-filter-select {
         width: 100%;
         min-width: 0;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .admin-shell-body .admin-page--order-detail .order-detail-summary-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-shell-body .admin-page--order-detail .order-detail-summary-item--wide {
+        grid-column: auto;
+    }
+
+    .admin-shell-body .admin-page--order-detail .order-detail-total {
+        flex-direction: column;
+        align-items: flex-start;
     }
 }
 
