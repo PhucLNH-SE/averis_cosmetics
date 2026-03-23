@@ -142,9 +142,9 @@ public class VoucherDAO extends DBContext {
         return list;
     }
 
-    public boolean claimVoucher(int customerId, String code) {
-        return "ok".equals(claimVoucherWithReason(customerId, code));
-    }
+//    public boolean claimVoucher(int customerId, String code) {
+//        return "ok".equals(claimVoucherWithReason(customerId, code));
+//    }
 
     public String claimVoucherWithReason(int customerId, String code) {
         Connection conn = null;

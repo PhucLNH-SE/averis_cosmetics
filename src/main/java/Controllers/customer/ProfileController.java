@@ -5,17 +5,14 @@
 package Controllers.customer;
 
 import DALs.CustomerDAO;
-import DALs.AddressDAO;
 import DALs.OrderDAO;
 import DALs.VoucherDAO;
 import DALs.FeedbackDAO;
 import Model.Customer;
-import Model.Address;
 import Model.OrderDetail;
 import Model.Orders;
 import Model.CustomerVoucher;
 import Utils.ValidationUtil;
-import java.util.List;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
@@ -27,6 +24,7 @@ import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.http.Part;
 import java.io.File;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Map;
 import org.mindrot.jbcrypt.BCrypt;
 
@@ -57,13 +55,7 @@ public class ProfileController extends HttpServlet {
             request.setAttribute("customer", sessionCustomer);
         }
 
-        // Handle address tab
         String tab = request.getParameter("tab");
-        if ("address".equals(tab)) {
-            AddressDAO addressDAO = new AddressDAO();
-            List<Address> addresses = addressDAO.getAddressesByCustomerId(customer.getCustomerId());
-            request.setAttribute("addresses", addresses);
-        }
 
         consumeProfileFlashMessage(session, request);
 
@@ -329,6 +321,11 @@ public class ProfileController extends HttpServlet {
 
         if (action == null) {
             action = "view";
+        }
+
+        if ("view".equals(action) && "address".equals(tab)) {
+            response.sendRedirect(request.getContextPath() + "/address");
+            return;
         }
 
         switch (action) {
