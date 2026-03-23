@@ -100,6 +100,141 @@ public class ValidationUtil {
   
    return errors;
 }
+
+    public static void validateCodStatus(String paymentMethod, String paymentStatus, String orderStatus) {
+        if (paymentMethod == null || paymentStatus == null || orderStatus == null) {
+            throw new IllegalArgumentException("Khong the validate COD vi payment method, payment status hoac order status dang de trong.");
+        }
+
+        String normalizedPaymentMethod = paymentMethod.trim().toUpperCase();
+        String normalizedPaymentStatus = paymentStatus.trim().toUpperCase();
+        String normalizedOrderStatus = normalizeOrderStatus(orderStatus);
+
+        if (!"COD".equals(normalizedPaymentMethod)) {
+            throw new IllegalArgumentException("Rule nay chi ap dung cho don hang COD.");
+        }
+
+        switch (normalizedPaymentStatus) {
+            case "PENDING":
+                validateCodPending(normalizedOrderStatus);
+                break;
+            case "SUCCESS":
+                validateCodSuccess(normalizedOrderStatus);
+                break;
+            case "FAILED":
+                validateCodFailed(normalizedOrderStatus);
+                break;
+            default:
+                throw new IllegalArgumentException("Payment status khong hop le cho COD: " + normalizedPaymentStatus);
+        }
+    }
+
+    public static void validateOrderStatusTransition(String currentOrderStatus, String newOrderStatus) {
+        if (currentOrderStatus == null || newOrderStatus == null) {
+            throw new IllegalArgumentException("Khong the cap nhat don hang vi trang thai hien tai hoac trang thai moi dang de trong.");
+        }
+
+        String normalizedCurrentStatus = normalizeOrderStatus(currentOrderStatus);
+        String normalizedNewStatus = normalizeOrderStatus(newOrderStatus);
+
+        if (normalizedCurrentStatus.equals(normalizedNewStatus)) {
+            return;
+        }
+
+        switch (normalizedCurrentStatus) {
+            case "CREATED":
+                if ("PROCESSING".equals(normalizedNewStatus) || "CANCELLED".equals(normalizedNewStatus)) {
+                    return;
+                }
+                throw new IllegalArgumentException("Khong the chuyen tu CREATED sang " + normalizedNewStatus
+                        + ". Don moi tao chi duoc chuyen sang PROCESSING hoac CANCELLED.");
+            case "PROCESSING":
+                if ("SHIPPING".equals(normalizedNewStatus) || "CANCELLED".equals(normalizedNewStatus)) {
+                    return;
+                }
+                throw new IllegalArgumentException("Khong the chuyen tu PROCESSING sang " + normalizedNewStatus
+                        + ". Don dang xu ly chi duoc chuyen sang SHIPPING hoac CANCELLED.");
+            case "SHIPPING":
+                if ("COMPLETED".equals(normalizedNewStatus) || "CANCELLED".equals(normalizedNewStatus)) {
+                    return;
+                }
+                throw new IllegalArgumentException("Khong the chuyen tu SHIPPING sang " + normalizedNewStatus
+                        + ". Don dang giao chi duoc chuyen sang COMPLETED hoac CANCELLED.");
+            case "COMPLETED":
+                throw new IllegalArgumentException("Don hang da COMPLETED. Trang thai nay la cuoi cung va khong duoc chuyen sang CANCELLED hay trang thai truoc do.");
+            case "CANCELLED":
+                throw new IllegalArgumentException("Don hang da CANCELLED va khong the cap nhat sang trang thai khac.");
+            default:
+                throw new IllegalArgumentException("Order status hien tai khong hop le: " + normalizedCurrentStatus);
+        }
+    }
+
+    private static String normalizeOrderStatus(String orderStatus) {
+        String normalizedOrderStatus = orderStatus.trim().toUpperCase();
+        if ("CANCELED".equals(normalizedOrderStatus)) {
+            return "CANCELLED";
+        }
+        return normalizedOrderStatus;
+    }
+
+    private static void validateCodPending(String orderStatus) {
+        if ("CREATED".equals(orderStatus)
+                || "PROCESSING".equals(orderStatus)
+                || "SHIPPING".equals(orderStatus)
+                || "CANCELLED".equals(orderStatus)) {
+            return;
+        }
+
+        if ("COMPLETED".equals(orderStatus)) {
+            throw new IllegalArgumentException(
+                    "Don COD dang PENDING khong the o trang thai COMPLETED vi chua thu tien.");
+        }
+
+        throw new IllegalArgumentException(
+                "Order status khong hop le cho don COD co payment_status = PENDING: " + orderStatus);
+    }
+
+    private static void validateCodSuccess(String orderStatus) {
+        if ("SHIPPING".equals(orderStatus) || "COMPLETED".equals(orderStatus)) {
+            return;
+        }
+
+        if ("CREATED".equals(orderStatus)) {
+            throw new IllegalArgumentException(
+                    "Don COD da thanh toan khong the quay ve CREATED.");
+        }
+
+        if ("PROCESSING".equals(orderStatus)) {
+            throw new IllegalArgumentException(
+                    "Don COD da thanh toan khong the dung o PROCESSING.");
+        }
+
+        if ("CANCELLED".equals(orderStatus)) {
+            throw new IllegalArgumentException(
+                    "Don COD da thanh toan khong the chuyen sang CANCELLED.");
+        }
+
+        throw new IllegalArgumentException(
+                "Order status khong hop le cho don COD co payment_status = SUCCESS: " + orderStatus);
+    }
+
+    private static void validateCodFailed(String orderStatus) {
+        if ("CANCELLED".equals(orderStatus)) {
+            return;
+        }
+
+        if ("CREATED".equals(orderStatus)
+                || "PROCESSING".equals(orderStatus)
+                || "SHIPPING".equals(orderStatus)
+                || "COMPLETED".equals(orderStatus)) {
+            throw new IllegalArgumentException(
+                    "Don COD co payment_status = FAILED chi duoc o trang thai CANCELLED.");
+        }
+
+        throw new IllegalArgumentException(
+                "Order status khong hop le cho don COD co payment_status = FAILED: " + orderStatus);
+    }
+
      public boolean checkLogin(String inputPassword, String storedPassword) {
         if (inputPassword == null || storedPassword == null) {
             return false;

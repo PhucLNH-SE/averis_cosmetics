@@ -4,7 +4,6 @@ import Model.CartItem;
 import Model.Orders;
 import Model.OrderDetail;
 import Utils.DBContext;
-import jakarta.persistence.criteria.Order;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -709,7 +708,7 @@ public class OrderDAO extends DBContext {
     }
 
     public Orders getOrderUpdateInfo(int orderId) {
-        String sql = "SELECT order_id, handled_by, payment_status, order_status "
+        String sql = "SELECT order_id, handled_by, payment_method, payment_status, order_status "
                 + "FROM Orders WHERE order_id = ?";
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -719,6 +718,7 @@ public class OrderDAO extends DBContext {
                     Orders order = new Orders();
                     order.setOrderId(rs.getInt("order_id"));
                     order.setHandledBy(rs.getObject("handled_by", Integer.class));
+                    order.setPaymentMethod(rs.getString("payment_method"));
                     order.setPaymentStatus(rs.getString("payment_status"));
                     order.setOrderStatus(rs.getString("order_status"));
                     return order;
