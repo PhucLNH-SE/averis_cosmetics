@@ -45,10 +45,19 @@ public class ImportProductController extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String action = request.getParameter("action");
-        if ("receive".equalsIgnoreCase(action)) {
-            confirmReceipt(request, response);
-        } else {
-            importProduct(request, response);
+
+        if (action == null || action.trim().isEmpty()) {
+            action = "importproduct";
+        }
+
+        switch (action) {
+            case "receive":
+                confirmReceipt(request, response);
+                break;
+            case "importproduct":
+            default:
+                importProduct(request, response);
+                break;
         }
     }
 
