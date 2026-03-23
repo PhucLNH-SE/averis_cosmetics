@@ -91,10 +91,6 @@
     <servlet-class>Controllers.customer.ForgetPasswordController</servlet-class>
   </servlet>
   <servlet>
-    <servlet-name>ResetPasswordController</servlet-name>
-    <servlet-class>Controllers.customer.ResetPasswordController</servlet-class>
-  </servlet>
-  <servlet>
     <servlet-name>OrderSuccessController</servlet-name>
     <servlet-class>Controllers.customer.OrderSuccessController</servlet-class>
   </servlet>
@@ -308,10 +304,6 @@
   <servlet-mapping>
     <servlet-name>ForgetPasswordController</servlet-name>
     <url-pattern>/ForgetPasswordController</url-pattern>
-  </servlet-mapping>
-  <servlet-mapping>
-    <servlet-name>ResetPasswordController</servlet-name>
-    <url-pattern>/ResetPasswordController</url-pattern>
   </servlet-mapping>
   <servlet-mapping>
     <servlet-name>OrderSuccessController</servlet-name>

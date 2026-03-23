@@ -29,7 +29,7 @@
             </div>
         </c:if>
 
-        <form action="${pageContext.request.contextPath}/ForgetPasswordController"
+        <form action="${pageContext.request.contextPath}/ForgetPasswordController?action=forget"
               method="post">
 
             <div class="form-group">
