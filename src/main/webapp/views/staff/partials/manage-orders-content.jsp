@@ -14,11 +14,11 @@
 
     <select name="status" class="form-select staff-order-filter-select">
         <option value="">All</option>
-        <option value="CREATED" ${param.status == 'CREATED' ? 'selected' : ''}>CREATED</option>
-        <option value="PROCESSING" ${param.status == 'PROCESSING' ? 'selected' : ''}>PROCESSING</option>
-        <option value="SHIPPING" ${param.status == 'SHIPPING' ? 'selected' : ''}>SHIPPING</option>
-        <option value="COMPLETED" ${param.status == 'COMPLETED' ? 'selected' : ''}>COMPLETED</option>
-        <option value="CANCELLED" ${param.status == 'CANCELLED' ? 'selected' : ''}>CANCELLED</option>
+        <option value="CREATED" ${selectedStatus == 'CREATED' ? 'selected' : ''}>CREATED</option>
+        <option value="PROCESSING" ${selectedStatus == 'PROCESSING' ? 'selected' : ''}>PROCESSING</option>
+        <option value="SHIPPING" ${selectedStatus == 'SHIPPING' ? 'selected' : ''}>SHIPPING</option>
+        <option value="COMPLETED" ${selectedStatus == 'COMPLETED' ? 'selected' : ''}>COMPLETED</option>
+        <option value="CANCELLED" ${selectedStatus == 'CANCELLED' ? 'selected' : ''}>CANCELLED</option>
     </select>
 
     <button type="submit" class="btn btn-primary">
@@ -39,6 +39,16 @@
     <c:if test="${param.error == 'notAllowed'}">
         <c:set var="popupMessage" scope="request" value="You can only update orders assigned to you." />
         <c:set var="popupType" scope="request" value="error" />
+    </c:if>
+    <c:if test="${param.error == 'validationError'}">
+        <c:set var="popupMessage" scope="request" value="${not empty param.message ? param.message : 'Order status transition is not valid.'}" />
+        <c:set var="popupType" scope="request" value="error" />
+    </c:if>
+    <c:if test="${param.error == 'validationError'}">
+        <div class="alert alert-danger" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            <c:out value="${not empty param.message ? param.message : 'Order status transition is not valid.'}" />
+        </div>
     </c:if>
 
     <div class="card table-card">
@@ -95,20 +105,40 @@
                                         <c:choose>
                                             <c:when test="${canEdit}">
                                                 <select name="orderStatus" class="action-select">
-                                                    <option value="CREATED" ${o.orderStatus == 'CREATED' ? 'selected' : ''}>CREATED</option>
-                                                    <option value="PROCESSING" ${o.orderStatus == 'PROCESSING' ? 'selected' : ''}>PROCESSING</option>
-                                                    <option value="SHIPPING" ${o.orderStatus == 'SHIPPING' ? 'selected' : ''}>SHIPPING</option>
-                                                    <option value="COMPLETED" ${o.orderStatus == 'COMPLETED' ? 'selected' : ''}>COMPLETED</option>
-                                                    <option value="CANCELLED" ${o.orderStatus == 'CANCELLED' ? 'selected' : ''}>CANCELLED</option>
+                                                    <option value="${o.orderStatus}" selected>${o.orderStatus}</option>
+                                                    <c:choose>
+                                                        <c:when test="${o.orderStatus == 'CREATED'}">
+                                                            <option value="PROCESSING">PROCESSING</option>
+                                                            <option value="CANCELLED">CANCELLED</option>
+                                                        </c:when>
+                                                        <c:when test="${o.orderStatus == 'PROCESSING'}">
+                                                            <option value="SHIPPING">SHIPPING</option>
+                                                            <option value="CANCELLED">CANCELLED</option>
+                                                        </c:when>
+                                                        <c:when test="${o.orderStatus == 'SHIPPING'}">
+                                                            <option value="COMPLETED">COMPLETED</option>
+                                                            <option value="CANCELLED">CANCELLED</option>
+                                                        </c:when>
+                                                    </c:choose>
                                                 </select>
                                             </c:when>
                                             <c:otherwise>
                                                 <select name="orderStatus" class="action-select" disabled>
-                                                    <option value="CREATED" ${o.orderStatus == 'CREATED' ? 'selected' : ''}>CREATED</option>
-                                                    <option value="PROCESSING" ${o.orderStatus == 'PROCESSING' ? 'selected' : ''}>PROCESSING</option>
-                                                    <option value="SHIPPING" ${o.orderStatus == 'SHIPPING' ? 'selected' : ''}>SHIPPING</option>
-                                                    <option value="COMPLETED" ${o.orderStatus == 'COMPLETED' ? 'selected' : ''}>COMPLETED</option>
-                                                    <option value="CANCELLED" ${o.orderStatus == 'CANCELLED' ? 'selected' : ''}>CANCELLED</option>
+                                                    <option value="${o.orderStatus}" selected>${o.orderStatus}</option>
+                                                    <c:choose>
+                                                        <c:when test="${o.orderStatus == 'CREATED'}">
+                                                            <option value="PROCESSING">PROCESSING</option>
+                                                            <option value="CANCELLED">CANCELLED</option>
+                                                        </c:when>
+                                                        <c:when test="${o.orderStatus == 'PROCESSING'}">
+                                                            <option value="SHIPPING">SHIPPING</option>
+                                                            <option value="CANCELLED">CANCELLED</option>
+                                                        </c:when>
+                                                        <c:when test="${o.orderStatus == 'SHIPPING'}">
+                                                            <option value="COMPLETED">COMPLETED</option>
+                                                            <option value="CANCELLED">CANCELLED</option>
+                                                        </c:when>
+                                                    </c:choose>
                                                 </select>
                                                 <input type="hidden" name="orderStatus" value="${o.orderStatus}">
                                             </c:otherwise>
