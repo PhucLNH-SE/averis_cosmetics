@@ -1,7 +1,7 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
-<section class="admin-content__section">
+<section class="admin-content__section admin-page admin-page--staff-detail">
     <div class="container-fluid staff-main-container">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div>

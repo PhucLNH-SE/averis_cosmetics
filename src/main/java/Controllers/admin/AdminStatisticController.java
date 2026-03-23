@@ -41,8 +41,8 @@ public class AdminStatisticController extends HttpServlet {
         MonthlyStatisticSummary summary = statisticDAO.getMonthlySummary(year, month);
         List<Map<String, Object>> topSellingProducts = statisticDAO.getTopSellingProducts(year, month, DEFAULT_TOP_SELLING_LIMIT);
         List<ProductVariant> lowStockProducts = statisticDAO.getLowStockProducts(DEFAULT_LOW_STOCK_THRESHOLD, DEFAULT_LOW_STOCK_LIMIT);
-        List<Map<String, Object>> revenueProfitChart = statisticDAO.getRevenueProfitChartData(year);
-        List<Map<String, Object>> orderChart = statisticDAO.getOrderStatusChartData(year);
+        List<Map<String, Object>> revenueProfitChart = statisticDAO.getRevenueProfitChartData(year, month);
+        List<Map<String, Object>> orderChart = statisticDAO.getOrderStatusChartData(year, month);
 
         request.setAttribute("summary", summary);
         request.setAttribute("topSellingProducts", topSellingProducts);

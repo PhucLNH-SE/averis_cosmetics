@@ -1,6 +1,6 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<section class="admin-content__section">
+<section class="admin-content__section admin-page staff-page staff-page--brand">
     <div class="container py-4">
         <div class="page-header d-flex justify-content-between align-items-center mb-3">
             <div>
