@@ -1,13 +1,13 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<section class="admin-content__section">
+<section class="admin-content__section admin-page admin-page--users">
     <div class="page-header">
         <div>
             <h4>Manage Users</h4>
             <p class="text-muted mb-0">List of users in the system</p>
         </div>
         <a href="${pageContext.request.contextPath}/admin/panel?view=dashboard" class="btn btn-outline-secondary">
-            Back to Dashboard
+            <i class="bi bi-arrow-left"></i> Back to Dashboard
         </a>
     </div>
 
@@ -55,12 +55,12 @@
                                     <button type="button" class="btn btn-edit btn-sm text-white me-1"
                                             data-bs-toggle="modal" data-bs-target="#userDetailModal"
                                             onclick="openUserDetail(${user.customerId}, '${user.username}', '${user.fullName}', '${empty user.email ? '-' : user.email}', '${empty user.gender ? '-' : user.gender}', '${empty user.dateOfBirth ? '-' : user.dateOfBirth}', ${user.status}, ${user.emailVerified})">
-                                        View
+                                        <i class="bi bi-eye"></i> View
                                     </button>
                                     <button type="button" class="btn btn-delete btn-sm text-white"
                                             data-bs-toggle="modal" data-bs-target="#lockModal"
                                             onclick="openLockModal(${user.customerId}, '${user.username}', ${user.status})">
-                                        ${user.status ? 'Lock' : 'Unlock'}
+                                        <i class="bi ${user.status ? 'bi-lock' : 'bi-unlock'}"></i> ${user.status ? 'Lock' : 'Unlock'}
                                     </button>
                                 </td>
                             </tr>
@@ -122,7 +122,9 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle"></i> Close
+                </button>
             </div>
         </div>
     </div>
@@ -142,8 +144,12 @@
                     <p id="lockMessage"></p>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-danger" id="lockConfirmBtn">Confirm</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle"></i> Cancel
+                    </button>
+                    <button type="submit" class="btn btn-danger" id="lockConfirmBtn">
+                        <i class="bi bi-check2-circle"></i> Confirm
+                    </button>
                 </div>
             </form>
         </div>
@@ -169,11 +175,11 @@
         if (currentStatus) {
             document.getElementById('lockModalTitle').textContent = 'Lock User';
             document.getElementById('lockMessage').innerHTML = 'Are you sure you want to lock user <strong>' + username + '</strong>?';
-            document.getElementById('lockConfirmBtn').textContent = 'Lock';
+            document.getElementById('lockConfirmBtn').innerHTML = '<i class="bi bi-lock"></i> Lock';
         } else {
             document.getElementById('lockModalTitle').textContent = 'Unlock User';
             document.getElementById('lockMessage').innerHTML = 'Are you sure you want to unlock user <strong>' + username + '</strong>?';
-            document.getElementById('lockConfirmBtn').textContent = 'Unlock';
+            document.getElementById('lockConfirmBtn').innerHTML = '<i class="bi bi-unlock"></i> Unlock';
         }
     }
 </script>

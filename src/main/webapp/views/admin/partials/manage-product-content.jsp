@@ -3,14 +3,14 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <fmt:setLocale value="vi_VN"/>
 
-<section class="admin-content__section">
+<section class="admin-content__section admin-page admin-page--product">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h3 class="fw-bold mb-0">Product Management</h3>
             <p class="text-muted small mb-0">Manage your cosmetics inventory</p>
         </div>
         <a class="btn btn-outline-secondary px-3" href="${pageContext.request.contextPath}/admin/panel?view=dashboard">
-            Back to Dashboard
+            <i class="bi bi-arrow-left"></i> Back to Dashboard
         </a>
     </div>
 
@@ -253,44 +253,48 @@
                 <c:otherwise>
                     <c:forEach items="${p.variants}" var="v">
                         <div class="variant-item">
-                            <form action="${pageContext.request.contextPath}/admin/manage-variant" method="post" class="variant-item__form">
-                                <input type="hidden" name="action" value="update">
-                                <input type="hidden" name="variantId" value="${v.variantId}">
-                                <input type="hidden" name="productId" value="${p.productId}">
-                                <input type="hidden" name="returnKeyword" value="<c:out value='${searchKeyword}'/>">
-                                <input type="hidden" name="returnBrandId" value="<c:out value='${selectedBrandId}'/>">
-                                <input type="hidden" name="returnCategoryId" value="<c:out value='${selectedCategoryId}'/>">
-                                <input type="hidden" name="returnStatus" value="<c:out value='${selectedStatus}'/>">
+                            <div class="variant-item__main">
+                                <form action="${pageContext.request.contextPath}/admin/manage-variant" method="post" class="variant-item__form">
+                                    <input type="hidden" name="action" value="update">
+                                    <input type="hidden" name="variantId" value="${v.variantId}">
+                                    <input type="hidden" name="productId" value="${p.productId}">
+                                    <input type="hidden" name="returnKeyword" value="<c:out value='${searchKeyword}'/>">
+                                    <input type="hidden" name="returnBrandId" value="<c:out value='${selectedBrandId}'/>">
+                                    <input type="hidden" name="returnCategoryId" value="<c:out value='${selectedCategoryId}'/>">
+                                    <input type="hidden" name="returnStatus" value="<c:out value='${selectedStatus}'/>">
 
-                                <div class="variant-item__field variant-item__field--name">
-                                    <label class="small text-muted mb-1 fw-bold">Variant Name</label>
-                                    <input type="text" name="variantName" class="form-control form-control-sm text-primary fw-bold" value="${v.variantName}" required>
-                                </div>
-                                <div class="variant-item__field variant-item__field--price">
-                                    <label class="small text-muted mb-1 fw-bold">Price (VND)</label>
-                                    <input type="number" step="0.01" name="price" class="form-control form-control-sm text-danger fw-bold" value="${v.price}" required>
-                                </div>
-                                <div class="variant-item__field variant-item__field--stock">
-                                    <label class="small text-muted mb-1 fw-bold text-success">Stock</label>
-                                    <input type="number" min="0" name="stock" class="form-control form-control-sm text-center fw-bold text-success" value="${v.stock}" required>
-                                </div>
+                                    <div class="variant-item__field variant-item__field--name">
+                                        <label class="small text-muted mb-1 fw-bold">Variant Name</label>
+                                        <input type="text" name="variantName" class="form-control form-control-sm text-primary fw-bold" value="${v.variantName}" required>
+                                    </div>
+                                    <div class="variant-item__field variant-item__field--price">
+                                        <label class="small text-muted mb-1 fw-bold">Price (VND)</label>
+                                        <input type="number" step="0.01" name="price" class="form-control form-control-sm text-danger fw-bold" value="${v.price}" required>
+                                    </div>
+                                    <div class="variant-item__field variant-item__field--stock">
+                                        <label class="small text-muted mb-1 fw-bold text-success">Stock</label>
+                                        <input type="number" min="0" name="stock" class="form-control form-control-sm text-center fw-bold text-success" value="${v.stock}" required>
+                                    </div>
 
-                                <button type="submit" class="variant-action-btn variant-action-btn--save" title="Save changes">
-                                    <i class="fas fa-save me-1"></i> Save
-                                </button>
-                            </form>
+                                    <button type="submit" class="variant-action-btn variant-action-btn--save" title="Save changes">
+                                        <i class="fas fa-save me-1"></i> Save
+                                    </button>
+                                </form>
+                            </div>
 
-                            <form action="${pageContext.request.contextPath}/admin/manage-variant" method="post" class="variant-item__delete-form" onsubmit="return confirm('Do you want to delete this variant?');">
-                                <input type="hidden" name="action" value="delete">
-                                <input type="hidden" name="variantId" value="${v.variantId}">
-                                <input type="hidden" name="returnKeyword" value="<c:out value='${searchKeyword}'/>">
-                                <input type="hidden" name="returnBrandId" value="<c:out value='${selectedBrandId}'/>">
-                                <input type="hidden" name="returnCategoryId" value="<c:out value='${selectedCategoryId}'/>">
-                                <input type="hidden" name="returnStatus" value="<c:out value='${selectedStatus}'/>">
-                                <button type="submit" class="variant-action-btn variant-action-btn--delete" title="Delete variant">
-                                    <i class="fas fa-trash me-1"></i> Delete
-                                </button>
-                            </form>
+                            <div class="variant-item__actions">
+                                <form action="${pageContext.request.contextPath}/admin/manage-variant" method="post" class="variant-item__delete-form" onsubmit="return confirm('Do you want to delete this variant?');">
+                                    <input type="hidden" name="action" value="delete">
+                                    <input type="hidden" name="variantId" value="${v.variantId}">
+                                    <input type="hidden" name="returnKeyword" value="<c:out value='${searchKeyword}'/>">
+                                    <input type="hidden" name="returnBrandId" value="<c:out value='${selectedBrandId}'/>">
+                                    <input type="hidden" name="returnCategoryId" value="<c:out value='${selectedCategoryId}'/>">
+                                    <input type="hidden" name="returnStatus" value="<c:out value='${selectedStatus}'/>">
+                                    <button type="submit" class="variant-action-btn variant-action-btn--delete" title="Delete variant">
+                                        <i class="fas fa-trash me-1"></i> Delete
+                                    </button>
+                                </form>
+                            </div>
                         </div>
                     </c:forEach>
                 </c:otherwise>
@@ -318,11 +322,11 @@
                             <input type="hidden" name="returnCategoryId" value="<c:out value='${selectedCategoryId}'/>">
                             <input type="hidden" name="returnStatus" value="<c:out value='${selectedStatus}'/>">
                             
-                            <div class="col-md-5">
+                            <div class="col-md-4">
                                 <label class="small text-muted mb-1 fw-bold">Variant Name</label>
                                 <input type="text" name="variantName" class="form-control form-control-sm" placeholder="e.g., 50ml" required>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 <label class="small text-muted mb-1 fw-bold">Price</label>
                                 <input type="number" step="0.01" name="price" class="form-control form-control-sm" placeholder="Price" required>
                             </div>
@@ -330,8 +334,10 @@
                                 <label class="small text-muted mb-1 fw-bold text-success">Stock</label>
                                 <input type="number" min="0" name="stock" class="form-control form-control-sm" placeholder="0" required>
                             </div>
-                            <div class="col-md-1">
-                                <button type="submit" class="btn btn-primary btn-sm w-100"><i class="fas fa-plus"></i> Add</button>
+                            <div class="col-md-3 d-flex justify-content-end">
+                                <button type="submit" class="btn btn-primary btn-sm product-variant-add-btn">
+                                    <i class="fas fa-plus"></i> Add
+                                </button>
                             </div>
                         </form>
                     </div>
@@ -407,7 +413,9 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle"></i> Cancel
+                    </button>
                     <button type="submit" class="btn btn-success px-4"><i class="fas fa-check me-1"></i> Save Product</button>
                 </div>
             </form>
@@ -463,8 +471,12 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary px-4">Update Changes</button>
+                    <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle"></i> Cancel
+                    </button>
+                    <button type="submit" class="btn btn-primary px-4">
+                        <i class="bi bi-check2-circle"></i> Update Changes
+                    </button>
                 </div>
             </form>
         </div>
@@ -486,8 +498,12 @@
                     <h5 class="fw-bold mb-3">Hide Product?</h5>
                     <p class="text-muted small mb-4">Are you sure you want to hide <strong id="hideName" class="text-dark"></strong>?</p>
                     <div class="d-flex justify-content-center gap-2">
-                        <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-danger px-4">Yes, Hide</button>
+                        <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">
+                            <i class="bi bi-x-circle"></i> Cancel
+                        </button>
+                        <button type="submit" class="btn btn-danger px-4">
+                            <i class="fas fa-eye-slash"></i> Yes, Hide
+                        </button>
                     </div>
                 </div>
             </form>
@@ -510,8 +526,12 @@
                     <h5 class="fw-bold mb-3">Show Product?</h5>
                     <p class="text-muted small mb-4">Do you want to make <strong id="showName" class="text-dark"></strong> visible?</p>
                     <div class="d-flex justify-content-center gap-2">
-                        <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-success px-4">Yes, Show</button>
+                        <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">
+                            <i class="bi bi-x-circle"></i> Cancel
+                        </button>
+                        <button type="submit" class="btn btn-success px-4">
+                            <i class="fas fa-eye"></i> Yes, Show
+                        </button>
                     </div>
                 </div>
             </form>

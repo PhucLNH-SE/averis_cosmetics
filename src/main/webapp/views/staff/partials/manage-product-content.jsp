@@ -4,7 +4,7 @@
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <fmt:setLocale value="vi_VN" />
 
-<section class="admin-content__section staff-product-page">
+<section class="admin-content__section admin-page admin-page--product staff-page staff-page--product staff-product-page">
     <div class="card shadow-sm staff-product-page__hero">
         <div class="card-body p-4">
             <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap mb-4">
@@ -170,11 +170,11 @@
                                 <td class="text-center">
                                     <button
                                         type="button"
-                                        class="btn btn-outline-primary btn-sm staff-product-table__detail-btn"
+                                        class="btn btn-primary btn-sm staff-product-table__detail-btn"
                                         data-staff-product-detail-trigger="true"
                                         data-detail-id="staff-product-detail-${product.productId}"
                                         data-product-name="<c:out value='${product.name}' />">
-                                        <i class="bi bi-eye me-1"></i>View detail
+                                        <i class="bi bi-eye me-1"></i>View Detail
                                     </button>
                                 </td>
                             </tr>

@@ -3,10 +3,11 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 
+<section class="admin-content__section admin-page admin-page--order-detail staff-page staff-page--order-detail">
 <div class="order-detail-container">
 <a href="${pageContext.request.contextPath}/staff/manage-orders"
-   class="btn btn-secondary">
-   &larr; Back to Orders
+   class="btn btn-outline-secondary">
+   <i class="bi bi-arrow-left me-1"></i>Back to Orders
 </a>
 
 <h2>Order Detail - #${order.orderId}</h2>
@@ -34,8 +35,6 @@
         </c:choose>
     </p>
 </div>
-
-
 <table class="table table-bordered">
     <thead>
         <tr>
@@ -133,4 +132,5 @@
 </div>
 
 </div>
+</section>
 

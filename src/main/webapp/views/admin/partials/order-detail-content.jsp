@@ -2,7 +2,7 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 
-<div class="order-detail-container">
+<div class="admin-page admin-page--order-detail order-detail-container">
     <a href="${pageContext.request.contextPath}/admin/manage-orders"
        class="btn btn-secondary">
         &larr; Back to Orders

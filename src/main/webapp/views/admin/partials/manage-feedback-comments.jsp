@@ -36,12 +36,12 @@
                             <div class="small text-dark">${c.responseContent}</div>
                         </div>
                     </c:if>
-                    <div class="d-flex gap-2">
-                        <button class="btn btn-sm btn-primary px-3 rounded-pill" type="button" data-bs-toggle="collapse" data-bs-target="#replyForm${c.orderDetailId}">
+                    <div class="d-flex gap-2 flex-wrap">
+                        <button class="btn btn-sm btn-primary px-3" type="button" data-bs-toggle="collapse" data-bs-target="#replyForm${c.orderDetailId}">
                             <i class="fas fa-reply me-1"></i> ${not empty c.responseContent ? 'Edit' : 'Reply'}
                         </button>
-                        <a href="${pageContext.request.contextPath}/admin/manage-feedback?action=delete&id=${c.orderDetailId}" class="btn btn-sm btn-outline-danger rounded-circle" onclick="return confirm('Delete this review?')">
-                            <i class="fas fa-trash"></i>
+                        <a href="${pageContext.request.contextPath}/admin/manage-feedback?action=delete&id=${c.orderDetailId}" class="btn btn-sm btn-danger" onclick="return confirm('Delete this review?')">
+                            <i class="fas fa-trash"></i> Delete
                         </a>
                     </div>
                     <div class="collapse mt-3" id="replyForm${c.orderDetailId}">
@@ -50,7 +50,9 @@
                             <input type="hidden" name="orderDetailId" value="${c.orderDetailId}">
                             <textarea name="responseContent" class="form-control mb-2 rounded-3" rows="2">${c.responseContent}</textarea>
                             <div class="text-end">
-                                <button type="submit" class="btn btn-success btn-sm px-4">Save Response</button>
+                                <button type="submit" class="btn btn-success btn-sm px-4">
+                                    <i class="bi bi-check2-circle"></i> Save Response
+                                </button>
                             </div>
                         </form>
                     </div>

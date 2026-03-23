@@ -2,7 +2,7 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <fmt:setLocale value="vi_VN"/>
-<section class="admin-content__section staff-orders-page">
+<section class="admin-content__section admin-page staff-page staff-page--orders staff-orders-page">
     <div class="page-header">
         <div>
             <h4>Manage Orders</h4>
