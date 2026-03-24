@@ -83,7 +83,7 @@
                 <div class="profile-container">
                     <c:if test="${not empty requestScope.profileMessage}">
                         <c:set var="popupMessage" scope="request" value="${requestScope.profileMessage}" />
-                        <c:set var="popupType" scope="request" value="${requestScope.profileMessage.contains('success') ? 'success' : 'error'}" />
+        <c:set var="popupType" scope="request" value="success" />
                     </c:if>
 
                     <c:choose>

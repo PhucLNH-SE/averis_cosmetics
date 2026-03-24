@@ -972,7 +972,7 @@ public class ProductDAO extends DBContext {
         Integer parsedBrandId = parseNullableInteger(brandId);
         Integer parsedCategoryId = parseNullableInteger(categoryId);
         Boolean parsedStatus = parseNullableStatus(status);
-        return getProductsForManagement(keyword, parsedBrandId, parsedCategoryId, parsedStatus, true, true);
+        return getProductsForManagement(keyword, parsedBrandId, parsedCategoryId, parsedStatus, true, false);
     }
 
     public List<Product> getProductsForStaff(String keyword, Integer brandId, Integer categoryId, Boolean status) {
