@@ -27,9 +27,6 @@
                 ${successMessage}
             </div>
         </c:if>
-        <c:if test="${not empty errors}">
-            <c:set var="popupType" scope="request" value="error" />
-        </c:if>
 
         <form action="${pageContext.request.contextPath}/auth?action=register"
               method="post" novalidate>
@@ -42,6 +39,11 @@
                        value="${param.username}"
                        class="${not empty errors.errorUsername ? 'error' : ''}"
                        required>
+                <c:if test="${not empty errors.errorUsername}">
+                    <span class="error-message">
+                        ${errors.errorUsername}
+                    </span>
+                </c:if>
 
             </div>
 
@@ -53,6 +55,11 @@
                        value="${param.fullname}"
                        class="${not empty errors.errorFullName ? 'error' : ''}"
                        required>
+                <c:if test="${not empty errors.errorFullName}">
+                    <span class="error-message">
+                        ${errors.errorFullName}
+                    </span>
+                </c:if>
 
             </div>
 
@@ -64,6 +71,11 @@
                        value="${param.email}"
                        class="${not empty errors.errorEmail ? 'error' : ''}"
                        required>
+                <c:if test="${not empty errors.errorEmail}">
+                    <span class="error-message">
+                        ${errors.errorEmail}
+                    </span>
+                </c:if>
 
             </div>
 
@@ -74,6 +86,11 @@
                        name="password"
                        class="${not empty errors.errorPassword ? 'error' : ''}"
                        required>
+                <c:if test="${not empty errors.errorPassword}">
+                    <span class="error-message">
+                        ${errors.errorPassword}
+                    </span>
+                </c:if>
 
             </div>
 
@@ -84,6 +101,11 @@
                        name="confirmPassword"
                        class="${not empty errors.errorConfirmPassword ? 'error' : ''}"
                        required>
+                <c:if test="${not empty errors.errorConfirmPassword}">
+                    <span class="error-message">
+                        ${errors.errorConfirmPassword}
+                    </span>
+                </c:if>
 
             </div>
 
@@ -105,6 +127,11 @@
                         Other
                     </option>
                 </select>
+                <c:if test="${not empty errors.errorGender}">
+                    <span class="error-message">
+                        ${errors.errorGender}
+                    </span>
+                </c:if>
 
             </div>
 
@@ -116,6 +143,11 @@
                        value="${param.dateOfBirth}"
                        class="${not empty errors.errorDateOfBirth ? 'error' : ''}"
                        required>
+                <c:if test="${not empty errors.errorDateOfBirth}">
+                    <span class="error-message">
+                        ${errors.errorDateOfBirth}
+                    </span>
+                </c:if>
 
             </div>
 
