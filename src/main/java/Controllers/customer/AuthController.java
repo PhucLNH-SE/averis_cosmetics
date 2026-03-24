@@ -88,10 +88,12 @@ public class AuthController extends HttpServlet {
         String dateOfBirthStr = request.getParameter("dateOfBirth");
 
         Map<String, String> errors = ValidationUtil.validateRegistration(
-                username, fullName, email, password, confirmPassword, dateOfBirthStr
+                username, fullName, email, gender, password, confirmPassword, dateOfBirthStr
         );
 
         if (!errors.isEmpty()) {
+            request.setAttribute("popupMessage", buildRegistrationErrorMessage(errors));
+            request.setAttribute("popupType", "error");
             request.setAttribute("errors", errors);
             request.getRequestDispatcher("/views/customer/auth/register.jsp")
                     .forward(request, response);
@@ -111,6 +113,8 @@ public class AuthController extends HttpServlet {
         }
 
         if (!errors.isEmpty()) {
+            request.setAttribute("popupMessage", buildRegistrationErrorMessage(errors));
+            request.setAttribute("popupType", "error");
             request.setAttribute("errors", errors);
             request.getRequestDispatcher("/views/customer/auth/register.jsp")
                     .forward(request, response);
@@ -124,7 +128,7 @@ public class AuthController extends HttpServlet {
         customer.setFullName(fullName);
         customer.setEmail(email);
         customer.setPassword(BCrypt.hashpw(password, BCrypt.gensalt()));
-        customer.setGender(gender != null && !gender.trim().isEmpty() ? gender.trim() : null);
+        customer.setGender(normalizeGender(gender));
         customer.setDateOfBirth(dateOfBirth);
         customer.setStatus(true);
         customer.setEmailVerified(false);
@@ -134,9 +138,26 @@ public class AuthController extends HttpServlet {
         if (inserted) {
             response.sendRedirect(request.getContextPath() + "/auth?action=login");
         } else {
+            request.setAttribute("popupMessage", "Registration failed. Please try again.");
+            request.setAttribute("popupType", "error");
             request.setAttribute("errorMessage", "Registration failed.");
             request.getRequestDispatcher("/views/customer/auth/register.jsp")
                     .forward(request, response);
+        }
+    }
+
+    private String normalizeGender(String gender) {
+        if (gender == null || gender.trim().isEmpty()) {
+            return null;
+        }
+        String normalized = gender.trim().toUpperCase();
+        switch (normalized) {
+            case "MALE":
+            case "FEMALE":
+            case "OTHER":
+                return normalized;
+            default:
+                return null;
         }
     }
 
@@ -201,5 +222,16 @@ public class AuthController extends HttpServlet {
         }
 
         session.setAttribute("cart", cart);
+    }
+
+    private String buildRegistrationErrorMessage(Map<String, String> errors) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Please fix the highlighted fields and try again.");
+        for (String message : errors.values()) {
+            if (message != null && !message.trim().isEmpty()) {
+                sb.append("\\n").append(message.trim());
+            }
+        }
+        return sb.toString();
     }
 }

@@ -53,7 +53,9 @@
         document.addEventListener('DOMContentLoaded', function () {
             showPopup(
                 ${popupType == 'success' ? 'true' : 'false'},
-                "<c:out value='${popupSafeMessage}'/>".replace(/\r?\n/g, '<br>')
+                "<c:out value='${popupSafeMessage}'/>"
+                    .replace(/\\n/g, '<br>')
+                    .replace(/\r?\n/g, '<br>')
             );
         });
     </script>
