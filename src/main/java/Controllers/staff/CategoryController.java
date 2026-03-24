@@ -18,8 +18,8 @@ public class CategoryController extends HttpServlet {
         List<Category> categories = categoryDAO.getAllCategories();
         request.setAttribute("categories", categories);
         request.setAttribute("currentView", "categories");
-        request.setAttribute("contentPage", "/views/staff/partials/manage-category-content.jsp");
-        request.getRequestDispatcher("/views/staff/staff-panel.jsp").forward(request, response);
+        request.setAttribute("contentPage", "/WEB-INF/views/staff/partials/manage-category-content.jsp");
+        request.getRequestDispatcher("/WEB-INF/views/staff/staff-panel.jsp").forward(request, response);
     }
 
     @Override
@@ -28,3 +28,4 @@ public class CategoryController extends HttpServlet {
         response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
     }
 }
+

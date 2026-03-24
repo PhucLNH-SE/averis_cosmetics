@@ -61,7 +61,7 @@ public class ProfileController extends HttpServlet {
 
         request.setAttribute("tab", tab);
 
-        request.getRequestDispatcher("/views/customer/profile.jsp")
+        request.getRequestDispatcher("/WEB-INF/views/customer/profile.jsp")
                 .forward(request, response);
     }
 
@@ -71,7 +71,7 @@ public class ProfileController extends HttpServlet {
             throws ServletException, IOException {
 
         request.setAttribute("customer", customer);
-        request.getRequestDispatcher("/views/customer/editprofile.jsp")
+        request.getRequestDispatcher("/WEB-INF/views/customer/editprofile.jsp")
                 .forward(request, response);
     }
 
@@ -89,7 +89,7 @@ public class ProfileController extends HttpServlet {
 
             request.setAttribute("error", " The full name cannot be left blank.");
             request.setAttribute("customer", customer);
-            request.getRequestDispatcher("/views/customer/editprofile.jsp")
+            request.getRequestDispatcher("/WEB-INF/views/customer/editprofile.jsp")
                     .forward(request, response);
             return;
         }
@@ -101,7 +101,7 @@ public class ProfileController extends HttpServlet {
             } catch (Exception ex) {
                 request.setAttribute("error", "Date of birth is not in the correct format.");
                 request.setAttribute("customer", customer);
-                request.getRequestDispatcher("/views/customer/editprofile.jsp")
+                request.getRequestDispatcher("/WEB-INF/views/customer/editprofile.jsp")
                         .forward(request, response);
                 return;
             }
@@ -121,7 +121,7 @@ public class ProfileController extends HttpServlet {
         } else {
             request.setAttribute("error", "Update failed.");
             request.setAttribute("customer", customer);
-            request.getRequestDispatcher("/views/customer/editprofile.jsp")
+            request.getRequestDispatcher("/WEB-INF/views/customer/editprofile.jsp")
                     .forward(request, response);
         }
     }
@@ -138,7 +138,7 @@ public class ProfileController extends HttpServlet {
 
         request.setAttribute("tab", "orders");
 
-        request.getRequestDispatcher("/views/customer/profile.jsp")
+        request.getRequestDispatcher("/WEB-INF/views/customer/profile.jsp")
                 .forward(request, response);
     }
 
@@ -152,7 +152,7 @@ public class ProfileController extends HttpServlet {
         OrderDAO dao = new OrderDAO();
         Orders order = dao.getOrderById(orderId);
 
-        // Đã thay đổi hàm gọi thành getOrderDetailsWithReview
+        // ÄÃ£ thay Ä‘á»•i hÃ m gá»i thÃ nh getOrderDetailsWithReview
         List<OrderDetail> details = dao.getOrderDetailsWithReview(orderId);
 
         request.setAttribute("order", order);
@@ -160,7 +160,7 @@ public class ProfileController extends HttpServlet {
         consumeProfileFlashMessage(request.getSession(false), request);
         request.setAttribute("tab", "orderDetail");
 
-        request.getRequestDispatcher("/views/customer/profile.jsp")
+        request.getRequestDispatcher("/WEB-INF/views/customer/profile.jsp")
                 .forward(request, response);
     }
 
@@ -175,7 +175,7 @@ public class ProfileController extends HttpServlet {
         consumeProfileFlashMessage(request.getSession(false), request);
         request.setAttribute("tab", "voucher");
 
-        request.getRequestDispatcher("/views/customer/profile.jsp")
+        request.getRequestDispatcher("/WEB-INF/views/customer/profile.jsp")
                 .forward(request, response);
     }
 
@@ -189,7 +189,7 @@ public class ProfileController extends HttpServlet {
         consumeProfileFlashMessage(request.getSession(false), request);
         request.setAttribute("tab", "feedback");
 
-        request.getRequestDispatcher("/views/customer/profile.jsp")
+        request.getRequestDispatcher("/WEB-INF/views/customer/profile.jsp")
                 .forward(request, response);
     }
 
@@ -223,7 +223,7 @@ public class ProfileController extends HttpServlet {
                 || confirmPassword == null || confirmPassword.isBlank()) {
 
             request.setAttribute("error", "Please enter all the required information.");
-            request.getRequestDispatcher("/views/customer/profile.jsp")
+            request.getRequestDispatcher("/WEB-INF/views/customer/profile.jsp")
                     .forward(request, response);
             return;
         }
@@ -234,7 +234,7 @@ public class ProfileController extends HttpServlet {
         if (!errors.isEmpty()) {
             request.setAttribute("errors", errors);
             request.setAttribute("tab", "password");
-            request.getRequestDispatcher("/views/customer/profile.jsp")
+            request.getRequestDispatcher("/WEB-INF/views/customer/profile.jsp")
                     .forward(request, response);
             return;
         }
@@ -243,28 +243,28 @@ public class ProfileController extends HttpServlet {
 
         if (currentHash == null) {
             request.setAttribute("error", "Unable to retrieve the current password.");
-            request.getRequestDispatcher("/views/customer/profile.jsp")
+            request.getRequestDispatcher("/WEB-INF/views/customer/profile.jsp")
                     .forward(request, response);
             return;
         }
 
         if (!BCrypt.checkpw(oldPassword, currentHash)) {
             request.setAttribute("error", "The old password is incorrect.");
-            request.getRequestDispatcher("/views/customer/profile.jsp")
+            request.getRequestDispatcher("/WEB-INF/views/customer/profile.jsp")
                     .forward(request, response);
             return;
         }
 
         if (BCrypt.checkpw(newPassword, currentHash)) {
             request.setAttribute("error", "The new password must not be the same as the old password.");
-            request.getRequestDispatcher("/views/customer/profile.jsp")
+            request.getRequestDispatcher("/WEB-INF/views/customer/profile.jsp")
                     .forward(request, response);
             return;
         }
 
         if (!newPassword.equals(confirmPassword)) {
             request.setAttribute("error", "The verification password doesn't match.");
-            request.getRequestDispatcher("/views/customer/profile.jsp")
+            request.getRequestDispatcher("/WEB-INF/views/customer/profile.jsp")
                     .forward(request, response);
             return;
         }
@@ -278,13 +278,13 @@ public class ProfileController extends HttpServlet {
             request.setAttribute("profileMessage", "Password changed successfully.");
             request.setAttribute("tab", "password");
 
-            request.getRequestDispatcher("/views/customer/profile.jsp")
+            request.getRequestDispatcher("/WEB-INF/views/customer/profile.jsp")
                     .forward(request, response);
         } else {
             request.setAttribute("error", "Password change failed.");
             request.setAttribute("tab", "password");
 
-            request.getRequestDispatcher("/views/customer/profile.jsp")
+            request.getRequestDispatcher("/WEB-INF/views/customer/profile.jsp")
                     .forward(request, response);
         }
     }
@@ -401,3 +401,4 @@ public class ProfileController extends HttpServlet {
     }
 
 }
+

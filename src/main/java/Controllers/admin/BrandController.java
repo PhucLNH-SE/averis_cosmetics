@@ -32,6 +32,9 @@ public class BrandController extends HttpServlet {
             case "list":
                 listBrands(request, response);
                 break;
+            case "edit":
+                editBrand(request, response);
+                break;
             case "add":
                 addBrand(request, response);
                 break;
@@ -46,7 +49,28 @@ public class BrandController extends HttpServlet {
 
     private void listBrands(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        forwardManageBrand(request, response, null);
+        forwardManageBrand(request, response, null, null, null);
+    }
+
+    private void editBrand(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        String brandIdParam = request.getParameter("id");
+        if (brandIdParam == null || brandIdParam.trim().isEmpty()) {
+            response.sendRedirect(request.getContextPath() + "/admin/manage-brand?error=notFound");
+            return;
+        }
+
+        try {
+            int brandId = Integer.parseInt(brandIdParam);
+            Brand selectedBrand = brandDAO.getById(brandId);
+            if (selectedBrand == null) {
+                response.sendRedirect(request.getContextPath() + "/admin/manage-brand?error=notFound");
+                return;
+            }
+            forwardManageBrand(request, response, selectedBrand, "update", null);
+        } catch (NumberFormatException ex) {
+            response.sendRedirect(request.getContextPath() + "/admin/manage-brand?error=notFound");
+        }
     }
 
     private void addBrand(HttpServletRequest request, HttpServletResponse response)
@@ -55,7 +79,7 @@ public class BrandController extends HttpServlet {
         boolean status = "1".equals(request.getParameter("status"));
 
         if (brandDAO.existsByName(name)) {
-            forwardManageBrand(request, response, "Brand name already exists.");
+            forwardManageBrand(request, response, null, null, "Brand name already exists.");
             return;
         }
 
@@ -78,7 +102,11 @@ public class BrandController extends HttpServlet {
         boolean status = "1".equals(request.getParameter("status"));
 
         if (brandDAO.existsByNameExceptId(name, brandId)) {
-            forwardManageBrand(request, response, "Brand name already exists.");
+            Brand selectedBrand = new Brand();
+            selectedBrand.setBrandId(brandId);
+            selectedBrand.setName(name);
+            selectedBrand.setStatus(status);
+            forwardManageBrand(request, response, selectedBrand, "update", "Brand name already exists.");
             return;
         }
 
@@ -95,16 +123,19 @@ public class BrandController extends HttpServlet {
         }
     }
 
-    private void forwardManageBrand(HttpServletRequest request, HttpServletResponse response, String error)
+    private void forwardManageBrand(HttpServletRequest request, HttpServletResponse response,
+            Brand selectedBrand, String formMode, String error)
             throws ServletException, IOException {
         List<Brand> brands = brandDAO.getAll();
         request.setAttribute("brands", brands);
+        request.setAttribute("selectedBrand", selectedBrand);
+        request.setAttribute("formMode", formMode);
         if (error != null && !error.trim().isEmpty()) {
             request.setAttribute("error", error);
         }
         request.setAttribute("currentView", "brands");
-        request.setAttribute("contentPage", "/views/admin/partials/manage-brand-content.jsp");
-        request.getRequestDispatcher("/views/admin/admin-panel.jsp").forward(request, response);
+        request.setAttribute("contentPage", "/WEB-INF/views/admin/partials/manage-brand-content.jsp");
+        request.getRequestDispatcher("/WEB-INF/views/admin/admin-panel.jsp").forward(request, response);
     }
 
     @Override
@@ -124,3 +155,4 @@ public class BrandController extends HttpServlet {
         return "Brand Controller";
     }
 }
+

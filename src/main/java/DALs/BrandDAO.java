@@ -72,6 +72,7 @@ public class BrandDAO extends DBContext {
         return false;
     }
 
+
     public boolean existsByName(String name) {
         String sql = "SELECT 1 FROM Brand WHERE name = ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {

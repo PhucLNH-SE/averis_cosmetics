@@ -18,8 +18,8 @@ public class BrandController extends HttpServlet {
         List<Brand> brands = dao.getAll();
         request.setAttribute("brands", brands);
         request.setAttribute("currentView", "brands");
-        request.setAttribute("contentPage", "/views/staff/partials/manage-brand-content.jsp");
-        request.getRequestDispatcher("/views/staff/staff-panel.jsp").forward(request, response);
+        request.setAttribute("contentPage", "/WEB-INF/views/staff/partials/manage-brand-content.jsp");
+        request.getRequestDispatcher("/WEB-INF/views/staff/staff-panel.jsp").forward(request, response);
     }
 
     @Override
@@ -28,3 +28,4 @@ public class BrandController extends HttpServlet {
         doGet(request, response);
     }
 }
+

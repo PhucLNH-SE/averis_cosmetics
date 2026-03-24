@@ -1,12 +1,13 @@
 ﻿<%@ page pageEncoding="UTF-8" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
 <div class="topbar-shell">
   <div class="topbar">
     <div class="menu-wrap">
       <div class="menu">
-        <a href="<%=request.getContextPath()%>/">Home</a>
+        <a href="${pageContext.request.contextPath}/">Home</a>
         <div class="products-menu" id="productsMenu">
-          <a href="<%=request.getContextPath()%>/products" class="products-trigger">Products</a>
+          <a href="${pageContext.request.contextPath}/products" class="products-trigger">Products</a>
           <div class="products-dropdown" id="productsDropdown">
             <div class="products-dropdown-left">
               <button type="button" class="products-tab active" data-tab="category">Category</button>
@@ -19,13 +20,13 @@
             </div>
           </div>
         </div>
-        <a href="<%=request.getContextPath()%>/introduce">About Us</a>
-        <a href="<%=request.getContextPath()%>/contact">Contact</a>
+        <a href="${pageContext.request.contextPath}/introduce">About Us</a>
+        <a href="${pageContext.request.contextPath}/contact">Contact</a>
       </div>
     </div>
 
-    <a class="brand" href="<%=request.getContextPath()%>/">
-      <img src="<%=request.getContextPath()%>/assets/img/Logo.png" alt="Averis Logo">
+    <a class="brand" href="${pageContext.request.contextPath}/">
+      <img src="${pageContext.request.contextPath}/assets/img/Logo.png" alt="Averis Logo">
       <div class="brand-name">
         <div class="brand-main">AVERIS</div>
         <div class="brand-sub">COSMETICS</div>
@@ -46,26 +47,21 @@
         </div>
       </div>
 
-      <a class="icon" href="<%=request.getContextPath()%>/cart" aria-label="Cart">
-        <img class="cart-img" src="<%=request.getContextPath()%>/assets/img/Cart.png" alt="Cart">
+      <a class="icon" href="${pageContext.request.contextPath}/cart" aria-label="Cart">
+        <img class="cart-img" src="${pageContext.request.contextPath}/assets/img/Cart.png" alt="Cart">
         <span id="cartCount" class="cart-count-badge">
             ${sessionScope.cart != null ? sessionScope.cart.size() : 0}
         </span>
       </a>
-
-      <% 
-          Object customerObj = session.getAttribute("customer"); 
-          if (customerObj != null) { 
-      %>
-          <a class="icon" href="<%=request.getContextPath()%>/profile?action=view">Welcome, <%= ((Model.Customer)customerObj).getUsername() %>!</a>
-          <a class="icon" href="<%=request.getContextPath()%>/logout">Logout</a>
-      <% 
-          } else { 
-      %>
-          <a class="icon" href="<%=request.getContextPath()%>/auth">Register/Login</a>
-      <% 
-          } 
-      %>
+      <c:choose>
+        <c:when test="${not empty sessionScope.customer}">
+          <a class="icon" href="${pageContext.request.contextPath}/profile?action=view">Welcome, ${sessionScope.customer.username}!</a>
+          <a class="icon" href="${pageContext.request.contextPath}/logout">Logout</a>
+        </c:when>
+        <c:otherwise>
+          <a class="icon" href="${pageContext.request.contextPath}/auth">Register/Login</a>
+        </c:otherwise>
+      </c:choose>
     </div>
 
   </div>
@@ -116,7 +112,7 @@
 
     if (topSalesBtn) {
       topSalesBtn.addEventListener('click', function () {
-        window.location.href = '<%=request.getContextPath()%>/products?sort=top_sales';
+        window.location.href = '${pageContext.request.contextPath}/products?sort=top_sales';
       });
     }
 
@@ -172,16 +168,16 @@
         const keyword = this.value.trim();
 
         if (keyword === '') {
-          window.location.href = '<%=request.getContextPath()%>/products';
+          window.location.href = '${pageContext.request.contextPath}/products';
           return;
         }
 
-        window.location.href = '<%=request.getContextPath()%>/products?keyword=' + encodeURIComponent(keyword);
+        window.location.href = '${pageContext.request.contextPath}/products?keyword=' + encodeURIComponent(keyword);
       });
     }
 
     function loadHeaderMenuData() {
-      fetch('<%=request.getContextPath()%>/header-menu-data')
+      fetch('${pageContext.request.contextPath}/header-menu-data')
         .then(response => response.json())
         .then(data => {
           renderFilterPanel(categoryPanel, data.categories || [], 'category');
@@ -207,7 +203,7 @@
         const link = document.createElement('a');
         link.className = 'products-filter-link';
         link.textContent = item.name;
-        link.href = '<%=request.getContextPath()%>/products?' + type + '=' + encodeURIComponent(item.name);
+        link.href = '${pageContext.request.contextPath}/products?' + type + '=' + encodeURIComponent(item.name);
         panel.appendChild(link);
       });
     }
@@ -231,7 +227,7 @@
     }
 
     function fetchSuggestions(keyword) {
-      fetch('<%=request.getContextPath()%>/products/suggest?keyword=' + encodeURIComponent(keyword), {
+      fetch('${pageContext.request.contextPath}/products/suggest?keyword=' + encodeURIComponent(keyword), {
         headers: {
           'X-Requested-With': 'XMLHttpRequest'
         }
@@ -260,18 +256,18 @@
       products.forEach(product => {
         const item = document.createElement('a');
         item.className = 'search-item';
-        item.href = '<%=request.getContextPath()%>/products?id=' + product.productId;
+        item.href = '${pageContext.request.contextPath}/products?id=' + product.productId;
 
-        let imageUrl = '<%=request.getContextPath()%>/assets/img/default-product.jpg';
+        let imageUrl = '${pageContext.request.contextPath}/assets/img/default-product.jpg';
         let targetImage = product.mainImage || (product.images && product.images.length > 0 ? product.images[0].image : null);
 
         if (targetImage) {
           let folder = targetImage.includes('-') ? 'products/' : '';
-          imageUrl = '<%=request.getContextPath()%>/assets/img/' + folder + targetImage;
+          imageUrl = '${pageContext.request.contextPath}/assets/img/' + folder + targetImage;
         }
 
         item.innerHTML = '<div class="search-item-image">' +
-                           '<img src="' + imageUrl + '" alt="' + product.name + '" onerror="this.src=\'<%=request.getContextPath()%>/assets/img/default-product.jpg\';">' +
+                           '<img src="' + imageUrl + '" alt="' + product.name + '" onerror="this.src=\'${pageContext.request.contextPath}/assets/img/default-product.jpg\';">' +
                          '</div>' +
                          '<div class="search-item-info">' +
                            '<div class="search-item-name">' + product.name + '</div>' +
@@ -304,6 +300,7 @@
     
   });
 </script>
+
 
 
 

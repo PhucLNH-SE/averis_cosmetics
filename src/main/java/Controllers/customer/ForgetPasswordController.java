@@ -57,7 +57,7 @@ public class ForgetPasswordController extends HttpServlet {
 
     private void showForgetPasswordPage(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        request.getRequestDispatcher("/views/customer/forgetpassword.jsp")
+        request.getRequestDispatcher("/WEB-INF/views/customer/forgetpassword.jsp")
                 .forward(request, response);
     }
 
@@ -69,7 +69,7 @@ public class ForgetPasswordController extends HttpServlet {
 
         if (email.isEmpty()) {
             request.setAttribute("error", "Please enter your email address.");
-            request.getRequestDispatcher("/views/customer/forgetpassword.jsp")
+            request.getRequestDispatcher("/WEB-INF/views/customer/forgetpassword.jsp")
                     .forward(request, response);
             return;
         }
@@ -80,7 +80,7 @@ public class ForgetPasswordController extends HttpServlet {
         if (customer == null) {
             request.setAttribute("error",
                     "The email address does not exist or has not been verified.");
-            request.getRequestDispatcher("/views/customer/forgetpassword.jsp")
+            request.getRequestDispatcher("/WEB-INF/views/customer/forgetpassword.jsp")
                     .forward(request, response);
             return;
         }
@@ -92,7 +92,7 @@ public class ForgetPasswordController extends HttpServlet {
         if (!saved) {
             request.setAttribute("error",
                     "Unable to create a reset link. Please try again.");
-            request.getRequestDispatcher("/views/customer/forgetpassword.jsp")
+            request.getRequestDispatcher("/WEB-INF/views/customer/forgetpassword.jsp")
                     .forward(request, response);
             return;
         }
@@ -106,7 +106,7 @@ public class ForgetPasswordController extends HttpServlet {
 
         request.setAttribute("msg",
                 "Please check your email to reset your password.");
-        request.getRequestDispatcher("/views/customer/forgetpassword.jsp")
+        request.getRequestDispatcher("/WEB-INF/views/customer/forgetpassword.jsp")
                 .forward(request, response);
     }
 
@@ -120,13 +120,13 @@ public class ForgetPasswordController extends HttpServlet {
         Customer customer = customerDAO.findByResetToken(token);
 
         if (token.isEmpty() || customer == null) {
-            request.getRequestDispatcher("/views/customer/invalidtoken.jsp")
+            request.getRequestDispatcher("/WEB-INF/views/customer/invalidtoken.jsp")
                     .forward(request, response);
             return;
         }
 
         request.setAttribute("token", token);
-        request.getRequestDispatcher("/views/customer/resetpassword.jsp")
+        request.getRequestDispatcher("/WEB-INF/views/customer/resetpassword.jsp")
                 .forward(request, response);
     }
 
@@ -146,7 +146,7 @@ public class ForgetPasswordController extends HttpServlet {
         if (!errors.isEmpty()) {
             request.setAttribute("errors", errors);
             request.setAttribute("token", token);
-            request.getRequestDispatcher("/views/customer/resetpassword.jsp")
+            request.getRequestDispatcher("/WEB-INF/views/customer/resetpassword.jsp")
                     .forward(request, response);
             return;
         }
@@ -157,7 +157,7 @@ public class ForgetPasswordController extends HttpServlet {
         if (!updated) {
             request.setAttribute("error", "The token is invalid or has expired.");
             request.setAttribute("token", token);
-            request.getRequestDispatcher("/views/customer/resetpassword.jsp")
+            request.getRequestDispatcher("/WEB-INF/views/customer/resetpassword.jsp")
                     .forward(request, response);
             return;
         }
@@ -165,3 +165,4 @@ public class ForgetPasswordController extends HttpServlet {
         response.sendRedirect(request.getContextPath() + "/auth?action=login");
     }
 }
+

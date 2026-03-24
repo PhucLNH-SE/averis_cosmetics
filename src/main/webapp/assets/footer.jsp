@@ -45,5 +45,6 @@
     </div>
 </footer>
 
-<jsp:include page="/views/common/popup.jsp" />
+<jsp:include page="/WEB-INF/views/common/popup.jsp" />
+
 

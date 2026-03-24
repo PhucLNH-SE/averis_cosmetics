@@ -165,9 +165,9 @@ public class AdminManageOrderController extends HttpServlet {
         request.setAttribute("currentView", "orders");
 
         request.setAttribute("contentPage",
-                "/views/admin/partials/manage-orders-content.jsp");
+                "/WEB-INF/views/admin/partials/manage-orders-content.jsp");
 
-        request.getRequestDispatcher("/views/admin/admin-panel.jsp")
+        request.getRequestDispatcher("/WEB-INF/views/admin/admin-panel.jsp")
                 .forward(request, response);
     }
 
@@ -190,8 +190,8 @@ public class AdminManageOrderController extends HttpServlet {
         }
 
         request.setAttribute("currentView", "orders");
-        request.setAttribute("contentPage", "/views/admin/partials/order-detail-content.jsp");
-        request.getRequestDispatcher("/views/admin/admin-panel.jsp").forward(request, response);
+        request.setAttribute("contentPage", "/WEB-INF/views/admin/partials/order-detail-content.jsp");
+        request.getRequestDispatcher("/WEB-INF/views/admin/admin-panel.jsp").forward(request, response);
     }
 
     private boolean equalsIgnoreCase(String left, String right) {
@@ -201,3 +201,4 @@ public class AdminManageOrderController extends HttpServlet {
         return left.equalsIgnoreCase(right);
     }
 }
+

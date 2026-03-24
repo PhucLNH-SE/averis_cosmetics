@@ -11,17 +11,9 @@ public class StaffController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        String action = request.getParameter("action");
-        if (action == null) {
-            action = "dashboard";
-        }
-
-        switch (action) {
-            case "dashboard":
-            default:
-                response.sendRedirect(request.getContextPath() + "/staff/panel?view=dashboard");
-                break;
-        }
+        request.setAttribute("currentView", "dashboard");
+        request.setAttribute("contentPage", "/WEB-INF/views/staff/partials/dashboard-content.jsp");
+        request.getRequestDispatcher("/WEB-INF/views/staff/staff-panel.jsp").forward(request, response);
     }
 
     @Override

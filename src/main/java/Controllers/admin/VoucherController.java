@@ -28,21 +28,12 @@ public class VoucherController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        String path = request.getServletPath();
-        switch (path) {
-            case "/admin/create-voucher":
-                request.setAttribute("formMode", "create");
-                showManageVoucher(request, response);
-                break;
-            case "/admin/update-voucher":
-                request.setAttribute("formMode", "update");
-                showManageVoucher(request, response);
-                break;
-            case "/admin/manage-voucher":
-            default:
-                showManageVoucher(request, response);
-                break;
+        String action = request.getParameter("action");
+        if ("edit".equalsIgnoreCase(action)) {
+            showEditVoucherForm(request, response);
+            return;
         }
+        showManageVoucher(request, response, null, null);
     }
 
     @Override
@@ -67,13 +58,37 @@ public class VoucherController extends HttpServlet {
         }
     }
 
-    private void showManageVoucher(HttpServletRequest request, HttpServletResponse response)
+    private void showManageVoucher(HttpServletRequest request, HttpServletResponse response,
+            Voucher selectedVoucher, String formMode)
             throws ServletException, IOException {
         List<Voucher> vouchers = voucherDAO.getAll();
         request.setAttribute("vouchers", vouchers);
+        request.setAttribute("selectedVoucher", selectedVoucher);
+        request.setAttribute("formMode", formMode);
         request.setAttribute("currentView", "voucher");
-        request.setAttribute("contentPage", "/views/admin/partials/manage-voucher-content.jsp");
-        request.getRequestDispatcher("/views/admin/admin-panel.jsp").forward(request, response);
+        request.setAttribute("contentPage", "/WEB-INF/views/admin/partials/manage-voucher-content.jsp");
+        request.getRequestDispatcher("/WEB-INF/views/admin/admin-panel.jsp").forward(request, response);
+    }
+
+    private void showEditVoucherForm(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        String idParam = request.getParameter("id");
+        if (idParam == null || idParam.trim().isEmpty()) {
+            response.sendRedirect(request.getContextPath() + "/admin/manage-voucher?error=notFound");
+            return;
+        }
+
+        try {
+            int voucherId = Integer.parseInt(idParam);
+            Voucher selectedVoucher = voucherDAO.getById(voucherId);
+            if (selectedVoucher == null) {
+                response.sendRedirect(request.getContextPath() + "/admin/manage-voucher?error=notFound");
+                return;
+            }
+            showManageVoucher(request, response, selectedVoucher, "update");
+        } catch (NumberFormatException ex) {
+            response.sendRedirect(request.getContextPath() + "/admin/manage-voucher?error=notFound");
+        }
     }
 
     private void createVoucher(HttpServletRequest request, HttpServletResponse response)
@@ -253,3 +268,4 @@ public class VoucherController extends HttpServlet {
         }
     }
 }
+

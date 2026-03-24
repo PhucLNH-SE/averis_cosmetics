@@ -67,7 +67,7 @@ public class CheckoutController extends HttpServlet {
                 getCheckoutVouchers(customer.getCustomerId())
         );
 
-        req.getRequestDispatcher("/views/customer/checkout.jsp").forward(req, resp);
+        req.getRequestDispatcher("/WEB-INF/views/customer/checkout.jsp").forward(req, resp);
     }
 
     @Override
@@ -160,7 +160,7 @@ public class CheckoutController extends HttpServlet {
                 selectedPaymentMethod,
                 resolution.isClaimedDuringCheckout() ? getCheckoutVouchers(customer.getCustomerId()) : vouchers);
 
-        req.getRequestDispatcher("/views/customer/checkout.jsp").forward(req, resp);
+        req.getRequestDispatcher("/WEB-INF/views/customer/checkout.jsp").forward(req, resp);
     }
 
     private void handlePlaceOrder(HttpServletRequest req, HttpServletResponse resp,
@@ -269,7 +269,7 @@ public class CheckoutController extends HttpServlet {
 
         req.setAttribute("error", error);
         setCheckoutAttributes(req, customer, addresses, cart, subtotal, BigDecimal.ZERO, subtotal, voucherCode, paymentMethod, vouchers);
-        req.getRequestDispatcher("/views/customer/checkout.jsp").forward(req, resp);
+        req.getRequestDispatcher("/WEB-INF/views/customer/checkout.jsp").forward(req, resp);
     }
 
     private void redirectError(HttpServletResponse resp, HttpServletRequest req, String msg) throws IOException {
@@ -462,3 +462,4 @@ public class CheckoutController extends HttpServlet {
         }
     }
 }
+

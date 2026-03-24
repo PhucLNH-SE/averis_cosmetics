@@ -15,10 +15,15 @@ public class CategoryController extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String path = request.getServletPath();
+        String action = request.getParameter("action");
 
         switch (path) {
             case "/admin/manage-category":
-                forwardManageCategory(request, response);
+                if ("edit".equalsIgnoreCase(action)) {
+                    showEditCategoryForm(request, response);
+                } else {
+                    forwardManageCategory(request, response, null, null, null);
+                }
                 break;
             default:
                 response.sendError(HttpServletResponse.SC_NOT_FOUND);
@@ -41,6 +46,10 @@ public class CategoryController extends HttpServlet {
                     response.sendRedirect(request.getContextPath() + "/admin/manage-category?error=addFailed");
                     break;
                 }
+                if (dao.existsByName(name)) {
+                    forwardManageCategory(request, response, null, null, "Category name already exists.");
+                    return;
+                }
                 boolean added = dao.addCategory(name, status);
                 response.sendRedirect(request.getContextPath()
                         + (added ? "/admin/manage-category?success=add"
@@ -55,6 +64,14 @@ public class CategoryController extends HttpServlet {
                     if (name == null) {
                         response.sendRedirect(request.getContextPath() + "/admin/manage-category?error=updateFailed");
                         break;
+                    }
+                    if (dao.existsByNameExceptId(name, id)) {
+                        Category selectedCategory = new Category();
+                        selectedCategory.setCategoryId(id);
+                        selectedCategory.setName(name);
+                        selectedCategory.setStatus(status);
+                        forwardManageCategory(request, response, selectedCategory, "update", "Category name already exists.");
+                        return;
                     }
                     boolean updated = dao.updateCategory(id, name, status);
                     response.sendRedirect(request.getContextPath()
@@ -71,16 +88,43 @@ public class CategoryController extends HttpServlet {
         }
     }
 
-    private void forwardManageCategory(HttpServletRequest request, HttpServletResponse response)
+    private void showEditCategoryForm(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        String idParam = request.getParameter("id");
+        if (idParam == null || idParam.trim().isEmpty()) {
+            response.sendRedirect(request.getContextPath() + "/admin/manage-category?error=notFound");
+            return;
+        }
+
+        try {
+            int id = Integer.parseInt(idParam);
+            CategoryDAO dao = new CategoryDAO();
+            Category selectedCategory = dao.getCategoryById(id);
+            if (selectedCategory == null) {
+                response.sendRedirect(request.getContextPath() + "/admin/manage-category?error=notFound");
+                return;
+            }
+            forwardManageCategory(request, response, selectedCategory, "update", null);
+        } catch (NumberFormatException e) {
+            response.sendRedirect(request.getContextPath() + "/admin/manage-category?error=notFound");
+        }
+    }
+
+    private void forwardManageCategory(HttpServletRequest request, HttpServletResponse response,
+            Category selectedCategory, String formMode, String error)
             throws ServletException, IOException {
         CategoryDAO dao = new CategoryDAO();
         List<Category> categories = dao.getAllCategories();
         request.setAttribute("categories", categories);
+        request.setAttribute("selectedCategory", selectedCategory);
+        request.setAttribute("formMode", formMode);
+        if (error != null && !error.trim().isEmpty()) {
+            request.setAttribute("error", error);
+        }
         request.setAttribute("currentView", "categories");
-        request.setAttribute("contentPage", "/views/admin/partials/manage-category-content.jsp");
-        request.getRequestDispatcher("/views/admin/admin-panel.jsp").forward(request, response);
+        request.setAttribute("contentPage", "/WEB-INF/views/admin/partials/manage-category-content.jsp");
+        request.getRequestDispatcher("/WEB-INF/views/admin/admin-panel.jsp").forward(request, response);
     }
-
     private boolean parseStatus(String statusParam) {
         return "on".equalsIgnoreCase(statusParam)
                 || "1".equals(statusParam)

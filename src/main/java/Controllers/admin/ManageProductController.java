@@ -31,6 +31,9 @@ public class ManageProductController extends HttpServlet {
         }
 
         switch (action) {
+            case "edit":
+                handleEdit(request, response, dao, session);
+                return;
             case "delete":
                 handleDelete(request, response, dao, session);
                 return;
@@ -77,6 +80,13 @@ public class ManageProductController extends HttpServlet {
     private void loadProductPage(HttpServletRequest request, HttpServletResponse response,
                                  ProductDAO dao, HttpSession session)
             throws ServletException, IOException {
+        loadProductPage(request, response, dao, session, null, null);
+    }
+
+    private void loadProductPage(HttpServletRequest request, HttpServletResponse response,
+                                 ProductDAO dao, HttpSession session,
+                                 Product selectedProduct, String formMode)
+            throws ServletException, IOException {
 
         if (session.getAttribute("successMsg") != null) {
             request.setAttribute("successMsg", session.getAttribute("successMsg"));
@@ -114,11 +124,34 @@ public class ManageProductController extends HttpServlet {
         request.setAttribute("resultCount", listP.size());
         request.setAttribute("activeCount", activeCount);
         request.setAttribute("inactiveCount", listP.size() - activeCount);
+        request.setAttribute("selectedProduct", selectedProduct);
+        request.setAttribute("formMode", formMode);
 
         request.setAttribute("currentView", "products");
-        request.setAttribute("contentPage", "/views/admin/partials/manage-product-content.jsp");
+        request.setAttribute("contentPage", "/WEB-INF/views/admin/partials/manage-product-content.jsp");
 
-        request.getRequestDispatcher("/views/admin/admin-panel.jsp").forward(request, response);
+        request.getRequestDispatcher("/WEB-INF/views/admin/admin-panel.jsp").forward(request, response);
+    }
+
+    private void handleEdit(HttpServletRequest request, HttpServletResponse response,
+                            ProductDAO dao, HttpSession session)
+            throws ServletException, IOException {
+
+        int id = parseInt(request.getParameter("id"));
+        if (id <= 0) {
+            session.setAttribute("errorMsg", "Product not found.");
+            response.sendRedirect(buildManageProductRedirect(request));
+            return;
+        }
+
+        Product selectedProduct = dao.getProductById(id);
+        if (selectedProduct == null) {
+            session.setAttribute("errorMsg", "Product not found.");
+            response.sendRedirect(buildManageProductRedirect(request));
+            return;
+        }
+
+        loadProductPage(request, response, dao, session, selectedProduct, "update");
     }
 
     private void handleDelete(HttpServletRequest request, HttpServletResponse response,
@@ -317,3 +350,4 @@ public class ManageProductController extends HttpServlet {
         return null;
     }
 }
+
