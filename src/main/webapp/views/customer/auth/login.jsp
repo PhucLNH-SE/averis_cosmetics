@@ -28,13 +28,9 @@
                 ${successMessage}
             </div>
         </c:if>
-        <c:if test="${not empty errors}">
-            <c:set var="popupMessage" scope="request" value="Please fix the highlighted fields and try again." />
-            <c:set var="popupType" scope="request" value="error" />
-        </c:if>
 
         <form action="${pageContext.request.contextPath}/auth?action=login"
-              method="post">
+              method="post" novalidate>
 
             <div class="form-group">
                 <label>Username</label>
@@ -62,19 +58,6 @@
             </button>
 
         </form>
-
-        <!-- ERROR MESSAGE (for login failure, account deactivated) -->
-        <c:if test="${not empty errorMessage}">
-            <c:set var="popupMessage" scope="request" value="${errorMessage}" />
-            <c:set var="popupType" scope="request" value="error" />
-        </c:if>
-
-        <!-- SUCCESS MESSAGE -->
-        <c:if test="${not empty successMessage}">
-            <div class="success-message">
-                ${successMessage}
-            </div>
-        </c:if>
 
         <div class="auth-links">
             <p>

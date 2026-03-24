@@ -99,13 +99,23 @@ public class ManageOrderController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-
         String action = request.getParameter("action");
-        if (!"update".equals(action)) {
-            doGet(request, response);
-            return;
+        if (action == null) {
+            action = "";
         }
 
+        switch (action) {
+            case "update":
+                UpdateOrderStatus(request, response);
+                break;
+            default:
+                doGet(request, response);
+                break;
+        }
+    }
+
+    private void UpdateOrderStatus(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
         HttpSession session = request.getSession(false);
         Manager manager = session == null ? null : (Manager) session.getAttribute("manager");
         if (manager == null || !"STAFF".equalsIgnoreCase(manager.getManagerRole())) {
