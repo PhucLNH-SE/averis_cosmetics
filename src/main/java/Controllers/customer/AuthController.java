@@ -92,8 +92,6 @@ public class AuthController extends HttpServlet {
         );
 
         if (!errors.isEmpty()) {
-            request.setAttribute("popupMessage", buildRegistrationErrorMessage(errors));
-            request.setAttribute("popupType", "error");
             request.setAttribute("errors", errors);
             request.getRequestDispatcher("/views/customer/auth/register.jsp")
                     .forward(request, response);
@@ -113,8 +111,6 @@ public class AuthController extends HttpServlet {
         }
 
         if (!errors.isEmpty()) {
-            request.setAttribute("popupMessage", buildRegistrationErrorMessage(errors));
-            request.setAttribute("popupType", "error");
             request.setAttribute("errors", errors);
             request.getRequestDispatcher("/views/customer/auth/register.jsp")
                     .forward(request, response);
@@ -183,8 +179,9 @@ public class AuthController extends HttpServlet {
         if (customer != null && BCrypt.checkpw(password, customer.getPassword())) {
 
             if (!customer.getStatus()) {
-                request.setAttribute("errorMessage",
+                request.setAttribute("popupMessage",
                         "Your account has been deactivated.");
+                request.setAttribute("popupType", "error");
                 request.getRequestDispatcher("/views/customer/auth/login.jsp")
                         .forward(request, response);
                 return;
@@ -198,8 +195,9 @@ public class AuthController extends HttpServlet {
             response.sendRedirect(request.getContextPath() + "/home");
 
         } else {
-            request.setAttribute("errorMessage",
+            request.setAttribute("popupMessage",
                     "Invalid username or password.");
+            request.setAttribute("popupType", "error");
             request.getRequestDispatcher("/views/customer/auth/login.jsp")
                     .forward(request, response);
         }
@@ -225,6 +223,17 @@ public class AuthController extends HttpServlet {
     }
 
     private String buildRegistrationErrorMessage(Map<String, String> errors) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Please fix the highlighted fields and try again.");
+        for (String message : errors.values()) {
+            if (message != null && !message.trim().isEmpty()) {
+                sb.append("\\n").append(message.trim());
+            }
+        }
+        return sb.toString();
+    }
+
+    private String buildLoginErrorMessage(Map<String, String> errors) {
         StringBuilder sb = new StringBuilder();
         sb.append("Please fix the highlighted fields and try again.");
         for (String message : errors.values()) {
