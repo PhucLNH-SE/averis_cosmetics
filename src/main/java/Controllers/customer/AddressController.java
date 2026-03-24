@@ -1,7 +1,6 @@
 package Controllers.customer;
 
 import DALs.AddressDAO;
-import DALs.CustomerDAO;
 import Model.Address;
 import Model.Customer;
 import java.io.IOException;
@@ -42,9 +41,6 @@ public class AddressController extends HttpServlet {
             case "edit":
                 showEditForm(request, response, customer);
                 break;
-            case "delete":
-                deleteAddress(request, response, customer);
-                break;
             case "setdefault":
                 setDefaultAddress(request, response, customer);
                 break;
@@ -78,6 +74,9 @@ public class AddressController extends HttpServlet {
             case "edit":
                 updateAddress(request, response, customer);
                 break;
+            case "delete":
+                deleteAddress(request, response, customer);
+                break;
             default:
                 redirectToAddressList(request, response);
                 break;
@@ -90,10 +89,11 @@ public class AddressController extends HttpServlet {
             Customer sessionCustomer)
             throws ServletException, IOException {
 
-        Customer customer = loadCurrentCustomer(session, sessionCustomer, request);
+        Customer customer = sessionCustomer;
         AddressDAO addressDAO = new AddressDAO();
         List<Address> addresses = addressDAO.getAddressesByCustomerId(customer.getCustomerId());
 
+        request.setAttribute("customer", customer);
         request.setAttribute("addresses", addresses);
         request.setAttribute("tab", "address");
         consumeProfileFlashMessage(session, request);
@@ -360,23 +360,6 @@ public class AddressController extends HttpServlet {
         }
 
         redirectToAddressList(request, response);
-    }
-
-    private Customer loadCurrentCustomer(HttpSession session,
-            Customer sessionCustomer,
-            HttpServletRequest request) {
-
-        CustomerDAO customerDAO = new CustomerDAO();
-        Customer customer = customerDAO.getCustomerById(sessionCustomer.getCustomerId());
-
-        if (customer != null) {
-            request.setAttribute("customer", customer);
-            session.setAttribute("customer", customer);
-            return customer;
-        }
-
-        request.setAttribute("customer", sessionCustomer);
-        return sessionCustomer;
     }
 
     private void consumeProfileFlashMessage(HttpSession session, HttpServletRequest request) {

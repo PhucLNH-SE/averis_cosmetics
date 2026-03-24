@@ -3,6 +3,18 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <fmt:setLocale value="vi_VN"/>
 
+<style>
+    .admin-actions-stack {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        align-items: center;
+    }
+    .admin-actions-stack .btn {
+        min-width: 110px;
+    }
+</style>
+
 <section class="admin-content__section admin-page admin-page--product">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
@@ -187,43 +199,45 @@
                                 </span>
                             </td>
                             <td class="text-center">
-                                <button class="btn btn-info btn-sm px-3 text-white me-1"
-                                        data-id="${p.productId}"
-                                        data-name="<c:out value='${p.name}' />"
-                                        onclick="openVariantModal(this)">
-                                    <i class="fas fa-tags me-1"></i> Variants
-                                </button>
+                                <div class="admin-actions-stack">
+                                    <button class="btn btn-info btn-sm px-3 text-white"
+                                            data-id="${p.productId}"
+                                            data-name="<c:out value='${p.name}' />"
+                                            onclick="openVariantModal(this)">
+                                        <i class="fas fa-tags me-1"></i> Variants
+                                    </button>
 
-                                <button class="btn btn-primary btn-sm px-3 me-1"
-                                        data-id="${p.productId}"
-                                        data-name="<c:out value='${p.name}' />"
-                                        data-brand="${p.brand.brandId}"
-                                        data-category="${p.category.categoryId}"
-                                        data-status="${p.status}"
-                                        data-desc="<c:out value='${p.description}' />"
-                                        data-image="${not empty p.mainImage ? p.mainImage : 'Logo.png'}"
-                                        onclick="openEditModal(this)">
-                                    <i class="fas fa-edit me-1"></i> Detail
-                                </button>
+                                    <button class="btn btn-primary btn-sm px-3"
+                                            data-id="${p.productId}"
+                                            data-name="<c:out value='${p.name}' />"
+                                            data-brand="${p.brand.brandId}"
+                                            data-category="${p.category.categoryId}"
+                                            data-status="${p.status}"
+                                            data-desc="<c:out value='${p.description}' />"
+                                            data-image="${not empty p.mainImage ? p.mainImage : 'Logo.png'}"
+                                            onclick="openEditModal(this)">
+                                        <i class="fas fa-edit me-1"></i> Detail
+                                    </button>
 
-                                <c:choose>
-                                    <c:when test="${p.status}">
-                                        <button class="btn btn-danger btn-sm px-3"
-                                                data-id="${p.productId}"
-                                                data-name="<c:out value='${p.name}' />"
-                                                onclick="openHideModal(this)">
-                                            <i class="fas fa-eye-slash me-1"></i> Hide
-                                        </button>
-                                    </c:when>
-                                    <c:otherwise>
-                                        <button class="btn btn-success btn-sm px-3"
-                                                data-id="${p.productId}"
-                                                data-name="<c:out value='${p.name}' />"
-                                                onclick="openShowModal(this)">
-                                            <i class="fas fa-eye me-1"></i> Show
-                                        </button>
-                                    </c:otherwise>
-                                </c:choose>
+                                    <c:choose>
+                                        <c:when test="${p.status}">
+                                            <button class="btn btn-danger btn-sm px-3"
+                                                    data-id="${p.productId}"
+                                                    data-name="<c:out value='${p.name}' />"
+                                                    onclick="openHideModal(this)">
+                                                <i class="fas fa-eye-slash me-1"></i> Hide
+                                            </button>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <button class="btn btn-success btn-sm px-3"
+                                                    data-id="${p.productId}"
+                                                    data-name="<c:out value='${p.name}' />"
+                                                    onclick="openShowModal(this)">
+                                                <i class="fas fa-eye me-1"></i> Show
+                                            </button>
+                                        </c:otherwise>
+                                    </c:choose>
+                                </div>
                             </td>
                         </tr>
                     </c:forEach>
@@ -269,11 +283,13 @@
                                     </div>
                                     <div class="variant-item__field variant-item__field--price">
                                         <label class="small text-muted mb-1 fw-bold">Price (VND)</label>
-                                        <input type="number" step="0.01" name="price" class="form-control form-control-sm text-danger fw-bold" value="${v.price}" required>
+                                        <input type="text" name="price" class="form-control form-control-sm text-danger fw-bold price-input"
+                                               value="<fmt:formatNumber value='${v.price}' pattern='#,##0'/>"
+                                               inputmode="numeric" autocomplete="off" required>
                                     </div>
                                     <div class="variant-item__field variant-item__field--stock">
                                         <label class="small text-muted mb-1 fw-bold text-success">Stock</label>
-                                        <input type="number" min="0" name="stock" class="form-control form-control-sm text-center fw-bold text-success" value="${v.stock}" required>
+                                        <input type="number" min="0" name="stock" class="form-control form-control-sm text-center fw-bold text-success" value="${v.stock}" readonly>
                                     </div>
 
                                     <button type="submit" class="variant-action-btn variant-action-btn--save" title="Save changes">
@@ -328,11 +344,12 @@
                             </div>
                             <div class="col-md-3">
                                 <label class="small text-muted mb-1 fw-bold">Price</label>
-                                <input type="number" step="0.01" name="price" class="form-control form-control-sm" placeholder="Price" required>
+                                <input type="text" name="price" class="form-control form-control-sm price-input"
+                                       placeholder="Price" inputmode="numeric" autocomplete="off" required>
                             </div>
                             <div class="col-md-2">
                                 <label class="small text-muted mb-1 fw-bold text-success">Stock</label>
-                                <input type="number" min="0" name="stock" class="form-control form-control-sm" placeholder="0" required>
+                                <input type="number" min="0" name="stock" class="form-control form-control-sm" value="0" readonly>
                             </div>
                             <div class="col-md-3 d-flex justify-content-end">
                                 <button type="submit" class="btn btn-primary btn-sm product-variant-add-btn">
@@ -540,6 +557,47 @@
 </div>
 
 <script>
+    function formatVndValue(rawValue) {
+        const numeric = (rawValue || '').replace(/\D/g, '');
+        if (!numeric) {
+            return '';
+        }
+        return Number(numeric).toLocaleString('vi-VN');
+    }
+
+    function normalizePriceInputsInForm(form) {
+        if (!form) {
+            return;
+        }
+        form.querySelectorAll('input.price-input').forEach(function (input) {
+            const numeric = (input.value || '').replace(/\D/g, '');
+            input.value = numeric || '0';
+        });
+    }
+
+    function initPriceInputs() {
+        document.querySelectorAll('input.price-input').forEach(function (input) {
+            input.addEventListener('focus', function () {
+                const numeric = (this.value || '').replace(/\D/g, '');
+                this.value = numeric;
+            });
+
+            input.addEventListener('blur', function () {
+                this.value = formatVndValue(this.value);
+            });
+
+            if (input.value) {
+                input.value = formatVndValue(input.value);
+            }
+        });
+
+        document.querySelectorAll('form.variant-item__form, form.variant-item__delete-form, form[action$="/admin/manage-variant"]').forEach(function (form) {
+            form.addEventListener('submit', function () {
+                normalizePriceInputsInForm(this);
+            });
+        });
+    }
+
     function openVariantModal(button) {
         const productId = button.getAttribute('data-id');
         const productName = button.getAttribute('data-name');
@@ -583,6 +641,10 @@
         document.getElementById('showName').innerText = button.getAttribute('data-name');
         bootstrap.Modal.getOrCreateInstance(document.getElementById('showModal')).show();
     }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        initPriceInputs();
+    });
 </script>
 
 

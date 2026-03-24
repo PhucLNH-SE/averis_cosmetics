@@ -15,7 +15,7 @@
 </div>
 
 <script>
-    window.showPopup = function (success, message, titleText, buttonLabel) {
+    window.showPopup = function (success, message, titleText, buttonLabel, redirectUrl) {
         const popup = document.getElementById('resultPopup');
         const icon = document.getElementById('popupIcon');
         const title = document.getElementById('popupTitle');
@@ -43,6 +43,9 @@
 
         btn.onclick = function () {
             popup.classList.remove('show');
+            if (redirectUrl) {
+                window.location.href = redirectUrl;
+            }
         };
     };
 </script>
@@ -53,7 +56,9 @@
         document.addEventListener('DOMContentLoaded', function () {
             showPopup(
                 ${popupType == 'success' ? 'true' : 'false'},
-                "<c:out value='${popupSafeMessage}'/>".replace(/\r?\n/g, '<br>')
+                "<c:out value='${popupSafeMessage}'/>"
+                    .replace(/\\n/g, '<br>')
+                    .replace(/\r?\n/g, '<br>')
             );
         });
     </script>

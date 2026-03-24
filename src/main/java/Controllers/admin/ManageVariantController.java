@@ -1,6 +1,7 @@
 package Controllers.admin;
 
 import DALs.ProductVariantDAO;
+import Model.ProductVariant;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.URLEncoder;
@@ -14,7 +15,7 @@ public class ManageVariantController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
+
         request.setCharacterEncoding("UTF-8");
         String action = request.getParameter("action");
         ProductVariantDAO vDao = new ProductVariantDAO();
@@ -24,18 +25,19 @@ public class ManageVariantController extends HttpServlet {
                 int productId = Integer.parseInt(request.getParameter("productId"));
                 String name = request.getParameter("variantName");
                 BigDecimal price = new BigDecimal(request.getParameter("price"));
-                int stock = Integer.parseInt(request.getParameter("stock"));
-                
-                vDao.insertVariant(productId, name, price, stock, true); // Mặc định status = true
-                
+                int stock = 0; // Stock is managed by import orders
+
+                vDao.insertVariant(productId, name, price, stock, true);
+
             } else if ("update".equals(action)) {
                 int variantId = Integer.parseInt(request.getParameter("variantId"));
                 String name = request.getParameter("variantName");
                 BigDecimal price = new BigDecimal(request.getParameter("price"));
-                int stock = Integer.parseInt(request.getParameter("stock"));
-                
+                ProductVariant existing = vDao.getVariantById(variantId);
+                int stock = existing == null ? 0 : existing.getStock();
+
                 vDao.updateVariant(variantId, name, price, stock, true);
-                
+
             } else if ("delete".equals(action)) {
                 int variantId = Integer.parseInt(request.getParameter("variantId"));
                 vDao.deleteVariant(variantId);
@@ -44,7 +46,6 @@ public class ManageVariantController extends HttpServlet {
             e.printStackTrace();
         }
 
-        // Cập nhật giá xong thì chuyển hướng lại về trang danh sách sản phẩm
         response.sendRedirect(buildManageProductRedirect(request));
     }
 

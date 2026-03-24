@@ -19,6 +19,10 @@
     </div>
 
     <div class="cart-container">
+        <a href="<%=request.getContextPath()%>/home" class="product-back-link" title="Back to home">
+            <i class="fa-solid fa-arrow-left-long"></i>
+            Back to home
+        </a>
         
         <c:if test="${empty cart}">
             <div class="cart-main empty-cart">

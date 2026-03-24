@@ -18,11 +18,21 @@
     </div>
 
     <div class="checkout-container">
+        <div class="checkout-top-actions">
+            <a href="${pageContext.request.contextPath}/home" class="product-back-link" title="Back to home">
+                <i class="fa-solid fa-arrow-left-long"></i>
+                Back to home
+            </a>
+        </div>
         <h1 class="page-title">Checkout</h1>
 
         <c:if test="${not empty error}">
             <c:set var="popupMessage" scope="request" value="${error}" />
             <c:set var="popupType" scope="request" value="error" />
+        </c:if>
+        <c:if test="${not empty successMessage}">
+            <c:set var="popupMessage" scope="request" value="${successMessage}" />
+            <c:set var="popupType" scope="request" value="success" />
         </c:if>
 
         <c:if test="${orderSuccess}">
@@ -121,8 +131,8 @@
                         </h2>
 
                         <div class="address-list">
-                            <label class="address-item selected">
-                                <input type="radio" name="paymentMethod" value="COD" checked>
+                            <label class="address-item ${selectedPaymentMethod ne 'MOMO' ? 'selected' : ''}">
+                                <input type="radio" name="paymentMethod" value="COD" ${selectedPaymentMethod ne 'MOMO' ? 'checked' : ''}>
                                 <div class="address-details">
                                     <div class="address-name">Cash on Delivery (COD)</div>
                                     <div class="address-text">
@@ -131,8 +141,8 @@
                                 </div>
                             </label>
                                                           <!-- MOMO -->
-                                <label class="address-item">
-                                    <input type="radio" name="paymentMethod" value="MOMO">
+                                <label class="address-item ${selectedPaymentMethod eq 'MOMO' ? 'selected' : ''}">
+                                    <input type="radio" name="paymentMethod" value="MOMO" ${selectedPaymentMethod eq 'MOMO' ? 'checked' : ''}>
                                     <div class="address-details">
                                         <div class="address-name">Pay with MoMo</div>
                                         <div class="address-text">
@@ -189,7 +199,6 @@
 
                     <button type="submit" class="btn-place-order" name="action" value="placeOrder">Place order</button>
 
-                    <a href="${pageContext.request.contextPath}/cart" class="btn-back">&larr; Back to cart</a>
                 </div>
 
                 <div id="voucherSelectPopup" class="checkout-voucher-popup" onclick="closeVoucherSelectPopup(event)">
@@ -265,13 +274,15 @@
 
             if (urlParams.get('success') === 'true') {
                 const orderId = urlParams.get('orderId');
-                showPopup(true, 'Order placed successfully!<br>Order ID: #' + orderId, 'Success');
+                showPopup(true, 'Order placed successfully!<br>Order ID: #' + orderId, 'Success', 'Back to home',
+                    '${pageContext.request.contextPath}/home');
                 window.history.replaceState({}, document.title, window.location.pathname);
             }
 
             if (urlParams.get('error')) {
                 const errorMsg = decodeURIComponent(urlParams.get('error'));
-                showPopup(false, errorMsg, 'Error');
+                showPopup(false, errorMsg, 'Error', 'Back to home',
+                    '${pageContext.request.contextPath}/home');
                 window.history.replaceState({}, document.title, window.location.pathname);
             }
 
@@ -301,9 +312,14 @@
                 const radio = this.querySelector('input[type="radio"]');
                 if (radio) {
                     radio.checked = true;
+                    document.querySelectorAll('input[name="' + radio.name + '"]').forEach(function (input) {
+                        const parent = input.closest('.address-item');
+                        if (parent) {
+                            parent.classList.remove('selected');
+                        }
+                    });
+                    this.classList.add('selected');
                 }
-                document.querySelectorAll('.address-item').forEach(i => i.classList.remove('selected'));
-                this.classList.add('selected');
             });
         });
 

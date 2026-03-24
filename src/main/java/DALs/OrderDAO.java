@@ -18,16 +18,23 @@ public class OrderDAO extends DBContext {
 
     public int placeOrder(int customerId, int addressId, String paymentMethod,
             java.math.BigDecimal totalAmount, List<CartItem> items) {
-        return placeOrder(customerId, addressId, paymentMethod, totalAmount, items, null, java.math.BigDecimal.ZERO);
+        return placeOrder(customerId, addressId, paymentMethod, totalAmount, items, null, null, java.math.BigDecimal.ZERO);
     }
 
     public int placeOrder(int customerId, int addressId, String paymentMethod,
             java.math.BigDecimal totalAmount, List<CartItem> items,
             Integer voucherId, java.math.BigDecimal discountAmount) {
+        return placeOrder(customerId, addressId, paymentMethod, totalAmount, items, voucherId, null, discountAmount);
+    }
+
+    public int placeOrder(int customerId, int addressId, String paymentMethod,
+            java.math.BigDecimal totalAmount, List<CartItem> items,
+            Integer voucherId, Integer customerVoucherId, java.math.BigDecimal discountAmount) {
         Connection conn = null;
         PreparedStatement psOrder = null;
         PreparedStatement psDetail = null;
         PreparedStatement psStock = null;
+        PreparedStatement psVoucher = null;
         ResultSet rs = null;
 
         try {
@@ -87,6 +94,20 @@ public class OrderDAO extends DBContext {
 
             psDetail.executeBatch();
 
+            if (customerVoucherId != null) {
+                String sqlVoucher = "UPDATE Customer_Voucher "
+                        + "SET status = 'USED', used_at = GETDATE() "
+                        + "WHERE customer_voucher_id = ? "
+                        + "AND status = 'ACTIVE' "
+                        + "AND GETDATE() BETWEEN effective_from AND effective_to";
+                psVoucher = conn.prepareStatement(sqlVoucher);
+                psVoucher.setInt(1, customerVoucherId);
+
+                if (psVoucher.executeUpdate() == 0) {
+                    throw new SQLException("Voucher is no longer valid for checkout");
+                }
+            }
+
             conn.commit();
             return orderId;
 
@@ -109,7 +130,7 @@ public class OrderDAO extends DBContext {
                 }
             }
 
-            closeResources(rs, psOrder, psDetail, psStock);
+            closeResources(rs, psOrder, psDetail, psStock, psVoucher);
         }
     }
 
@@ -351,20 +372,20 @@ public class OrderDAO extends DBContext {
 
             conn.setAutoCommit(false);
 
-            OrderSnapshot snapshot = getOrderSnapshot(conn, orderId);
-            if (snapshot == null) {
+            Orders order = getOrder(conn, orderId);
+            if (order == null) {
                 conn.rollback();
                 return false;
             }
 
             boolean shouldDeductStock
-                    = !"PROCESSING".equalsIgnoreCase(snapshot.orderStatus)
+                    = !"PROCESSING".equalsIgnoreCase(order.getOrderStatus())
                     && "PROCESSING".equalsIgnoreCase(orderStatus);
 
-            boolean shouldRestoreStock = !"CANCELLED".equalsIgnoreCase(snapshot.orderStatus)
+            boolean shouldRestoreStock = !"CANCELLED".equalsIgnoreCase(order.getOrderStatus())
                     && "CANCELLED".equalsIgnoreCase(orderStatus)
-                    && ("COD".equalsIgnoreCase(snapshot.paymentMethod)
-                    || "SUCCESS".equalsIgnoreCase(snapshot.paymentStatus)
+                    && ("COD".equalsIgnoreCase(order.getPaymentMethod())
+                    || "SUCCESS".equalsIgnoreCase(order.getPaymentStatus())
                     || "SUCCESS".equalsIgnoreCase(paymentStatus));
 
             if (shouldDeductStock && !deductStockForOrder(conn, orderId)) {
@@ -547,20 +568,20 @@ public class OrderDAO extends DBContext {
 
             conn.setAutoCommit(false);
 
-            OrderSnapshot snapshot = getOrderSnapshot(conn, orderId);
-            if (snapshot == null
-                    || (!"CREATED".equalsIgnoreCase(snapshot.orderStatus)
-                    && !"PROCESSING".equalsIgnoreCase(snapshot.orderStatus))) {
+            Orders order = getOrder(conn, orderId);
+            if (order == null
+                    || (!"CREATED".equalsIgnoreCase(order.getOrderStatus())
+                    && !"PROCESSING".equalsIgnoreCase(order.getOrderStatus()))) {
                 conn.rollback();
                 return false;
             }
 
-            boolean shouldRestoreStock = "COD".equalsIgnoreCase(snapshot.paymentMethod)
-                    || "SUCCESS".equalsIgnoreCase(snapshot.paymentStatus);
+          //  boolean shouldRestoreStock = "COD".equalsIgnoreCase(order.getPaymentMethod())
+       //             || "SUCCESS".equalsIgnoreCase(order.getPaymentStatus());
 
-            if (shouldRestoreStock && !restoreStockForOrder(conn, orderId)) {
-                throw new SQLException("Cannot restore stock for order " + orderId);
-            }
+       //     if (shouldRestoreStock && !restoreStockForOrder(conn, orderId)) {
+       //         throw new SQLException("Cannot restore stock for order " + orderId);
+       //     }
 
             String sql = "UPDATE Orders "
                     + "SET order_status = 'CANCELLED', completed_at = NULL "
@@ -763,7 +784,7 @@ public class OrderDAO extends DBContext {
         }
     }
 
-    private OrderSnapshot getOrderSnapshot(Connection conn, int orderId) throws SQLException {
+    private Orders getOrder(Connection conn, int orderId) throws SQLException {
         String sql = "SELECT payment_method, payment_status, order_status "
                 + "FROM Orders WHERE order_id = ?";
 
@@ -771,23 +792,17 @@ public class OrderDAO extends DBContext {
             ps.setInt(1, orderId);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    OrderSnapshot snapshot = new OrderSnapshot();
-                    snapshot.paymentMethod = rs.getString("payment_method");
-                    snapshot.paymentStatus = rs.getString("payment_status");
-                    snapshot.orderStatus = rs.getString("order_status");
-                    return snapshot;
+                    Orders order = new Orders();
+                    order.setOrderId(orderId);
+                    order.setPaymentMethod(rs.getString("payment_method"));
+                    order.setPaymentStatus(rs.getString("payment_status"));
+                    order.setOrderStatus(rs.getString("order_status"));
+                    return order;
                 }
             }
         }
 
         return null;
-    }
-
-    private static class OrderSnapshot {
-
-        private String paymentMethod;
-        private String paymentStatus;
-        private String orderStatus;
     }
 
     public boolean updateReview(int orderDetailId, int rating, String comment) {

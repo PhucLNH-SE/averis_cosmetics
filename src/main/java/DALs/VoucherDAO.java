@@ -44,7 +44,7 @@ public class VoucherDAO extends DBContext {
     }
 
     public Voucher getByCode(String code) {
-        String sql = "SELECT * FROM Voucher WHERE code = ?";
+        String sql = "SELECT * FROM Voucher WHERE UPPER(LTRIM(RTRIM(code))) = UPPER(LTRIM(RTRIM(?)))";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setString(1, code);
             try (ResultSet rs = ps.executeQuery()) {
@@ -155,7 +155,7 @@ public class VoucherDAO extends DBContext {
             }
             conn.setAutoCommit(false);
 
-            String findVoucherSql = "SELECT * FROM Voucher WHERE LTRIM(RTRIM(code)) = LTRIM(RTRIM(?)) AND status = 1";
+            String findVoucherSql = "SELECT * FROM Voucher WHERE UPPER(LTRIM(RTRIM(code))) = UPPER(LTRIM(RTRIM(?))) AND status = 1";
             Voucher voucher;
             try (PreparedStatement ps = conn.prepareStatement(findVoucherSql)) {
                 ps.setString(1, code);
@@ -248,7 +248,7 @@ public class VoucherDAO extends DBContext {
                 + "FROM Customer_Voucher cv "
                 + "JOIN Voucher v ON v.voucher_id = cv.voucher_id "
                 + "WHERE cv.customer_id = ? "
-                + "AND v.code = ? "
+                + "AND UPPER(LTRIM(RTRIM(v.code))) = UPPER(LTRIM(RTRIM(?))) "
                 + "AND cv.status = 'ACTIVE' "
                 + "AND GETDATE() BETWEEN cv.effective_from AND cv.effective_to "
                 + "AND v.status = 1";

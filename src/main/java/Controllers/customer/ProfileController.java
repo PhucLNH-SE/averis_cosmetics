@@ -196,6 +196,10 @@ public class ProfileController extends HttpServlet {
     private void consumeProfileFlashMessage(HttpSession session, HttpServletRequest request) {
         if (session != null && session.getAttribute("profileMessage") != null) {
             request.setAttribute("profileMessage", session.getAttribute("profileMessage"));
+            if (session.getAttribute("profileMessageType") != null) {
+                request.setAttribute("profileMessageType", session.getAttribute("profileMessageType"));
+                session.removeAttribute("profileMessageType");
+            }
             session.removeAttribute("profileMessage");
         }
     }
@@ -297,7 +301,7 @@ public class ProfileController extends HttpServlet {
         boolean success = dao.cancelOrder(orderId);
 
         if (success) {
-            response.sendRedirect(request.getContextPath() + "/profile?action=orders");
+            response.sendRedirect(request.getContextPath() + "/profile?action=orders&cancelSuccess=1");
         } else {
             request.setAttribute("error", "Cannot cancel this order.");
             showOrders(request, response, customer);

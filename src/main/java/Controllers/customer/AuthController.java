@@ -1,18 +1,11 @@
 package Controllers.customer;
 
-import DALs.CartDetailDAO;
 import DALs.CustomerDAO;
-import DALs.ProductDAO;
-import Model.CartItem;
-import Model.CartDetail;
 import Model.Customer;
-import Model.ProductVariant;
 import Utils.ValidationUtil;
 
 import java.io.IOException;
 import java.time.LocalDate;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import jakarta.servlet.ServletException;
@@ -88,7 +81,7 @@ public class AuthController extends HttpServlet {
         String dateOfBirthStr = request.getParameter("dateOfBirth");
 
         Map<String, String> errors = ValidationUtil.validateRegistration(
-                username, fullName, email, password, confirmPassword, dateOfBirthStr
+                username, fullName, email, gender, password, confirmPassword, dateOfBirthStr
         );
 
         if (!errors.isEmpty()) {
@@ -124,7 +117,7 @@ public class AuthController extends HttpServlet {
         customer.setFullName(fullName);
         customer.setEmail(email);
         customer.setPassword(BCrypt.hashpw(password, BCrypt.gensalt()));
-        customer.setGender(gender != null && !gender.trim().isEmpty() ? gender.trim() : null);
+        customer.setGender(normalizeGender(gender));
         customer.setDateOfBirth(dateOfBirth);
         customer.setStatus(true);
         customer.setEmailVerified(false);
@@ -134,9 +127,26 @@ public class AuthController extends HttpServlet {
         if (inserted) {
             response.sendRedirect(request.getContextPath() + "/auth?action=login");
         } else {
+            request.setAttribute("popupMessage", "Registration failed. Please try again.");
+            request.setAttribute("popupType", "error");
             request.setAttribute("errorMessage", "Registration failed.");
             request.getRequestDispatcher("/views/customer/auth/register.jsp")
                     .forward(request, response);
+        }
+    }
+
+    private String normalizeGender(String gender) {
+        if (gender == null || gender.trim().isEmpty()) {
+            return null;
+        }
+        String normalized = gender.trim().toUpperCase();
+        switch (normalized) {
+            case "MALE":
+            case "FEMALE":
+            case "OTHER":
+                return normalized;
+            default:
+                return null;
         }
     }
 
@@ -162,8 +172,9 @@ public class AuthController extends HttpServlet {
         if (customer != null && BCrypt.checkpw(password, customer.getPassword())) {
 
             if (!customer.getStatus()) {
-                request.setAttribute("errorMessage",
+                request.setAttribute("popupMessage",
                         "Your account has been deactivated.");
+                request.setAttribute("popupType", "error");
                 request.getRequestDispatcher("/views/customer/auth/login.jsp")
                         .forward(request, response);
                 return;
@@ -172,34 +183,36 @@ public class AuthController extends HttpServlet {
             HttpSession session = request.getSession();
             session.setAttribute("customer", customer);
 
-            loadCartToSession(session, customer.getCustomerId());
-
             response.sendRedirect(request.getContextPath() + "/home");
 
         } else {
-            request.setAttribute("errorMessage",
+            request.setAttribute("popupMessage",
                     "Invalid username or password.");
+            request.setAttribute("popupType", "error");
             request.getRequestDispatcher("/views/customer/auth/login.jsp")
                     .forward(request, response);
         }
     }
 
-    private void loadCartToSession(HttpSession session, int customerId) {
-
-        CartDetailDAO cartDetailDAO = new CartDetailDAO();
-        ProductDAO productDAO = new ProductDAO();
-
-        Map<Integer, CartItem> cart = new HashMap<>();
-        List<CartDetail> details = cartDetailDAO.getByCustomerId(customerId);
-
-        for (CartDetail d : details) {
-            ProductVariant v = productDAO.getVariantById(d.getVariantId());
-            if (v != null) {
-                cart.put(d.getVariantId(),
-                        new CartItem(v, d.getQuantity()));
+    private String buildRegistrationErrorMessage(Map<String, String> errors) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Please fix the highlighted fields and try again.");
+        for (String message : errors.values()) {
+            if (message != null && !message.trim().isEmpty()) {
+                sb.append("\\n").append(message.trim());
             }
         }
+        return sb.toString();
+    }
 
-        session.setAttribute("cart", cart);
+    private String buildLoginErrorMessage(Map<String, String> errors) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Please fix the highlighted fields and try again.");
+        for (String message : errors.values()) {
+            if (message != null && !message.trim().isEmpty()) {
+                sb.append("\\n").append(message.trim());
+            }
+        }
+        return sb.toString();
     }
 }
