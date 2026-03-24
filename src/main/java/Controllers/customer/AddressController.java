@@ -13,6 +13,8 @@ import jakarta.servlet.http.HttpSession;
 
 public class AddressController extends HttpServlet {
 
+    private static final String VIETNAM_PHONE_REGEX = "^(?:0|84|\\+84)(?:3|5|7|8|9)\\d{8}$";
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -110,7 +112,7 @@ public class AddressController extends HttpServlet {
         HttpSession session = request.getSession(false);
         String addressIdStr = request.getParameter("id");
         if (addressIdStr == null || addressIdStr.trim().isEmpty()) {
-            session.setAttribute("profileMessage", "Invalid address ID");
+            setProfileFlashMessage(session, "Invalid address ID", "error");
             redirectToAddressList(request, response);
             return;
         }
@@ -121,7 +123,7 @@ public class AddressController extends HttpServlet {
             Address address = addressDAO.getAddressById(addressId);
 
             if (address == null || address.getCustomerId() != customer.getCustomerId()) {
-                session.setAttribute("profileMessage", "Address not found");
+                setProfileFlashMessage(session, "Address not found", "error");
                 redirectToAddressList(request, response);
                 return;
             }
@@ -129,7 +131,7 @@ public class AddressController extends HttpServlet {
             request.setAttribute("address", address);
             request.getRequestDispatcher("/views/customer/edit-address.jsp").forward(request, response);
         } catch (NumberFormatException e) {
-            session.setAttribute("profileMessage", "Invalid address ID format");
+            setProfileFlashMessage(session, "Invalid address ID format", "error");
             redirectToAddressList(request, response);
         }
     }
@@ -138,72 +140,24 @@ public class AddressController extends HttpServlet {
             throws ServletException, IOException {
 
         HttpSession session = request.getSession();
-
-        String receiverName = request.getParameter("receiverName");
-        String phone = request.getParameter("phone");
-        String province = request.getParameter("province");
-        String district = request.getParameter("district");
-        String ward = request.getParameter("ward");
-        String streetAddress = request.getParameter("streetAddress");
-        String isDefaultStr = request.getParameter("isDefault");
-
-        if ((district == null || district.trim().isEmpty()) && ward != null && !ward.trim().isEmpty()) {
-            district = ward;
-        }
-
-        // Validation
-        if (receiverName == null || receiverName.trim().isEmpty()) {
-            request.setAttribute("error", "Receiver name is required");
+        Address address = buildAddressFromRequest(request, customer.getCustomerId(), 0);
+        String validationError = validateAddress(address);
+        if (validationError != null) {
+            request.setAttribute("error", validationError);
             showAddForm(request, response);
             return;
         }
-
-        if (phone == null || phone.trim().isEmpty()) {
-            request.setAttribute("error", "Phone is required");
-            showAddForm(request, response);
-            return;
-        }
-
-        if (province == null || province.trim().isEmpty()) {
-            request.setAttribute("error", "Province is required");
-            showAddForm(request, response);
-            return;
-        }
-
-        if (ward == null || ward.trim().isEmpty()) {
-            request.setAttribute("error", "Ward is required");
-            showAddForm(request, response);
-            return;
-        }
-
-        if (streetAddress == null || streetAddress.trim().isEmpty()) {
-            request.setAttribute("error", "Street address is required");
-            showAddForm(request, response);
-            return;
-        }
-
-        boolean isDefault = "on".equals(isDefaultStr) || "1".equals(isDefaultStr);
-
-        Address address = new Address();
-        address.setCustomerId(customer.getCustomerId());
-        address.setReceiverName(receiverName.trim());
-        address.setPhone(phone.trim());
-        address.setProvince(province.trim());
-        address.setDistrict(district.trim());
-        address.setWard(ward.trim());
-        address.setStreetAddress(streetAddress.trim());
-        address.setIsDefault(isDefault);
 
         AddressDAO addressDAO = new AddressDAO();
         boolean success = addressDAO.insertAddress(address);
 
         if (success) {
-            if (isDefault) {
+            if (Boolean.TRUE.equals(address.getIsDefault())) {
                 addressDAO.setDefaultAddress(address.getAddressId(), customer.getCustomerId());
             }
-            session.setAttribute("profileMessage", "Address added successfully");
+            setProfileFlashMessage(session, "Address added successfully", "success");
         } else {
-            session.setAttribute("profileMessage", "Failed to add address");
+            setProfileFlashMessage(session, "Failed to add address", "error");
         }
 
         redirectToAddressList(request, response);
@@ -216,96 +170,46 @@ public class AddressController extends HttpServlet {
 
         String addressIdStr = request.getParameter("id");
         if (addressIdStr == null || addressIdStr.trim().isEmpty()) {
-            session.setAttribute("profileMessage", "Invalid address ID");
+            setProfileFlashMessage(session, "Invalid address ID", "error");
             redirectToAddressList(request, response);
             return;
         }
 
         try {
             int addressId = Integer.parseInt(addressIdStr);
-
-            String receiverName = request.getParameter("receiverName");
-            String phone = request.getParameter("phone");
-            String province = request.getParameter("province");
-            String district = request.getParameter("district");
-            String ward = request.getParameter("ward");
-            String streetAddress = request.getParameter("streetAddress");
-            String isDefaultStr = request.getParameter("isDefault");
-
-            if ((district == null || district.trim().isEmpty()) && ward != null && !ward.trim().isEmpty()) {
-                district = ward;
-            }
-
-            // Validation
-            if (receiverName == null || receiverName.trim().isEmpty()) {
-                request.setAttribute("error", "Receiver name is required");
-                request.setAttribute("addressId", addressId);
-                showEditForm(request, response, customer);
-                return;
-            }
-
-            if (phone == null || phone.trim().isEmpty()) {
-                request.setAttribute("error", "Phone is required");
-                request.setAttribute("addressId", addressId);
-                showEditForm(request, response, customer);
-                return;
-            }
-
-            if (province == null || province.trim().isEmpty()) {
-                request.setAttribute("error", "Province is required");
-                request.setAttribute("addressId", addressId);
-                showEditForm(request, response, customer);
-                return;
-            }
-
-            if (ward == null || ward.trim().isEmpty()) {
-                request.setAttribute("error", "Ward is required");
-                request.setAttribute("addressId", addressId);
-                showEditForm(request, response, customer);
-                return;
-            }
-
-            if (streetAddress == null || streetAddress.trim().isEmpty()) {
-                request.setAttribute("error", "Street address is required");
-                request.setAttribute("addressId", addressId);
-                showEditForm(request, response, customer);
-                return;
-            }
-
             AddressDAO addressDAO = new AddressDAO();
-            Address address = addressDAO.getAddressById(addressId);
+            Address existingAddress = addressDAO.getAddressById(addressId);
 
-            if (address == null || address.getCustomerId() != customer.getCustomerId()) {
-                session.setAttribute("profileMessage", "Address not found");
+            if (existingAddress == null || existingAddress.getCustomerId() != customer.getCustomerId()) {
+                setProfileFlashMessage(session, "Address not found", "error");
                 redirectToAddressList(request, response);
                 return;
             }
 
-            boolean isDefault = "on".equals(isDefaultStr) || "1".equals(isDefaultStr);
-
-            address.setReceiverName(receiverName.trim());
-            address.setPhone(phone.trim());
-            address.setProvince(province.trim());
-            address.setDistrict(district.trim());
-            address.setWard(ward.trim());
-            address.setStreetAddress(streetAddress.trim());
-            address.setIsDefault(isDefault);
+            Address address = buildAddressFromRequest(request, customer.getCustomerId(), addressId);
+            String validationError = validateAddress(address);
+            if (validationError != null) {
+                request.setAttribute("error", validationError);
+                request.setAttribute("address", address);
+                request.getRequestDispatcher("/views/customer/edit-address.jsp").forward(request, response);
+                return;
+            }
 
             boolean success = addressDAO.updateAddress(address);
 
             if (success) {
-                if (isDefault) {
+                if (Boolean.TRUE.equals(address.getIsDefault())) {
                     addressDAO.setDefaultAddress(address.getAddressId(), customer.getCustomerId());
                 }
-                session.setAttribute("profileMessage", "Address updated successfully");
+                setProfileFlashMessage(session, "Address updated successfully", "success");
             } else {
-                session.setAttribute("profileMessage", "Failed to update address");
+                setProfileFlashMessage(session, "Failed to update address", "error");
             }
 
             redirectToAddressList(request, response);
 
         } catch (NumberFormatException e) {
-            session.setAttribute("profileMessage", "Invalid address ID format");
+            setProfileFlashMessage(session, "Invalid address ID format", "error");
             redirectToAddressList(request, response);
         }
     }
@@ -317,7 +221,7 @@ public class AddressController extends HttpServlet {
         String addressIdStr = request.getParameter("id");
 
         if (addressIdStr == null || addressIdStr.trim().isEmpty()) {
-            session.setAttribute("profileMessage", "Invalid address ID");
+            setProfileFlashMessage(session, "Invalid address ID", "error");
             redirectToAddressList(request, response);
             return;
         }
@@ -328,13 +232,13 @@ public class AddressController extends HttpServlet {
             String result = addressDAO.deleteAddress(addressId, customer.getCustomerId());
 
             if ("success".equals(result)) {
-                session.setAttribute("profileMessage", "Address deleted successfully");
+                setProfileFlashMessage(session, "Address deleted successfully", "success");
             } else {
-                session.setAttribute("profileMessage", result);
+                setProfileFlashMessage(session, result, "error");
             }
 
         } catch (NumberFormatException e) {
-            session.setAttribute("profileMessage", "Invalid address ID format");
+            setProfileFlashMessage(session, "Invalid address ID format", "error");
         }
 
         redirectToAddressList(request, response);
@@ -365,6 +269,10 @@ public class AddressController extends HttpServlet {
     private void consumeProfileFlashMessage(HttpSession session, HttpServletRequest request) {
         if (session != null && session.getAttribute("profileMessage") != null) {
             request.setAttribute("profileMessage", session.getAttribute("profileMessage"));
+            if (session.getAttribute("profileMessageType") != null) {
+                request.setAttribute("profileMessageType", session.getAttribute("profileMessageType"));
+                session.removeAttribute("profileMessageType");
+            }
             session.removeAttribute("profileMessage");
         }
     }
@@ -372,6 +280,84 @@ public class AddressController extends HttpServlet {
     private void redirectToAddressList(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
         response.sendRedirect(request.getContextPath() + "/address");
+    }
+
+    private Address buildAddressFromRequest(HttpServletRequest request, int customerId, int addressId) {
+        Address address = new Address();
+        address.setAddressId(addressId);
+        address.setCustomerId(customerId);
+        address.setReceiverName(trimToNull(request.getParameter("receiverName")));
+        address.setPhone(normalizePhone(request.getParameter("phone")));
+        address.setProvince(trimToNull(request.getParameter("province")));
+        address.setDistrict(trimToNull(request.getParameter("district")));
+        address.setWard(trimToNull(request.getParameter("ward")));
+        address.setStreetAddress(trimToNull(request.getParameter("streetAddress")));
+        address.setIsDefault(parseChecked(request.getParameter("isDefault")));
+        return address;
+    }
+
+    private String validateAddress(Address address) {
+        if (address.getReceiverName() == null) {
+            return "Receiver name is required";
+        }
+        if (address.getPhone() == null) {
+            return "Phone is required";
+        }
+        if (!address.getPhone().matches(VIETNAM_PHONE_REGEX)) {
+            return "Please enter a valid Vietnamese phone number.";
+        }
+        if (address.getProvince() == null) {
+            return "Province is required";
+        }
+        if (address.getDistrict() == null) {
+            return "District is required";
+        }
+        if (address.getWard() == null) {
+            return "Ward is required";
+        }
+        if (address.getStreetAddress() == null) {
+            return "Street address is required";
+        }
+        return null;
+    }
+
+    private boolean parseChecked(String value) {
+        return "on".equalsIgnoreCase(value)
+                || "1".equals(value)
+                || "true".equalsIgnoreCase(value);
+    }
+
+    private String normalizePhone(String value) {
+        String phone = trimToNull(value);
+        if (phone == null) {
+            return null;
+        }
+
+        phone = phone.replaceAll("[\\s().-]", "");
+
+        if (phone.startsWith("+84")) {
+            return "0" + phone.substring(3);
+        }
+        if (phone.startsWith("84")) {
+            return "0" + phone.substring(2);
+        }
+        return phone;
+    }
+
+    private String trimToNull(String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    private void setProfileFlashMessage(HttpSession session, String message, String type) {
+        if (session == null) {
+            return;
+        }
+        session.setAttribute("profileMessage", message);
+        session.setAttribute("profileMessageType", type);
     }
 }
 
