@@ -1,6 +1,7 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 
 <section class="admin-content__section admin-page admin-page--order-detail">
     <div class="page-header">
@@ -128,7 +129,7 @@
                             </td>
                             <td>
                                 <c:choose>
-                                    <c:when test="${not empty d.reviewComment}">${d.reviewComment}</c:when>
+                                    <c:when test="${not empty d.reviewComment}">${fn:replace(d.reviewComment, '[EDITED]', '')}</c:when>
                                     <c:otherwise>-</c:otherwise>
                                 </c:choose>
                             </td>
