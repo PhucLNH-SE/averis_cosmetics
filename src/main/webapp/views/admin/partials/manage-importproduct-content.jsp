@@ -1,11 +1,13 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
+<fmt:setLocale value="vi_VN"/>
 
 <section class="admin-content__section">
     <div class="page-header">
         <div>
             <h4>Import History</h4>
-            <p class="text-muted mb-0">List of product import orders</p>
+            <p class="text-muted mb-0">Review and confirm received quantities</p>
         </div>
         <div class="d-flex gap-2">
             <a href="${pageContext.request.contextPath}/admin/import-product?action=importproduct" class="btn btn-add text-white">
@@ -18,7 +20,11 @@
     </div>
 
     <c:if test="${param.success == 'import'}">
-        <c:set var="popupMessage" scope="request" value="Product imported successfully." />
+        <c:set var="popupMessage" scope="request" value="Import order created successfully." />
+        <c:set var="popupType" scope="request" value="success" />
+    </c:if>
+    <c:if test="${param.success == 'received'}">
+        <c:set var="popupMessage" scope="request" value="Import receipt confirmed successfully." />
         <c:set var="popupType" scope="request" value="success" />
     </c:if>
     <c:if test="${param.error == 'importFailed'}">
@@ -32,21 +38,21 @@
                 <table class="table">
                     <thead>
                         <tr>
-                            <th class="px-4" style="width: 50px;"></th>
+                            <th class="px-4 purchase-history-toggle-col"></th>
                             <th>Order ID</th>
                             <th>Brand</th>
                             <th>Manager</th>
                             <th>Total Amount</th>
+                            <th>Status</th>
                             <th>Created At</th>
+                            <th class="text-end">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         <c:forEach var="h" items="${history}">
                             <tr>
                                 <td class="px-4">
-                                    <button type="button" class="btn-toggle" onclick="toggleImportDetail(event, ${h.purchaseOrderId})">
-                                        <i class="bi bi-chevron-down"></i>
-                                    </button>
+                                    <span class="badge bg-light text-dark">#</span>
                                 </td>
                                 <td><strong>#${h.purchaseOrderId}</strong></td>
                                 <td>${h.brandName}</td>
@@ -54,26 +60,29 @@
                                     <div>${h.managerName}</div>
                                     <small class="info-text">${h.managerRole}</small>
                                 </td>
-                                <td class="amount">${h.totalAmount} VND</td>
-                                <td>${h.createdAt}</td>
-                            </tr>
-
-                            <tr id="detail-${h.purchaseOrderId}" class="detail-row" style="display: none;">
-                                <td colspan="6">
-                                    <div id="detail-content-${h.purchaseOrderId}" class="detail-content">
-                                        <div class="text-center">
-                                            <div class="spinner-border spinner-border-sm" role="status">
-                                                <span class="visually-hidden">Loading...</span>
-                                            </div>
-                                            <span class="ms-2">Loading...</span>
-                                        </div>
-                                    </div>
+                                <td class="amount">
+                                    <fmt:formatNumber value="${h.totalAmount}" pattern="#,##0"/> VND
+                                </td>
+                                <td>
+                                    <span class="badge ${h.status == 'RECEIVED' ? 'bg-success' : 'bg-warning text-dark'}">
+                                        ${h.status}
+                                    </span>
+                                </td>
+                                <td>
+                                    <fmt:parseDate value="${h.createdAt}" pattern="yyyy-MM-dd'T'HH:mm:ss" var="parsedCreatedAt" type="both" />
+                                    <fmt:formatDate value="${parsedCreatedAt}" pattern="dd/MM/yyyy HH:mm" />
+                                </td>
+                                <td class="text-end">
+                                    <button type="button" class="btn btn-sm btn-outline-primary"
+                                            onclick="openImportDetail(${h.purchaseOrderId})">
+                                        View
+                                    </button>
                                 </td>
                             </tr>
                         </c:forEach>
                         <c:if test="${empty history}">
                             <tr>
-                                <td colspan="6" class="text-center empty-state">
+                                <td colspan="8" class="text-center empty-state">
                                     <i class="bi bi-inbox d-block"></i>
                                     No import history found
                                 </td>
@@ -86,50 +95,45 @@
     </div>
 </section>
 
+<div class="modal fade" id="importDetailModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Import Order Detail</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="import-detail-body">
+                <div class="text-center">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <span class="ms-2">Loading...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
-    let currentExpandedImport = null;
+    function openImportDetail(orderId) {
+        const modalEl = document.getElementById('importDetailModal');
+        const modal = new bootstrap.Modal(modalEl);
+        const body = document.getElementById('import-detail-body');
+        body.innerHTML =
+            '<div class="text-center">' +
+            '<div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div>' +
+            '<span class="ms-2">Loading...</span>' +
+            '</div>';
 
-    function toggleImportDetail(event, orderId) {
-        const row = document.getElementById('detail-' + orderId);
-        const button = event.currentTarget;
-        const icon = button.querySelector('i');
+        fetch('${pageContext.request.contextPath}/admin/import-product?action=viewdetail&orderId=' + orderId)
+            .then(function (res) { return res.text(); })
+            .then(function (data) {
+                body.innerHTML = data;
+            })
+            .catch(function () {
+                body.innerHTML = '<div class="text-danger">Error loading details</div>';
+            });
 
-        if (currentExpandedImport && currentExpandedImport !== orderId) {
-            const prevRow = document.getElementById('detail-' + currentExpandedImport);
-            const prevButton = document.querySelector('[onclick="toggleImportDetail(event, ' + currentExpandedImport + ')"]');
-
-            if (prevRow) {
-                prevRow.style.display = 'none';
-            }
-            if (prevButton) {
-                prevButton.classList.add('collapsed');
-                prevButton.querySelector('i').classList.remove('bi-chevron-up');
-                prevButton.querySelector('i').classList.add('bi-chevron-down');
-            }
-        }
-
-        if (row.style.display === 'none') {
-            row.style.display = 'table-row';
-            icon.classList.remove('bi-chevron-down');
-            icon.classList.add('bi-chevron-up');
-            button.classList.remove('collapsed');
-            currentExpandedImport = orderId;
-
-            fetch('${pageContext.request.contextPath}/admin/import-product?action=viewdetail&orderId=' + orderId)
-                .then(function (res) { return res.text(); })
-                .then(function (data) {
-                    document.getElementById('detail-content-' + orderId).innerHTML = data;
-                })
-                .catch(function () {
-                    document.getElementById('detail-content-' + orderId).innerHTML =
-                        '<div class="text-danger">Error loading details</div>';
-                });
-        } else {
-            row.style.display = 'none';
-            icon.classList.remove('bi-chevron-up');
-            icon.classList.add('bi-chevron-down');
-            button.classList.add('collapsed');
-            currentExpandedImport = null;
-        }
+        modal.show();
     }
 </script>

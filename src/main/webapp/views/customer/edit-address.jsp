@@ -85,7 +85,7 @@ request.setAttribute("geoapifyApiKey", geoapifyApiKey);
 
                     <div class="address-form-group">
                         <label class="address-form-label" for="addressMap">Map Location</label>
-                        <div id="addressMap" class="address-map-box" style="min-height: 320px;"></div>
+                        <div id="addressMap" class="address-map-box"></div>
                         <small id="geoAddressStatus" class="form-text text-muted"></small>
                     </div>
 
@@ -101,7 +101,7 @@ request.setAttribute("geoapifyApiKey", geoapifyApiKey);
                         <button type="submit" class="btn btn-primary address-btn-submit">
                             <i class="fas fa-save"></i> Update Address
                         </button>
-                        <a href="${pageContext.request.contextPath}/profile?action=view&tab=address"
+                        <a href="${pageContext.request.contextPath}/address"
                            class="btn btn-secondary">
                             <i class="fas fa-arrow-left"></i> Back to Addresses
                         </a>

@@ -4,6 +4,7 @@ import DALs.AddressDAO;
 import Model.Address;
 import Model.Customer;
 import java.io.IOException;
+import java.util.List;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,28 +24,28 @@ public class AddressController extends HttpServlet {
         }
 
         String action = request.getParameter("action");
-        if (action == null) {
-            action = "list";
+        if (action == null || action.trim().isEmpty()) {
+            action = "view";
         }
 
         Customer customer = (Customer) session.getAttribute("customer");
 
         switch (action) {
+            case "view":
+            case "list":
+                showAddressList(request, response, session, customer);
+                break;
             case "add":
                 showAddForm(request, response);
                 break;
             case "edit":
                 showEditForm(request, response, customer);
                 break;
-            case "delete":
-                deleteAddress(request, response, customer);
-                break;
             case "setdefault":
                 setDefaultAddress(request, response, customer);
                 break;
-            case "list":
             default:
-                response.sendRedirect(request.getContextPath() + "/profile?action=view&tab=address");
+                redirectToAddressList(request, response);
                 break;
         }
     }
@@ -73,10 +74,30 @@ public class AddressController extends HttpServlet {
             case "edit":
                 updateAddress(request, response, customer);
                 break;
+            case "delete":
+                deleteAddress(request, response, customer);
+                break;
             default:
-                response.sendRedirect(request.getContextPath() + "/profile?action=view&tab=address");
+                redirectToAddressList(request, response);
                 break;
         }
+    }
+
+    private void showAddressList(HttpServletRequest request,
+            HttpServletResponse response,
+            HttpSession session,
+            Customer sessionCustomer)
+            throws ServletException, IOException {
+
+        Customer customer = sessionCustomer;
+        AddressDAO addressDAO = new AddressDAO();
+        List<Address> addresses = addressDAO.getAddressesByCustomerId(customer.getCustomerId());
+
+        request.setAttribute("customer", customer);
+        request.setAttribute("addresses", addresses);
+        request.setAttribute("tab", "address");
+        consumeProfileFlashMessage(session, request);
+        request.getRequestDispatcher("/views/customer/profile.jsp").forward(request, response);
     }
 
     private void showAddForm(HttpServletRequest request, HttpServletResponse response)
@@ -86,11 +107,11 @@ public class AddressController extends HttpServlet {
 
     private void showEditForm(HttpServletRequest request, HttpServletResponse response, Customer customer)
             throws ServletException, IOException {
-        HttpSession session = request.getSession();
+        HttpSession session = request.getSession(false);
         String addressIdStr = request.getParameter("id");
         if (addressIdStr == null || addressIdStr.trim().isEmpty()) {
             session.setAttribute("profileMessage", "Invalid address ID");
-            response.sendRedirect(request.getContextPath() + "/profile?action=view&tab=address");
+            redirectToAddressList(request, response);
             return;
         }
 
@@ -101,7 +122,7 @@ public class AddressController extends HttpServlet {
 
             if (address == null || address.getCustomerId() != customer.getCustomerId()) {
                 session.setAttribute("profileMessage", "Address not found");
-                response.sendRedirect(request.getContextPath() + "/profile?action=view&tab=address");
+                redirectToAddressList(request, response);
                 return;
             }
 
@@ -109,7 +130,7 @@ public class AddressController extends HttpServlet {
             request.getRequestDispatcher("/views/customer/edit-address.jsp").forward(request, response);
         } catch (NumberFormatException e) {
             session.setAttribute("profileMessage", "Invalid address ID format");
-            response.sendRedirect(request.getContextPath() + "/profile?action=view&tab=address");
+            redirectToAddressList(request, response);
         }
     }
 
@@ -185,7 +206,7 @@ public class AddressController extends HttpServlet {
             session.setAttribute("profileMessage", "Failed to add address");
         }
 
-        response.sendRedirect(request.getContextPath() + "/profile?action=view&tab=address");
+        redirectToAddressList(request, response);
     }
 
     private void updateAddress(HttpServletRequest request, HttpServletResponse response, Customer customer)
@@ -196,7 +217,7 @@ public class AddressController extends HttpServlet {
         String addressIdStr = request.getParameter("id");
         if (addressIdStr == null || addressIdStr.trim().isEmpty()) {
             session.setAttribute("profileMessage", "Invalid address ID");
-            response.sendRedirect(request.getContextPath() + "/profile?action=view&tab=address");
+            redirectToAddressList(request, response);
             return;
         }
 
@@ -256,7 +277,7 @@ public class AddressController extends HttpServlet {
 
             if (address == null || address.getCustomerId() != customer.getCustomerId()) {
                 session.setAttribute("profileMessage", "Address not found");
-                response.sendRedirect(request.getContextPath() + "/profile?action=view&tab=address");
+                redirectToAddressList(request, response);
                 return;
             }
 
@@ -281,11 +302,11 @@ public class AddressController extends HttpServlet {
                 session.setAttribute("profileMessage", "Failed to update address");
             }
 
-            response.sendRedirect(request.getContextPath() + "/profile?action=view&tab=address");
+            redirectToAddressList(request, response);
 
         } catch (NumberFormatException e) {
             session.setAttribute("profileMessage", "Invalid address ID format");
-            response.sendRedirect(request.getContextPath() + "/profile?action=view&tab=address");
+            redirectToAddressList(request, response);
         }
     }
 
@@ -297,7 +318,7 @@ public class AddressController extends HttpServlet {
 
         if (addressIdStr == null || addressIdStr.trim().isEmpty()) {
             session.setAttribute("profileMessage", "Invalid address ID");
-            response.sendRedirect(request.getContextPath() + "/profile?action=view&tab=address");
+            redirectToAddressList(request, response);
             return;
         }
 
@@ -316,7 +337,7 @@ public class AddressController extends HttpServlet {
             session.setAttribute("profileMessage", "Invalid address ID format");
         }
 
-        response.sendRedirect(request.getContextPath() + "/profile?action=view&tab=address");
+        redirectToAddressList(request, response);
     }
 
     private void setDefaultAddress(HttpServletRequest request, HttpServletResponse response, Customer customer)
@@ -325,7 +346,7 @@ public class AddressController extends HttpServlet {
         String addressIdStr = request.getParameter("id");
 
         if (addressIdStr == null || addressIdStr.trim().isEmpty()) {
-            response.sendRedirect(request.getContextPath() + "/profile?action=view&tab=address");
+            redirectToAddressList(request, response);
             return;
         }
 
@@ -338,7 +359,19 @@ public class AddressController extends HttpServlet {
             // Silent fail - no message shown
         }
 
-        response.sendRedirect(request.getContextPath() + "/profile?action=view&tab=address");
+        redirectToAddressList(request, response);
+    }
+
+    private void consumeProfileFlashMessage(HttpSession session, HttpServletRequest request) {
+        if (session != null && session.getAttribute("profileMessage") != null) {
+            request.setAttribute("profileMessage", session.getAttribute("profileMessage"));
+            session.removeAttribute("profileMessage");
+        }
+    }
+
+    private void redirectToAddressList(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+        response.sendRedirect(request.getContextPath() + "/address");
     }
 }
 

@@ -2,7 +2,7 @@
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <fmt:setLocale value="vi_VN"/>
-<section class="admin-content__section">
+<section class="admin-content__section admin-page admin-page--feedback staff-page staff-page--feedback">
     <div class="fb-main-container">
         <div class="fb-header-flex">
             <div>
@@ -46,7 +46,7 @@
                                 </td>
                                 <td class="text-center"><span class="fb-count-badge">${ps.totalFeedbacks}</span></td>
                                 <td class="text-end pe-4">
-                                    <button class="btn btn-primary btn-sm px-3 rounded-pill" onclick="viewProductReviews(${ps.productId}, '${ps.productName}')">
+                                    <button class="btn btn-primary btn-sm px-3" onclick="viewProductReviews(${ps.productId}, '${ps.productName}')">
                                         <i class="fas fa-eye me-1"></i> View
                                     </button>
                                 </td>

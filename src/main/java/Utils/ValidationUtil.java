@@ -17,6 +17,8 @@ public class ValidationUtil {
 
     private static final String EMAIL_REGEX
             = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$";
+    private static final String FULL_NAME_REGEX
+            = "^[A-Za-zÀ-Ỵà-ỵ]+(?: [A-Za-zÀ-Ỵà-ỵ]+)*$";
 
     public static Map<String, String> validateLogin(String username, String password) {
 
@@ -36,6 +38,7 @@ public class ValidationUtil {
     public static Map<String, String> validateRegistration(String username,
             String fullName,
             String email,
+            String gender,
             String password,
             String confirmPassword,
             String dateOfBirthStr) {
@@ -51,12 +54,23 @@ public class ValidationUtil {
 
         if (fullName == null || fullName.trim().isEmpty()) {
             errors.put("errorFullName", "Full name is required.");
-        } else if (fullName.trim().length() < 2) {
-            errors.put("errorFullName", "Full name must be at least 2 characters long.");
+        } else if (!fullName.trim().matches(FULL_NAME_REGEX)) {
+            errors.put("errorFullName", "Full name must contain only letters and spaces.");
         }
 
-        if (email != null && !email.trim().isEmpty() && !email.trim().matches(EMAIL_REGEX)) {
+        if (email == null || email.trim().isEmpty()) {
+            errors.put("errorEmail", "Email is required.");
+        } else if (!email.trim().matches(EMAIL_REGEX)) {
             errors.put("errorEmail", "Please enter a valid email address.");
+        }
+
+        if (gender == null || gender.trim().isEmpty()) {
+            errors.put("errorGender", "Gender is required.");
+        } else {
+            String normalizedGender = gender.trim().toUpperCase();
+            if (!"MALE".equals(normalizedGender) && !"FEMALE".equals(normalizedGender) && !"OTHER".equals(normalizedGender)) {
+                errors.put("errorGender", "Please select a valid gender.");
+            }
         }
 
         if (password == null || !password.matches(PASSWORD_REGEX)) {
@@ -64,7 +78,9 @@ public class ValidationUtil {
                     "Password must be at least 8 characters, include uppercase, lowercase, number and special character.");
         }
 
-        if (password != null && confirmPassword != null && !password.equals(confirmPassword)) {
+        if (confirmPassword == null || confirmPassword.trim().isEmpty()) {
+            errors.put("errorConfirmPassword", "Please confirm your password.");
+        } else if (password != null && !password.equals(confirmPassword)) {
             errors.put("errorConfirmPassword", "Passwords do not match.");
         }
 
@@ -73,8 +89,13 @@ public class ValidationUtil {
         } else {
             try {
                 LocalDate dob = LocalDate.parse(dateOfBirthStr.trim());
-                if (dob.isAfter(LocalDate.now())) {
+                LocalDate today = LocalDate.now();
+                if (dob.isAfter(today)) {
                     errors.put("errorDateOfBirth", "Date of birth cannot be in the future.");
+                } else if (dob.isBefore(LocalDate.of(1900, 1, 1))) {
+                    errors.put("errorDateOfBirth", "Date of birth cannot be earlier than 1900.");
+                } else if (java.time.Period.between(dob, today).getYears() < 13) {
+                    errors.put("errorDateOfBirth", "You must be at least 13 years old.");
                 }
             } catch (Exception e) {
                 errors.put("errorDateOfBirth", "Please enter a valid date of birth.");

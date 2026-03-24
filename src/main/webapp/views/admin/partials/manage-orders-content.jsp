@@ -2,7 +2,7 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <fmt:setLocale value="vi_VN"/>
-<section class="admin-content__section admin-orders-page">
+<section class="admin-content__section admin-page admin-page--orders admin-orders-page">
     <div class="page-header">
         <div>
             <h4>Manage Orders</h4>
@@ -10,7 +10,7 @@
         </div>
         <form method="get" action="${pageContext.request.contextPath}/admin/manage-orders" class="mb-3 d-flex align-items-center gap-2">
             <label><strong>Filter by Staff:</strong></label>
-            <select name="staffId" class="form-select" style="width:220px">
+            <select name="staffId" class="form-select admin-order-filter-select">
                 <option value="">All</option>
                 <option value="0" ${selectedStaffId != null && selectedStaffId == 0 ? 'selected' : ''}>Chua gan</option>
                 <c:forEach items="${staffList}" var="s">
@@ -110,9 +110,9 @@
                                         </c:choose>
                                     </td>
                                     <td>
-                                        <a href="${pageContext.request.contextPath}/admin/manage-orders?action=detail&orderId=${o.orderId}"
+                                           <a href="${pageContext.request.contextPath}/admin/manage-orders?action=detail&orderId=${o.orderId}"
                                            class="btn btn-sm btn-primary">
-                                            View Detail
+                                            <i class="bi bi-eye"></i> View Detail
                                         </a>
                                     </td>
                                     <td><strong><fmt:formatNumber value="${o.totalAmount}" pattern="#,##0"/> VND</strong></td>

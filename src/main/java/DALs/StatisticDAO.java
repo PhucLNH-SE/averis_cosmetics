@@ -5,8 +5,11 @@ import Model.ProductVariant;
 import Utils.DBContext;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.time.YearMonth;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -74,39 +77,50 @@ public class StatisticDAO extends DBContext {
         return summary;
     }
 
-    public List<Map<String, Object>> getRevenueProfitChartData(int year) {
-        List<Map<String, Object>> rows = new ArrayList<>();
-        String sql = "SELECT m.month_no, "
-                + "ISNULL(r.revenue, 0) AS revenue, "
-                + "ISNULL(p.profit, 0) AS profit "
-                + "FROM (VALUES (1),(2),(3),(4),(5),(6),(7),(8),(9),(10),(11),(12)) AS m(month_no) "
-                + "LEFT JOIN ( "
-                + "    SELECT MONTH(ISNULL(completed_at, created_at)) AS month_no, SUM(total_amount) AS revenue "
-                + "    FROM Orders "
-                + "    WHERE YEAR(ISNULL(completed_at, created_at)) = ? AND order_status = 'COMPLETED' "
-                + "    GROUP BY MONTH(ISNULL(completed_at, created_at)) "
-                + ") r ON m.month_no = r.month_no "
-                + "LEFT JOIN ( "
-                + "    SELECT MONTH(ISNULL(o.completed_at, o.created_at)) AS month_no, "
-                + "           SUM((od.price_at_order - ISNULL(od.cost_price_at_order, 0)) * od.quantity) AS profit "
-                + "    FROM Orders o "
-                + "    JOIN Order_Detail od ON o.order_id = od.order_id "
-                + "    WHERE YEAR(ISNULL(o.completed_at, o.created_at)) = ? AND o.order_status = 'COMPLETED' "
-                + "    GROUP BY MONTH(ISNULL(o.completed_at, o.created_at)) "
-                + ") p ON m.month_no = p.month_no "
-                + "ORDER BY m.month_no";
+    public List<Map<String, Object>> getRevenueProfitChartData(int year, int month) {
+        List<Map<String, Object>> rows = createDayBucketRows(year, month);
+        Map<Integer, Map<String, Object>> rowsByDay = toDayRowMap(rows);
 
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setInt(1, year);
-            ps.setInt(2, year);
+        String revenueSql = "SELECT DAY(ISNULL(completed_at, created_at)) AS day_no, SUM(total_amount) AS revenue "
+                + "FROM Orders "
+                + "WHERE YEAR(ISNULL(completed_at, created_at)) = ? "
+                + "AND MONTH(ISNULL(completed_at, created_at)) = ? "
+                + "AND order_status = 'COMPLETED' "
+                + "GROUP BY DAY(ISNULL(completed_at, created_at))";
 
-            try (ResultSet rs = ps.executeQuery()) {
+        String profitSql = "SELECT DAY(ISNULL(o.completed_at, o.created_at)) AS day_no, "
+                + "SUM((od.price_at_order - ISNULL(od.cost_price_at_order, 0)) * od.quantity) AS profit "
+                + "FROM Orders o "
+                + "JOIN Order_Detail od ON o.order_id = od.order_id "
+                + "WHERE YEAR(ISNULL(o.completed_at, o.created_at)) = ? "
+                + "AND MONTH(ISNULL(o.completed_at, o.created_at)) = ? "
+                + "AND o.order_status = 'COMPLETED' "
+                + "GROUP BY DAY(ISNULL(o.completed_at, o.created_at))";
+
+        try (PreparedStatement revenuePs = connection.prepareStatement(revenueSql);
+             PreparedStatement profitPs = connection.prepareStatement(profitSql)) {
+
+            revenuePs.setInt(1, year);
+            revenuePs.setInt(2, month);
+            try (ResultSet rs = revenuePs.executeQuery()) {
                 while (rs.next()) {
-                    Map<String, Object> row = new HashMap<>();
-                    row.put("label", "Thg " + rs.getInt("month_no"));
-                    row.put("revenue", rs.getBigDecimal("revenue"));
-                    row.put("profit", rs.getBigDecimal("profit"));
-                    rows.add(row);
+                    int day = rs.getInt("day_no");
+                    Map<String, Object> row = rowsByDay.get(day);
+                    if (row != null) {
+                        row.put("revenue", rs.getBigDecimal("revenue"));
+                    }
+                }
+            }
+
+            profitPs.setInt(1, year);
+            profitPs.setInt(2, month);
+            try (ResultSet rs = profitPs.executeQuery()) {
+                while (rs.next()) {
+                    int day = rs.getInt("day_no");
+                    Map<String, Object> row = rowsByDay.get(day);
+                    if (row != null) {
+                        row.put("profit", rs.getBigDecimal("profit"));
+                    }
                 }
             }
         } catch (Exception e) {
@@ -116,51 +130,66 @@ public class StatisticDAO extends DBContext {
         return rows;
     }
 
-    public List<Map<String, Object>> getOrderStatusChartData(int year) {
-        List<Map<String, Object>> rows = new ArrayList<>();
-        String sql = "SELECT m.month_no, "
-                + "ISNULL(t.total_orders, 0) AS total_orders, "
-                + "ISNULL(c.completed_orders, 0) AS completed_orders, "
-                + "ISNULL(x.cancelled_orders, 0) AS cancelled_orders "
-                + "FROM (VALUES (1),(2),(3),(4),(5),(6),(7),(8),(9),(10),(11),(12)) AS m(month_no) "
-                + "LEFT JOIN ( "
-                + "    SELECT MONTH(created_at) AS month_no, "
-                + "           COUNT(*) AS total_orders "
-                + "    FROM Orders "
-                + "    WHERE YEAR(created_at) = ? "
-                + "    GROUP BY MONTH(created_at) "
-                + ") t ON m.month_no = t.month_no "
-                + "LEFT JOIN ( "
-                + "    SELECT MONTH(ISNULL(completed_at, created_at)) AS month_no, "
-                + "           COUNT(*) AS completed_orders "
-                + "    FROM Orders "
-                + "    WHERE YEAR(ISNULL(completed_at, created_at)) = ? "
-                + "      AND order_status = 'COMPLETED' "
-                + "    GROUP BY MONTH(ISNULL(completed_at, created_at)) "
-                + ") c ON m.month_no = c.month_no "
-                + "LEFT JOIN ( "
-                + "    SELECT MONTH(created_at) AS month_no, "
-                + "           COUNT(*) AS cancelled_orders "
-                + "    FROM Orders "
-                + "    WHERE YEAR(created_at) = ? "
-                + "      AND order_status = 'CANCELLED' "
-                + "    GROUP BY MONTH(created_at) "
-                + ") x ON m.month_no = x.month_no "
-                + "ORDER BY m.month_no";
+    public List<Map<String, Object>> getOrderStatusChartData(int year, int month) {
+        List<Map<String, Object>> rows = createDayBucketRows(year, month);
+        Map<Integer, Map<String, Object>> rowsByDay = toDayRowMap(rows);
 
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setInt(1, year);
-            ps.setInt(2, year);
-            ps.setInt(3, year);
+        String totalSql = "SELECT DAY(created_at) AS day_no, COUNT(*) AS total_orders "
+                + "FROM Orders "
+                + "WHERE YEAR(created_at) = ? AND MONTH(created_at) = ? "
+                + "GROUP BY DAY(created_at)";
 
-            try (ResultSet rs = ps.executeQuery()) {
+        String completedSql = "SELECT DAY(ISNULL(completed_at, created_at)) AS day_no, COUNT(*) AS completed_orders "
+                + "FROM Orders "
+                + "WHERE YEAR(ISNULL(completed_at, created_at)) = ? "
+                + "AND MONTH(ISNULL(completed_at, created_at)) = ? "
+                + "AND order_status = 'COMPLETED' "
+                + "GROUP BY DAY(ISNULL(completed_at, created_at))";
+
+        String cancelledSql = "SELECT DAY(created_at) AS day_no, COUNT(*) AS cancelled_orders "
+                + "FROM Orders "
+                + "WHERE YEAR(created_at) = ? "
+                + "AND MONTH(created_at) = ? "
+                + "AND order_status = 'CANCELLED' "
+                + "GROUP BY DAY(created_at)";
+
+        try (PreparedStatement totalPs = connection.prepareStatement(totalSql);
+             PreparedStatement completedPs = connection.prepareStatement(completedSql);
+             PreparedStatement cancelledPs = connection.prepareStatement(cancelledSql)) {
+
+            totalPs.setInt(1, year);
+            totalPs.setInt(2, month);
+            try (ResultSet rs = totalPs.executeQuery()) {
                 while (rs.next()) {
-                    Map<String, Object> row = new HashMap<>();
-                    row.put("label", "Thg " + rs.getInt("month_no"));
-                    row.put("totalOrders", rs.getInt("total_orders"));
-                    row.put("completedOrders", rs.getInt("completed_orders"));
-                    row.put("cancelledOrders", rs.getInt("cancelled_orders"));
-                    rows.add(row);
+                    int day = rs.getInt("day_no");
+                    Map<String, Object> row = rowsByDay.get(day);
+                    if (row != null) {
+                        row.put("totalOrders", rs.getInt("total_orders"));
+                    }
+                }
+            }
+
+            completedPs.setInt(1, year);
+            completedPs.setInt(2, month);
+            try (ResultSet rs = completedPs.executeQuery()) {
+                while (rs.next()) {
+                    int day = rs.getInt("day_no");
+                    Map<String, Object> row = rowsByDay.get(day);
+                    if (row != null) {
+                        row.put("completedOrders", rs.getInt("completed_orders"));
+                    }
+                }
+            }
+
+            cancelledPs.setInt(1, year);
+            cancelledPs.setInt(2, month);
+            try (ResultSet rs = cancelledPs.executeQuery()) {
+                while (rs.next()) {
+                    int day = rs.getInt("day_no");
+                    Map<String, Object> row = rowsByDay.get(day);
+                    if (row != null) {
+                        row.put("cancelledOrders", rs.getInt("cancelled_orders"));
+                    }
                 }
             }
         } catch (Exception e) {
@@ -203,7 +232,7 @@ public class StatisticDAO extends DBContext {
                     row.put("productName", rs.getString("product_name"));
                     row.put("totalSold", rs.getInt("total_sold"));
                     row.put("revenue", rs.getBigDecimal("revenue"));
-                    row.put("imageUrl", rs.getString("image_url"));
+                    row.put("imageUrl", normalizeProductImageUrl(rs.getString("image_url")));
                     products.add(row);
                 }
             }
@@ -243,7 +272,7 @@ public class StatisticDAO extends DBContext {
                     variant.setStatus(rs.getBoolean("status"));
                     variant.setImportPrice(rs.getBigDecimal("avg_cost"));
                     variant.setProductName(rs.getString("product_name"));
-                    variant.setImageUrl(rs.getString("image_url"));
+                    variant.setImageUrl(normalizeProductImageUrl(rs.getString("image_url")));
                     variants.add(variant);
                 }
             }
@@ -252,5 +281,66 @@ public class StatisticDAO extends DBContext {
         }
 
         return variants;
+    }
+
+    private List<Map<String, Object>> createDayBucketRows(int year, int month) {
+        List<Map<String, Object>> rows = new ArrayList<>();
+        for (Integer day : getStatisticDays(year, month)) {
+            Map<String, Object> row = new HashMap<>();
+            row.put("day", day);
+            row.put("label", "Day " + day);
+            row.put("revenue", java.math.BigDecimal.ZERO);
+            row.put("profit", java.math.BigDecimal.ZERO);
+            row.put("totalOrders", 0);
+            row.put("completedOrders", 0);
+            row.put("cancelledOrders", 0);
+            rows.add(row);
+        }
+        return rows;
+    }
+
+    private Map<Integer, Map<String, Object>> toDayRowMap(List<Map<String, Object>> rows) {
+        Map<Integer, Map<String, Object>> map = new LinkedHashMap<>();
+        for (Map<String, Object> row : rows) {
+            map.put((Integer) row.get("day"), row);
+        }
+        return map;
+    }
+
+    private List<Integer> getStatisticDays(int year, int month) {
+        int lastDay = YearMonth.of(year, month).lengthOfMonth();
+        List<Integer> days = new ArrayList<>(Arrays.asList(1, 5, 10, 15, 20, 25));
+        if (!days.contains(lastDay)) {
+            days.add(lastDay);
+        }
+        return days;
+    }
+
+    private String normalizeProductImageUrl(String imageUrl) {
+        if (imageUrl == null) {
+            return null;
+        }
+
+        String normalized = imageUrl.trim();
+        if (normalized.isEmpty()) {
+            return null;
+        }
+
+        normalized = normalized.replace('\\', '/');
+
+        if (normalized.startsWith("http://") || normalized.startsWith("https://")) {
+            return normalized;
+        }
+
+        while (normalized.startsWith("/")) {
+            normalized = normalized.substring(1);
+        }
+
+        int assetsImgIndex = normalized.indexOf("assets/img/");
+        if (assetsImgIndex >= 0) {
+            return normalized.substring(assetsImgIndex + "assets/img/".length());
+        }
+
+        return normalized;
     }
 }

@@ -2,7 +2,7 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <fmt:setLocale value="vi_VN"/>
-<section class="admin-content__section staff-orders-page">
+<section class="admin-content__section admin-page staff-page staff-page--orders staff-orders-page">
     <div class="page-header">
         <div>
             <h4>Manage Orders</h4>
@@ -12,7 +12,7 @@
 
     <label><strong>Filter by Status:</strong></label>
 
-    <select name="status" class="form-select" style="width:200px">
+    <select name="status" class="form-select staff-order-filter-select">
         <option value="">All</option>
         <option value="CREATED" ${selectedStatus == 'CREATED' ? 'selected' : ''}>CREATED</option>
         <option value="PROCESSING" ${selectedStatus == 'PROCESSING' ? 'selected' : ''}>PROCESSING</option>

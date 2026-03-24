@@ -44,14 +44,31 @@ public class ImportProductController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        importProduct(request, response);
+        String action = request.getParameter("action");
+
+        if (action == null || action.trim().isEmpty()) {
+            action = "importproduct";
+        }
+
+        switch (action) {
+            case "receive":
+                confirmReceipt(request, response);
+                break;
+            case "importproduct":
+            default:
+                importProduct(request, response);
+                break;
+        }
     }
 
     private void showDetail(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         int orderId = Integer.parseInt(request.getParameter("orderId"));
         List<PurchaseDetail> details = dao.getImportOrderDetail(orderId);
+        String status = dao.getImportOrderStatus(orderId);
         request.setAttribute("details", details);
+        request.setAttribute("orderStatus", status);
+        request.setAttribute("orderId", orderId);
         request.getRequestDispatcher("/views/admin/import-detail.jsp").forward(request, response);
     }
 
@@ -145,7 +162,6 @@ public class ImportProductController extends HttpServlet {
             double price = Double.parseDouble(priceRaw);
 
             dao.insertPurchaseDetail(orderId, variantId, quantity, price);
-            dao.updateStock(variantId, quantity, price);
         }
 
         dao.updateTotalAmount(orderId, total);
@@ -159,5 +175,43 @@ public class ImportProductController extends HttpServlet {
         request.setAttribute("currentView", "inventory");
         request.setAttribute("contentPage", "/views/admin/partials/manage-importproduct-content.jsp");
         request.getRequestDispatcher("/views/admin/admin-panel.jsp").forward(request, response);
+    }
+
+    private void confirmReceipt(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        HttpSession session = request.getSession(false);
+        Manager manager = session == null ? null : (Manager) session.getAttribute("manager");
+
+        if (manager == null) {
+            response.sendRedirect(request.getContextPath() + "/manager-auth");
+            return;
+        }
+
+        String orderIdRaw = request.getParameter("orderId");
+        String[] variantIdsRaw = request.getParameterValues("variantId");
+        String[] receivedRaw = request.getParameterValues("receivedQuantity");
+
+        if (orderIdRaw == null || variantIdsRaw == null || receivedRaw == null
+                || variantIdsRaw.length != receivedRaw.length) {
+            response.sendRedirect(request.getContextPath() + "/admin/import-product?action=history&error=importFailed");
+            return;
+        }
+
+        int orderId = Integer.parseInt(orderIdRaw);
+        int[] variantIds = new int[variantIdsRaw.length];
+        int[] receivedQuantities = new int[receivedRaw.length];
+
+        for (int i = 0; i < variantIdsRaw.length; i++) {
+            variantIds[i] = Integer.parseInt(variantIdsRaw[i]);
+            String qtyRaw = receivedRaw[i] == null ? "0" : receivedRaw[i].trim();
+            receivedQuantities[i] = qtyRaw.isEmpty() ? 0 : Integer.parseInt(qtyRaw);
+        }
+
+        boolean ok = dao.confirmReceipt(orderId, manager.getManagerId(), variantIds, receivedQuantities);
+        if (ok) {
+            response.sendRedirect(request.getContextPath() + "/admin/import-product?action=history&success=received");
+        } else {
+            response.sendRedirect(request.getContextPath() + "/admin/import-product?action=history&error=importFailed");
+        }
     }
 }

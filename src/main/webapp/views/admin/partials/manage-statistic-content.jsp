@@ -5,7 +5,7 @@
     <div class="statistic-page__header">
         <div>
             <h2 class="admin-content__title">Monthly Statistic</h2>
-            <p class="admin-content__subtitle">Summary of revenue, profit, orders, and products by month.</p>
+            <p class="admin-content__subtitle">Summary of revenue, profit, orders, and products by selected month.</p>
         </div>
 
         <form class="statistic-filter" method="get" action="${pageContext.request.contextPath}/admin/manage-statistic">
@@ -63,7 +63,7 @@
             <div class="chart-card">
                 <div class="chart-card__head">
                     <h3>Revenue vs Profit</h3>
-                    <span>Comparison by month in ${selectedYear}</span>
+                    <span>Comparison by selected day in month ${selectedMonth}/${selectedYear}</span>
                 </div>
                 <canvas id="revenueProfitChart"></canvas>
             </div>
@@ -72,7 +72,7 @@
             <div class="chart-card">
                 <div class="chart-card__head">
                     <h3>Orders Overview</h3>
-                    <span>Total, completed and cancelled orders in ${selectedYear}</span>
+                    <span>Total, completed and cancelled orders by selected day in ${selectedMonth}/${selectedYear}</span>
                 </div>
                 <canvas id="orderStatusChart"></canvas>
             </div>
@@ -109,10 +109,23 @@
                                                     <div class="product-cell__thumb">
                                                         <c:choose>
                                                             <c:when test="${not empty item.imageUrl}">
-                                                                <img src="${pageContext.request.contextPath}/assets/img/${item.imageUrl}" alt="${item.productName}">
+                                                                <c:choose>
+                                                                    <c:when test="${item.imageUrl.startsWith('http')}">
+                                                                        <img src="${item.imageUrl}" alt="${item.productName}"
+                                                                             onerror="this.src='${pageContext.request.contextPath}/assets/img/Logo.png';">
+                                                                    </c:when>
+                                                                    <c:when test="${item.imageUrl.startsWith('assets/')}">
+                                                                        <img src="${pageContext.request.contextPath}/${item.imageUrl}" alt="${item.productName}"
+                                                                             onerror="this.src='${pageContext.request.contextPath}/assets/img/Logo.png';">
+                                                                    </c:when>
+                                                                    <c:otherwise>
+                                                                        <img src="${pageContext.request.contextPath}/assets/img/${item.imageUrl}" alt="${item.productName}"
+                                                                             onerror="this.src='${pageContext.request.contextPath}/assets/img/Logo.png';">
+                                                                    </c:otherwise>
+                                                                </c:choose>
                                                             </c:when>
                                                             <c:otherwise>
-                                                                <span>No image</span>
+                                                                <img src="${pageContext.request.contextPath}/assets/img/Logo.png" alt="No image">
                                                             </c:otherwise>
                                                         </c:choose>
                                                     </div>
@@ -162,10 +175,23 @@
                                                     <div class="product-cell__thumb">
                                                         <c:choose>
                                                             <c:when test="${not empty variant.imageUrl}">
-                                                                <img src="${pageContext.request.contextPath}/assets/img/${variant.imageUrl}" alt="${variant.productName}">
+                                                                <c:choose>
+                                                                    <c:when test="${variant.imageUrl.startsWith('http')}">
+                                                                        <img src="${variant.imageUrl}" alt="${variant.productName}"
+                                                                             onerror="this.src='${pageContext.request.contextPath}/assets/img/Logo.png';">
+                                                                    </c:when>
+                                                                    <c:when test="${variant.imageUrl.startsWith('assets/')}">
+                                                                        <img src="${pageContext.request.contextPath}/${variant.imageUrl}" alt="${variant.productName}"
+                                                                             onerror="this.src='${pageContext.request.contextPath}/assets/img/Logo.png';">
+                                                                    </c:when>
+                                                                    <c:otherwise>
+                                                                        <img src="${pageContext.request.contextPath}/assets/img/${variant.imageUrl}" alt="${variant.productName}"
+                                                                             onerror="this.src='${pageContext.request.contextPath}/assets/img/Logo.png';">
+                                                                    </c:otherwise>
+                                                                </c:choose>
                                                             </c:when>
                                                             <c:otherwise>
-                                                                <span>No image</span>
+                                                                <img src="${pageContext.request.contextPath}/assets/img/Logo.png" alt="No image">
                                                             </c:otherwise>
                                                         </c:choose>
                                                     </div>

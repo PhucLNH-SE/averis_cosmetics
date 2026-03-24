@@ -14,7 +14,7 @@
                         <div>
                             <div class="d-flex align-items-center gap-2 mb-1">
                                 <h6 class="fw-bold mb-0">${c.customerName}</h6>
-                                <span class="badge bg-secondary" style="font-size: 0.7rem; font-weight: 500;">
+                                <span class="badge bg-secondary feedback-order-badge">
                                     Order #${c.orderId}
                                 </span>
                             </div>
@@ -37,11 +37,11 @@
                         </div>
                     </c:if>
                     <div class="d-flex gap-2">
-                        <button class="btn btn-sm btn-primary px-3 rounded-pill" type="button" data-bs-toggle="collapse" data-bs-target="#replyForm${c.orderDetailId}">
+                        <button class="btn btn-sm btn-primary px-3" type="button" data-bs-toggle="collapse" data-bs-target="#replyForm${c.orderDetailId}">
                             <i class="fas fa-reply me-1"></i> ${not empty c.responseContent ? 'Edit' : 'Reply'}
                         </button>
-                        <a href="${pageContext.request.contextPath}/staff/manage-feedback?action=delete&id=${c.orderDetailId}" class="btn btn-sm btn-outline-danger rounded-circle" onclick="return confirm('Delete this review?')">
-                            <i class="fas fa-trash"></i>
+                        <a href="${pageContext.request.contextPath}/staff/manage-feedback?action=delete&id=${c.orderDetailId}" class="btn btn-sm btn-danger px-3" onclick="return confirm('Delete this review?')">
+                            <i class="fas fa-trash me-1"></i> Delete
                         </a>
                     </div>
                     <div class="collapse mt-3" id="replyForm${c.orderDetailId}">
@@ -50,7 +50,9 @@
                             <input type="hidden" name="orderDetailId" value="${c.orderDetailId}">
                             <textarea name="responseContent" class="form-control mb-2 rounded-3" rows="2">${c.responseContent}</textarea>
                             <div class="text-end">
-                                <button type="submit" class="btn btn-success btn-sm px-4">Save Response</button>
+                                <button type="submit" class="btn btn-success btn-sm px-4">
+                                    <i class="fas fa-save me-1"></i> Save Response
+                                </button>
                             </div>
                         </form>
                     </div>

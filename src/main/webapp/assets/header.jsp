@@ -48,7 +48,7 @@
 
       <a class="icon" href="<%=request.getContextPath()%>/cart" aria-label="Cart">
         <img class="cart-img" src="<%=request.getContextPath()%>/assets/img/Cart.png" alt="Cart">
-        <span id="cartCount" style="color: var(--accent); font-weight: 800; margin-left: 5px; font-size: 15px;">
+        <span id="cartCount" class="cart-count-badge">
             ${sessionScope.cart != null ? sessionScope.cart.size() : 0}
         </span>
       </a>

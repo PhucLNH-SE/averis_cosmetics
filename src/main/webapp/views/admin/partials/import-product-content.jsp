@@ -4,8 +4,8 @@
 <section class="admin-content__section">
     <div class="page-header">
         <div>
-            <h4>Import Product</h4>
-            <p class="text-muted mb-0">Create new import order</p>
+            <h4>Create Import Order</h4>
+            <p class="text-muted mb-0">Step 1: select brand and enter expected quantities</p>
         </div>
         <a href="${pageContext.request.contextPath}/admin/import-product?action=history" class="btn btn-back">
             <i class="bi bi-arrow-left"></i> Back to History
@@ -19,7 +19,7 @@
 
     <div class="card table-card mb-4">
         <div class="card-body p-4">
-            <form action="${pageContext.request.contextPath}/admin/import-product" method="get" class="d-flex align-items-center gap-3">
+            <form action="${pageContext.request.contextPath}/admin/import-product" method="get" class="d-flex align-items-end gap-3 flex-wrap">
                 <input type="hidden" name="action" value="importproduct">
                 <div class="flex-grow-1">
                     <label for="brandId" class="form-label fw-semibold">Choose Brand</label>
@@ -31,8 +31,9 @@
                             </option>
                         </c:forEach>
                     </select>
+                    <small class="text-muted d-block mt-2">Only products under the selected brand will be listed.</small>
                 </div>
-                <div class="mt-4">
+                <div>
                     <button type="submit" class="btn btn-primary text-white">
                         <i class="bi bi-repeat me-1"></i> Load Products
                     </button>
@@ -47,12 +48,15 @@
                 <form action="${pageContext.request.contextPath}/admin/import-product" method="post">
                     <input type="hidden" name="brandId" value="${selectedBrand}">
 
-                    <div class="p-3 bg-light border-bottom d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">
-                            <i class="bi bi-box-seam me-2"></i>Product Variants
-                        </h5>
+                    <div class="p-3 bg-light border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <div>
+                            <h5 class="mb-0">
+                                <i class="bi bi-box-seam me-2"></i>Product Variants
+                            </h5>
+                            <small class="text-muted">Enter planned quantity and expected import price</small>
+                        </div>
                         <button type="submit" class="btn btn-add text-white">
-                            <i class="bi bi-check-circle me-1"></i> Import Products
+                            <i class="bi bi-check-circle me-1"></i> Create Import Order
                         </button>
                     </div>
 
@@ -63,8 +67,8 @@
                                     <th>Product</th>
                                     <th>Variant</th>
                                     <th>Current Stock</th>
-                                    <th style="width: 180px;">Import Price</th>
-                                    <th style="width: 150px;">Quantity</th>
+                                    <th class="import-price-col">Expected Import Price</th>
+                                    <th class="import-quantity-col">Planned Quantity</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -83,7 +87,7 @@
                                         <td>
                                             <input type="number" class="form-control" name="quantity" placeholder="0" min="0">
                                         </td>
-                                        <td style="display: none;">
+                                        <td class="import-hidden-cell">
                                             <input type="hidden" name="variantId" value="${v.variantId}">
                                         </td>
                                     </tr>
