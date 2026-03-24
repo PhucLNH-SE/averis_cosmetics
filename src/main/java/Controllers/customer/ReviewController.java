@@ -2,7 +2,7 @@ package Controllers.customer;
 
 import DALs.OrderDAO;
 import Model.Customer;
-import Model.OrderDetail; // Thêm import này
+import Model.OrderDetail; // ThÃªm import nÃ y
 import java.io.IOException;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
@@ -16,7 +16,7 @@ public class ReviewController extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         
-        // 1. Kiểm tra xem khách hàng đã đăng nhập chưa
+        // 1. Kiá»ƒm tra xem khÃ¡ch hÃ ng Ä‘Ã£ Ä‘Äƒng nháº­p chÆ°a
         HttpSession session = request.getSession(false);
         if (session == null || session.getAttribute("customer") == null) {
             response.sendRedirect(request.getContextPath() + "/auth?action=login");
@@ -24,7 +24,7 @@ public class ReviewController extends HttpServlet {
         }
 
         try {
-            // 2. Lấy dữ liệu từ form Pop-up gửi lên
+            // 2. Láº¥y dá»¯ liá»‡u tá»« form Pop-up gá»­i lÃªn
             int orderDetailId = Integer.parseInt(request.getParameter("orderDetailId"));
             int orderId = Integer.parseInt(request.getParameter("orderId"));
             int rating = Integer.parseInt(request.getParameter("rating"));
@@ -33,53 +33,53 @@ public class ReviewController extends HttpServlet {
 
             OrderDAO dao = new OrderDAO();
             
-            // --- LOGIC MỚI: KIỂM TRA ĐÁNH GIÁ LẦN ĐẦU HAY LÀ SỬA ---
+            // --- LOGIC Má»šI: KIá»‚M TRA ÄÃNH GIÃ Láº¦N Äáº¦U HAY LÃ€ Sá»¬A ---
             OrderDetail oldDetail = dao.getOrderDetailById(orderDetailId);
             
             if (oldDetail == null) {
-                session.setAttribute("error", "Không tìm thấy thông tin sản phẩm cần đánh giá!");
+                session.setAttribute("error", "KhÃ´ng tÃ¬m tháº¥y thÃ´ng tin sáº£n pháº©m cáº§n Ä‘Ã¡nh giÃ¡!");
                 response.sendRedirect(request.getContextPath() + "/profile?action=orderDetail&orderId=" + orderId + "&tab=orderDetail");
                 return;
             }
 
             String finalComment = comment;
 
-            // Kiểm tra xem đã từng đánh giá chưa (rating cũ > 0)
+            // Kiá»ƒm tra xem Ä‘Ã£ tá»«ng Ä‘Ã¡nh giÃ¡ chÆ°a (rating cÅ© > 0)
             if (oldDetail.getRating() > 0) {
                 String oldComment = oldDetail.getReviewComment();
                 
-                // Nếu comment cũ đã chứa tag [EDITED] -> Đã sửa 1 lần rồi -> Chặn
+                // Náº¿u comment cÅ© Ä‘Ã£ chá»©a tag [EDITED] -> ÄÃ£ sá»­a 1 láº§n rá»“i -> Cháº·n
                 if (oldComment != null && oldComment.contains("[EDITED]")) {
-                    session.setAttribute("error", "Bạn chỉ được phép chỉnh sửa đánh giá 1 lần duy nhất!");
+                    session.setAttribute("error", "Báº¡n chá»‰ Ä‘Æ°á»£c phÃ©p chá»‰nh sá»­a Ä‘Ã¡nh giÃ¡ 1 láº§n duy nháº¥t!");
                     response.sendRedirect(request.getContextPath() + "/profile?action=orderDetail&orderId=" + orderId + "&tab=orderDetail");
                     return;
                 }
                 
-                // Nếu chưa có tag -> Đây là lần sửa đầu tiên -> Gắn thêm tag ẩn [EDITED]
+                // Náº¿u chÆ°a cÃ³ tag -> ÄÃ¢y lÃ  láº§n sá»­a Ä‘áº§u tiÃªn -> Gáº¯n thÃªm tag áº©n [EDITED]
                 finalComment = comment + "[EDITED]";
             }
             // ---------------------------------------------------------
 
-            // 3. Gọi DAO để cập nhật đánh giá vào CSDL
+            // 3. Gá»i DAO Ä‘á»ƒ cáº­p nháº­t Ä‘Ã¡nh giÃ¡ vÃ o CSDL
             boolean isSuccess = dao.updateReview(orderDetailId, rating, finalComment);
 
-            // 4. Trả về thông báo thành công hoặc thất bại qua session
+            // 4. Tráº£ vá» thÃ´ng bÃ¡o thÃ nh cÃ´ng hoáº·c tháº¥t báº¡i qua session
             if (isSuccess) {
                 if (oldDetail.getRating() > 0) {
-                    session.setAttribute("profileMessage", "Chỉnh sửa đánh giá thành công!");
+                    session.setAttribute("profileMessage", "Chá»‰nh sá»­a Ä‘Ã¡nh giÃ¡ thÃ nh cÃ´ng!");
                 } else {
-                    session.setAttribute("profileMessage", "Cảm ơn bạn đã đánh giá sản phẩm!");
+                    session.setAttribute("profileMessage", "Cáº£m Æ¡n báº¡n Ä‘Ã£ Ä‘Ã¡nh giÃ¡ sáº£n pháº©m!");
                 }
             } else {
-                session.setAttribute("error", "Có lỗi xảy ra khi lưu đánh giá, vui lòng thử lại!");
+                session.setAttribute("error", "CÃ³ lá»—i xáº£y ra khi lÆ°u Ä‘Ã¡nh giÃ¡, vui lÃ²ng thá»­ láº¡i!");
             }
 
-            // 5. Chuyển hướng người dùng quay lại đúng trang chi tiết của đơn hàng đó
+            // 5. Chuyá»ƒn hÆ°á»›ng ngÆ°á»i dÃ¹ng quay láº¡i Ä‘Ãºng trang chi tiáº¿t cá»§a Ä‘Æ¡n hÃ ng Ä‘Ã³
             response.sendRedirect(request.getContextPath() + "/profile?action=orderDetail&orderId=" + orderId + "&tab=orderDetail");
 
         } catch (NumberFormatException e) {
             e.printStackTrace();
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Dữ liệu đánh giá không hợp lệ.");
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Dá»¯ liá»‡u Ä‘Ã¡nh giÃ¡ khÃ´ng há»£p lá»‡.");
         }
     }
 }

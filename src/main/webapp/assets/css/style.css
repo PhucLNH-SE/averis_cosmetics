@@ -7221,6 +7221,17 @@ body {
     line-height: 1;
 }
 
+.admin-shell-body .admin-actions-stack{
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: center;
+}
+
+.admin-shell-body .admin-actions-stack .btn{
+    min-width: 110px;
+}
+
 .admin-shell-body .product-toolbar{
     display: flex;
     justify-content: space-between;

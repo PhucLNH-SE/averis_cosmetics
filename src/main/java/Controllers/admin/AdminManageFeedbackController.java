@@ -35,9 +35,9 @@ public class AdminManageFeedbackController extends HttpServlet {
                 request.setAttribute("currentView", "feedback");
 
                 request.setAttribute("contentPage",
-                        "/views/admin/partials/manage-feedback-content.jsp");
+                        "/WEB-INF/views/admin/partials/manage-feedback-content.jsp");
 
-                request.getRequestDispatcher("/views/admin/admin-panel.jsp")
+                request.getRequestDispatcher("/WEB-INF/views/admin/admin-panel.jsp")
                         .forward(request, response);
 
                 break;
@@ -54,7 +54,7 @@ public class AdminManageFeedbackController extends HttpServlet {
                     request.setAttribute("comments", comments);
 
                     request.getRequestDispatcher(
-                            "/views/admin/partials/manage-feedback-comments.jsp")
+                            "/WEB-INF/views/admin/partials/manage-feedback-comments.jsp")
                             .forward(request, response);
 
                 } catch (Exception e) {

@@ -1,11 +1,11 @@
 package Controllers.admin;
 
+import DALs.FeedbackDAO;
 import DALs.ManagerDAO;
 import DALs.OrderDAO;
-import DALs.FeedbackDAO;
 import Model.Manager;
-import Model.Orders;
 import Model.OrderDetail;
+import Model.Orders;
 import java.io.IOException;
 import java.util.List;
 import jakarta.servlet.ServletException;
@@ -17,15 +17,43 @@ import org.mindrot.jbcrypt.BCrypt;
 
 public class ManageStaffController extends HttpServlet {
 
+    private boolean isUnauthorizedAdmin(Manager admin) {
+        return admin == null || !"ADMIN".equals(admin.getManagerRole());
+    }
+
+    private void forwardManageStaffPage(HttpServletRequest request, HttpServletResponse response,
+            HttpSession session, ManagerDAO dao, Manager selectedStaff, String formMode, String inlineError)
+            throws ServletException, IOException {
+
+        List<Manager> listStaff = dao.getAllManagers();
+        request.setAttribute("listStaff", listStaff);
+
+        if (session.getAttribute("successMsg") != null) {
+            request.setAttribute("successMsg", session.getAttribute("successMsg"));
+            session.removeAttribute("successMsg");
+        }
+        if (session.getAttribute("errorMsg") != null) {
+            request.setAttribute("errorMsg", session.getAttribute("errorMsg"));
+            session.removeAttribute("errorMsg");
+        }
+        if (inlineError != null && !inlineError.trim().isEmpty()) {
+            request.setAttribute("errorMsg", inlineError);
+        }
+
+        request.setAttribute("selectedStaff", selectedStaff);
+        request.setAttribute("formMode", formMode);
+        request.setAttribute("currentView", "staff");
+        request.setAttribute("contentPage", "/WEB-INF/views/admin/partials/manage-staff-content.jsp");
+        request.getRequestDispatcher("/WEB-INF/views/admin/admin-panel.jsp").forward(request, response);
+    }
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
+
         HttpSession session = request.getSession();
         Manager admin = (Manager) session.getAttribute("manager");
-        
-        // Block nếu không phải ADMIN
-        if (admin == null || !"ADMIN".equals(admin.getManagerRole())) {
+        if (isUnauthorizedAdmin(admin)) {
             response.sendRedirect(request.getContextPath() + "/manager-auth");
             return;
         }
@@ -64,36 +92,47 @@ public class ManageStaffController extends HttpServlet {
             request.setAttribute("handledOrders", handledOrders);
             request.setAttribute("feedbacks", feedbacks);
             request.setAttribute("currentView", "staff");
-            request.setAttribute("contentPage", "/views/admin/partials/manage-staff-detail.jsp");
-            request.getRequestDispatcher("/views/admin/admin-panel.jsp").forward(request, response);
+            request.setAttribute("contentPage", "/WEB-INF/views/admin/partials/manage-staff-detail.jsp");
+            request.getRequestDispatcher("/WEB-INF/views/admin/admin-panel.jsp").forward(request, response);
             return;
         }
 
-        List<Manager> listStaff = dao.getAllManagers();
-        request.setAttribute("listStaff", listStaff);
+        if ("edit".equalsIgnoreCase(action)) {
+            String managerIdRaw = request.getParameter("managerId");
+            if (managerIdRaw == null || managerIdRaw.trim().isEmpty()) {
+                session.setAttribute("errorMsg", "Staff not found.");
+                response.sendRedirect(request.getContextPath() + "/admin/manage-staff");
+                return;
+            }
 
-        // Đẩy Flash Message
-        if (session.getAttribute("successMsg") != null) {
-            request.setAttribute("successMsg", session.getAttribute("successMsg"));
-            session.removeAttribute("successMsg");
-        }
-        if (session.getAttribute("errorMsg") != null) {
-            request.setAttribute("errorMsg", session.getAttribute("errorMsg"));
-            session.removeAttribute("errorMsg");
+            try {
+                int managerId = Integer.parseInt(managerIdRaw);
+                Manager selectedStaff = dao.getById(managerId);
+                if (selectedStaff == null) {
+                    session.setAttribute("errorMsg", "Staff not found.");
+                    response.sendRedirect(request.getContextPath() + "/admin/manage-staff");
+                    return;
+                }
+
+                forwardManageStaffPage(request, response, session, dao, selectedStaff, "update", null);
+                return;
+            } catch (NumberFormatException ex) {
+                session.setAttribute("errorMsg", "Staff not found.");
+                response.sendRedirect(request.getContextPath() + "/admin/manage-staff");
+                return;
+            }
         }
 
-        request.setAttribute("currentView", "staff");
-        request.setAttribute("contentPage", "/views/admin/partials/manage-staff-content.jsp");
-        request.getRequestDispatcher("/views/admin/admin-panel.jsp").forward(request, response);
+        forwardManageStaffPage(request, response, session, dao, null, null, null);
     }
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
+
         HttpSession session = request.getSession();
         Manager admin = (Manager) session.getAttribute("manager");
-        if (admin == null || !"ADMIN".equals(admin.getManagerRole())) {
+        if (isUnauthorizedAdmin(admin)) {
             response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access Denied");
             return;
         }
@@ -109,7 +148,6 @@ public class ManageStaffController extends HttpServlet {
                 String role = request.getParameter("role");
                 Boolean status = Boolean.parseBoolean(request.getParameter("status"));
 
-                // Kiểm tra trùng Email và trùng Tên
                 if (dao.isEmailExist(email, 0)) {
                     session.setAttribute("errorMsg", "Email already exists!");
                 } else if (dao.isNameExist(name, 0)) {
@@ -118,12 +156,15 @@ public class ManageStaffController extends HttpServlet {
                     Manager m = new Manager();
                     m.setFullName(name);
                     m.setEmail(email);
-                    m.setPassword(password); // Mật khẩu sẽ được Hash trong DAO
+                    m.setPassword(password);
                     m.setManagerRole(role);
-                    m.setStatus(status); 
-                    
-                    if (dao.addManager(m)) session.setAttribute("successMsg", "Staff added successfully!");
-                    else session.setAttribute("errorMsg", "Failed to add staff.");
+                    m.setStatus(status);
+
+                    if (dao.addManager(m)) {
+                        session.setAttribute("successMsg", "Staff added successfully!");
+                    } else {
+                        session.setAttribute("errorMsg", "Failed to add staff.");
+                    }
                 }
 
             } else if ("update".equals(action)) {
@@ -131,33 +172,48 @@ public class ManageStaffController extends HttpServlet {
                 String name = request.getParameter("name");
                 String email = request.getParameter("email");
                 String role = request.getParameter("role");
-                String password = request.getParameter("password"); 
+                String password = request.getParameter("password");
                 Boolean status = Boolean.parseBoolean(request.getParameter("status"));
 
-                // Admin không thể tự đổi role hoặc ban chính mình
+                Manager selectedStaff = new Manager();
+                selectedStaff.setManagerId(id);
+                selectedStaff.setFullName(name);
+                selectedStaff.setEmail(email);
+                selectedStaff.setManagerRole(role);
+                selectedStaff.setStatus(status);
+
                 if (id == admin.getManagerId() && (!"ADMIN".equals(role) || !status)) {
-                    session.setAttribute("errorMsg", "You cannot demote or ban yourself!");
+                    forwardManageStaffPage(request, response, session, dao, selectedStaff, "update",
+                            "You cannot demote or ban yourself!");
+                    return;
                 } else if (dao.isEmailExist(email, id)) {
-                    session.setAttribute("errorMsg", "Email already exists in another account!");
+                    forwardManageStaffPage(request, response, session, dao, selectedStaff, "update",
+                            "Email already exists in another account!");
+                    return;
                 } else if (dao.isNameExist(name, id)) {
-                    session.setAttribute("errorMsg", "Staff name already exists in another account!");
+                    forwardManageStaffPage(request, response, session, dao, selectedStaff, "update",
+                            "Staff name already exists in another account!");
+                    return;
                 } else {
                     Manager m = new Manager();
                     m.setManagerId(id);
                     m.setFullName(name);
                     m.setEmail(email);
                     m.setManagerRole(role);
-                    m.setStatus(status); 
-                    
+                    m.setStatus(status);
+
                     if (password != null && !password.trim().isEmpty()) {
                         String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
                         m.setPassword(hashedPassword);
                     } else {
                         m.setPassword(null);
                     }
-                    
-                    if (dao.updateManager(m)) session.setAttribute("successMsg", "Staff updated successfully!");
-                    else session.setAttribute("errorMsg", "Failed to update staff.");
+
+                    if (dao.updateManager(m)) {
+                        session.setAttribute("successMsg", "Staff updated successfully!");
+                    } else {
+                        session.setAttribute("errorMsg", "Failed to update staff.");
+                    }
                 }
 
             } else if ("delete".equals(action)) {
@@ -165,10 +221,13 @@ public class ManageStaffController extends HttpServlet {
                 if (id == admin.getManagerId()) {
                     session.setAttribute("errorMsg", "You cannot ban yourself!");
                 } else {
-                    if (dao.banManager(id)) session.setAttribute("successMsg", "Staff account banned successfully!");
-                    else session.setAttribute("errorMsg", "Failed to ban staff.");
+                    if (dao.banManager(id)) {
+                        session.setAttribute("successMsg", "Staff account banned successfully!");
+                    } else {
+                        session.setAttribute("errorMsg", "Failed to ban staff.");
+                    }
                 }
-                
+
             } else if ("unban".equals(action)) {
                 int id = Integer.parseInt(request.getParameter("managerId"));
                 if (dao.unbanManager(id)) {
@@ -177,11 +236,11 @@ public class ManageStaffController extends HttpServlet {
                     session.setAttribute("errorMsg", "Failed to unlock staff.");
                 }
             }
-            
+
         } catch (Exception e) {
             session.setAttribute("errorMsg", "System error occurred!");
         }
-        
+
         response.sendRedirect(request.getContextPath() + "/admin/manage-staff");
     }
 }

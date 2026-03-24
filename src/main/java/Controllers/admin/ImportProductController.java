@@ -69,7 +69,7 @@ public class ImportProductController extends HttpServlet {
         request.setAttribute("details", details);
         request.setAttribute("orderStatus", status);
         request.setAttribute("orderId", orderId);
-        request.getRequestDispatcher("/views/admin/import-detail.jsp").forward(request, response);
+        request.getRequestDispatcher("/WEB-INF/views/admin/import-detail.jsp").forward(request, response);
     }
 
     private void showImportProduct(HttpServletRequest request, HttpServletResponse response)
@@ -86,8 +86,8 @@ public class ImportProductController extends HttpServlet {
         }
 
         request.setAttribute("currentView", "inventory");
-        request.setAttribute("contentPage", "/views/admin/partials/import-product-content.jsp");
-        request.getRequestDispatcher("/views/admin/admin-panel.jsp").forward(request, response);
+        request.setAttribute("contentPage", "/WEB-INF/views/admin/partials/import-product-content.jsp");
+        request.getRequestDispatcher("/WEB-INF/views/admin/admin-panel.jsp").forward(request, response);
     }
 
     private void importProduct(HttpServletRequest request, HttpServletResponse response)
@@ -173,8 +173,8 @@ public class ImportProductController extends HttpServlet {
         List<PurchaseOrder> history = dao.getImportHistory();
         request.setAttribute("history", history);
         request.setAttribute("currentView", "inventory");
-        request.setAttribute("contentPage", "/views/admin/partials/manage-importproduct-content.jsp");
-        request.getRequestDispatcher("/views/admin/admin-panel.jsp").forward(request, response);
+        request.setAttribute("contentPage", "/WEB-INF/views/admin/partials/manage-importproduct-content.jsp");
+        request.getRequestDispatcher("/WEB-INF/views/admin/admin-panel.jsp").forward(request, response);
     }
 
     private void confirmReceipt(HttpServletRequest request, HttpServletResponse response)
@@ -215,3 +215,4 @@ public class ImportProductController extends HttpServlet {
         }
     }
 }
+

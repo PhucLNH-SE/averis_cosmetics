@@ -50,7 +50,7 @@ public class AdminStatisticController extends HttpServlet {
         request.setAttribute("selectedYear", year);
         request.setAttribute("selectedMonth", month);
         request.setAttribute("currentView", "statistic");
-        request.setAttribute("contentPage", "/views/admin/partials/manage-statistic-content.jsp");
+        request.setAttribute("contentPage", "/WEB-INF/views/admin/partials/manage-statistic-content.jsp");
 
         request.setAttribute("revenueProfitLabelsJson", toJsonLabels(revenueProfitChart));
         request.setAttribute("revenueChartDataJson", toJsonBigDecimalValues(revenueProfitChart, "revenue"));
@@ -60,7 +60,7 @@ public class AdminStatisticController extends HttpServlet {
         request.setAttribute("completedOrdersChartDataJson", toJsonIntValues(orderChart, "completedOrders"));
         request.setAttribute("cancelledOrdersChartDataJson", toJsonIntValues(orderChart, "cancelledOrders"));
 
-        request.getRequestDispatcher("/views/admin/admin-panel.jsp").forward(request, response);
+        request.getRequestDispatcher("/WEB-INF/views/admin/admin-panel.jsp").forward(request, response);
     }
 
     private int parseIntOrDefault(String raw, int defaultValue) {
@@ -109,3 +109,4 @@ public class AdminStatisticController extends HttpServlet {
         return array.toString();
     }
 }
+

@@ -126,11 +126,12 @@ public class ProductController extends HttpServlet {
 
     private void forwardProductListView(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        request.getRequestDispatcher("/views/guest/products.jsp").forward(request, response);
+        request.getRequestDispatcher("/WEB-INF/views/guest/products.jsp").forward(request, response);
     }
 
     private void forwardProductDetailView(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        request.getRequestDispatcher("/views/guest/product-detail.jsp").forward(request, response);
+        request.getRequestDispatcher("/WEB-INF/views/guest/product-detail.jsp").forward(request, response);
     }
 }
+

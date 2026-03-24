@@ -68,9 +68,9 @@ public class ManageOrderController extends HttpServlet {
         }
 
         request.setAttribute("currentView", "orders");
-        request.setAttribute("contentPage", "/views/staff/partials/manage-orders-content.jsp");
+        request.setAttribute("contentPage", "/WEB-INF/views/staff/partials/manage-orders-content.jsp");
 
-        request.getRequestDispatcher("/views/staff/staff-panel.jsp").forward(request, response);
+        request.getRequestDispatcher("/WEB-INF/views/staff/staff-panel.jsp").forward(request, response);
     }
 
     private void viewOrderDetail(HttpServletRequest request, HttpServletResponse response)
@@ -91,9 +91,9 @@ public class ManageOrderController extends HttpServlet {
         }
 
         request.setAttribute("currentView", "orders");
-        request.setAttribute("contentPage", "/views/staff/partials/order-detail-content.jsp");
+        request.setAttribute("contentPage", "/WEB-INF/views/staff/partials/order-detail-content.jsp");
 
-        request.getRequestDispatcher("/views/staff/staff-panel.jsp").forward(request, response);
+        request.getRequestDispatcher("/WEB-INF/views/staff/staff-panel.jsp").forward(request, response);
     }
 
     @Override
@@ -197,3 +197,4 @@ public class ManageOrderController extends HttpServlet {
         return left.equalsIgnoreCase(right);
     }
 }
+

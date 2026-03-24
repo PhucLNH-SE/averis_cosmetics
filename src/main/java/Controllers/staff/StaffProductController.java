@@ -40,8 +40,8 @@ public class StaffProductController extends HttpServlet {
         request.setAttribute("inactiveCount", inactiveCount);
         request.setAttribute("totalProductCount", productDAO.countAllProducts());
         request.setAttribute("currentView", "products");
-        request.setAttribute("contentPage", "/views/staff/partials/manage-product-content.jsp");
-        request.getRequestDispatcher("/views/staff/staff-panel.jsp").forward(request, response);
+        request.setAttribute("contentPage", "/WEB-INF/views/staff/partials/manage-product-content.jsp");
+        request.getRequestDispatcher("/WEB-INF/views/staff/staff-panel.jsp").forward(request, response);
     }
 
     @Override
@@ -118,3 +118,4 @@ public class StaffProductController extends HttpServlet {
         return count;
     }
 }
+

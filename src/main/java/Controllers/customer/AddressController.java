@@ -97,12 +97,13 @@ public class AddressController extends HttpServlet {
         request.setAttribute("addresses", addresses);
         request.setAttribute("tab", "address");
         consumeProfileFlashMessage(session, request);
-        request.getRequestDispatcher("/views/customer/profile.jsp").forward(request, response);
+        request.getRequestDispatcher("/WEB-INF/views/customer/profile.jsp").forward(request, response);
     }
 
     private void showAddForm(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        request.getRequestDispatcher("/views/customer/add-address.jsp").forward(request, response);
+        setGeoapifyApiKey(request);
+        request.getRequestDispatcher("/WEB-INF/views/customer/add-address.jsp").forward(request, response);
     }
 
     private void showEditForm(HttpServletRequest request, HttpServletResponse response, Customer customer)
@@ -127,11 +128,20 @@ public class AddressController extends HttpServlet {
             }
 
             request.setAttribute("address", address);
-            request.getRequestDispatcher("/views/customer/edit-address.jsp").forward(request, response);
+            setGeoapifyApiKey(request);
+            request.getRequestDispatcher("/WEB-INF/views/customer/edit-address.jsp").forward(request, response);
         } catch (NumberFormatException e) {
             session.setAttribute("profileMessage", "Invalid address ID format");
             redirectToAddressList(request, response);
         }
+    }
+
+    private void setGeoapifyApiKey(HttpServletRequest request) {
+        String geoapifyApiKey = getServletContext().getInitParameter("GEOAPIFY_API_KEY");
+        if (geoapifyApiKey == null || geoapifyApiKey.trim().isEmpty()) {
+            geoapifyApiKey = System.getenv("GEOAPIFY_API_KEY");
+        }
+        request.setAttribute("geoapifyApiKey", geoapifyApiKey);
     }
 
     private void addAddress(HttpServletRequest request, HttpServletResponse response, Customer customer)
@@ -374,4 +384,5 @@ public class AddressController extends HttpServlet {
         response.sendRedirect(request.getContextPath() + "/address");
     }
 }
+
 

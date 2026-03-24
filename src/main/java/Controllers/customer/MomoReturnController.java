@@ -28,7 +28,7 @@ public class MomoReturnController extends HttpServlet {
     }
 
     /**
-     * 🔵 RETURN URL (LOCAL xử lý luôn)
+     * ðŸ”µ RETURN URL (LOCAL xá»­ lÃ½ luÃ´n)
      */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -99,7 +99,7 @@ public class MomoReturnController extends HttpServlet {
     }
 
     /**
-     * 🔴 IPN CALLBACK (prod dùng)
+     * ðŸ”´ IPN CALLBACK (prod dÃ¹ng)
      */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
@@ -153,12 +153,12 @@ public class MomoReturnController extends HttpServlet {
     }
 
     /**
-     * ✅ parse ORDER_18_123456 → 18
+     * âœ… parse ORDER_18_123456 â†’ 18
      */
     private int extractOrderId(String momoOrderId) {
         try {
             String[] parts = momoOrderId.split("_");
-            return Integer.parseInt(parts[1]); // ✅ đúng
+            return Integer.parseInt(parts[1]); // âœ… Ä‘Ãºng
         } catch (Exception e) {
             LOGGER.warning("Cannot parse orderId from: " + momoOrderId);
             return 0;

@@ -36,12 +36,12 @@ public class AuthController extends HttpServlet {
 
         switch (action) {
             case "register":
-                request.getRequestDispatcher("/views/customer/auth/register.jsp")
+                request.getRequestDispatcher("/WEB-INF/views/customer/auth/register.jsp")
                         .forward(request, response);
                 break;
             case "login":
             default:
-                request.getRequestDispatcher("/views/customer/auth/login.jsp")
+                request.getRequestDispatcher("/WEB-INF/views/customer/auth/login.jsp")
                         .forward(request, response);
                 break;
         }
@@ -86,7 +86,7 @@ public class AuthController extends HttpServlet {
 
         if (!errors.isEmpty()) {
             request.setAttribute("errors", errors);
-            request.getRequestDispatcher("/views/customer/auth/register.jsp")
+            request.getRequestDispatcher("/WEB-INF/views/customer/auth/register.jsp")
                     .forward(request, response);
             return;
         }
@@ -105,7 +105,7 @@ public class AuthController extends HttpServlet {
 
         if (!errors.isEmpty()) {
             request.setAttribute("errors", errors);
-            request.getRequestDispatcher("/views/customer/auth/register.jsp")
+            request.getRequestDispatcher("/WEB-INF/views/customer/auth/register.jsp")
                     .forward(request, response);
             return;
         }
@@ -130,7 +130,7 @@ public class AuthController extends HttpServlet {
             request.setAttribute("popupMessage", "Registration failed. Please try again.");
             request.setAttribute("popupType", "error");
             request.setAttribute("errorMessage", "Registration failed.");
-            request.getRequestDispatcher("/views/customer/auth/register.jsp")
+            request.getRequestDispatcher("/WEB-INF/views/customer/auth/register.jsp")
                     .forward(request, response);
         }
     }
@@ -160,7 +160,7 @@ public class AuthController extends HttpServlet {
 
         if (!errors.isEmpty()) {
             request.setAttribute("errors", errors);
-            request.getRequestDispatcher("/views/customer/auth/login.jsp")
+            request.getRequestDispatcher("/WEB-INF/views/customer/auth/login.jsp")
                     .forward(request, response);
             return;
         }
@@ -175,7 +175,7 @@ public class AuthController extends HttpServlet {
                 request.setAttribute("popupMessage",
                         "Your account has been deactivated.");
                 request.setAttribute("popupType", "error");
-                request.getRequestDispatcher("/views/customer/auth/login.jsp")
+                request.getRequestDispatcher("/WEB-INF/views/customer/auth/login.jsp")
                         .forward(request, response);
                 return;
             }
@@ -189,7 +189,7 @@ public class AuthController extends HttpServlet {
             request.setAttribute("popupMessage",
                     "Invalid username or password.");
             request.setAttribute("popupType", "error");
-            request.getRequestDispatcher("/views/customer/auth/login.jsp")
+            request.getRequestDispatcher("/WEB-INF/views/customer/auth/login.jsp")
                     .forward(request, response);
         }
     }
@@ -216,3 +216,4 @@ public class AuthController extends HttpServlet {
         return sb.toString();
     }
 }
+

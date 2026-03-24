@@ -33,7 +33,7 @@ public class ManagerAuthController extends HttpServlet {
             }
         }
 
-        request.getRequestDispatcher("/views/common/manager-login.jsp").forward(request, response);
+        request.getRequestDispatcher("/WEB-INF/views/common/manager-login.jsp").forward(request, response);
     }
 
     @Override
@@ -44,20 +44,20 @@ public class ManagerAuthController extends HttpServlet {
 
         if (email == null || email.trim().isEmpty() || password == null || password.isEmpty()) {
             request.setAttribute("errorMessage", "Email va password khong duoc de trong.");
-            request.getRequestDispatcher("/views/common/manager-login.jsp").forward(request, response);
+            request.getRequestDispatcher("/WEB-INF/views/common/manager-login.jsp").forward(request, response);
             return;
         }
         ValidationUtil util = new ValidationUtil();
         Manager manager = managerDAO.getByEmail(email.trim());
         if (manager == null || !util.checkLogin(password, manager.getPassword())) {
             request.setAttribute("errorMessage", "Sai email hoac password.");
-            request.getRequestDispatcher("/views/common/manager-login.jsp").forward(request, response);
+            request.getRequestDispatcher("/WEB-INF/views/common/manager-login.jsp").forward(request, response);
             return;
         }
 
         if (manager.getStatus() == null || !manager.getStatus()) {
             request.setAttribute("errorMessage", "Tai khoan da bi khoa.");
-            request.getRequestDispatcher("/views/common/manager-login.jsp").forward(request, response);
+            request.getRequestDispatcher("/WEB-INF/views/common/manager-login.jsp").forward(request, response);
             return;
         }
 
@@ -72,15 +72,16 @@ public class ManagerAuthController extends HttpServlet {
         String normalizedRole = role == null ? "" : role.toUpperCase();
         switch (normalizedRole) {
             case "ADMIN":
-                response.sendRedirect(request.getContextPath() + "/admin/panel?view=dashboard");
+                response.sendRedirect(request.getContextPath() + "/admin/manage-statistic");
                 break;
             case "STAFF":
-                response.sendRedirect(request.getContextPath() + "/staff/panel?view=dashboard");
+                response.sendRedirect(request.getContextPath() + "/staff/dashboard");
                 break;
             default:
                 request.setAttribute("errorMessage", "Role khong hop le.");
-                request.getRequestDispatcher("/views/common/manager-login.jsp").forward(request, response);
+                request.getRequestDispatcher("/WEB-INF/views/common/manager-login.jsp").forward(request, response);
                 break;
         }
     }
 }
+

@@ -28,17 +28,17 @@ public class GuestController extends HttpServlet {
 
             case "/home":
                 prepareHomeData(request);
-                request.getRequestDispatcher("/views/common/home.jsp")
+                request.getRequestDispatcher("/WEB-INF/views/common/home.jsp")
                         .forward(request, response);
                 break;
 
             case "/introduce":
-                request.getRequestDispatcher("/views/guest/about-us.jsp")
+                request.getRequestDispatcher("/WEB-INF/views/guest/about-us.jsp")
                         .forward(request, response);
                 break;
 
             case "/contact":
-                request.getRequestDispatcher("/views/guest/contact.jsp")
+                request.getRequestDispatcher("/WEB-INF/views/guest/contact.jsp")
                         .forward(request, response);
                 break;
 
@@ -138,3 +138,4 @@ public class GuestController extends HttpServlet {
         request.setAttribute("featuredCategories", featuredCategories);
     }
 }
+

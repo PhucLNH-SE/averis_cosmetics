@@ -23,7 +23,7 @@ public class VerifyEmailController extends HttpServlet {
         if (token == null || token.trim().isEmpty()) {
             request.setAttribute("message", "Invalid verification link.");
             request.setAttribute("success", false);
-            request.getRequestDispatcher("/views/customer/auth/verify-result.jsp").forward(request, response);
+            request.getRequestDispatcher("/WEB-INF/views/customer/auth/verify-result.jsp").forward(request, response);
             return;
         }
 
@@ -31,14 +31,14 @@ public class VerifyEmailController extends HttpServlet {
         if (customer == null) {
             request.setAttribute("message", "Invalid or expired verification link.");
             request.setAttribute("success", false);
-            request.getRequestDispatcher("/views/customer/auth/verify-result.jsp").forward(request, response);
+            request.getRequestDispatcher("/WEB-INF/views/customer/auth/verify-result.jsp").forward(request, response);
             return;
         }
 
         if (Boolean.TRUE.equals(customer.getAuthTokenUsed())) {
             request.setAttribute("message", "This link has already been used. Your email was verified earlier.");
             request.setAttribute("success", true);
-            request.getRequestDispatcher("/views/customer/auth/verify-result.jsp").forward(request, response);
+            request.getRequestDispatcher("/WEB-INF/views/customer/auth/verify-result.jsp").forward(request, response);
             return;
         }
 
@@ -46,7 +46,7 @@ public class VerifyEmailController extends HttpServlet {
         if (expiredAt == null || LocalDateTime.now().isAfter(expiredAt)) {
             request.setAttribute("message", "Verification link has expired. Please request a new one.");
             request.setAttribute("success", false);
-            request.getRequestDispatcher("/views/customer/auth/verify-result.jsp").forward(request, response);
+            request.getRequestDispatcher("/WEB-INF/views/customer/auth/verify-result.jsp").forward(request, response);
             return;
         }
 
@@ -61,3 +61,4 @@ public class VerifyEmailController extends HttpServlet {
         response.sendRedirect(request.getContextPath() + "/profile?action=view&tab=profile");
     }
 }
+

@@ -83,7 +83,7 @@ public class CartController extends HttpServlet {
         request.setAttribute("total", total);
         request.setAttribute("availableVariants", availableVariants);
 
-        request.getRequestDispatcher("/views/customer/cart.jsp").forward(request, response);
+        request.getRequestDispatcher("/WEB-INF/views/customer/cart.jsp").forward(request, response);
     }
 
     @Override
@@ -203,3 +203,4 @@ public class CartController extends HttpServlet {
         }
     }
 }
+

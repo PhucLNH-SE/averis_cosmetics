@@ -13,13 +13,13 @@ public class LogoutController extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         
-        // Hủy bỏ session hiện tại
+        // Há»§y bá» session hiá»‡n táº¡i
         HttpSession session = request.getSession(false);
         if (session != null) {
             session.invalidate();
         }
         
-        // Chuyển hướng về trang chủ
+        // Chuyá»ƒn hÆ°á»›ng vá» trang chá»§
         response.sendRedirect(request.getContextPath() + "/");
     }
 

@@ -40,15 +40,15 @@ public class ManageFeedbackController extends HttpServlet {
                 }
 
                 request.setAttribute("currentView", "feedback");
-                request.setAttribute("contentPage", "/views/staff/partials/manage-feedback-content.jsp");
-                request.getRequestDispatcher("/views/staff/staff-panel.jsp").forward(request, response);
+                request.setAttribute("contentPage", "/WEB-INF/views/staff/partials/manage-feedback-content.jsp");
+                request.getRequestDispatcher("/WEB-INF/views/staff/staff-panel.jsp").forward(request, response);
                 break;
             case "getComments":
                 try {
                     int productId = Integer.parseInt(request.getParameter("productId"));
                     List<OrderDetail> comments = dao.getFeedbacksByProductId(productId);
                     request.setAttribute("comments", comments);
-                    request.getRequestDispatcher("/views/staff/partials/manage-feedback-comments.jsp").forward(request, response);
+                    request.getRequestDispatcher("/WEB-INF/views/staff/partials/manage-feedback-comments.jsp").forward(request, response);
                 } catch (Exception e) {
                     response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
                 }
@@ -140,3 +140,4 @@ public class ManageFeedbackController extends HttpServlet {
         response.sendRedirect(request.getContextPath() + "/staff/manage-feedback?action=list");
     }
 }
+

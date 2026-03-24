@@ -3,7 +3,6 @@ package Controllers.guest;
 import DALs.ProductDAO;
 import Model.Product;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -12,7 +11,6 @@ import java.util.List;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-@WebServlet(name = "ProductSuggestController", urlPatterns = {"/products/suggest"})
 public class ProductSuggestController extends HttpServlet {
 
     private String nullToEmpty(String value) {

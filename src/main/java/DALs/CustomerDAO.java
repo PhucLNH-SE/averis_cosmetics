@@ -176,6 +176,48 @@ public class CustomerDAO extends DBContext {
         return false;
     }
 
+    public boolean checkUsernameExistsExceptId(String username, int customerId) {
+        String sql = "SELECT COUNT(*) FROM Customers WHERE username = ? AND customer_id <> ?";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, username);
+            ps.setInt(2, customerId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    public boolean checkEmailExistsExceptId(String email, int customerId) {
+        if (email == null || email.trim().isEmpty()) {
+            return false;
+        }
+
+        String sql = "SELECT COUNT(*) FROM Customers WHERE email = ? AND customer_id <> ?";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, email);
+            ps.setInt(2, customerId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
     public Customer getCustomerByAuthToken(String token, String type) {
         if (token == null || type == null) {
             return null;

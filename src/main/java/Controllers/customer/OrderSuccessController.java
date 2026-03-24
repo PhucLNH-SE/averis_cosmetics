@@ -30,7 +30,7 @@ public class OrderSuccessController extends HttpServlet {
         HttpSession session = request.getSession();
         Customer customer = (Customer) session.getAttribute("customer");
         
-        // Kiểm tra đăng nhập
+        // Kiá»ƒm tra Ä‘Äƒng nháº­p
         if (customer == null) {
             response.sendRedirect(request.getContextPath() + "/auth?action=login");
             return;
@@ -52,7 +52,7 @@ public class OrderSuccessController extends HttpServlet {
                 return;
             }
             
-            // BẢO MẬT: Kiểm tra order thuộc về customer hiện tại
+            // Báº¢O Máº¬T: Kiá»ƒm tra order thuá»™c vá» customer hiá»‡n táº¡i
             if (order.getCustomerId() != customer.getCustomerId()) {
                 System.out.println("SECURITY WARNING: Customer " + customer.getCustomerId() 
                     + " attempted to access order " + orderId + " belonging to customer " + order.getCustomerId());
@@ -60,7 +60,7 @@ public class OrderSuccessController extends HttpServlet {
                 return;
             }
 
-            // Lấy thông tin địa chỉ
+            // Láº¥y thÃ´ng tin Ä‘á»‹a chá»‰
             Address address = null;
             if (order.getAddressId() > 0) {
                 address = addressDAO.getAddressById(order.getAddressId());
@@ -69,7 +69,7 @@ public class OrderSuccessController extends HttpServlet {
             request.setAttribute("order", order);
             request.setAttribute("address", address);
 
-            request.getRequestDispatcher("/views/customer/order-success.jsp")
+            request.getRequestDispatcher("/WEB-INF/views/customer/order-success.jsp")
                     .forward(request, response);
 
         } catch (NumberFormatException e) {
@@ -77,3 +77,4 @@ public class OrderSuccessController extends HttpServlet {
         }
     }
 }
+
