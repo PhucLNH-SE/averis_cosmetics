@@ -73,11 +73,11 @@ public class MailUtil {
     public static String generateToken() {
         return UUID.randomUUID().toString().replace("-", "");
     }
-public static void sendResetPasswordEmail(String toEmail, String resetLink) {
-    if (!loaded) {
-        System.out.println("MailUtil: mail.properties not configured. Skip sending mail.");
-        return;
-    }
+    public static void sendResetPasswordEmail(String toEmail, String resetLink) {
+        if (!loaded) {
+            System.out.println("MailUtil: mail.properties not configured. Skip sending mail.");
+            return;
+        }
 
         try {
             Session session = Session.getInstance(smtpProps, new Authenticator() {
@@ -87,19 +87,19 @@ public static void sendResetPasswordEmail(String toEmail, String resetLink) {
                 }
             });
 
-        MimeMessage msg = new MimeMessage(session);
-        msg.setFrom(new InternetAddress(from, "Averis Cosmetics"));
-        msg.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
-      msg.setSubject("Password Reset - Averis Cosmetics");
-msg.setText(
-    "Hello,\n\n"
-  + "You requested to reset your password.\n\n"
-  + "Please click the link below to reset your password:\n\n"
-  + resetLink + "\n\n"
-  + "This link is valid for 15 minutes.\n\n"
-  + "Averis Cosmetics",
-    "UTF-8"
-);
+            MimeMessage msg = new MimeMessage(session);
+            msg.setFrom(new InternetAddress(from, "Averis Cosmetics"));
+            msg.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
+            msg.setSubject("Password Reset - Averis Cosmetics");
+            msg.setText(
+                    "Hello,\n\n"
+                    + "You requested to reset your password.\n\n"
+                    + "Please click the link below to reset your password:\n\n"
+                    + resetLink + "\n\n"
+                    + "This link is valid for 15 minutes.\n\n"
+                    + "Averis Cosmetics",
+                    "UTF-8"
+            );
 
             Transport.send(msg);
 

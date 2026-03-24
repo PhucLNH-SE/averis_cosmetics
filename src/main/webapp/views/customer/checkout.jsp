@@ -18,6 +18,12 @@
     </div>
 
     <div class="checkout-container">
+        <div class="checkout-top-actions">
+            <a href="${pageContext.request.contextPath}/home" class="product-back-link" title="Back to home">
+                <i class="fa-solid fa-arrow-left-long"></i>
+                Back to home
+            </a>
+        </div>
         <h1 class="page-title">Checkout</h1>
 
         <c:if test="${not empty error}">
@@ -193,7 +199,6 @@
 
                     <button type="submit" class="btn-place-order" name="action" value="placeOrder">Place order</button>
 
-                    <a href="${pageContext.request.contextPath}/cart" class="btn-back">&larr; Back to cart</a>
                 </div>
 
                 <div id="voucherSelectPopup" class="checkout-voucher-popup" onclick="closeVoucherSelectPopup(event)">
@@ -269,13 +274,15 @@
 
             if (urlParams.get('success') === 'true') {
                 const orderId = urlParams.get('orderId');
-                showPopup(true, 'Order placed successfully!<br>Order ID: #' + orderId, 'Success');
+                showPopup(true, 'Order placed successfully!<br>Order ID: #' + orderId, 'Success', 'Back to home',
+                    '${pageContext.request.contextPath}/home');
                 window.history.replaceState({}, document.title, window.location.pathname);
             }
 
             if (urlParams.get('error')) {
                 const errorMsg = decodeURIComponent(urlParams.get('error'));
-                showPopup(false, errorMsg, 'Error');
+                showPopup(false, errorMsg, 'Error', 'Back to home',
+                    '${pageContext.request.contextPath}/home');
                 window.history.replaceState({}, document.title, window.location.pathname);
             }
 

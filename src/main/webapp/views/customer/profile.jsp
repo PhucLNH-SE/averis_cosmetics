@@ -83,14 +83,7 @@
                 <div class="profile-container">
                     <c:if test="${not empty requestScope.profileMessage}">
                         <c:set var="popupMessage" scope="request" value="${requestScope.profileMessage}" />
-                        <c:choose>
-                            <c:when test="${not empty requestScope.profileMessageType}">
-                                <c:set var="popupType" scope="request" value="${requestScope.profileMessageType}" />
-                            </c:when>
-                            <c:otherwise>
-                                <c:set var="popupType" scope="request" value="${requestScope.profileMessage.contains('success') ? 'success' : 'error'}" />
-                            </c:otherwise>
-                        </c:choose>
+                        <c:set var="popupType" scope="request" value="${empty requestScope.profileMessageType ? 'success' : requestScope.profileMessageType}" />
                     </c:if>
 
                     <c:choose>
@@ -747,7 +740,7 @@
                                                     <div class="feedback-history__comment">
                                                         <c:choose>
                                                             <c:when test="${not empty fb.reviewComment}">
-                                                                <c:out value="${fb.reviewComment}" />
+                                                                <c:out value="${fn:replace(fb.reviewComment, '[EDITED]', '')}" />
                                                             </c:when>
                                                             <c:otherwise>
                                                                 No written comment.

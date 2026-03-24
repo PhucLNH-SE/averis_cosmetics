@@ -969,95 +969,19 @@ public class ProductDAO extends DBContext {
     }
 
     public List<Product> getProductsForAdminWithImportPrice(String keyword, String brandId, String categoryId, String status) {
-        List<Product> list = new ArrayList<>();
-        StringBuilder sql = new StringBuilder();
-        sql.append("SELECT ")
-                .append("  p.product_id, p.name, p.description, p.status, ")
-                .append("  b.brand_id, b.name AS brand_name, b.status AS brand_status, ")
-                .append("  c.category_id, c.name AS category_name, c.status AS category_status, ")
-                .append("  pi.image_id, pi.image_url, pi.is_main, ")
-                .append("  MIN(pv.price) AS min_price, MAX(pv.price) AS max_price ")
-                .append("FROM Product p ")
-                .append("JOIN Brand b ON p.brand_id = b.brand_id ")
-                .append("JOIN Category c ON p.category_id = c.category_id ")
-                .append("LEFT JOIN Product_Image pi ON p.product_id = pi.product_id ")
-                .append("LEFT JOIN Product_Variant pv ON p.product_id = pv.product_id AND pv.status = 1 ")
-                .append("WHERE 1 = 1 ");
-
-        List<Object> params = new ArrayList<>();
-
-        if (keyword != null && !keyword.trim().isEmpty()) {
-            sql.append("AND (p.name LIKE ? ")
-                    .append("OR p.description LIKE ? ")
-                    .append("OR b.name LIKE ? ")
-                    .append("OR c.name LIKE ? ")
-                    .append("OR CAST(p.product_id AS VARCHAR(20)) LIKE ?) ");
-            String searchValue = "%" + keyword.trim() + "%";
-            for (int i = 0; i < 5; i++) {
-                params.add(searchValue);
-            }
-        }
-
-        if (brandId != null && !brandId.trim().isEmpty()) {
-            sql.append("AND b.brand_id = ? ");
-            params.add(Integer.parseInt(brandId));
-        }
-
-        if (categoryId != null && !categoryId.trim().isEmpty()) {
-            sql.append("AND c.category_id = ? ");
-            params.add(Integer.parseInt(categoryId));
-        }
-
-        if (status != null && !status.trim().isEmpty()) {
-            if ("active".equalsIgnoreCase(status)) {
-                sql.append("AND p.status = ? ");
-                params.add(true);
-            } else if ("inactive".equalsIgnoreCase(status)) {
-                sql.append("AND p.status = ? ");
-                params.add(false);
-            }
-        }
-
-        sql.append("GROUP BY p.product_id, p.name, p.description, p.status, ")
-                .append("         b.brand_id, b.name, b.status, ")
-                .append("         c.category_id, c.name, c.status, ")
-                .append("         pi.image_id, pi.image_url, pi.is_main ")
-                .append("ORDER BY p.product_id DESC, pi.is_main DESC, pi.image_id ASC");
-
-        try (PreparedStatement ps = connection.prepareStatement(sql.toString())) {
-            for (int i = 0; i < params.size(); i++) {
-                ps.setObject(i + 1, params.get(i));
-            }
-
-            try (ResultSet rs = ps.executeQuery()) {
-                Map<Integer, Product> productMap = new HashMap<>();
-
-                while (rs.next()) {
-                    int productId = rs.getInt("product_id");
-                    Product product = productMap.get(productId);
-
-                    if (product == null) {
-                        product = mapBaseProduct(rs, productId, true);
-                        product.setPrice(rs.getDouble("min_price"));
-                        product.setMaxPrice(rs.getDouble("max_price"));
-                        product.setVariants(getProductVariantsWithImportPrice(productId));
-                        productMap.put(productId, product);
-                    }
-
-                    addImageFromRow(rs, product, productId);
-                }
-
-                finalizeMainImages(productMap);
-                list.addAll(productMap.values());
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return list;
+        Integer parsedBrandId = parseNullableInteger(brandId);
+        Integer parsedCategoryId = parseNullableInteger(categoryId);
+        Boolean parsedStatus = parseNullableStatus(status);
+        return getProductsForManagement(keyword, parsedBrandId, parsedCategoryId, parsedStatus, true, false);
     }
 
     public List<Product> getProductsForStaff(String keyword, Integer brandId, Integer categoryId, Boolean status) {
+        return getProductsForManagement(keyword, brandId, categoryId, status, false, false);
+    }
+
+    private List<Product> getProductsForManagement(String keyword, Integer brandId, Integer categoryId,
+                                                   Boolean status, boolean includeImportPrice,
+                                                   boolean newestFirst) {
         List<Product> list = new ArrayList<>();
         StringBuilder sql = new StringBuilder();
         sql.append("SELECT ")
@@ -1106,7 +1030,9 @@ public class ProductDAO extends DBContext {
                 .append("         b.brand_id, b.name, b.status, ")
                 .append("         c.category_id, c.name, c.status, ")
                 .append("         pi.image_id, pi.image_url, pi.is_main ")
-                .append("ORDER BY p.product_id ASC, pi.is_main DESC, pi.image_id ASC");
+                .append(newestFirst
+                        ? "ORDER BY p.product_id DESC, pi.is_main DESC, pi.image_id ASC"
+                        : "ORDER BY p.product_id ASC, pi.is_main DESC, pi.image_id ASC");
 
         try (PreparedStatement ps = connection.prepareStatement(sql.toString())) {
             for (int i = 0; i < params.size(); i++) {
@@ -1124,7 +1050,9 @@ public class ProductDAO extends DBContext {
                         product = mapBaseProduct(rs, productId, true);
                         product.setPrice(rs.getDouble("min_price"));
                         product.setMaxPrice(rs.getDouble("max_price"));
-                        product.setVariants(getProductVariants(productId));
+                        product.setVariants(includeImportPrice
+                                ? getProductVariantsWithImportPrice(productId)
+                                : getProductVariants(productId));
                         productMap.put(productId, product);
                     }
 
@@ -1139,6 +1067,34 @@ public class ProductDAO extends DBContext {
         }
 
         return list;
+    }
+
+    private Integer parseNullableInteger(String value) {
+        if (value == null || value.trim().isEmpty()) {
+            return null;
+        }
+
+        try {
+            return Integer.parseInt(value.trim());
+        } catch (NumberFormatException ex) {
+            return null;
+        }
+    }
+
+    private Boolean parseNullableStatus(String status) {
+        if (status == null || status.trim().isEmpty()) {
+            return null;
+        }
+
+        if ("active".equalsIgnoreCase(status.trim())) {
+            return Boolean.TRUE;
+        }
+
+        if ("inactive".equalsIgnoreCase(status.trim())) {
+            return Boolean.FALSE;
+        }
+
+        return null;
     }
 
     public int countAllProducts() {

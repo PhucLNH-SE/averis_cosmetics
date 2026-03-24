@@ -10,7 +10,6 @@ import java.util.List;
 
 public class BrandDAO extends DBContext {
 
-    // Lấy tất cả brand
     public List<Brand> getAll() {
         List<Brand> brands = new ArrayList<>();
         String sql = "SELECT brand_id, name, status FROM Brand ORDER BY brand_id ASC";
@@ -29,7 +28,6 @@ public class BrandDAO extends DBContext {
         return brands;
     }
 
-    // Lấy brand theo ID
     public Brand getById(int id) {
         String sql = "SELECT brand_id, name, status FROM Brand WHERE brand_id = ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -49,7 +47,6 @@ public class BrandDAO extends DBContext {
         return null;
     }
 
-    // Thêm brand mới
     public boolean insert(Brand brand) {
         String sql = "INSERT INTO Brand (name, status) VALUES (?, ?)";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -62,7 +59,6 @@ public class BrandDAO extends DBContext {
         return false;
     }
 
-    // Cập nhật brand
     public boolean update(Brand brand) {
         String sql = "UPDATE Brand SET name = ?, status = ? WHERE brand_id = ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -76,19 +72,6 @@ public class BrandDAO extends DBContext {
         return false;
     }
 
-    // Xóa brand
-    public boolean delete(int id) {
-        String sql = "DELETE FROM Brand WHERE brand_id = ?";
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setInt(1, id);
-            return ps.executeUpdate() > 0;
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
-
-    // Kiểm tra tên brand đã tồn tại chưa
     public boolean existsByName(String name) {
         String sql = "SELECT 1 FROM Brand WHERE name = ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -102,7 +85,6 @@ public class BrandDAO extends DBContext {
         return false;
     }
 
-    // Kiểm tra tên brand đã tồn tại (trừ brand hiện tại khi update)
     public boolean existsByNameExceptId(String name, int excludeId) {
         String sql = "SELECT 1 FROM Brand WHERE name = ? AND brand_id != ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {

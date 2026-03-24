@@ -35,43 +35,36 @@ public class CategoryController extends HttpServlet {
 
         switch (path) {
             case "/admin/add-category": {
-                String name = request.getParameter("name");
-                String statusParam = request.getParameter("status");
-                boolean status = "on".equalsIgnoreCase(statusParam)
-                        || "1".equals(statusParam)
-                        || "true".equalsIgnoreCase(statusParam);
-                if (name != null && !name.trim().isEmpty()) {
-                    dao.addCategory(name.trim(), status);
+                String name = trimToNull(request.getParameter("name"));
+                boolean status = parseStatus(request.getParameter("status"));
+                if (name == null) {
+                    response.sendRedirect(request.getContextPath() + "/admin/manage-category?error=addFailed");
+                    break;
                 }
-                response.sendRedirect(request.getContextPath() + "/admin/manage-category?success=add");
+                boolean added = dao.addCategory(name, status);
+                response.sendRedirect(request.getContextPath()
+                        + (added ? "/admin/manage-category?success=add"
+                                : "/admin/manage-category?error=addFailed"));
                 break;
             }
             case "/admin/update-category": {
                 try {
                     int id = Integer.parseInt(request.getParameter("id"));
-                    String name = request.getParameter("name");
-                    String statusParam = request.getParameter("status");
-                    boolean status = "on".equalsIgnoreCase(statusParam)
-                            || "1".equals(statusParam)
-                            || "true".equalsIgnoreCase(statusParam);
-                    if (name != null && !name.trim().isEmpty()) {
-                        dao.updateCategory(id, name.trim(), status);
+                    String name = trimToNull(request.getParameter("name"));
+                    boolean status = parseStatus(request.getParameter("status"));
+                    if (name == null) {
+                        response.sendRedirect(request.getContextPath() + "/admin/manage-category?error=updateFailed");
+                        break;
                     }
-                    response.sendRedirect(request.getContextPath() + "/admin/manage-category?success=update");
+                    boolean updated = dao.updateCategory(id, name, status);
+                    response.sendRedirect(request.getContextPath()
+                            + (updated ? "/admin/manage-category?success=update"
+                                    : "/admin/manage-category?error=updateFailed"));
                 } catch (NumberFormatException e) {
                     response.sendRedirect(request.getContextPath() + "/admin/manage-category?error=updateFailed");
                 }
                 break;
             }
-            case "/admin/delete-category":
-                try {
-                    int id = Integer.parseInt(request.getParameter("id"));
-                    dao.deleteCategory(id);
-                    response.sendRedirect(request.getContextPath() + "/admin/manage-category?success=delete");
-                } catch (NumberFormatException e) {
-                    response.sendRedirect(request.getContextPath() + "/admin/manage-category?error=deleteFailed");
-                }
-                break;
             default:
                 response.sendError(HttpServletResponse.SC_NOT_FOUND);
                 break;
@@ -86,5 +79,19 @@ public class CategoryController extends HttpServlet {
         request.setAttribute("currentView", "categories");
         request.setAttribute("contentPage", "/views/admin/partials/manage-category-content.jsp");
         request.getRequestDispatcher("/views/admin/admin-panel.jsp").forward(request, response);
+    }
+
+    private boolean parseStatus(String statusParam) {
+        return "on".equalsIgnoreCase(statusParam)
+                || "1".equals(statusParam)
+                || "true".equalsIgnoreCase(statusParam);
+    }
+
+    private String trimToNull(String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
     }
 }

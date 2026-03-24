@@ -45,6 +45,11 @@
         <div class="card-body p-0">
             <form action="${pageContext.request.contextPath}/admin/manage-orders" method="post">
                 <input type="hidden" name="action" value="update">
+                <div class="p-3 d-flex justify-content-end">
+                    <button type="submit" class="btn btn-add text-white">
+                        <i class="bi bi-check2-circle"></i> Update Orders
+                    </button>
+                </div>
                 <div class="table-responsive">
                     <table class="table">
                         <thead>
@@ -121,11 +126,6 @@
                             </c:if>
                         </tbody>
                     </table>
-                </div>
-                <div class="p-3 d-flex justify-content-end">
-                    <button type="submit" class="btn btn-add text-white">
-                        <i class="bi bi-check2-circle"></i> Update Orders
-                    </button>
                 </div>
             </form>
         </div>
