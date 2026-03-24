@@ -20,10 +20,6 @@
         <c:set var="popupMessage" scope="request" value="Voucher updated successfully." />
         <c:set var="popupType" scope="request" value="success" />
     </c:if>
-    <c:if test="${param.success == 'deleted'}">
-        <c:set var="popupMessage" scope="request" value="Voucher deleted successfully." />
-        <c:set var="popupType" scope="request" value="success" />
-    </c:if>
     <c:if test="${param.error == 'duplicateCode'}">
         <c:set var="popupMessage" scope="request" value="Voucher code already exists." />
         <c:set var="popupType" scope="request" value="error" />
@@ -32,7 +28,7 @@
         <c:set var="popupMessage" scope="request" value="Voucher data is invalid." />
         <c:set var="popupType" scope="request" value="error" />
     </c:if>
-    <c:if test="${param.error == 'invalidId' || param.error == 'notFound' || param.success == 'failed'}">
+    <c:if test="${param.error == 'notFound' || param.success == 'failed'}">
         <c:set var="popupMessage" scope="request" value="Voucher action failed." />
         <c:set var="popupType" scope="request" value="error" />
     </c:if>
@@ -111,16 +107,10 @@
                                                                 '${v.fixedStartAt}',
                                                                 '${v.fixedEndAt}',
                                                                 '${v.relativeDays}',
+                                                                '${v.claimedQuantity}',
                                                                 '${v.status ? 1 : 0}')">
                                                     <i class="bi bi-pencil-square"></i> Edit
                                                 </button>
-                                                <form action="${pageContext.request.contextPath}/admin/manage-voucher" method="post">
-                                                    <input type="hidden" name="action" value="delete">
-                                                    <input type="hidden" name="voucherId" value="${v.voucherId}">
-                                                    <button type="submit" class="voucher-btn-delete">
-                                                        <i class="bi bi-trash"></i> Delete
-                                                    </button>
-                                                </form>
                                             </div>
                                         </td>
                                     </tr>
@@ -141,14 +131,15 @@
                     <i class="bi bi-x-lg"></i>
                 </button>
             </div>
-            <form action="${pageContext.request.contextPath}/admin/manage-voucher" method="post" class="voucher-popup-form">
+            <form action="${pageContext.request.contextPath}/admin/manage-voucher" method="post" class="voucher-popup-form" id="voucherPopupForm">
                 <input type="hidden" id="popupAction" name="action" value="create">
                 <input type="hidden" id="popupVoucherId" name="voucherId">
+                <input type="hidden" id="popupClaimedQuantity" value="0">
 
                 <div class="voucher-form-grid">
                     <div>
                         <label for="popupCode">Code</label>
-                        <input type="text" id="popupCode" name="code" required>
+                        <input type="text" id="popupCode" name="code" minlength="3" maxlength="50" pattern="[A-Za-z0-9_-]{3,50}" required>
                     </div>
                     <div>
                         <label for="popupDiscountType">Discount Type</label>
@@ -159,11 +150,11 @@
                     </div>
                     <div>
                         <label for="popupDiscountValue">Discount Value</label>
-                        <input type="number" id="popupDiscountValue" name="discountValue" min="0" step="0.01" required>
+                        <input type="number" id="popupDiscountValue" name="discountValue" min="0.01" step="0.01" required>
                     </div>
                     <div>
                         <label for="popupQuantity">Quantity</label>
-                        <input type="number" id="popupQuantity" name="quantity" min="0" required>
+                        <input type="number" id="popupQuantity" name="quantity" min="1" step="1" required>
                     </div>
                     <div>
                         <label for="popupVoucherType">Voucher Type</label>
@@ -189,7 +180,7 @@
                     </div>
                     <div id="relativeDaysBox" class="voucher-relative-box">
                         <label for="popupRelativeDays">Valid Days</label>
-                        <input type="number" id="popupRelativeDays" name="relativeDays" min="1">
+                        <input type="number" id="popupRelativeDays" name="relativeDays" min="1" step="1">
                     </div>
                 </div>
 
@@ -207,7 +198,10 @@
 </section>
 
 <script>
-    function openVoucherPopup(mode, id, code, discountType, discountValue, quantity, voucherType, fixedStartAt, fixedEndAt, relativeDays, status) {
+    const MAX_FIXED_DISCOUNT = 999999999.99;
+    const VOUCHER_CODE_REGEX = /^[A-Za-z0-9_-]{3,50}$/;
+
+    function openVoucherPopup(mode, id, code, discountType, discountValue, quantity, voucherType, fixedStartAt, fixedEndAt, relativeDays, claimedQuantity, status) {
         document.getElementById('voucherPopup').classList.add('show');
         document.getElementById('popupAction').value = mode === 'update' ? 'update' : 'create';
         document.getElementById('voucherPopupTitle').textContent = mode === 'update' ? 'Update Voucher' : 'Add Voucher';
@@ -219,6 +213,7 @@
                 : '<i class="bi bi-check2-circle"></i> Save';
 
         document.getElementById('popupVoucherId').value = mode === 'update' ? (id || '') : '';
+        document.getElementById('popupClaimedQuantity').value = mode === 'update' ? (claimedQuantity || '0') : '0';
         document.getElementById('popupCode').value = mode === 'update' ? (code || '') : '';
         document.getElementById('popupDiscountType').value = mode === 'update' ? (discountType || 'PERCENT') : 'PERCENT';
         document.getElementById('popupDiscountValue').value = mode === 'update' ? (discountValue || '0') : '';
@@ -230,6 +225,8 @@
         document.getElementById('popupRelativeDays').value = mode === 'update' && relativeDays !== 'null' ? (relativeDays || '') : '';
 
         toggleVoucherTypeFields();
+        updateDiscountFieldConstraints();
+        updateFixedDateConstraints();
     }
 
     function closeVoucherPopup(event) {
@@ -241,10 +238,26 @@
     function toggleVoucherTypeFields() {
         const type = document.getElementById('popupVoucherType').value;
         const showFixed = type === 'FIXED_END_DATE';
+        const startInput = document.getElementById('popupFixedStartAt');
+        const endInput = document.getElementById('popupFixedEndAt');
+        const relativeInput = document.getElementById('popupRelativeDays');
 
         document.getElementById('fixedStartBox').style.display = showFixed ? 'block' : 'none';
         document.getElementById('fixedEndBox').style.display = showFixed ? 'block' : 'none';
         document.getElementById('relativeDaysBox').style.display = showFixed ? 'none' : 'block';
+
+        startInput.required = showFixed;
+        endInput.required = showFixed;
+        relativeInput.required = !showFixed;
+
+        if (!showFixed) {
+            startInput.setCustomValidity('');
+            endInput.setCustomValidity('');
+        } else {
+            relativeInput.setCustomValidity('');
+        }
+
+        updateFixedDateConstraints();
     }
 
     function toDateTimeLocal(raw) {
@@ -254,7 +267,143 @@
         return raw.replace(' ', 'T').substring(0, 16);
     }
 
+    function getCurrentDateTimeLocalValue() {
+        const now = new Date();
+        now.setSeconds(0, 0);
+        const local = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
+        return local.toISOString().slice(0, 16);
+    }
+
+    function updateDiscountFieldConstraints() {
+        const discountType = document.getElementById('popupDiscountType').value;
+        const discountValueInput = document.getElementById('popupDiscountValue');
+
+        discountValueInput.min = '0.01';
+        discountValueInput.setCustomValidity('');
+
+        if (discountType === 'PERCENT') {
+            discountValueInput.min = '1';
+            discountValueInput.max = '100';
+        } else {
+            discountValueInput.max = String(MAX_FIXED_DISCOUNT);
+        }
+    }
+
+    function updateFixedDateConstraints() {
+        const startInput = document.getElementById('popupFixedStartAt');
+        const endInput = document.getElementById('popupFixedEndAt');
+        const minValue = getCurrentDateTimeLocalValue();
+
+        startInput.removeAttribute('min');
+        endInput.min = startInput.value && startInput.value > minValue ? startInput.value : minValue;
+        startInput.setCustomValidity('');
+        endInput.setCustomValidity('');
+    }
+
+    function validateVoucherPopupForm(event) {
+        const form = document.getElementById('voucherPopupForm');
+        const codeInput = document.getElementById('popupCode');
+        const discountType = document.getElementById('popupDiscountType').value;
+        const discountValueInput = document.getElementById('popupDiscountValue');
+        const quantityInput = document.getElementById('popupQuantity');
+        const voucherType = document.getElementById('popupVoucherType').value;
+        const statusInput = document.getElementById('popupStatus');
+        const startInput = document.getElementById('popupFixedStartAt');
+        const endInput = document.getElementById('popupFixedEndAt');
+        const relativeInput = document.getElementById('popupRelativeDays');
+        const claimedQuantity = Number(document.getElementById('popupClaimedQuantity').value || '0');
+        const nowValue = getCurrentDateTimeLocalValue();
+
+        updateDiscountFieldConstraints();
+        updateFixedDateConstraints();
+        codeInput.setCustomValidity('');
+        quantityInput.setCustomValidity('');
+        statusInput.setCustomValidity('');
+        relativeInput.setCustomValidity('');
+
+        if (!VOUCHER_CODE_REGEX.test(codeInput.value.trim())) {
+            codeInput.setCustomValidity('Code must be 3-50 characters and use only letters, numbers, _ or -.');
+        }
+
+        if (!Number.isInteger(Number(quantityInput.value)) || Number(quantityInput.value) <= 0) {
+            quantityInput.setCustomValidity('Quantity must be a positive integer.');
+        } else if (Number(quantityInput.value) < claimedQuantity) {
+            quantityInput.setCustomValidity('Quantity cannot be smaller than claimed quantity.');
+        }
+
+        if (discountValueInput.value === '' || Number(discountValueInput.value) <= 0) {
+            discountValueInput.setCustomValidity('Discount value must be greater than 0.');
+        } else if (discountType === 'PERCENT' && (Number(discountValueInput.value) < 1 || Number(discountValueInput.value) > 100)) {
+            discountValueInput.setCustomValidity('Percent discount must be between 1 and 100.');
+        } else if (discountType === 'FIXED' && Number(discountValueInput.value) > MAX_FIXED_DISCOUNT) {
+            discountValueInput.setCustomValidity('Fixed discount exceeds the system limit.');
+        }
+
+        if (voucherType === 'FIXED_END_DATE') {
+            if (endInput.value && endInput.value <= nowValue) {
+                endInput.setCustomValidity('End date must be in the future.');
+            }
+            if (startInput.value && endInput.value && endInput.value <= startInput.value) {
+                endInput.setCustomValidity('End date must be after start date.');
+            }
+        } else if (relativeInput.value !== '' && Number(relativeInput.value) < 1) {
+            relativeInput.setCustomValidity('Valid days must be at least 1.');
+        }
+
+        if (statusInput.value === '1') {
+            const quantityValue = Number(quantityInput.value);
+            if (quantityValue <= claimedQuantity) {
+                statusInput.setCustomValidity('Cannot set Active when voucher is out of quantity.');
+            } else if (voucherType === 'FIXED_END_DATE' && endInput.value && endInput.value <= nowValue) {
+                statusInput.setCustomValidity('Cannot set Active when voucher is expired.');
+            }
+        }
+
+        if (!form.reportValidity()) {
+            event.preventDefault();
+        }
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
         toggleVoucherTypeFields();
+        updateDiscountFieldConstraints();
+        updateFixedDateConstraints();
+
+        const form = document.getElementById('voucherPopupForm');
+        const codeInput = document.getElementById('popupCode');
+        const discountType = document.getElementById('popupDiscountType');
+        const quantityInput = document.getElementById('popupQuantity');
+        const statusInput = document.getElementById('popupStatus');
+        const startInput = document.getElementById('popupFixedStartAt');
+        const endInput = document.getElementById('popupFixedEndAt');
+
+        if (form) {
+            form.addEventListener('submit', validateVoucherPopupForm);
+        }
+        if (discountType) {
+            discountType.addEventListener('change', updateDiscountFieldConstraints);
+        }
+        if (codeInput) {
+            codeInput.addEventListener('input', function () {
+                this.value = this.value.replace(/\s+/g, '');
+                this.setCustomValidity('');
+            });
+        }
+        if (quantityInput) {
+            quantityInput.addEventListener('input', function () {
+                this.setCustomValidity('');
+            });
+        }
+        if (statusInput) {
+            statusInput.addEventListener('change', function () {
+                this.setCustomValidity('');
+            });
+        }
+        if (startInput) {
+            startInput.addEventListener('change', updateFixedDateConstraints);
+        }
+        if (endInput) {
+            endInput.addEventListener('change', updateFixedDateConstraints);
+        }
     });
 </script>

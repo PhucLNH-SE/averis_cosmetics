@@ -9,10 +9,15 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.regex.Pattern;
 
 public class VoucherController extends HttpServlet {
 
+    private static final Pattern VOUCHER_CODE_PATTERN = Pattern.compile("^[A-Za-z0-9_-]{3,50}$");
+    private static final BigDecimal MAX_PERCENT_DISCOUNT = new BigDecimal("100");
+    private static final BigDecimal MAX_FIXED_DISCOUNT = new BigDecimal("999999999.99");
     private VoucherDAO voucherDAO;
 
     @Override
@@ -56,9 +61,6 @@ public class VoucherController extends HttpServlet {
             case "update":
                 updateVoucher(request, response);
                 break;
-            case "delete":
-                deleteVoucher(request, response);
-                break;
             default:
                 response.sendRedirect(request.getContextPath() + "/admin/manage-voucher");
                 break;
@@ -96,7 +98,6 @@ public class VoucherController extends HttpServlet {
             throws IOException {
         try {
             Voucher voucher = buildVoucherFromRequest(request, true);
-            validateVoucher(voucher);
             Voucher existed = voucherDAO.getByCode(voucher.getCode());
             if (existed != null && existed.getVoucherId() != voucher.getVoucherId()) {
                 response.sendRedirect(request.getContextPath() + "/admin/manage-voucher?error=duplicateCode");
@@ -111,22 +112,11 @@ public class VoucherController extends HttpServlet {
 
             voucher.setClaimedQuantity(old.getClaimedQuantity());
             voucher.setCreatedAt(old.getCreatedAt());
+            validateVoucher(voucher);
             boolean ok = voucherDAO.update(voucher);
             response.sendRedirect(request.getContextPath() + "/admin/manage-voucher?success=" + (ok ? "updated" : "failed"));
         } catch (Exception ex) {
             response.sendRedirect(request.getContextPath() + "/admin/manage-voucher?error=invalidData");
-        }
-    }
-
-    private void deleteVoucher(HttpServletRequest request, HttpServletResponse response)
-            throws IOException {
-        String idRaw = request.getParameter("voucherId");
-        try {
-            int id = Integer.parseInt(idRaw);
-            boolean ok = voucherDAO.softDelete(id);
-            response.sendRedirect(request.getContextPath() + "/admin/manage-voucher?success=" + (ok ? "deleted" : "failed"));
-        } catch (Exception ex) {
-            response.sendRedirect(request.getContextPath() + "/admin/manage-voucher?error=invalidId");
         }
     }
 
@@ -147,14 +137,14 @@ public class VoucherController extends HttpServlet {
         String relativeDays = request.getParameter("relativeDays");
 
         voucher.setCode(code == null ? "" : code.trim());
-        voucher.setDiscountType(discountType);
+        voucher.setDiscountType(discountType == null ? "" : discountType.trim().toUpperCase());
         voucher.setDiscountValue(new BigDecimal(discountValue));
         voucher.setQuantity(Integer.parseInt(quantity));
-        voucher.setStatus("1".equals(status));
-        voucher.setVoucherType(voucherType);
+        voucher.setStatus(parseStatus(status));
+        voucher.setVoucherType(voucherType == null ? "" : voucherType.trim().toUpperCase());
         voucher.setExpiredAt(null);
 
-        switch (voucherType) {
+        switch (voucher.getVoucherType()) {
             case "FIXED_END_DATE":
                 voucher.setFixedStartAt(parseDateTime(fixedStartAt));
                 voucher.setFixedEndAt(parseDateTime(fixedEndAt));
@@ -181,31 +171,67 @@ public class VoucherController extends HttpServlet {
         return LocalDateTime.parse(raw);
     }
 
-    private void validateVoucher(Voucher voucher) {
+    private Boolean parseStatus(String rawStatus) {
+        if ("1".equals(rawStatus)) {
+            return Boolean.TRUE;
+        }
+        if ("0".equals(rawStatus)) {
+            return Boolean.FALSE;
+        }
+        throw new IllegalArgumentException("Unsupported voucher status.");
+    }
+
+    void validateVoucher(Voucher voucher) {
         if (voucher == null) {
             throw new IllegalArgumentException("Voucher data is required.");
         }
-        if (voucher.getCode() == null || voucher.getCode().trim().isEmpty()) {
-            throw new IllegalArgumentException("Voucher code is required.");
+        String code = voucher.getCode() == null ? "" : voucher.getCode().trim();
+        if (!VOUCHER_CODE_PATTERN.matcher(code).matches()) {
+            throw new IllegalArgumentException("Voucher code must be 3-50 characters and use only letters, numbers, _ or -.");
+        }
+        if (voucher.getStatus() == null) {
+            throw new IllegalArgumentException("Voucher status is required.");
         }
         if (voucher.getDiscountValue() == null || voucher.getDiscountValue().compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("Discount value must be greater than 0.");
         }
-        if (voucher.getQuantity() < 0) {
-            throw new IllegalArgumentException("Quantity must be >= 0.");
+        if (voucher.getQuantity() <= 0) {
+            throw new IllegalArgumentException("Quantity must be a positive integer.");
         }
-        if (voucher.getQuantity() == 0) {
-            throw new IllegalArgumentException("Quantity must be greater than 0.");
+
+        String discountType = voucher.getDiscountType() == null ? "" : voucher.getDiscountType().toUpperCase();
+        switch (discountType) {
+            case "PERCENT":
+                if (voucher.getDiscountValue().compareTo(BigDecimal.ONE) < 0
+                        || voucher.getDiscountValue().compareTo(MAX_PERCENT_DISCOUNT) > 0) {
+                    throw new IllegalArgumentException("Percent discount must be between 1 and 100.");
+                }
+                break;
+            case "FIXED":
+                if (voucher.getDiscountValue().compareTo(MAX_FIXED_DISCOUNT) > 0) {
+                    throw new IllegalArgumentException("Fixed discount exceeds the system limit.");
+                }
+                break;
+            default:
+                throw new IllegalArgumentException("Unsupported discount type.");
+        }
+
+        if (voucher.getQuantity() < voucher.getClaimedQuantity()) {
+            throw new IllegalArgumentException("Quantity cannot be smaller than claimed quantity.");
         }
 
         String voucherType = voucher.getVoucherType() == null ? "" : voucher.getVoucherType().toUpperCase();
+        LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES);
         switch (voucherType) {
             case "FIXED_END_DATE":
                 if (voucher.getFixedStartAt() == null || voucher.getFixedEndAt() == null) {
                     throw new IllegalArgumentException("Fixed voucher requires start and end date.");
                 }
-                if (voucher.getFixedEndAt().isBefore(voucher.getFixedStartAt())) {
-                    throw new IllegalArgumentException("End date cannot be before start date.");
+                if (!voucher.getFixedEndAt().isAfter(voucher.getFixedStartAt())) {
+                    throw new IllegalArgumentException("End date must be after start date.");
+                }
+                if (!voucher.getFixedEndAt().isAfter(now)) {
+                    throw new IllegalArgumentException("End date must be in the future.");
                 }
                 break;
             case "RELATIVE_DAYS":
@@ -215,6 +241,15 @@ public class VoucherController extends HttpServlet {
                 break;
             default:
                 throw new IllegalArgumentException("Unsupported voucher type.");
+        }
+
+        if (Boolean.TRUE.equals(voucher.getStatus())) {
+            if (voucher.getQuantity() <= voucher.getClaimedQuantity()) {
+                throw new IllegalArgumentException("Cannot activate a voucher that is out of quantity.");
+            }
+            if ("FIXED_END_DATE".equals(voucherType) && !voucher.getFixedEndAt().isAfter(now)) {
+                throw new IllegalArgumentException("Cannot activate an expired voucher.");
+            }
         }
     }
 }

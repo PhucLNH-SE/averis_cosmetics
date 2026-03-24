@@ -24,6 +24,10 @@
             <c:set var="popupMessage" scope="request" value="${error}" />
             <c:set var="popupType" scope="request" value="error" />
         </c:if>
+        <c:if test="${not empty successMessage}">
+            <c:set var="popupMessage" scope="request" value="${successMessage}" />
+            <c:set var="popupType" scope="request" value="success" />
+        </c:if>
 
         <c:if test="${orderSuccess}">
             <div class="checkout-section checkout-success">
@@ -121,8 +125,8 @@
                         </h2>
 
                         <div class="address-list">
-                            <label class="address-item selected">
-                                <input type="radio" name="paymentMethod" value="COD" checked>
+                            <label class="address-item ${selectedPaymentMethod ne 'MOMO' ? 'selected' : ''}">
+                                <input type="radio" name="paymentMethod" value="COD" ${selectedPaymentMethod ne 'MOMO' ? 'checked' : ''}>
                                 <div class="address-details">
                                     <div class="address-name">Cash on Delivery (COD)</div>
                                     <div class="address-text">
@@ -131,8 +135,8 @@
                                 </div>
                             </label>
                                                           <!-- MOMO -->
-                                <label class="address-item">
-                                    <input type="radio" name="paymentMethod" value="MOMO">
+                                <label class="address-item ${selectedPaymentMethod eq 'MOMO' ? 'selected' : ''}">
+                                    <input type="radio" name="paymentMethod" value="MOMO" ${selectedPaymentMethod eq 'MOMO' ? 'checked' : ''}>
                                     <div class="address-details">
                                         <div class="address-name">Pay with MoMo</div>
                                         <div class="address-text">
@@ -301,9 +305,14 @@
                 const radio = this.querySelector('input[type="radio"]');
                 if (radio) {
                     radio.checked = true;
+                    document.querySelectorAll('input[name="' + radio.name + '"]').forEach(function (input) {
+                        const parent = input.closest('.address-item');
+                        if (parent) {
+                            parent.classList.remove('selected');
+                        }
+                    });
+                    this.classList.add('selected');
                 }
-                document.querySelectorAll('.address-item').forEach(i => i.classList.remove('selected'));
-                this.classList.add('selected');
             });
         });
 
