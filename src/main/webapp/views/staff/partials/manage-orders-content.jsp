@@ -44,13 +44,6 @@
         <c:set var="popupMessage" scope="request" value="${not empty param.message ? param.message : 'Order status transition is not valid.'}" />
         <c:set var="popupType" scope="request" value="error" />
     </c:if>
-    <c:if test="${param.error == 'validationError'}">
-        <div class="alert alert-danger" role="alert">
-            <i class="bi bi-exclamation-triangle-fill me-2"></i>
-            <c:out value="${not empty param.message ? param.message : 'Order status transition is not valid.'}" />
-        </div>
-    </c:if>
-
     <div class="card table-card">
         <div class="card-body p-0">
             <form action="${pageContext.request.contextPath}/staff/manage-orders" method="post">
