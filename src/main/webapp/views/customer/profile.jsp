@@ -853,11 +853,11 @@
                                                     }).then((result) => {
                                                         if (result.isConfirmed) {
                                                             window.location.href =
-                                                                    'profile?action=cancelOrder&orderId=' + orderId;
+                                                                    '${pageContext.request.contextPath}/profile?action=cancelOrder&orderId=' + orderId;
                                                         }
                                                     });
                                                 }
-
+   
                                                 function openAddressPopup(mode, trigger) {
                                                     const overlay = document.getElementById('addressPopupOverlay');
                                                     const title = document.getElementById('addressPopupTitle');
