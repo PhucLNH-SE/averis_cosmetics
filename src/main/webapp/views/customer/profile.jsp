@@ -740,7 +740,7 @@
                                                     <div class="feedback-history__comment">
                                                         <c:choose>
                                                             <c:when test="${not empty fb.reviewComment}">
-                                                                <c:out value="${fb.reviewComment}" />
+                                                                <c:out value="${fn:replace(fb.reviewComment, '[EDITED]', '')}" />
                                                             </c:when>
                                                             <c:otherwise>
                                                                 No written comment.
