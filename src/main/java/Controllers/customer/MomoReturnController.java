@@ -42,13 +42,13 @@ public class MomoReturnController extends HttpServlet {
             int orderId = extractOrderId(momoOrderId);
             LOGGER.info("MoMo RETURN - raw: " + momoOrderId + " | parsed: " + orderId);
 
-            if ("0".equals(resultCode)) {
+            Orders order = orderDAO.getOrderById(orderId);
+            if (order == null) {
+                response.sendRedirect(request.getContextPath() + "/cart");
+                return;
+            }
 
-                Orders order = orderDAO.getOrderById(orderId);
-                if (order == null) {
-                    response.sendRedirect(request.getContextPath() + "/cart");
-                    return;
-                }
+            if ("0".equals(resultCode)) {
 
                 if (!"SUCCESS".equalsIgnoreCase(order.getPaymentStatus())) {
 
@@ -77,6 +77,18 @@ public class MomoReturnController extends HttpServlet {
                 return;
 
             } else {
+                if (!"FAILED".equalsIgnoreCase(order.getPaymentStatus())) {
+                    orderDAO.updatePaymentFailed(orderId);
+                }
+                HttpSession session = request.getSession(false);
+                if (session != null) {
+                    session.removeAttribute("cart");
+
+                    Customer customer = (Customer) session.getAttribute("customer");
+                    if (customer != null) {
+                        cartDetailDAO.deleteAll(customer.getCustomerId());
+                    }
+                }
                 response.sendRedirect(request.getContextPath()
                         + "/checkout?error=Payment failed");
                 return;
