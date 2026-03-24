@@ -30,6 +30,10 @@ public class CheckoutController extends HttpServlet {
         voucherDAO = new VoucherDAO();
     }
 
+    void setVoucherDAO(VoucherDAO voucherDAO) {
+        this.voucherDAO = voucherDAO;
+    }
+
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
@@ -59,6 +63,7 @@ public class CheckoutController extends HttpServlet {
                 BigDecimal.ZERO,
                 subtotal,
                 "",
+                "COD",
                 getCheckoutVouchers(customer.getCustomerId())
         );
 
@@ -96,9 +101,11 @@ public class CheckoutController extends HttpServlet {
         List<Address> addresses = addressDAO.getAddressesByCustomerId(customer.getCustomerId());
         List<CustomerVoucher> vouchers = getCheckoutVouchers(customer.getCustomerId());
 
+        String paymentMethod = req.getParameter("paymentMethod");
+
         switch (action) {
             case "applyVoucher":
-                handleApplyVoucher(req, resp, customer, addresses, detailedCart, subtotal, voucherCode, vouchers);
+                handleApplyVoucher(req, resp, customer, addresses, detailedCart, subtotal, voucherCode, paymentMethod, vouchers);
                 break;
             default:
                 handlePlaceOrder(req, resp, customer, addresses, detailedCart, subtotal, voucherCode);
@@ -122,30 +129,36 @@ public class CheckoutController extends HttpServlet {
     private void handleApplyVoucher(HttpServletRequest req, HttpServletResponse resp,
             Customer customer, List<Address> addresses,
             Map<Integer, CartItem> cart, BigDecimal subtotal,
-            String voucherCode, List<CustomerVoucher> vouchers)
+            String voucherCode, String paymentMethod, List<CustomerVoucher> vouchers)
             throws ServletException, IOException {
 
+        String selectedPaymentMethod = normalizePaymentMethod(paymentMethod);
+
         if (voucherCode.isEmpty()) {
-            forwardWithError(req, resp, "Please enter a voucher code.", customer, addresses, cart, subtotal, vouchers);
+            forwardWithError(req, resp, "Please enter a voucher code.", customer, addresses, cart, subtotal, voucherCode, selectedPaymentMethod, vouchers);
             return;
         }
 
-        CustomerVoucher voucher = voucherDAO
-                .getActiveVoucherForCheckout(customer.getCustomerId(), voucherCode);
-
-        if (voucher == null) {
-            forwardWithError(req, resp, "Invalid or expired voucher.", customer, addresses, cart, subtotal, vouchers);
+        VoucherResolution resolution = resolveVoucherForCheckout(customer.getCustomerId(), voucherCode, true);
+        if (!resolution.isSuccess()) {
+            forwardWithError(req, resp, mapVoucherErrorMessage(resolution.getResultCode()),
+                    customer, addresses, cart, subtotal, voucherCode, selectedPaymentMethod, vouchers);
             return;
         }
 
+        CustomerVoucher voucher = resolution.getVoucher();
         BigDecimal discount = calculateDiscount(subtotal, voucher);
         BigDecimal finalTotal = subtotal.subtract(discount);
         if (finalTotal.compareTo(BigDecimal.ZERO) < 0) {
             finalTotal = BigDecimal.ZERO;
         }
 
-        req.setAttribute("successMessage", "Voucher applied successfully.");
-        setCheckoutAttributes(req, customer, addresses, cart, subtotal, discount, finalTotal, voucherCode, vouchers);
+        req.setAttribute("successMessage", resolution.isClaimedDuringCheckout()
+                ? "Voucher claimed and applied successfully."
+                : "Voucher applied successfully.");
+        setCheckoutAttributes(req, customer, addresses, cart, subtotal, discount, finalTotal, voucherCode,
+                selectedPaymentMethod,
+                resolution.isClaimedDuringCheckout() ? getCheckoutVouchers(customer.getCustomerId()) : vouchers);
 
         req.getRequestDispatcher("/views/customer/checkout.jsp").forward(req, resp);
     }
@@ -193,11 +206,12 @@ public class CheckoutController extends HttpServlet {
         Integer customerVoucherId = null;
 
         if (!voucherCode.isEmpty()) {
-            voucher = voucherDAO.getActiveVoucherForCheckout(customer.getCustomerId(), voucherCode);
-            if (voucher == null) {
+            VoucherResolution resolution = resolveVoucherForCheckout(customer.getCustomerId(), voucherCode, false);
+            if (!resolution.isSuccess()) {
                 redirectError(resp, req, "Invalid voucher!");
                 return;
             }
+            voucher = resolution.getVoucher();
             voucherId = voucher.getVoucherId();
             customerVoucherId = voucher.getCustomerVoucherId();
             discount = calculateDiscount(subtotal, voucher);
@@ -222,15 +236,11 @@ public class CheckoutController extends HttpServlet {
         }
 
         int orderId = orderDAO.placeOrder(customer.getCustomerId(), addressId, paymentMethod,
-                finalTotal, new ArrayList<CartItem>(cart.values()), voucherId, discount);
+                finalTotal, new ArrayList<CartItem>(cart.values()), voucherId, customerVoucherId, discount);
 
         if (orderId <= 0) {
             redirectError(resp, req, "Order failed! Please try again later.");
             return;
-        }
-
-        if (customerVoucherId != null) {
-            voucherDAO.markVoucherUsed(customerVoucherId);
         }
 
         HttpSession session = req.getSession();
@@ -254,11 +264,11 @@ public class CheckoutController extends HttpServlet {
     private void forwardWithError(HttpServletRequest req, HttpServletResponse resp, String error,
             Customer customer, List<Address> addresses,
             Map<Integer, CartItem> cart, BigDecimal subtotal,
-            List<CustomerVoucher> vouchers)
+            String voucherCode, String paymentMethod, List<CustomerVoucher> vouchers)
             throws ServletException, IOException {
 
         req.setAttribute("error", error);
-        setCheckoutAttributes(req, customer, addresses, cart, subtotal, BigDecimal.ZERO, subtotal, "", vouchers);
+        setCheckoutAttributes(req, customer, addresses, cart, subtotal, BigDecimal.ZERO, subtotal, voucherCode, paymentMethod, vouchers);
         req.getRequestDispatcher("/views/customer/checkout.jsp").forward(req, resp);
     }
 
@@ -324,10 +334,51 @@ public class CheckoutController extends HttpServlet {
         return discount;
     }
 
+    VoucherResolution resolveVoucherForCheckout(int customerId, String voucherCode, boolean allowAutoClaim) {
+        CustomerVoucher activeVoucher = voucherDAO.getActiveVoucherForCheckout(customerId, voucherCode);
+        if (activeVoucher != null) {
+            return VoucherResolution.applied(activeVoucher, false);
+        }
+
+        if (!allowAutoClaim) {
+            return VoucherResolution.failed("invalidVoucher");
+        }
+
+        String claimResult = voucherDAO.claimVoucherWithReason(customerId, voucherCode);
+        if ("ok".equals(claimResult) || "alreadyClaimed".equals(claimResult)) {
+            CustomerVoucher claimedVoucher = voucherDAO.getActiveVoucherForCheckout(customerId, voucherCode);
+            if (claimedVoucher != null) {
+                return VoucherResolution.applied(claimedVoucher, "ok".equals(claimResult));
+            }
+        }
+
+        return VoucherResolution.failed(claimResult);
+    }
+
+    private String mapVoucherErrorMessage(String resultCode) {
+        if (resultCode == null || resultCode.trim().isEmpty()) {
+            return "Invalid or expired voucher.";
+        }
+
+        switch (resultCode) {
+            case "codeNotFound":
+                return "Voucher code does not exist.";
+            case "outOfStock":
+                return "This voucher is out of stock.";
+            case "voucherExpired":
+                return "This voucher has expired.";
+            case "alreadyClaimed":
+                return "This voucher is already in your account but cannot be applied right now.";
+            default:
+                return "Invalid or expired voucher.";
+        }
+    }
+
     private void setCheckoutAttributes(HttpServletRequest req, Customer customer,
             List<Address> addresses, Map<Integer, CartItem> cart,
             BigDecimal subtotal, BigDecimal discount,
             BigDecimal finalTotal, String voucherCode,
+            String paymentMethod,
             List<CustomerVoucher> vouchers) {
 
         req.setAttribute("cart", cart);
@@ -337,7 +388,17 @@ public class CheckoutController extends HttpServlet {
         req.setAttribute("finalTotal", finalTotal);
         req.setAttribute("customer", customer);
         req.setAttribute("appliedVoucherCode", voucherCode);
+        req.setAttribute("selectedPaymentMethod", normalizePaymentMethod(paymentMethod));
         req.setAttribute("checkoutVouchers", vouchers);
+    }
+
+    private String normalizePaymentMethod(String paymentMethod) {
+        if (paymentMethod == null || paymentMethod.trim().isEmpty()) {
+            return "COD";
+        }
+
+        String normalized = paymentMethod.trim().toUpperCase();
+        return "MOMO".equals(normalized) ? "MOMO" : "COD";
     }
 
     private List<CustomerVoucher> getCheckoutVouchers(int customerId) {
@@ -362,5 +423,42 @@ public class CheckoutController extends HttpServlet {
             result.add(v);
         }
         return result;
+    }
+
+    static final class VoucherResolution {
+
+        private final CustomerVoucher voucher;
+        private final String resultCode;
+        private final boolean claimedDuringCheckout;
+
+        private VoucherResolution(CustomerVoucher voucher, String resultCode, boolean claimedDuringCheckout) {
+            this.voucher = voucher;
+            this.resultCode = resultCode;
+            this.claimedDuringCheckout = claimedDuringCheckout;
+        }
+
+        static VoucherResolution applied(CustomerVoucher voucher, boolean claimedDuringCheckout) {
+            return new VoucherResolution(voucher, "ok", claimedDuringCheckout);
+        }
+
+        static VoucherResolution failed(String resultCode) {
+            return new VoucherResolution(null, resultCode, false);
+        }
+
+        boolean isSuccess() {
+            return voucher != null;
+        }
+
+        CustomerVoucher getVoucher() {
+            return voucher;
+        }
+
+        String getResultCode() {
+            return resultCode;
+        }
+
+        boolean isClaimedDuringCheckout() {
+            return claimedDuringCheckout;
+        }
     }
 }

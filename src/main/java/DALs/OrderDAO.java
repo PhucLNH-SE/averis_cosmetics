@@ -18,16 +18,23 @@ public class OrderDAO extends DBContext {
 
     public int placeOrder(int customerId, int addressId, String paymentMethod,
             java.math.BigDecimal totalAmount, List<CartItem> items) {
-        return placeOrder(customerId, addressId, paymentMethod, totalAmount, items, null, java.math.BigDecimal.ZERO);
+        return placeOrder(customerId, addressId, paymentMethod, totalAmount, items, null, null, java.math.BigDecimal.ZERO);
     }
 
     public int placeOrder(int customerId, int addressId, String paymentMethod,
             java.math.BigDecimal totalAmount, List<CartItem> items,
             Integer voucherId, java.math.BigDecimal discountAmount) {
+        return placeOrder(customerId, addressId, paymentMethod, totalAmount, items, voucherId, null, discountAmount);
+    }
+
+    public int placeOrder(int customerId, int addressId, String paymentMethod,
+            java.math.BigDecimal totalAmount, List<CartItem> items,
+            Integer voucherId, Integer customerVoucherId, java.math.BigDecimal discountAmount) {
         Connection conn = null;
         PreparedStatement psOrder = null;
         PreparedStatement psDetail = null;
         PreparedStatement psStock = null;
+        PreparedStatement psVoucher = null;
         ResultSet rs = null;
 
         try {
@@ -87,6 +94,20 @@ public class OrderDAO extends DBContext {
 
             psDetail.executeBatch();
 
+            if (customerVoucherId != null) {
+                String sqlVoucher = "UPDATE Customer_Voucher "
+                        + "SET status = 'USED', used_at = GETDATE() "
+                        + "WHERE customer_voucher_id = ? "
+                        + "AND status = 'ACTIVE' "
+                        + "AND GETDATE() BETWEEN effective_from AND effective_to";
+                psVoucher = conn.prepareStatement(sqlVoucher);
+                psVoucher.setInt(1, customerVoucherId);
+
+                if (psVoucher.executeUpdate() == 0) {
+                    throw new SQLException("Voucher is no longer valid for checkout");
+                }
+            }
+
             conn.commit();
             return orderId;
 
@@ -109,7 +130,7 @@ public class OrderDAO extends DBContext {
                 }
             }
 
-            closeResources(rs, psOrder, psDetail, psStock);
+            closeResources(rs, psOrder, psDetail, psStock, psVoucher);
         }
     }
 
