@@ -73,7 +73,7 @@ public class MailUtil {
     public static String generateToken() {
         return UUID.randomUUID().toString().replace("-", "");
     }
-
+public static void sendResetPasswordEmail(String toEmail, String resetLink) {
     if (!loaded) {
         System.out.println("MailUtil: mail.properties not configured. Skip sending mail.");
         return;
