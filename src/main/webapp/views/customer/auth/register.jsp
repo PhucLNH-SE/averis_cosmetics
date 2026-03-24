@@ -28,12 +28,11 @@
             </div>
         </c:if>
         <c:if test="${not empty errors}">
-            <c:set var="popupMessage" scope="request" value="Please fix the highlighted fields and try again." />
             <c:set var="popupType" scope="request" value="error" />
         </c:if>
 
         <form action="${pageContext.request.contextPath}/auth?action=register"
-              method="post">
+              method="post" novalidate>
 
             <!-- USERNAME -->
             <div class="form-group">
@@ -44,11 +43,6 @@
                        class="${not empty errors.errorUsername ? 'error' : ''}"
                        required>
 
-                <c:if test="${not empty errors.errorUsername}">
-                    <span class="error-message">
-                        ${errors.errorUsername}
-                    </span>
-                </c:if>
             </div>
 
             <!-- FULL NAME -->
@@ -60,26 +54,17 @@
                        class="${not empty errors.errorFullName ? 'error' : ''}"
                        required>
 
-                <c:if test="${not empty errors.errorFullName}">
-                    <span class="error-message">
-                        ${errors.errorFullName}
-                    </span>
-                </c:if>
             </div>
 
             <!-- EMAIL -->
             <div class="form-group">
-                <label>Email</label>
+                <label>Email *</label>
                 <input type="email"
                        name="email"
                        value="${param.email}"
-                       class="${not empty errors.errorEmail ? 'error' : ''}">
+                       class="${not empty errors.errorEmail ? 'error' : ''}"
+                       required>
 
-                <c:if test="${not empty errors.errorEmail}">
-                    <span class="error-message">
-                        ${errors.errorEmail}
-                    </span>
-                </c:if>
             </div>
 
             <!-- PASSWORD -->
@@ -90,11 +75,6 @@
                        class="${not empty errors.errorPassword ? 'error' : ''}"
                        required>
 
-                <c:if test="${not empty errors.errorPassword}">
-                    <span class="error-message">
-                        ${errors.errorPassword}
-                    </span>
-                </c:if>
             </div>
 
             <!-- CONFIRM PASSWORD -->
@@ -105,31 +85,27 @@
                        class="${not empty errors.errorConfirmPassword ? 'error' : ''}"
                        required>
 
-                <c:if test="${not empty errors.errorConfirmPassword}">
-                    <span class="error-message">
-                        ${errors.errorConfirmPassword}
-                    </span>
-                </c:if>
             </div>
 
             <!-- GENDER -->
             <div class="form-group">
-                <label>Gender</label>
-                <select name="gender">
+                <label>Gender *</label>
+                <select name="gender" class="${not empty errors.errorGender ? 'error' : ''}" required>
                     <option value="">Select Gender</option>
-                    <option value="Male"
-                        <c:if test="${param.gender == 'Male'}">selected</c:if>>
+                    <option value="MALE"
+                        <c:if test="${param.gender == 'MALE'}">selected</c:if>>
                         Male
                     </option>
-                    <option value="Female"
-                        <c:if test="${param.gender == 'Female'}">selected</c:if>>
+                    <option value="FEMALE"
+                        <c:if test="${param.gender == 'FEMALE'}">selected</c:if>>
                         Female
                     </option>
-                    <option value="Other"
-                        <c:if test="${param.gender == 'Other'}">selected</c:if>>
+                    <option value="OTHER"
+                        <c:if test="${param.gender == 'OTHER'}">selected</c:if>>
                         Other
                     </option>
                 </select>
+
             </div>
 
             <!-- DATE OF BIRTH -->
@@ -141,11 +117,6 @@
                        class="${not empty errors.errorDateOfBirth ? 'error' : ''}"
                        required>
 
-                <c:if test="${not empty errors.errorDateOfBirth}">
-                    <span class="error-message">
-                        ${errors.errorDateOfBirth}
-                    </span>
-                </c:if>
             </div>
 
             <button type="submit" class="btn-register">
