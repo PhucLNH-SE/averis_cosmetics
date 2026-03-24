@@ -196,6 +196,10 @@ public class ProfileController extends HttpServlet {
     private void consumeProfileFlashMessage(HttpSession session, HttpServletRequest request) {
         if (session != null && session.getAttribute("profileMessage") != null) {
             request.setAttribute("profileMessage", session.getAttribute("profileMessage"));
+            if (session.getAttribute("profileMessageType") != null) {
+                request.setAttribute("profileMessageType", session.getAttribute("profileMessageType"));
+                session.removeAttribute("profileMessageType");
+            }
             session.removeAttribute("profileMessage");
         }
     }
