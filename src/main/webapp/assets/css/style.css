@@ -1925,6 +1925,17 @@ textarea.form-control {
     justify-content: space-between;
 }
 
+.address-delete-form {
+    flex: 1 1 auto;
+    min-width: 80px;
+    max-width: 120px;
+    margin: 0;
+}
+
+.address-delete-form .action-btn {
+    width: 100%;
+}
+
 .action-btn {
     flex: 1 1 auto;
     min-width: 80px;

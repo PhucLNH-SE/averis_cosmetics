@@ -252,12 +252,18 @@
                                                                 onclick="openAddressPopup('edit', this)">
                                                             <i class="fas fa-pen"></i> Edit
                                                         </button>
-                                                        <a href="${pageContext.request.contextPath}/address?action=delete&id=${addr.addressId}"
-                                                           class="action-btn delete"
-                                                           title="Delete address"
-                                                           onclick="return confirm('Are you sure you want to delete this address?')">
-                                                            <i class="fas fa-trash"></i> Delete
-                                                        </a>
+                                                        <form action="${pageContext.request.contextPath}/address"
+                                                              method="post"
+                                                              class="address-delete-form"
+                                                              onsubmit="return confirm('Are you sure you want to delete this address?')">
+                                                            <input type="hidden" name="action" value="delete">
+                                                            <input type="hidden" name="id" value="${addr.addressId}">
+                                                            <button type="submit"
+                                                                    class="action-btn delete"
+                                                                    title="Delete address">
+                                                                <i class="fas fa-trash"></i> Delete
+                                                            </button>
+                                                        </form>
                                                     </div>
                                                 </div>
                                             </c:forEach>

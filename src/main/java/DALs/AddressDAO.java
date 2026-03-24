@@ -77,7 +77,8 @@ public class AddressDAO extends DBContext {
     }
 
     public boolean updateAddress(Address address) {
-        String sql = "UPDATE Address SET receiver_name = ?, phone = ?, province = ?, district = ?, ward = ?, street_address = ?, is_default = ? WHERE address_id = ? AND customer_id = ?";
+        String sql = "UPDATE Address SET receiver_name = ?, phone = ?, province = ?, district = ?, ward = ?, street_address = ?, is_default = ? "
+                + "WHERE address_id = ? AND customer_id = ? AND is_deleted = 0";
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setString(1, address.getReceiverName());
@@ -100,21 +101,8 @@ public class AddressDAO extends DBContext {
     }
 
     public String deleteAddress(int addressId, int customerId) {
-        // First check if there are any orders using this address
-        String checkSql = "SELECT COUNT(*) FROM Orders WHERE address_id = ?";
-
-        try (PreparedStatement checkPs = connection.prepareStatement(checkSql)) {
-            checkPs.setInt(1, addressId);
-            try (ResultSet rs = checkPs.executeQuery()) {
-                if (rs.next() && rs.getInt(1) > 0) {
-                    return "Cannot delete this address because it is associated with existing orders.";
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        String sql = "UPDATE Address SET is_deleted = 1, is_default = 0 WHERE address_id = ? AND customer_id = ?";
+        String sql = "UPDATE Address SET is_deleted = 1, is_default = 0 "
+                + "WHERE address_id = ? AND customer_id = ? AND is_deleted = 0";
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, addressId);
@@ -135,7 +123,7 @@ public class AddressDAO extends DBContext {
         // First set all addresses to not default
         String sql1 = "UPDATE Address SET is_default = 0 WHERE customer_id = ? AND is_deleted = 0";
         // Then set the selected address as default
-        String sql2 = "UPDATE Address SET is_default = 1 WHERE address_id = ? AND customer_id = ?";
+        String sql2 = "UPDATE Address SET is_default = 1 WHERE address_id = ? AND customer_id = ? AND is_deleted = 0";
 
         try {
             connection.setAutoCommit(false);
