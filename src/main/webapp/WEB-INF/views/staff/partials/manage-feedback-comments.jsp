@@ -1,5 +1,6 @@
 ﻿<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <fmt:setLocale value="vi_VN"/>
 <c:choose>
@@ -29,7 +30,7 @@
                             </c:forEach>
                         </div>
                     </div>
-                    <p class="card-text fb-comment-text mb-4">"${c.reviewComment}"</p>
+                    <p class="card-text fb-comment-text mb-4">"${fn:replace(c.reviewComment, '[EDITED]', '')}"</p>
                     <c:if test="${not empty c.responseContent}">
                         <div class="fb-staff-response mb-4">
                             <div class="small fw-bold text-primary mb-1">Staff (${c.managerName}):</div>

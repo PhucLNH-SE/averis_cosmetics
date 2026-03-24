@@ -1,6 +1,7 @@
 ﻿<%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <fmt:setLocale value="vi_VN"/>
 <!DOCTYPE html>
 <html>
@@ -190,7 +191,7 @@
                                             </div>
 
                                             <div class="comment-text">
-                                                ${not empty r.reviewComment ? r.reviewComment : '<span class="review-comment-empty">(No comment left by the customer)</span>'}
+                                                ${not empty r.reviewComment ? fn:replace(r.reviewComment, '[EDITED]', '') : '<span class="review-comment-empty">(No comment left by the customer)</span>'}
                                             </div>
 
                                             <c:if test="${not empty r.responseContent}">

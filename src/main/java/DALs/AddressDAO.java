@@ -50,24 +50,36 @@ public class AddressDAO extends DBContext {
     public boolean insertAddress(Address address) {
         String sql = "INSERT INTO Address (customer_id, receiver_name, phone, province, district, ward, street_address, is_default) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
-        try (PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            ps.setInt(1, address.getCustomerId());
-            ps.setString(2, address.getReceiverName());
-            ps.setString(3, address.getPhone());
-            ps.setString(4, address.getProvince());
-            ps.setString(5, address.getDistrict());
-            ps.setString(6, address.getWard());
-            ps.setString(7, address.getStreetAddress());
-            ps.setBoolean(8, address.getIsDefault() != null ? address.getIsDefault() : false);
-
-            int rowsAffected = ps.executeUpdate();
-
-            if (rowsAffected > 0) {
-                ResultSet generatedKeys = ps.getGeneratedKeys();
-                if (generatedKeys.next()) {
-                    address.setAddressId(generatedKeys.getInt(1));
+        try {
+            int restoredAddressId = findDeletedDuplicateAddressId(address);
+            if (restoredAddressId > 0) {
+                if (restoreDeletedAddress(restoredAddressId, address)) {
+                    address.setAddressId(restoredAddressId);
+                    return true;
                 }
-                return true;
+                return false;
+            }
+
+            try (PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+                ps.setInt(1, address.getCustomerId());
+                ps.setString(2, address.getReceiverName());
+                ps.setString(3, address.getPhone());
+                ps.setString(4, address.getProvince());
+                ps.setString(5, address.getDistrict());
+                ps.setString(6, address.getWard());
+                ps.setString(7, address.getStreetAddress());
+                ps.setBoolean(8, address.getIsDefault() != null ? address.getIsDefault() : false);
+
+                int rowsAffected = ps.executeUpdate();
+
+                if (rowsAffected > 0) {
+                    try (ResultSet generatedKeys = ps.getGeneratedKeys()) {
+                        if (generatedKeys.next()) {
+                            address.setAddressId(generatedKeys.getInt(1));
+                        }
+                    }
+                    return true;
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -101,18 +113,72 @@ public class AddressDAO extends DBContext {
     }
 
     public String deleteAddress(int addressId, int customerId) {
-        String sql = "UPDATE Address SET is_deleted = 1, is_default = 0 "
+        String selectSql = "SELECT is_default FROM Address WHERE address_id = ? AND customer_id = ? AND is_deleted = 0";
+        String deleteSql = "UPDATE Address SET is_deleted = 1, is_default = 0 "
                 + "WHERE address_id = ? AND customer_id = ? AND is_deleted = 0";
+        String fallbackDefaultSql = "SELECT TOP 1 address_id FROM Address "
+                + "WHERE customer_id = ? AND is_deleted = 0 ORDER BY is_default DESC, address_id ASC";
+        String setDefaultSql = "UPDATE Address SET is_default = 1 WHERE address_id = ? AND customer_id = ? AND is_deleted = 0";
 
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setInt(1, addressId);
-            ps.setInt(2, customerId);
+        try {
+            connection.setAutoCommit(false);
 
-            int rowsAffected = ps.executeUpdate();
-            if (rowsAffected > 0) {
-                return "success";
+            boolean wasDefault = false;
+            try (PreparedStatement selectPs = connection.prepareStatement(selectSql)) {
+                selectPs.setInt(1, addressId);
+                selectPs.setInt(2, customerId);
+                try (ResultSet rs = selectPs.executeQuery()) {
+                    if (!rs.next()) {
+                        connection.rollback();
+                        connection.setAutoCommit(true);
+                        return "Address not found.";
+                    }
+                    wasDefault = rs.getBoolean("is_default");
+                }
             }
+
+            try (PreparedStatement deletePs = connection.prepareStatement(deleteSql)) {
+                deletePs.setInt(1, addressId);
+                deletePs.setInt(2, customerId);
+
+                int rowsAffected = deletePs.executeUpdate();
+                if (rowsAffected == 0) {
+                    connection.rollback();
+                    connection.setAutoCommit(true);
+                    return "Failed to delete address.";
+                }
+            }
+
+            if (wasDefault) {
+                int replacementAddressId = 0;
+                try (PreparedStatement fallbackPs = connection.prepareStatement(fallbackDefaultSql)) {
+                    fallbackPs.setInt(1, customerId);
+                    try (ResultSet rs = fallbackPs.executeQuery()) {
+                        if (rs.next()) {
+                            replacementAddressId = rs.getInt("address_id");
+                        }
+                    }
+                }
+
+                if (replacementAddressId > 0) {
+                    try (PreparedStatement setDefaultPs = connection.prepareStatement(setDefaultSql)) {
+                        setDefaultPs.setInt(1, replacementAddressId);
+                        setDefaultPs.setInt(2, customerId);
+                        setDefaultPs.executeUpdate();
+                    }
+                }
+            }
+
+            connection.commit();
+            connection.setAutoCommit(true);
+            return "success";
         } catch (Exception e) {
+            try {
+                connection.rollback();
+                connection.setAutoCommit(true);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
             e.printStackTrace();
         }
 
@@ -161,6 +227,50 @@ public class AddressDAO extends DBContext {
         }
 
         return false;
+    }
+
+    private int findDeletedDuplicateAddressId(Address address) throws Exception {
+        String sql = "SELECT TOP 1 address_id FROM Address "
+                + "WHERE customer_id = ? AND receiver_name = ? AND phone = ? AND province = ? "
+                + "AND district = ? AND ward = ? AND street_address = ? AND is_deleted = 1 "
+                + "ORDER BY address_id DESC";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, address.getCustomerId());
+            ps.setString(2, address.getReceiverName());
+            ps.setString(3, address.getPhone());
+            ps.setString(4, address.getProvince());
+            ps.setString(5, address.getDistrict());
+            ps.setString(6, address.getWard());
+            ps.setString(7, address.getStreetAddress());
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("address_id");
+                }
+            }
+        }
+
+        return 0;
+    }
+
+    private boolean restoreDeletedAddress(int addressId, Address address) throws Exception {
+        String sql = "UPDATE Address SET receiver_name = ?, phone = ?, province = ?, district = ?, "
+                + "ward = ?, street_address = ?, is_default = ?, is_deleted = 0 "
+                + "WHERE address_id = ? AND customer_id = ? AND is_deleted = 1";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, address.getReceiverName());
+            ps.setString(2, address.getPhone());
+            ps.setString(3, address.getProvince());
+            ps.setString(4, address.getDistrict());
+            ps.setString(5, address.getWard());
+            ps.setString(6, address.getStreetAddress());
+            ps.setBoolean(7, address.getIsDefault() != null ? address.getIsDefault() : false);
+            ps.setInt(8, addressId);
+            ps.setInt(9, address.getCustomerId());
+            return ps.executeUpdate() > 0;
+        }
     }
 
     private Address mapResultSetToAddress(ResultSet rs) throws Exception {

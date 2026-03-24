@@ -41,9 +41,6 @@ public class BrandController extends HttpServlet {
             case "update":
                 updateBrand(request, response);
                 break;
-            case "delete":
-                deleteBrand(request, response);
-                break;
             default:
                 listBrands(request, response);
                 break;
@@ -123,18 +120,6 @@ public class BrandController extends HttpServlet {
             response.sendRedirect(request.getContextPath() + "/admin/manage-brand?success=update");
         } else {
             response.sendRedirect(request.getContextPath() + "/admin/manage-brand?error=updateFailed");
-        }
-    }
-
-    private void deleteBrand(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        int brandId = Integer.parseInt(request.getParameter("brandId"));
-
-        boolean success = brandDAO.delete(brandId);
-        if (success) {
-            response.sendRedirect(request.getContextPath() + "/admin/manage-brand?success=delete");
-        } else {
-            response.sendRedirect(request.getContextPath() + "/admin/manage-brand?error=deleteFailed");
         }
     }
 

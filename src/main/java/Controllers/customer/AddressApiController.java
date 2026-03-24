@@ -34,11 +34,11 @@ public class AddressApiController extends HttpServlet {
                 case "provinces":
                     data = addressApiService.getProvincesJson();
                     break;
-                case "wards":
-                    data = addressApiService.getWardsByProvinceJson(requireParam(request, "provinceCode"));
+                case "districts":
+                    data = addressApiService.getDistrictsByProvinceJson(requireParam(request, "provinceCode"));
                     break;
-                case "legacyDistricts":
-                    data = addressApiService.getLegacyWardsByWardJson(requireParam(request, "wardCode"));
+                case "wards":
+                    data = addressApiService.getWardsByDistrictJson(requireParam(request, "districtCode"));
                     break;
                 default:
                     writeError(response, HttpServletResponse.SC_BAD_REQUEST, "Invalid action");

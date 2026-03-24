@@ -1,4 +1,4 @@
-<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+﻿<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <section class="admin-content__section admin-page admin-page--category">
     <div class="container py-4">
@@ -20,20 +20,12 @@
             <c:set var="popupMessage" scope="request" value="Category updated successfully." />
             <c:set var="popupType" scope="request" value="success" />
         </c:if>
-        <c:if test="${param.success == 'delete'}">
-            <c:set var="popupMessage" scope="request" value="Category deleted successfully." />
-            <c:set var="popupType" scope="request" value="success" />
-        </c:if>
         <c:if test="${param.error == 'addFailed'}">
             <c:set var="popupMessage" scope="request" value="Failed to add category." />
             <c:set var="popupType" scope="request" value="error" />
         </c:if>
         <c:if test="${param.error == 'updateFailed'}">
             <c:set var="popupMessage" scope="request" value="Failed to update category." />
-            <c:set var="popupType" scope="request" value="error" />
-        </c:if>
-        <c:if test="${param.error == 'deleteFailed'}">
-            <c:set var="popupMessage" scope="request" value="Failed to delete category." />
             <c:set var="popupType" scope="request" value="error" />
         </c:if>
         <c:if test="${param.error == 'notFound'}">
@@ -77,11 +69,6 @@
                                            class="btn btn-edit btn-sm text-white me-1">
                                             <i class="bi bi-pencil-square"></i> Edit
                                         </a>
-                                        <button type="button" class="btn btn-delete btn-sm text-white"
-                                                data-bs-toggle="modal" data-bs-target="#deleteModal"
-                                                onclick="openDeleteModal(${cat.categoryId}, '${cat.name}')">
-                                            <i class="bi bi-trash"></i> Delete
-                                        </button>
                                     </td>
                                 </tr>
                             </c:forEach>
@@ -139,32 +126,6 @@
         </div>
     </div>
 
-    <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Confirm Delete</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <form method="post">
-                    <div class="modal-body">
-                        <input type="hidden" name="action" value="delete">
-                        <input type="hidden" id="deleteCategoryId" name="id">
-                        <p>Are you sure you want to delete category <strong id="deleteCategoryName"></strong>?</p>
-                        <p class="text-muted small">This action cannot be undone.</p>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                            <i class="bi bi-x-circle"></i> Cancel
-                        </button>
-                        <button type="submit" class="btn btn-danger">
-                            <i class="bi bi-trash"></i> Delete
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
 </section>
 
 <script>
@@ -176,13 +137,6 @@
         document.getElementById('categoryName').value = '';
         document.getElementById('categoryStatus').checked = true;
         document.getElementById('categoryForm').action = '${pageContext.request.contextPath}/admin/add-category';
-    }
-
-    function openDeleteModal(categoryId, categoryName) {
-        document.getElementById('deleteCategoryId').value = categoryId;
-        document.getElementById('deleteCategoryName').textContent = categoryName;
-        document.getElementById('deleteModal').querySelector('form').action =
-                '${pageContext.request.contextPath}/admin/delete-category';
     }
 
     <c:if test="${formMode == 'update' and not empty selectedCategory}">

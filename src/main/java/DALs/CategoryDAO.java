@@ -73,17 +73,6 @@ public class CategoryDAO extends DBContext {
         return false;
     }
 
-    public boolean deleteCategory(int id) {
-        String sql = "DELETE FROM Category WHERE category_id = ?";
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setInt(1, id);
-            return ps.executeUpdate() > 0;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
-
     public boolean updateCategory(int id, String name, boolean status) {
         String sql = "UPDATE Category SET name = ?, status = ? WHERE category_id = ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
