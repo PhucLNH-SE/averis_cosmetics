@@ -11,7 +11,7 @@ import java.time.Duration;
 
 public class VietnamAddressApiService {
 
-    private static final String BASE_URL = "https://provinces.open-api.vn/api/v2";
+    private static final String BASE_URL = "https://provinces.open-api.vn/api/v1";
 
     private final HttpClient httpClient = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(8))
@@ -21,14 +21,14 @@ public class VietnamAddressApiService {
         return sendGet(BASE_URL + "/?depth=1");
     }
 
-    public String getWardsByProvinceJson(String provinceCode) throws IOException, InterruptedException {
+    public String getDistrictsByProvinceJson(String provinceCode) throws IOException, InterruptedException {
         String encodedProvinceCode = URLEncoder.encode(provinceCode, StandardCharsets.UTF_8);
         return sendGet(BASE_URL + "/p/" + encodedProvinceCode + "?depth=2");
     }
 
-    public String getLegacyWardsByWardJson(String wardCode) throws IOException, InterruptedException {
-        String encodedWardCode = URLEncoder.encode(wardCode, StandardCharsets.UTF_8);
-        return sendGet(BASE_URL + "/w/" + encodedWardCode + "/to-legacies/");
+    public String getWardsByDistrictJson(String districtCode) throws IOException, InterruptedException {
+        String encodedDistrictCode = URLEncoder.encode(districtCode, StandardCharsets.UTF_8);
+        return sendGet(BASE_URL + "/d/" + encodedDistrictCode + "?depth=2");
     }
 
     private String sendGet(String url) throws IOException, InterruptedException {
