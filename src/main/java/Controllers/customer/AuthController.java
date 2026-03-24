@@ -1,18 +1,11 @@
 package Controllers.customer;
 
-import DALs.CartDetailDAO;
 import DALs.CustomerDAO;
-import DALs.ProductDAO;
-import Model.CartItem;
-import Model.CartDetail;
 import Model.Customer;
-import Model.ProductVariant;
 import Utils.ValidationUtil;
 
 import java.io.IOException;
 import java.time.LocalDate;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import jakarta.servlet.ServletException;
@@ -190,8 +183,6 @@ public class AuthController extends HttpServlet {
             HttpSession session = request.getSession();
             session.setAttribute("customer", customer);
 
-            loadCartToSession(session, customer.getCustomerId());
-
             response.sendRedirect(request.getContextPath() + "/home");
 
         } else {
@@ -201,25 +192,6 @@ public class AuthController extends HttpServlet {
             request.getRequestDispatcher("/views/customer/auth/login.jsp")
                     .forward(request, response);
         }
-    }
-
-    private void loadCartToSession(HttpSession session, int customerId) {
-
-        CartDetailDAO cartDetailDAO = new CartDetailDAO();
-        ProductDAO productDAO = new ProductDAO();
-
-        Map<Integer, CartItem> cart = new HashMap<>();
-        List<CartDetail> details = cartDetailDAO.getByCustomerId(customerId);
-
-        for (CartDetail d : details) {
-            ProductVariant v = productDAO.getVariantById(d.getVariantId());
-            if (v != null) {
-                cart.put(d.getVariantId(),
-                        new CartItem(v, d.getQuantity()));
-            }
-        }
-
-        session.setAttribute("cart", cart);
     }
 
     private String buildRegistrationErrorMessage(Map<String, String> errors) {
