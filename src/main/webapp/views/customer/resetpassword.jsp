@@ -32,7 +32,7 @@
             <c:set var="popupType" scope="request" value="error" />
         </c:if>
 
-        <form action="${pageContext.request.contextPath}/ResetPasswordController" 
+        <form action="${pageContext.request.contextPath}/ForgetPasswordController?action=reset" 
               method="post">
 
             <input type="hidden" name="token" value="${token}"/>

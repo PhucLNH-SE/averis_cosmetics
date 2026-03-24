@@ -1,7 +1,7 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
-<section class="admin-content__section voucher-section">
+<section class="admin-content__section admin-page admin-page--voucher voucher-section">
     <div class="page-header">
         <div>
             <h4>Manage Vouchers</h4>
@@ -194,7 +194,10 @@
                 </div>
 
                 <div class="voucher-popup-actions">
-                    <button type="submit" id="voucherPopupSubmit" class="voucher-btn-save">
+                    <button type="button" class="btn btn-secondary" onclick="closeVoucherPopup()">
+                        <i class="bi bi-x-circle"></i> Cancel
+                    </button>
+                    <button type="submit" id="voucherPopupSubmit" class="btn btn-success px-4">
                         <i class="bi bi-check2-circle"></i> Save
                     </button>
                 </div>
@@ -208,8 +211,11 @@
         document.getElementById('voucherPopup').classList.add('show');
         document.getElementById('popupAction').value = mode === 'update' ? 'update' : 'create';
         document.getElementById('voucherPopupTitle').textContent = mode === 'update' ? 'Update Voucher' : 'Add Voucher';
+        document.getElementById('voucherPopupSubmit').className = mode === 'update'
+                ? 'btn btn-primary px-4'
+                : 'btn btn-success px-4';
         document.getElementById('voucherPopupSubmit').innerHTML = mode === 'update'
-                ? '<i class="bi bi-floppy"></i> Update'
+                ? '<i class="bi bi-check2-circle"></i> Update Changes'
                 : '<i class="bi bi-check2-circle"></i> Save';
 
         document.getElementById('popupVoucherId').value = mode === 'update' ? (id || '') : '';

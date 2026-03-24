@@ -13,6 +13,7 @@ public class PurchaseDetail {
     private int variantId;
     private int quantity;
     private BigDecimal importPrice;
+    private Integer receivedQuantity;
 
     // thêm 2 field để hiển thị
     private String productName;
@@ -21,12 +22,13 @@ public class PurchaseDetail {
     public PurchaseDetail() {
     }
 
-    public PurchaseDetail(int purchaseDetailId, int purchaseOrderId, int variantId, int quantity, BigDecimal importPrice, String productName, String variantName) {
+    public PurchaseDetail(int purchaseDetailId, int purchaseOrderId, int variantId, int quantity, BigDecimal importPrice, Integer receivedQuantity, String productName, String variantName) {
         this.purchaseDetailId = purchaseDetailId;
         this.purchaseOrderId = purchaseOrderId;
         this.variantId = variantId;
         this.quantity = quantity;
         this.importPrice = importPrice;
+        this.receivedQuantity = receivedQuantity;
         this.productName = productName;
         this.variantName = variantName;
     }
@@ -69,6 +71,14 @@ public class PurchaseDetail {
 
     public void setImportPrice(BigDecimal importPrice) {
         this.importPrice = importPrice;
+    }
+
+    public Integer getReceivedQuantity() {
+        return receivedQuantity;
+    }
+
+    public void setReceivedQuantity(Integer receivedQuantity) {
+        this.receivedQuantity = receivedQuantity;
     }
 
     public String getProductName() {

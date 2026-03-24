@@ -2,7 +2,7 @@
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
-<section class="admin-content__section">
+<section class="admin-content__section admin-page admin-page--staff">
     <div class="container-fluid staff-main-container">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
@@ -61,27 +61,27 @@
                                         </span>
                                     </td>
                                     <td class="text-center">
-                                        <a class="btn btn-info btn-sm text-white px-2 me-1"
+                                        <a class="btn btn-info btn-sm text-white px-3 me-1"
                                            href="${pageContext.request.contextPath}/admin/manage-staff?action=detail&managerId=${s.managerId}">
-                                            <i class="fas fa-eye"></i>
+                                            <i class="fas fa-eye"></i> View
                                         </a>
 
-                                        <button class="btn btn-primary btn-sm px-2 me-1"
+                                        <button class="btn btn-primary btn-sm px-3 me-1"
                                                 onclick="openEditModal('${s.managerId}', '${fn:escapeXml(s.fullName)}', '${s.email}', '${s.managerRole}', '${s.status}')">
-                                            <i class="fas fa-edit"></i>
+                                            <i class="fas fa-edit"></i> Edit
                                         </button>
 
                                         <c:choose>
                                             <c:when test="${s.status}">
-                                                <button class="btn btn-danger btn-sm px-2" title="Ban Account"
+                                                <button class="btn btn-danger btn-sm px-3" title="Ban Account"
                                                         onclick="openDeleteModal('${s.managerId}', '${fn:escapeXml(s.fullName)}')">
-                                                    <i class="fas fa-ban"></i>
+                                                    <i class="fas fa-ban"></i> Ban
                                                 </button>
                                             </c:when>
                                             <c:otherwise>
-                                                <button class="btn btn-success btn-sm px-2" title="Unlock Account"
+                                                <button class="btn btn-success btn-sm px-3" title="Unlock Account"
                                                         onclick="openUnbanModal('${s.managerId}', '${fn:escapeXml(s.fullName)}')">
-                                                    <i class="fas fa-unlock"></i>
+                                                    <i class="fas fa-unlock"></i> Unlock
                                                 </button>
                                             </c:otherwise>
                                         </c:choose>
@@ -126,8 +126,12 @@
                         </div>
                     </div>
                     <div class="modal-footer bg-light">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-success px-4">Save Staff</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="bi bi-x-circle"></i> Cancel
+                        </button>
+                        <button type="submit" class="btn btn-success px-4">
+                            <i class="bi bi-check2-circle"></i> Save Staff
+                        </button>
                     </div>
                 </form>
             </div>
@@ -167,8 +171,12 @@
                         </div>
                     </div>
                     <div class="modal-footer bg-light">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary px-4">Update Changes</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="bi bi-x-circle"></i> Cancel
+                        </button>
+                        <button type="submit" class="btn btn-primary px-4">
+                            <i class="bi bi-check2-circle"></i> Update Changes
+                        </button>
                     </div>
                 </form>
             </div>
@@ -186,8 +194,12 @@
                         <h5 class="fw-bold mb-3">Ban Account?</h5>
                         <p class="text-muted small mb-4">Are you sure you want to deactivate <strong id="deleteName" class="text-dark"></strong>? They will no longer be able to log in.</p>
                         <div class="d-flex justify-content-center gap-2">
-                            <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Cancel</button>
-                            <button type="submit" class="btn btn-danger px-4">Yes, Ban</button>
+                            <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">
+                                <i class="bi bi-x-circle"></i> Cancel
+                            </button>
+                            <button type="submit" class="btn btn-danger px-4">
+                                <i class="fas fa-ban"></i> Yes, Ban
+                            </button>
                         </div>
                     </div>
                 </form>
@@ -206,8 +218,12 @@
                         <h5 class="fw-bold mb-3">Unlock Account?</h5>
                         <p class="text-muted small mb-4">Are you sure you want to restore access for <strong id="unbanName" class="text-dark"></strong>? They will be able to log in again.</p>
                         <div class="d-flex justify-content-center gap-2">
-                            <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Cancel</button>
-                            <button type="submit" class="btn btn-success px-4">Yes, Unlock</button>
+                            <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">
+                                <i class="bi bi-x-circle"></i> Cancel
+                            </button>
+                            <button type="submit" class="btn btn-success px-4">
+                                <i class="fas fa-unlock"></i> Yes, Unlock
+                            </button>
                         </div>
                     </div>
                 </form>

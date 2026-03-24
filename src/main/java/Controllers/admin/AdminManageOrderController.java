@@ -5,12 +5,14 @@ import DALs.OrderDAO;
 import Model.Manager;
 import Model.OrderDetail;
 import Model.Orders;
+import Utils.ValidationUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -65,6 +67,7 @@ public class AdminManageOrderController extends HttpServlet {
         Integer handledBy = manager.getManagerId();
         boolean hadForbidden = false;
         boolean hadUpdateFailed = false;
+        String validationErrorMessage = null;
 
         for (int i = 0; i < orderIds.length; i++) {
             int orderId = Integer.parseInt(orderIds[i]);
@@ -88,13 +91,29 @@ public class AdminManageOrderController extends HttpServlet {
                 continue;
             }
 
+            try {
+                ValidationUtil.validateOrderStatusTransition(existingOrder.getOrderStatus(), orderStatuses[i]);
+                if (equalsIgnoreCase(existingOrder.getPaymentMethod(), "COD")) {
+                    ValidationUtil.validateCodStatus(existingOrder.getPaymentMethod(),
+                            paymentStatuses[i], orderStatuses[i]);
+                }
+            } catch (IllegalArgumentException ex) {
+                if (validationErrorMessage == null) {
+                    validationErrorMessage = ex.getMessage();
+                }
+                continue;
+            }
+
             if (!dao.updateOrder(orderId, paymentStatuses[i], orderStatuses[i], handledBy)) {
                 hadUpdateFailed = true;
             }
         }
 
         String redirectUrl = request.getContextPath() + "/admin/manage-orders";
-        if (hadUpdateFailed) {
+        if (validationErrorMessage != null) {
+            response.sendRedirect(redirectUrl + "?error=validationError&message="
+                    + URLEncoder.encode(validationErrorMessage, "UTF-8"));
+        } else if (hadUpdateFailed) {
             response.sendRedirect(redirectUrl + "?error=updateFailed");
         } else if (hadForbidden) {
             response.sendRedirect(redirectUrl + "?error=notAllowed");

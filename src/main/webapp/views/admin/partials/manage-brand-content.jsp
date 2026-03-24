@@ -1,6 +1,6 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<section class="admin-content__section">
+<section class="admin-content__section admin-page admin-page--brand">
     <div class="container py-4">
         <div class="page-header">
             <div>
@@ -8,7 +8,7 @@
                 <p class="text-muted mb-0">List of product brands</p>
             </div>
             <button type="button" class="btn btn-add text-white" data-bs-toggle="modal" data-bs-target="#brandModal" onclick="openAddModal()">
-                Add Brand
+                <i class="bi bi-plus-circle"></i> Add Brand
             </button>
         </div>
 
@@ -72,12 +72,12 @@
                                         <button type="button" class="btn btn-edit btn-sm text-white me-1"
                                                 data-bs-toggle="modal" data-bs-target="#brandModal"
                                                 onclick="openEditModal(${brand.brandId}, '${brand.name}', ${brand.status})">
-                                            Edit
+                                            <i class="bi bi-pencil-square"></i> Edit
                                         </button>
                                         <button type="button" class="btn btn-delete btn-sm text-white"
                                                 data-bs-toggle="modal" data-bs-target="#deleteModal"
                                                 onclick="openDeleteModal(${brand.brandId}, '${brand.name}')">
-                                            Delete
+                                            <i class="bi bi-trash"></i> Delete
                                         </button>
                                     </td>
                                 </tr>
@@ -124,8 +124,12 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary" id="submitBtn">Add</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="bi bi-x-circle"></i> Cancel
+                        </button>
+                        <button type="submit" class="btn btn-primary px-4" id="submitBtn">
+                            <i class="bi bi-check2-circle"></i> Add
+                        </button>
                     </div>
                 </form>
             </div>
@@ -147,8 +151,12 @@
                         <p class="text-muted small">This action cannot be undone.</p>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-danger">Delete</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="bi bi-x-circle"></i> Cancel
+                        </button>
+                        <button type="submit" class="btn btn-danger">
+                            <i class="bi bi-trash"></i> Delete
+                        </button>
                     </div>
                 </form>
             </div>
@@ -159,7 +167,7 @@
 <script>
     function openAddModal() {
         document.getElementById('modalTitle').textContent = 'Add Brand';
-        document.getElementById('submitBtn').textContent = 'Add';
+        document.getElementById('submitBtn').innerHTML = '<i class="bi bi-check2-circle"></i> Add';
         document.getElementById('action').value = 'add';
         document.getElementById('brandId').value = '';
         document.getElementById('brandName').value = '';
@@ -169,7 +177,7 @@
 
     function openEditModal(brandId, brandName, brandStatus) {
         document.getElementById('modalTitle').textContent = 'Update Brand';
-        document.getElementById('submitBtn').textContent = 'Update';
+        document.getElementById('submitBtn').innerHTML = '<i class="bi bi-check2-circle"></i> Update Changes';
         document.getElementById('action').value = 'update';
         document.getElementById('brandId').value = brandId;
         document.getElementById('brandName').value = brandName;

@@ -1,5 +1,5 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
-<section class="admin-content__section">
+<section class="admin-content__section admin-page staff-page staff-page--dashboard">
     <div class="admin-content__header">
         <div>
             <h2 class="admin-content__title">Staff Dashboard</h2>
@@ -23,7 +23,7 @@
                 <div class="card-body">
                     <h3>Manage Feedback</h3>
                     <p>Manage product reviews and customer replies directly in the shell.</p>
-                    <a class="btn btn-outline-primary" href="${pageContext.request.contextPath}/staff/manage-feedback">Open</a>
+                    <a class="btn btn-primary" href="${pageContext.request.contextPath}/staff/manage-feedback">Open</a>
                 </div>
             </div>
         </div>
@@ -33,7 +33,7 @@
                 <div class="card-body">
                     <h3>View Brands</h3>
                     <p>View the brand list in the right content area.</p>
-                    <a class="btn btn-outline-primary" href="${pageContext.request.contextPath}/staff/manage-brand">Open</a>
+                    <a class="btn btn-primary" href="${pageContext.request.contextPath}/staff/manage-brand">Open</a>
                 </div>
             </div>
         </div>
@@ -43,7 +43,7 @@
                 <div class="card-body">
                     <h3>View Categories</h3>
                     <p>View the category list in the same shell layout.</p>
-                    <a class="btn btn-outline-primary" href="${pageContext.request.contextPath}/staff/manage-category">Open</a>
+                    <a class="btn btn-primary" href="${pageContext.request.contextPath}/staff/manage-category">Open</a>
                 </div>
             </div>
         </div>
