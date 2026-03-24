@@ -38,26 +38,30 @@
             <input type="hidden" name="token" value="${token}"/>
 
             <div class="form-group">
-                <label>New password</label>
-                <input type="password" 
-                       name="password" 
-                       placeholder="Enter your new password"
-                       required>
-                <c:if test="${not empty errors.errorPassword}">
-                    <span class="field-error">${errors.errorPassword}</span>
-                </c:if>
-            </div>
+    <label>New password</label>
+    <input type="password"
+           name="password"
+           placeholder="Enter your new password"
+           required
+           oninvalid="this.setCustomValidity('Please enter your new password.')"
+           oninput="this.setCustomValidity('')">
+    <c:if test="${not empty errors.errorPassword}">
+        <span class="field-error">${errors.errorPassword}</span>
+    </c:if>
+</div>
 
-            <div class="form-group">
-                <label>Confirm password</label>
-                <input type="password" 
-                       name="confirmPassword" 
-                       placeholder="Re-enter your password"
-                       required>
-                <c:if test="${not empty errors.errorConfirmPassword}">
-                    <span class="field-error">${errors.errorConfirmPassword}</span>
-                </c:if>
-            </div>
+<div class="form-group">
+    <label>Confirm password</label>
+    <input type="password"
+           name="confirmPassword"
+           placeholder="Re-enter your password"
+           required
+           oninvalid="this.setCustomValidity('Please confirm your password.')"
+           oninput="this.setCustomValidity('')">
+    <c:if test="${not empty errors.errorConfirmPassword}">
+        <span class="field-error">${errors.errorConfirmPassword}</span>
+    </c:if>
+</div>
 
             <button type="submit" class="btn-login">
                 Reset password

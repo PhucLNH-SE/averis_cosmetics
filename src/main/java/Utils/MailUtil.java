@@ -69,7 +69,7 @@ public class MailUtil {
     public static void sendResetPasswordEmail(String toEmail, String resetLink) {
 
     if (!loaded) {
-        System.out.println("MailUtil: mail.properties chưa cấu hình. Bỏ qua gửi mail.");
+        System.out.println("MailUtil: mail.properties not configured. Skip sending mail.");
         return;
     }
 
@@ -84,17 +84,16 @@ public class MailUtil {
         MimeMessage msg = new MimeMessage(session);
         msg.setFrom(new InternetAddress(from, "Averis Cosmetics"));
         msg.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
-        msg.setSubject("Đặt lại mật khẩu - Averis Cosmetics");
-
-        msg.setText(
-            "Xin chào,\n\n"
-          + "Bạn đã yêu cầu đặt lại mật khẩu.\n\n"
-          + "Vui lòng bấm vào link sau để đặt lại mật khẩu:\n\n"
-          + resetLink + "\n\n"
-          + "Link có hiệu lực 15 phút.\n\n"
-          + "Averis Cosmetics",
-            "UTF-8"
-        );
+      msg.setSubject("Password Reset - Averis Cosmetics");
+msg.setText(
+    "Hello,\n\n"
+  + "You requested to reset your password.\n\n"
+  + "Please click the link below to reset your password:\n\n"
+  + resetLink + "\n\n"
+  + "This link is valid for 15 minutes.\n\n"
+  + "Averis Cosmetics",
+    "UTF-8"
+);
 
         Transport.send(msg);
 

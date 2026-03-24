@@ -305,7 +305,7 @@ public class ProfileController extends HttpServlet {
         boolean success = dao.cancelOrder(orderId);
 
         if (success) {
-            response.sendRedirect(request.getContextPath() + "/profile?action=orders");
+            response.sendRedirect(request.getContextPath() + "/profile?action=orders&cancelSuccess=1");
         } else {
             request.setAttribute("error", "Cannot cancel this order.");
             showOrders(request, response, customer);
