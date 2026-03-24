@@ -20,20 +20,12 @@
             <c:set var="popupMessage" scope="request" value="Brand updated successfully." />
             <c:set var="popupType" scope="request" value="success" />
         </c:if>
-        <c:if test="${param.success == 'delete'}">
-            <c:set var="popupMessage" scope="request" value="Brand deleted successfully." />
-            <c:set var="popupType" scope="request" value="success" />
-        </c:if>
         <c:if test="${param.error == 'addFailed'}">
             <c:set var="popupMessage" scope="request" value="Failed to add brand." />
             <c:set var="popupType" scope="request" value="error" />
         </c:if>
         <c:if test="${param.error == 'updateFailed'}">
             <c:set var="popupMessage" scope="request" value="Failed to update brand." />
-            <c:set var="popupType" scope="request" value="error" />
-        </c:if>
-        <c:if test="${param.error == 'deleteFailed'}">
-            <c:set var="popupMessage" scope="request" value="Failed to delete brand." />
             <c:set var="popupType" scope="request" value="error" />
         </c:if>
         <c:if test="${not empty error}">
@@ -69,15 +61,10 @@
                                         </c:choose>
                                     </td>
                                     <td class="text-end px-4">
-                                        <button type="button" class="btn btn-edit btn-sm text-white me-1"
+                                        <button type="button" class="btn btn-edit btn-sm text-white"
                                                 data-bs-toggle="modal" data-bs-target="#brandModal"
                                                 onclick="openEditModal(${brand.brandId}, '${brand.name}', ${brand.status})">
                                             <i class="bi bi-pencil-square"></i> Edit
-                                        </button>
-                                        <button type="button" class="btn btn-delete btn-sm text-white"
-                                                data-bs-toggle="modal" data-bs-target="#deleteModal"
-                                                onclick="openDeleteModal(${brand.brandId}, '${brand.name}')">
-                                            <i class="bi bi-trash"></i> Delete
                                         </button>
                                     </td>
                                 </tr>
@@ -136,32 +123,6 @@
         </div>
     </div>
 
-    <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Confirm Delete</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <form method="post">
-                    <div class="modal-body">
-                        <input type="hidden" name="action" value="delete">
-                        <input type="hidden" id="deleteBrandId" name="brandId">
-                        <p>Are you sure you want to delete brand <strong id="deleteBrandName"></strong>?</p>
-                        <p class="text-muted small">This action cannot be undone.</p>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                            <i class="bi bi-x-circle"></i> Cancel
-                        </button>
-                        <button type="submit" class="btn btn-danger">
-                            <i class="bi bi-trash"></i> Delete
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
 </section>
 
 <script>
@@ -185,10 +146,4 @@
         document.getElementById('brandForm').action = '${pageContext.request.contextPath}/admin/brand?action=update';
     }
 
-    function openDeleteModal(brandId, brandName) {
-        document.getElementById('deleteBrandId').value = brandId;
-        document.getElementById('deleteBrandName').textContent = brandName;
-        document.getElementById('deleteModal').querySelector('form').action =
-                '${pageContext.request.contextPath}/admin/brand?action=delete';
-    }
 </script>
