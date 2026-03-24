@@ -194,10 +194,6 @@
     <url-pattern>/admin/update-category</url-pattern>
   </servlet-mapping>
   <servlet-mapping>
-    <servlet-name>CategoryController</servlet-name>
-    <url-pattern>/admin/delete-category</url-pattern>
-  </servlet-mapping>
-  <servlet-mapping>
     <servlet-name>AdminManageOrderController</servlet-name>
     <url-pattern>/admin/manage-orders</url-pattern>
 </servlet-mapping>
