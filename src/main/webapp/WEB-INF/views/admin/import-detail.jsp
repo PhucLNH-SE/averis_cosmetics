@@ -27,22 +27,9 @@
                     <td class="text-end">
                         <fmt:formatNumber value="${d.importPrice}" pattern="#,##0"/> VND
                     </td>
-                    <td class="text-end">
-                        <input type="number" class="form-control form-control-sm text-end"
-                               name="receivedQuantity" min="0"
-                               value="${d.receivedQuantity != null ? d.receivedQuantity : 0}"
-                               ${orderStatus != 'PENDING' ? 'disabled' : ''}>
-                        <input type="hidden" name="variantId" value="${d.variantId}">
-                    </td>
+                    <td class="text-end">${d.receivedQuantity != null ? d.receivedQuantity : d.quantity}</td>
                     <td class="text-end amount">
-                        <c:choose>
-                            <c:when test="${orderStatus == 'PENDING'}">
-                                <fmt:formatNumber value="${d.quantity * d.importPrice}" pattern="#,##0"/> VND
-                            </c:when>
-                            <c:otherwise>
-                                <fmt:formatNumber value="${(d.receivedQuantity != null ? d.receivedQuantity : 0) * d.importPrice}" pattern="#,##0"/> VND
-                            </c:otherwise>
-                        </c:choose>
+                        <fmt:formatNumber value="${(d.receivedQuantity != null ? d.receivedQuantity : d.quantity) * d.importPrice}" pattern="#,##0"/> VND
                     </td>
                 </tr>
             </c:forEach>

@@ -5,7 +5,6 @@ import Model.Brand;
 import Model.Manager;
 import DALs.ProductDAO;
 import Model.Product;
-import Model.ProductVariant;
 import Model.PurchaseDetail;
 import Model.PurchaseOrder;
 import jakarta.servlet.ServletException;
@@ -54,7 +53,7 @@ public class ImportProductController extends HttpServlet {
 
         switch (action) {
             case "receive":
-                confirmReceipt(request, response);
+                receiveOrder(request, response);
                 break;
             case "importproduct":
             default:
@@ -205,7 +204,7 @@ public class ImportProductController extends HttpServlet {
         request.getRequestDispatcher("/WEB-INF/views/admin/admin-panel.jsp").forward(request, response);
     }
 
-    private void confirmReceipt(HttpServletRequest request, HttpServletResponse response)
+    private void receiveOrder(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         HttpSession session = request.getSession(false);
         Manager manager = session == null ? null : (Manager) session.getAttribute("manager");
@@ -216,26 +215,14 @@ public class ImportProductController extends HttpServlet {
         }
 
         String orderIdRaw = request.getParameter("orderId");
-        String[] variantIdsRaw = request.getParameterValues("variantId");
-        String[] receivedRaw = request.getParameterValues("receivedQuantity");
 
-        if (orderIdRaw == null || variantIdsRaw == null || receivedRaw == null
-                || variantIdsRaw.length != receivedRaw.length) {
+        if (orderIdRaw == null || orderIdRaw.trim().isEmpty()) {
             response.sendRedirect(request.getContextPath() + "/admin/import-product?action=history&error=importFailed");
             return;
         }
 
         int orderId = Integer.parseInt(orderIdRaw);
-        int[] variantIds = new int[variantIdsRaw.length];
-        int[] receivedQuantities = new int[receivedRaw.length];
-
-        for (int i = 0; i < variantIdsRaw.length; i++) {
-            variantIds[i] = Integer.parseInt(variantIdsRaw[i]);
-            String qtyRaw = receivedRaw[i] == null ? "0" : receivedRaw[i].trim();
-            receivedQuantities[i] = qtyRaw.isEmpty() ? 0 : Integer.parseInt(qtyRaw);
-        }
-
-        boolean ok = dao.confirmReceipt(orderId, manager.getManagerId(), variantIds, receivedQuantities);
+        boolean ok = dao.confirmReceipt(orderId, manager.getManagerId());
         if (ok) {
             response.sendRedirect(request.getContextPath() + "/admin/import-product?action=history&success=received");
         } else {

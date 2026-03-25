@@ -372,16 +372,13 @@ public class ImportProductDAO extends DBContext {
         return list;
     }
 
-    public boolean confirmReceipt(int orderId, int staffId, int[] variantIds, int[] receivedQuantities) {
-        if (variantIds == null || receivedQuantities == null || variantIds.length != receivedQuantities.length) {
-            return false;
-        }
-
+    public boolean confirmReceipt(int orderId, int staffId) {
+        String selectDetailSql = "SELECT variant_id, quantity, import_price "
+                + "FROM Purchase_Order_Detail "
+                + "WHERE purchase_order_id = ?";
         String updateDetailSql = "UPDATE Purchase_Order_Detail "
-                + "SET received_quantity = ? "
-                + "WHERE purchase_order_id = ? AND variant_id = ?";
-        String selectPriceSql = "SELECT import_price FROM Purchase_Order_Detail "
-                + "WHERE purchase_order_id = ? AND variant_id = ?";
+                + "SET received_quantity = quantity "
+                + "WHERE purchase_order_id = ?";
         String updateOrderSql = "UPDATE Purchase_Order "
                 + "SET status = ?, received_by = ?, received_at = GETDATE(), total_amount = ? "
                 + "WHERE purchase_order_id = ? AND status = 'PENDING'";
@@ -393,28 +390,16 @@ public class ImportProductDAO extends DBContext {
             previousAutoCommit = connection.getAutoCommit();
             connection.setAutoCommit(false);
 
-            try (PreparedStatement updateDetailPs = connection.prepareStatement(updateDetailSql);
-                 PreparedStatement selectPricePs = connection.prepareStatement(selectPriceSql)) {
-
-                for (int i = 0; i < variantIds.length; i++) {
-                    int variantId = variantIds[i];
-                    int receivedQty = Math.max(0, receivedQuantities[i]);
-
-                    selectPricePs.setInt(1, orderId);
-                    selectPricePs.setInt(2, variantId);
-                    try (ResultSet rs = selectPricePs.executeQuery()) {
-                        if (!rs.next()) {
-                            continue;
-                        }
+            try (PreparedStatement selectDetailPs = connection.prepareStatement(selectDetailSql)) {
+                selectDetailPs.setInt(1, orderId);
+                try (ResultSet rs = selectDetailPs.executeQuery()) {
+                    while (rs.next()) {
+                        int variantId = rs.getInt("variant_id");
+                        int receivedQty = rs.getInt("quantity");
                         java.math.BigDecimal importPrice = rs.getBigDecimal("import_price");
                         if (importPrice == null) {
                             importPrice = java.math.BigDecimal.ZERO;
                         }
-
-                        updateDetailPs.setInt(1, receivedQty);
-                        updateDetailPs.setInt(2, orderId);
-                        updateDetailPs.setInt(3, variantId);
-                        updateDetailPs.executeUpdate();
 
                         if (receivedQty > 0) {
                             updateStock(variantId, receivedQty, importPrice.doubleValue());
@@ -422,6 +407,11 @@ public class ImportProductDAO extends DBContext {
                         }
                     }
                 }
+            }
+
+            try (PreparedStatement updateDetailPs = connection.prepareStatement(updateDetailSql)) {
+                updateDetailPs.setInt(1, orderId);
+                updateDetailPs.executeUpdate();
             }
 
             try (PreparedStatement updateOrderPs = connection.prepareStatement(updateOrderSql)) {
