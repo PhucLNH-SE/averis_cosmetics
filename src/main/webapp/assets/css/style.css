@@ -1486,17 +1486,36 @@ textarea.form-control {
     padding: 22px;
 }
 
+.profile-form-error {
+    margin-bottom: 16px;
+    padding: 12px 14px;
+    border: 1px solid #fecaca;
+    border-radius: 10px;
+    background: #fef2f2;
+    color: #b91c1c;
+    font-size: 14px;
+}
+
 /* ===== Form ===== */
 .form-grid {
     display: grid;
     grid-template-columns: 160px 1fr;
     gap: 14px 16px;
-    align-items: center;
+    align-items: start;
 }
 
 .form-grid label {
     font-weight: 600;
     color: #111827;
+    padding-top: 10px;
+}
+
+.form-grid .form-field {
+    width: 100%;
+    max-width: 545px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
 }
 
 .form-grid input,
@@ -1530,11 +1549,31 @@ textarea.form-control {
     /* tÃƒÂ¹y chÃ¡Â»â€°nh */
 }
 
-.form-grid .hint {
-    grid-column: 2 / 3;
-    margin-top: -6px;
+.form-grid input.error,
+.form-grid select.error {
+    border-color: #dc2626;
+    background: #fef2f2;
+}
+
+.form-grid .form-field .hint {
+    margin-top: 0;
     font-size: 12px;
     color: #6b7280;
+}
+
+.form-grid .form-field .field-error {
+    display: block;
+    margin-top: 0;
+}
+
+.form-grid .hint {
+    margin-top: 0;
+    font-size: 12px;
+    color: #6b7280;
+}
+
+.form-grid .field-error {
+    margin-top: 0;
 }
 
 /* ===== Buttons ===== */
