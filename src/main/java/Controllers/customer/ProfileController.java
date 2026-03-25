@@ -76,55 +76,51 @@ public class ProfileController extends HttpServlet {
     }
 
     private void updateProfile(HttpServletRequest request,
-            HttpServletResponse response,
-            Customer customer)
-            throws ServletException, IOException {
+        HttpServletResponse response,
+        Customer customer)
+        throws ServletException, IOException {
 
-        String fullName = request.getParameter("fullName");
+    String fullName = request.getParameter("fullName");
+    String gender = request.getParameter("gender");
+    String dobStr = request.getParameter("dateOfBirth");
 
-        String gender = request.getParameter("gender");
-        String dobStr = request.getParameter("dateOfBirth");
+    Map<String, String> errors = ValidationUtil.validateEditProfile(fullName, gender, dobStr);
 
-        if (fullName == null || fullName.isBlank()) {
-
-            request.setAttribute("error", " The full name cannot be left blank.");
-            request.setAttribute("customer", customer);
-            request.getRequestDispatcher("/WEB-INF/views/customer/editprofile.jsp")
-                    .forward(request, response);
-            return;
+    if (!errors.isEmpty()) {
+        for (Map.Entry<String, String> entry : errors.entrySet()) {
+            request.setAttribute(entry.getKey(), entry.getValue());
         }
 
-        LocalDate dob = null;
-        if (dobStr != null && !dobStr.isBlank()) {
-            try {
-                dob = LocalDate.parse(dobStr.trim());
-            } catch (Exception ex) {
-                request.setAttribute("error", "Date of birth is not in the correct format.");
-                request.setAttribute("customer", customer);
-                request.getRequestDispatcher("/WEB-INF/views/customer/editprofile.jsp")
-                        .forward(request, response);
-                return;
-            }
-        }
+        customer.setFullName(fullName);
+        customer.setGender(gender);
 
-        customer.setFullName(fullName.trim());
+        request.setAttribute("dateOfBirth", dobStr);
+        request.setAttribute("customer", customer);
 
-        customer.setGender((gender == null || gender.isBlank()) ? null : gender.trim());
-        customer.setDateOfBirth(dob);
-
-        CustomerDAO dao = new CustomerDAO();
-        boolean ok = dao.updateProfile(customer);
-
-        if (ok) {
-            request.getSession().setAttribute("customer", customer);
-            response.sendRedirect(request.getContextPath() + "/profile?action=view");
-        } else {
-            request.setAttribute("error", "Update failed.");
-            request.setAttribute("customer", customer);
-            request.getRequestDispatcher("/WEB-INF/views/customer/editprofile.jsp")
-                    .forward(request, response);
-        }
+        request.getRequestDispatcher("/WEB-INF/views/customer/editprofile.jsp")
+                .forward(request, response);
+        return;
     }
+
+    LocalDate dob = LocalDate.parse(dobStr.trim());
+
+    customer.setFullName(fullName.trim());
+    customer.setGender(gender.trim().toUpperCase());
+    customer.setDateOfBirth(dob);
+
+    CustomerDAO dao = new CustomerDAO();
+    boolean ok = dao.updateProfile(customer);
+
+    if (ok) {
+        request.getSession().setAttribute("customer", customer);
+        response.sendRedirect(request.getContextPath() + "/profile?action=view");
+    } else {
+        request.setAttribute("error", "Update failed.");
+        request.setAttribute("customer", customer);
+        request.getRequestDispatcher("/WEB-INF/views/customer/editprofile.jsp")
+                .forward(request, response);
+    }
+}
 
     private void showOrders(HttpServletRequest request, HttpServletResponse response,
             Customer customer) throws ServletException, IOException {
