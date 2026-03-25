@@ -5,6 +5,7 @@ import Model.Brand;
 import Model.ProductVariant;
 import Model.PurchaseDetail;
 import Model.PurchaseOrder;
+import java.math.BigDecimal;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -87,63 +88,71 @@ public class ImportProductDAO extends DBContext {
     // =============================
     // CREATE PURCHASE ORDER
     // =============================
-    public int createPurchaseOrder(int brandId, int adminId) {
+   public int createPurchaseOrder(int brandId, int adminId) {
+    int orderId = -1;
+    String sql = "INSERT INTO Purchase_Order (brand_id, created_by, created_at, status) "
+               + "VALUES (?, ?, GETDATE(), ?)";
 
-        int orderId = -1;
+    try {
+        PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
 
-        String sql =
-                "INSERT INTO Purchase_Order (brand_id, created_by, created_at, status) " +
-                "VALUES (?, ?, GETDATE(), 'PENDING')";
+        PurchaseOrder order = new PurchaseOrder();
+        order.setBrandId(brandId);
+        order.setCreatedBy(adminId);
+        order.setStatus("PENDING");
 
-        try {
+        ps.setInt(1, order.getBrandId());
+        ps.setInt(2, order.getCreatedBy());
+        ps.setString(3, order.getStatus());
 
-            PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+        ps.executeUpdate();
 
-            ps.setInt(1, brandId);
-            ps.setInt(2, adminId);
-
-            ps.executeUpdate();
-
-            ResultSet rs = ps.getGeneratedKeys();
-
-            if (rs.next()) {
-                orderId = rs.getInt(1);
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
+        ResultSet rs = ps.getGeneratedKeys();
+        if (rs.next()) {
+            orderId = rs.getInt(1);
+            order.setPurchaseOrderId(orderId);
         }
-
-        return orderId;
+    } catch (Exception e) {
+        e.printStackTrace();
     }
+
+    return orderId;
+}
 
     // =============================
     // INSERT PURCHASE DETAIL
     // =============================
-    public void insertPurchaseDetail(int orderId, int variantId, int quantity, double price) {
+  public void insertPurchaseDetail(int orderId, int variantId, int quantity, double price) {
+    String sql = "INSERT INTO Purchase_Order_Detail "
+               + "(purchase_order_id, variant_id, quantity, import_price, received_quantity) "
+               + "VALUES (?, ?, ?, ?, ?)";
 
-        String sql =
-                "INSERT INTO Purchase_Order_Detail " +
-                "(purchase_order_id, variant_id, quantity, import_price, received_quantity) " +
-                "VALUES (?, ?, ?, ?, ?)";
+    try {
+        PreparedStatement ps = connection.prepareStatement(sql);
 
-        try {
+        PurchaseDetail detail = new PurchaseDetail();
+        detail.setPurchaseOrderId(orderId);
+        detail.setVariantId(variantId);
+        detail.setQuantity(quantity);
+        detail.setImportPrice(BigDecimal.valueOf(price));
+        detail.setReceivedQuantity(null);
 
-            PreparedStatement ps = connection.prepareStatement(sql);
+        ps.setInt(1, detail.getPurchaseOrderId());
+        ps.setInt(2, detail.getVariantId());
+        ps.setInt(3, detail.getQuantity());
+        ps.setBigDecimal(4, detail.getImportPrice());
 
-            ps.setInt(1, orderId);
-            ps.setInt(2, variantId);
-            ps.setInt(3, quantity);
-            ps.setDouble(4, price);
+        if (detail.getReceivedQuantity() == null) {
             ps.setNull(5, java.sql.Types.INTEGER);
-
-            ps.executeUpdate();
-
-        } catch (Exception e) {
-            e.printStackTrace();
+        } else {
+            ps.setInt(5, detail.getReceivedQuantity());
         }
-    }
 
+        ps.executeUpdate();
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+}
     // =============================
     // UPDATE PRODUCT STOCK
     // =============================
@@ -372,86 +381,92 @@ public class ImportProductDAO extends DBContext {
         return list;
     }
 
-    public boolean confirmReceipt(int orderId, int staffId, int[] variantIds, int[] receivedQuantities) {
-        if (variantIds == null || receivedQuantities == null || variantIds.length != receivedQuantities.length) {
+public boolean confirmReceipt(int orderId, int staffId) {
+    String selectDetailsSql = "SELECT variant_id, quantity, import_price "
+            + "FROM Purchase_Order_Detail "
+            + "WHERE purchase_order_id = ?";
+    String updateDetailSql = "UPDATE Purchase_Order_Detail "
+            + "SET received_quantity = ? "
+            + "WHERE purchase_order_id = ? AND variant_id = ?";
+    String updateOrderSql = "UPDATE Purchase_Order "
+            + "SET status = ?, received_by = ?, received_at = GETDATE(), total_amount = ? "
+            + "WHERE purchase_order_id = ? AND status = 'PENDING'";
+
+    boolean previousAutoCommit = true;
+    java.math.BigDecimal total = java.math.BigDecimal.ZERO;
+    List<PurchaseDetail> details = new ArrayList<>();
+
+    try {
+        previousAutoCommit = connection.getAutoCommit();
+        connection.setAutoCommit(false);
+
+        try (PreparedStatement selectDetailsPs = connection.prepareStatement(selectDetailsSql)) {
+            selectDetailsPs.setInt(1, orderId);
+            try (ResultSet rs = selectDetailsPs.executeQuery()) {
+                while (rs.next()) {
+                    PurchaseDetail detail = new PurchaseDetail();
+                    detail.setVariantId(rs.getInt("variant_id"));
+                    detail.setQuantity(rs.getInt("quantity"));
+                    detail.setImportPrice(rs.getBigDecimal("import_price"));
+                    details.add(detail);
+                }
+            }
+        }
+
+        if (details.isEmpty()) {
+            connection.rollback();
             return false;
         }
 
-        String updateDetailSql = "UPDATE Purchase_Order_Detail "
-                + "SET received_quantity = ? "
-                + "WHERE purchase_order_id = ? AND variant_id = ?";
-        String selectPriceSql = "SELECT import_price FROM Purchase_Order_Detail "
-                + "WHERE purchase_order_id = ? AND variant_id = ?";
-        String updateOrderSql = "UPDATE Purchase_Order "
-                + "SET status = ?, received_by = ?, received_at = GETDATE(), total_amount = ? "
-                + "WHERE purchase_order_id = ? AND status = 'PENDING'";
+        try (PreparedStatement updateDetailPs = connection.prepareStatement(updateDetailSql)) {
+            for (PurchaseDetail detail : details) {
+                int receivedQty = Math.max(0, detail.getQuantity());
+                java.math.BigDecimal importPrice = detail.getImportPrice();
+                if (importPrice == null) {
+                    importPrice = java.math.BigDecimal.ZERO;
+                }
 
-        boolean previousAutoCommit = true;
-        java.math.BigDecimal total = java.math.BigDecimal.ZERO;
+                updateDetailPs.setInt(1, receivedQty);
+                updateDetailPs.setInt(2, orderId);
+                updateDetailPs.setInt(3, detail.getVariantId());
+                updateDetailPs.executeUpdate();
 
-        try {
-            previousAutoCommit = connection.getAutoCommit();
-            connection.setAutoCommit(false);
-
-            try (PreparedStatement updateDetailPs = connection.prepareStatement(updateDetailSql);
-                 PreparedStatement selectPricePs = connection.prepareStatement(selectPriceSql)) {
-
-                for (int i = 0; i < variantIds.length; i++) {
-                    int variantId = variantIds[i];
-                    int receivedQty = Math.max(0, receivedQuantities[i]);
-
-                    selectPricePs.setInt(1, orderId);
-                    selectPricePs.setInt(2, variantId);
-                    try (ResultSet rs = selectPricePs.executeQuery()) {
-                        if (!rs.next()) {
-                            continue;
-                        }
-                        java.math.BigDecimal importPrice = rs.getBigDecimal("import_price");
-                        if (importPrice == null) {
-                            importPrice = java.math.BigDecimal.ZERO;
-                        }
-
-                        updateDetailPs.setInt(1, receivedQty);
-                        updateDetailPs.setInt(2, orderId);
-                        updateDetailPs.setInt(3, variantId);
-                        updateDetailPs.executeUpdate();
-
-                        if (receivedQty > 0) {
-                            updateStock(variantId, receivedQty, importPrice.doubleValue());
-                            total = total.add(importPrice.multiply(java.math.BigDecimal.valueOf(receivedQty)));
-                        }
-                    }
+                if (receivedQty > 0) {
+                    updateStock(detail.getVariantId(), receivedQty, importPrice.doubleValue());
+                    total = total.add(importPrice.multiply(java.math.BigDecimal.valueOf(receivedQty)));
                 }
             }
+        }
 
-            try (PreparedStatement updateOrderPs = connection.prepareStatement(updateOrderSql)) {
-                updateOrderPs.setString(1, "RECEIVED");
-                updateOrderPs.setInt(2, staffId);
-                updateOrderPs.setBigDecimal(3, total);
-                updateOrderPs.setInt(4, orderId);
-                int updated = updateOrderPs.executeUpdate();
-                if (updated == 0) {
-                    connection.rollback();
-                    return false;
-                }
-            }
-
-            connection.commit();
-            return true;
-        } catch (Exception e) {
-            try {
+        try (PreparedStatement updateOrderPs = connection.prepareStatement(updateOrderSql)) {
+            updateOrderPs.setString(1, "RECEIVED");
+            updateOrderPs.setInt(2, staffId);
+            updateOrderPs.setBigDecimal(3, total);
+            updateOrderPs.setInt(4, orderId);
+            int updated = updateOrderPs.executeUpdate();
+            if (updated == 0) {
                 connection.rollback();
-            } catch (SQLException ex) {
-                ex.printStackTrace();
+                return false;
             }
+        }
+
+        connection.commit();
+        return true;
+    } catch (Exception e) {
+        try {
+            connection.rollback();
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+        e.printStackTrace();
+        return false;
+    } finally {
+        try {
+            connection.setAutoCommit(previousAutoCommit);
+        } catch (SQLException e) {
             e.printStackTrace();
-            return false;
-        } finally {
-            try {
-                connection.setAutoCommit(previousAutoCommit);
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
         }
     }
 }
+}
+
