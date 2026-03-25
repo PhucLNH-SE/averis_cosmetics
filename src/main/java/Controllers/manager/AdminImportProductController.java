@@ -214,9 +214,10 @@ public class AdminImportProductController extends HttpServlet {
             return;
         }
 
-        String orderIdRaw = request.getParameter("orderId");
 
-        if (orderIdRaw == null || orderIdRaw.trim().isEmpty()) {
+        String orderIdRaw = trimToNull(request.getParameter("orderId"));
+        if (orderIdRaw == null) {
+
             response.sendRedirect(request.getContextPath() + "/admin/import-product?action=history&error=importFailed");
             return;
         }

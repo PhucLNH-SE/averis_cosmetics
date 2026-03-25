@@ -27,9 +27,25 @@
                     <td class="text-end">
                         <fmt:formatNumber value="${d.importPrice}" pattern="#,##0"/> VND
                     </td>
-                    <td class="text-end">${d.receivedQuantity != null ? d.receivedQuantity : d.quantity}</td>
+                    <td class="text-end">
+                        <c:choose>
+                            <c:when test="${orderStatus == 'PENDING'}">
+                                ${d.quantity}
+                            </c:when>
+                            <c:otherwise>
+                                ${d.receivedQuantity != null ? d.receivedQuantity : d.quantity}
+                            </c:otherwise>
+                        </c:choose>
+                    </td>
                     <td class="text-end amount">
-                        <fmt:formatNumber value="${(d.receivedQuantity != null ? d.receivedQuantity : d.quantity) * d.importPrice}" pattern="#,##0"/> VND
+                        <c:choose>
+                            <c:when test="${orderStatus == 'PENDING'}">
+                                <fmt:formatNumber value="${d.quantity * d.importPrice}" pattern="#,##0"/> VND
+                            </c:when>
+                            <c:otherwise>
+                                <fmt:formatNumber value="${(d.receivedQuantity != null ? d.receivedQuantity : d.quantity) * d.importPrice}" pattern="#,##0"/> VND
+                            </c:otherwise>
+                        </c:choose>
                     </td>
                 </tr>
             </c:forEach>
@@ -47,4 +63,3 @@
         </c:if>
     </div>
 </form>
-
