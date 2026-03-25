@@ -259,6 +259,65 @@ public class OrderDAO extends DBContext {
         return list;
     }
 
+    public List<Orders> searchOrders(String keyword) {
+        String normalizedKeyword = keyword == null ? null : keyword.trim();
+        if (normalizedKeyword == null || normalizedKeyword.isEmpty()) {
+            return getAllOrders();
+        }
+
+        List<Orders> list = new ArrayList<>();
+        String sql = "SELECT o.order_id, "
+                + "a.receiver_name, "
+                + "v.code AS voucher_code, "
+                + "o.discount_amount, "
+                + "o.payment_method, "
+                + "o.payment_status, "
+                + "o.order_status, "
+                + "o.total_amount, "
+                + "o.handled_by, "
+                + "m.full_name AS handled_by_name "
+                + "FROM Orders o "
+                + "JOIN Address a ON o.address_id = a.address_id "
+                + "LEFT JOIN Voucher v ON o.voucher_id = v.voucher_id "
+                + "LEFT JOIN Manager m ON o.handled_by = m.manager_id "
+                + "WHERE CAST(o.order_id AS NVARCHAR(20)) LIKE ? "
+                + "   OR a.receiver_name LIKE ? "
+                + "   OR ISNULL(v.code, '') LIKE ? "
+                + "   OR o.payment_method LIKE ? "
+                + "   OR o.payment_status LIKE ? "
+                + "   OR o.order_status LIKE ? "
+                + "   OR ISNULL(m.full_name, '') LIKE ? "
+                + "ORDER BY o.order_id ASC";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            String searchValue = "%" + normalizedKeyword + "%";
+            for (int i = 1; i <= 7; i++) {
+                ps.setString(i, searchValue);
+            }
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Orders order = new Orders();
+                    order.setOrderId(rs.getInt("order_id"));
+                    order.setReceiverName(rs.getString("receiver_name"));
+                    order.setVoucherCode(rs.getString("voucher_code"));
+                    order.setDiscountAmount(rs.getBigDecimal("discount_amount"));
+                    order.setPaymentMethod(rs.getString("payment_method"));
+                    order.setPaymentStatus(rs.getString("payment_status"));
+                    order.setOrderStatus(rs.getString("order_status"));
+                    order.setTotalAmount(rs.getBigDecimal("total_amount"));
+                    order.setHandledBy(rs.getObject("handled_by", Integer.class));
+                    order.setHandledByName(rs.getString("handled_by_name"));
+                    list.add(order);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
+
     public List<OrderDetail> getOrderDetailsByOrderId(int orderId) {
 
         List<OrderDetail> list = new ArrayList<>();

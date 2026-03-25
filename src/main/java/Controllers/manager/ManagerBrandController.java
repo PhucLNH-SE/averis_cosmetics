@@ -1,4 +1,4 @@
-package Controllers.admin;
+package Controllers.manager;
 
 import DALs.BrandDAO;
 import Model.Brand;
@@ -9,42 +9,18 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
 
-public class BrandController extends HttpServlet {
+public class ManagerBrandController extends HttpServlet {
 
     private BrandDAO brandDAO;
+    private static final String ADMIN_LIST_URL = "/admin/manage-brand";
+    private static final String ADMIN_PANEL = "/WEB-INF/views/admin/admin-panel.jsp";
+    private static final String STAFF_PANEL = "/WEB-INF/views/staff/staff-panel.jsp";
+    private static final String ADMIN_CONTENT = "/WEB-INF/views/admin/partials/manage-brand-content.jsp";
+    private static final String STAFF_CONTENT = "/WEB-INF/views/staff/partials/manage-brand-content.jsp";
 
     @Override
     public void init() throws ServletException {
         brandDAO = new BrandDAO();
-    }
-
-    protected void processRequest(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        response.setContentType("text/html;charset=UTF-8");
-        request.setCharacterEncoding("UTF-8");
-
-        String action = request.getParameter("action");
-        if (action == null) {
-            action = "list";
-        }
-
-        switch (action) {
-            case "list":
-                listBrands(request, response);
-                break;
-            case "edit":
-                editBrand(request, response);
-                break;
-            case "add":
-                addBrand(request, response);
-                break;
-            case "update":
-                updateBrand(request, response);
-                break;
-            default:
-                listBrands(request, response);
-                break;
-        }
     }
 
     private void listBrands(HttpServletRequest request, HttpServletResponse response)
@@ -56,7 +32,7 @@ public class BrandController extends HttpServlet {
             throws ServletException, IOException {
         String brandIdParam = request.getParameter("id");
         if (brandIdParam == null || brandIdParam.trim().isEmpty()) {
-            response.sendRedirect(request.getContextPath() + "/admin/manage-brand?error=notFound");
+            response.sendRedirect(request.getContextPath() + ADMIN_LIST_URL + "?error=notFound");
             return;
         }
 
@@ -64,12 +40,12 @@ public class BrandController extends HttpServlet {
             int brandId = Integer.parseInt(brandIdParam);
             Brand selectedBrand = brandDAO.getById(brandId);
             if (selectedBrand == null) {
-                response.sendRedirect(request.getContextPath() + "/admin/manage-brand?error=notFound");
+                response.sendRedirect(request.getContextPath() + ADMIN_LIST_URL + "?error=notFound");
                 return;
             }
             forwardManageBrand(request, response, selectedBrand, "update", null);
         } catch (NumberFormatException ex) {
-            response.sendRedirect(request.getContextPath() + "/admin/manage-brand?error=notFound");
+            response.sendRedirect(request.getContextPath() + ADMIN_LIST_URL + "?error=notFound");
         }
     }
 
@@ -89,9 +65,9 @@ public class BrandController extends HttpServlet {
 
         boolean success = brandDAO.insert(brand);
         if (success) {
-            response.sendRedirect(request.getContextPath() + "/admin/manage-brand?success=add");
+            response.sendRedirect(request.getContextPath() + ADMIN_LIST_URL + "?success=add");
         } else {
-            response.sendRedirect(request.getContextPath() + "/admin/manage-brand?error=addFailed");
+            response.sendRedirect(request.getContextPath() + ADMIN_LIST_URL + "?error=addFailed");
         }
     }
 
@@ -117,9 +93,9 @@ public class BrandController extends HttpServlet {
 
         boolean success = brandDAO.update(brand);
         if (success) {
-            response.sendRedirect(request.getContextPath() + "/admin/manage-brand?success=update");
+            response.sendRedirect(request.getContextPath() + ADMIN_LIST_URL + "?success=update");
         } else {
-            response.sendRedirect(request.getContextPath() + "/admin/manage-brand?error=updateFailed");
+            response.sendRedirect(request.getContextPath() + ADMIN_LIST_URL + "?error=updateFailed");
         }
     }
 
@@ -134,20 +110,73 @@ public class BrandController extends HttpServlet {
             request.setAttribute("error", error);
         }
         request.setAttribute("currentView", "brands");
-        request.setAttribute("contentPage", "/WEB-INF/views/admin/partials/manage-brand-content.jsp");
-        request.getRequestDispatcher("/WEB-INF/views/admin/admin-panel.jsp").forward(request, response);
+        boolean staffRoute = isStaffRoute(request);
+        request.setAttribute("contentPage", staffRoute ? STAFF_CONTENT : ADMIN_CONTENT);
+        request.getRequestDispatcher(staffRoute ? STAFF_PANEL : ADMIN_PANEL).forward(request, response);
     }
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        processRequest(request, response);
+        response.setContentType("text/html;charset=UTF-8");
+        request.setCharacterEncoding("UTF-8");
+
+        String action = request.getParameter("action");
+        if (action == null || action.trim().isEmpty()) {
+            action = "list";
+        }
+
+        if (isStaffRoute(request)) {
+            switch (action) {
+                case "list":
+                default:
+                    listBrands(request, response);
+                    break;
+            }
+        } else {
+            switch (action) {
+                case "edit":
+                    editBrand(request, response);
+                    break;
+                case "list":
+                default:
+                    listBrands(request, response);
+                    break;
+            }
+        }
     }
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        processRequest(request, response);
+        response.setContentType("text/html;charset=UTF-8");
+        request.setCharacterEncoding("UTF-8");
+
+        if (isStaffRoute(request)) {
+            response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+            return;
+        }
+
+        String action = request.getParameter("action");
+        if (action == null || action.trim().isEmpty()) {
+            action = "list";
+        }
+
+        switch (action) {
+            case "add":
+                addBrand(request, response);
+                break;
+            case "update":
+                updateBrand(request, response);
+                break;
+            default:
+                response.sendRedirect(request.getContextPath() + ADMIN_LIST_URL);
+                break;
+        }
+    }
+
+    private boolean isStaffRoute(HttpServletRequest request) {
+        return request.getServletPath() != null && request.getServletPath().startsWith("/staff/");
     }
 
     @Override
@@ -155,4 +184,6 @@ public class BrandController extends HttpServlet {
         return "Brand Controller";
     }
 }
+
+
 

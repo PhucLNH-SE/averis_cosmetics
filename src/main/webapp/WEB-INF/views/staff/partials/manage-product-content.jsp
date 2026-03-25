@@ -115,6 +115,14 @@
                     </thead>
                     <tbody>
                         <c:forEach items="${listP}" var="product">
+                            <c:url var="staffProductDetailUrl" value="/staff/manage-product">
+                                <c:param name="action" value="detail" />
+                                <c:param name="id" value="${product.productId}" />
+                                <c:param name="keyword" value="${searchKeyword}" />
+                                <c:param name="brandId" value="${selectedBrandId}" />
+                                <c:param name="categoryId" value="${selectedCategoryId}" />
+                                <c:param name="status" value="${selectedStatus}" />
+                            </c:url>
                             <tr>
                                 <td class="fw-semibold">#${product.productId}</td>
                                 <td>
@@ -167,14 +175,11 @@
                                     </span>
                                 </td>
                                 <td class="text-center">
-                                    <button
-                                        type="button"
+                                    <a
                                         class="btn btn-primary btn-sm staff-product-table__detail-btn"
-                                        data-staff-product-detail-trigger="true"
-                                        data-detail-id="staff-product-detail-${product.productId}"
-                                        data-product-name="<c:out value='${product.name}' />">
+                                        href="${staffProductDetailUrl}">
                                         <i class="bi bi-eye me-1"></i>View Detail
-                                    </button>
+                                    </a>
                                 </td>
                             </tr>
                         </c:forEach>
@@ -192,132 +197,35 @@
     </div>
 </section>
 
-<div class="d-none">
-    <c:forEach items="${listP}" var="product">
-        <div id="staff-product-detail-${product.productId}">
-            <div class="staff-product-detail">
-                <div class="staff-product-detail__hero">
-                    <div class="staff-product-detail__image-box">
-                        <c:choose>
-                            <c:when test="${not empty product.mainImage}">
-                                <img
-                                    src="${pageContext.request.contextPath}/assets/img/${product.mainImage}"
-                                    alt="${product.name}"
-                                    class="staff-product-detail__image">
-                            </c:when>
-                            <c:otherwise>
-                                <img
-                                    src="${pageContext.request.contextPath}/assets/img/Logo.png"
-                                    alt="${product.name}"
-                                    class="staff-product-detail__image">
-                            </c:otherwise>
-                        </c:choose>
-                    </div>
-
-                    <div class="staff-product-detail__summary">
-                        <div class="staff-product-detail__meta-grid">
-                            <div class="staff-product-detail__meta-item">
-                                <span class="staff-product-detail__meta-label">Product ID</span>
-                                <strong>#${product.productId}</strong>
-                            </div>
-                            <div class="staff-product-detail__meta-item">
-                                <span class="staff-product-detail__meta-label">Brand</span>
-                                <strong><c:out value="${product.brand.name}" /></strong>
-                            </div>
-                            <div class="staff-product-detail__meta-item">
-                                <span class="staff-product-detail__meta-label">Category</span>
-                                <strong><c:out value="${product.category.name}" /></strong>
-                            </div>
-                            <div class="staff-product-detail__meta-item">
-                                <span class="staff-product-detail__meta-label">Status</span>
-                                <strong>${product.status ? 'Active' : 'Inactive'}</strong>
-                            </div>
-                            <div class="staff-product-detail__meta-item">
-                                <span class="staff-product-detail__meta-label">Price Range</span>
-                                <strong>
-                                    <c:choose>
-                                        <c:when test="${empty product.variants}">
-                                            No variants
-                                        </c:when>
-                                        <c:when test="${product.price == product.maxPrice}">
-                                            <fmt:formatNumber value="${product.price}" pattern="#,##0" /> VND
-                                        </c:when>
-                                        <c:otherwise>
-                                            <fmt:formatNumber value="${product.price}" pattern="#,##0" />
-                                            -
-                                            <fmt:formatNumber value="${product.maxPrice}" pattern="#,##0" /> VND
-                                        </c:otherwise>
-                                    </c:choose>
-                                </strong>
-                            </div>
-                            <div class="staff-product-detail__meta-item">
-                                <span class="staff-product-detail__meta-label">Variants</span>
-                                <strong>${fn:length(product.variants)} variant(s)</strong>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="staff-product-detail__section">
-                    <h6 class="staff-product-detail__section-title">Description</h6>
-                    <c:choose>
-                        <c:when test="${not empty product.description}">
-                            <p class="staff-product-detail__description"><c:out value="${product.description}" /></p>
-                        </c:when>
-                        <c:otherwise>
-                            <p class="staff-product-detail__description text-muted">No description available.</p>
-                        </c:otherwise>
-                    </c:choose>
-                </div>
-
-                <div class="staff-product-detail__section">
-                    <h6 class="staff-product-detail__section-title">Variant Information</h6>
-                    <c:choose>
-                        <c:when test="${empty product.variants}">
-                            <div class="staff-product-detail__empty">
-                                No active variants available for this product.
-                            </div>
-                        </c:when>
-                        <c:otherwise>
-                            <div class="table-responsive">
-                                <table class="table table-sm align-middle staff-product-detail__variant-table mb-0">
-                                    <thead>
-                                        <tr>
-                                            <th>Variant</th>
-                                            <th>Sale Price</th>
-                                            <th>Stock</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <c:forEach items="${product.variants}" var="variant">
-                                            <tr>
-                                                <td><c:out value="${variant.variantName}" /></td>
-                                                <td><fmt:formatNumber value="${variant.price}" pattern="#,##0" /> VND</td>
-                                                <td>${variant.stock}</td>
-                                            </tr>
-                                        </c:forEach>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </c:otherwise>
-                    </c:choose>
-                </div>
-            </div>
-        </div>
-    </c:forEach>
-</div>
-
 <div class="modal fade" id="staffProductDetailModal" tabindex="-1" aria-labelledby="staffProductDetailModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content staff-product-detail-modal">
             <div class="modal-header staff-product-detail-modal__header">
-                <h5 class="modal-title fw-bold" id="staffProductDetailModalLabel">Product Detail</h5>
+                <h5 class="modal-title fw-bold" id="staffProductDetailModalLabel">
+                    <c:out value="${not empty selectedDetailProduct ? selectedDetailProduct.name : 'Product Detail'}" />
+                </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body staff-product-detail-modal__body" id="staffProductDetailModalBody">
-                <p class="text-muted mb-0">Select a product to view more information.</p>
+                <c:choose>
+                    <c:when test="${not empty selectedDetailProduct}">
+                        <c:set var="detailProduct" value="${selectedDetailProduct}" scope="request" />
+                        <jsp:include page="/WEB-INF/views/common/product-detail-content.jsp" />
+                    </c:when>
+                    <c:otherwise>
+                        <p class="text-muted mb-0">Select a product to view more information.</p>
+                    </c:otherwise>
+                </c:choose>
             </div>
         </div>
     </div>
 </div>
+
+<c:if test="${detailMode and not empty selectedDetailProduct}">
+<script>
+    window.addEventListener('load', function () {
+        bootstrap.Modal.getOrCreateInstance(document.getElementById('staffProductDetailModal')).show();
+    });
+</script>
+</c:if>
 

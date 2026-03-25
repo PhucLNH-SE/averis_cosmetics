@@ -1,4 +1,4 @@
-package Controllers.admin;
+package Controllers.manager;
 
 import DALs.StatisticDAO;
 import Model.MonthlyStatisticSummary;
@@ -109,4 +109,6 @@ public class AdminStatisticController extends HttpServlet {
         return array.toString();
     }
 }
+
+
 

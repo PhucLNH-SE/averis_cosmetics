@@ -45,9 +45,10 @@ public class ManagerAuthFilter implements Filter {
         if (path.startsWith("/admin/") || "/AdminControllers".equals(path)) {
             return "ADMIN";
         }
-        if (path.startsWith("/staff/") || "/StaffController".equals(path)) {
+        if (path.startsWith("/staff/")) {
             return "STAFF";
         }
         return null;
     }
 }
+

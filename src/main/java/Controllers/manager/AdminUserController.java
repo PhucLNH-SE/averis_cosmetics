@@ -1,4 +1,4 @@
-package Controllers.admin;
+package Controllers.manager;
 
 import DALs.CustomerDAO;
 import Model.Customer;
@@ -9,7 +9,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
 
-public class UserManagerController extends HttpServlet {
+public class AdminUserController extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -127,3 +127,5 @@ public class UserManagerController extends HttpServlet {
         return trimmed.isEmpty() ? null : trimmed;
     }
 }
+
+
