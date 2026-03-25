@@ -227,7 +227,7 @@ public class OrderDAO extends DBContext {
                 + "JOIN Address a ON o.address_id = a.address_id "
                 + "LEFT JOIN Voucher v ON o.voucher_id = v.voucher_id "
                 + "LEFT JOIN Manager m ON o.handled_by = m.manager_id "
-                + "ORDER BY o.order_id DESC";
+                + "ORDER BY o.order_id ASC";
 
         try {
 
@@ -329,7 +329,7 @@ public class OrderDAO extends DBContext {
                 + "FROM Orders o "
                 + "JOIN Address a ON o.address_id = a.address_id "
                 + "WHERE o.handled_by = ? "
-                + "ORDER BY o.order_id DESC";
+                + "ORDER BY o.order_id ASC";
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, managerId);
@@ -636,7 +636,7 @@ public class OrderDAO extends DBContext {
                 + "LEFT JOIN Voucher v ON o.voucher_id = v.voucher_id "
                 + "LEFT JOIN Manager m ON o.handled_by = m.manager_id "
                 + "WHERE o.order_status = ? "
-                + "ORDER BY o.order_id DESC";
+                + "ORDER BY o.order_id ASC";
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
             ps.setString(1, status);
@@ -679,11 +679,11 @@ public class OrderDAO extends DBContext {
                 + "LEFT JOIN Manager m ON o.handled_by = m.manager_id ");
 
         if (handledBy == null) {
-            sql.append("ORDER BY o.order_id DESC");
+            sql.append("ORDER BY o.order_id ASC");
         } else if (handledBy == 0) {
-            sql.append("WHERE o.handled_by IS NULL ORDER BY o.order_id DESC");
+            sql.append("WHERE o.handled_by IS NULL ORDER BY o.order_id ASC");
         } else {
-            sql.append("WHERE o.handled_by = ? ORDER BY o.order_id DESC");
+            sql.append("WHERE o.handled_by = ? ORDER BY o.order_id ASC");
         }
 
         try (PreparedStatement ps = connection.prepareStatement(sql.toString())) {

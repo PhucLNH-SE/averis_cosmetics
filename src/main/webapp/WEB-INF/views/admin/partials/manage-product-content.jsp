@@ -54,7 +54,6 @@
                                     type="text"
                                     name="keyword"
                                     class="form-control product-search-form__input"
-                                    placeholder="Search by product ID, name, brand, category..."
                                     value="<c:out value='${searchKeyword}'/>">
                             </div>
                         </div>

@@ -38,7 +38,6 @@
                 <table class="table">
                     <thead>
                         <tr>
-                            <th class="px-4 purchase-history-toggle-col"></th>
                             <th>Order ID</th>
                             <th>Brand</th>
                             <th>Manager</th>
@@ -51,10 +50,7 @@
                     <tbody>
                         <c:forEach var="h" items="${history}">
                             <tr>
-                                <td class="px-4">
-                                    <span class="badge bg-light text-dark">#</span>
-                                </td>
-                                <td><strong>#${h.purchaseOrderId}</strong></td>
+                                <td><strong>${h.purchaseOrderId}</strong></td>
                                 <td>${h.brandName}</td>
                                 <td>
                                     <div>${h.managerName}</div>
@@ -82,7 +78,7 @@
                         </c:forEach>
                         <c:if test="${empty history}">
                             <tr>
-                                <td colspan="8" class="text-center empty-state">
+                                <td colspan="7" class="text-center empty-state">
                                     <i class="bi bi-inbox d-block"></i>
                                     No import history found
                                 </td>

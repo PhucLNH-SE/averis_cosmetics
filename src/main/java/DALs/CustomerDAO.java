@@ -277,7 +277,7 @@ public class CustomerDAO extends DBContext {
 
     public List<Customer> getAllCustomers() {
         List<Customer> customers = new ArrayList<>();
-        String sql = "SELECT * FROM Customers ORDER BY customer_id DESC";
+        String sql = "SELECT * FROM Customers ORDER BY customer_id ASC";
 
         try (PreparedStatement ps = connection.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {

@@ -232,7 +232,7 @@ public class ImportProductDAO extends DBContext {
             + "FROM Purchase_Order po "
             + "JOIN Brand b ON po.brand_id = b.brand_id "
             + "JOIN Manager m ON po.created_by = m.manager_id "
-            + "ORDER BY po.created_at DESC";
+            + "ORDER BY po.purchase_order_id ASC";
 
     try {
         PreparedStatement ps = connection.prepareStatement(sql);

@@ -13,7 +13,7 @@ import java.util.List;
 public class VoucherDAO extends DBContext {
 
     public List<Voucher> getAll() {
-        String sql = "SELECT * FROM Voucher ORDER BY voucher_id DESC";
+        String sql = "SELECT * FROM Voucher ORDER BY voucher_id ASC";
         List<Voucher> result = new ArrayList<>();
 
         try (PreparedStatement ps = connection.prepareStatement(sql);

@@ -3,6 +3,8 @@ package Controllers.admin;
 import DALs.ImportProductDAO;
 import Model.Brand;
 import Model.Manager;
+import DALs.ProductDAO;
+import Model.Product;
 import Model.ProductVariant;
 import Model.PurchaseDetail;
 import Model.PurchaseOrder;
@@ -74,20 +76,46 @@ public class ImportProductController extends HttpServlet {
 
     private void showImportProduct(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        List<Brand> brands = dao.getAllBrands();
-        request.setAttribute("brands", brands);
+        ProductDAO productDao = new ProductDAO();
 
-        String brandIdRaw = request.getParameter("brandId");
-        if (brandIdRaw != null && !brandIdRaw.trim().isEmpty()) {
-            int brandId = Integer.parseInt(brandIdRaw);
-            List<ProductVariant> variants = dao.getVariantByBrand(brandId);
-            request.setAttribute("variants", variants);
-            request.setAttribute("selectedBrand", brandId);
+        String keyword = trimToNull(request.getParameter("keyword"));
+        String brandId = trimToNull(request.getParameter("brandId"));
+        String categoryId = trimToNull(request.getParameter("categoryId"));
+        String status = trimToNull(request.getParameter("status"));
+
+        List<Product> listP = productDao.getProductsForAdminWithImportPrice(keyword, brandId, categoryId, status);
+        List<Brand> brands = productDao.getAllBrands();
+        List<Model.Category> categories = productDao.getAllCategories();
+
+        int activeCount = 0;
+        for (Product product : listP) {
+            if (product.isStatus()) {
+                activeCount++;
+            }
         }
+
+        request.setAttribute("listP", listP);
+        request.setAttribute("listB", brands);
+        request.setAttribute("listC", categories);
+        request.setAttribute("searchKeyword", keyword);
+        request.setAttribute("selectedBrandId", brandId);
+        request.setAttribute("selectedCategoryId", categoryId);
+        request.setAttribute("selectedStatus", status);
+        request.setAttribute("resultCount", listP.size());
+        request.setAttribute("activeCount", activeCount);
+        request.setAttribute("inactiveCount", listP.size() - activeCount);
 
         request.setAttribute("currentView", "inventory");
         request.setAttribute("contentPage", "/WEB-INF/views/admin/partials/import-product-content.jsp");
         request.getRequestDispatcher("/WEB-INF/views/admin/admin-panel.jsp").forward(request, response);
+    }
+
+    private String trimToNull(String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
     }
 
     private void importProduct(HttpServletRequest request, HttpServletResponse response)
