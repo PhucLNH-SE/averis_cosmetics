@@ -110,12 +110,25 @@
                             </c:if>
 
                             <div class="product-detail-actions">
+                                <div class="product-quantity-picker" aria-label="Choose quantity">
+                                    <button type="button" class="product-quantity-btn" onclick="changeProductQuantity(-1)" aria-label="Decrease quantity">
+                                        <i class="fa-solid fa-minus"></i>
+                                    </button>
+                                    <input type="number"
+                                           id="productQuantityInput"
+                                           class="product-quantity-input"
+                                           value="1"
+                                           min="1"
+                                           inputmode="numeric"
+                                           aria-label="Product quantity"
+                                           onchange="normalizeProductQuantity()">
+                                    <button type="button" class="product-quantity-btn" onclick="changeProductQuantity(1)" aria-label="Increase quantity">
+                                        <i class="fa-solid fa-plus"></i>
+                                    </button>
+                                </div>
                                 <button class="product-action-btn primary" onclick="addToCart(${product.productId}, event)">
-                                    Add to cart
+                                    Add Product
                                 </button>
-                                <a href="${pageContext.request.contextPath}/contact" class="product-action-btn secondary">
-                                    Contact for consultation
-                                </a>
                             </div>
 
                             <div class="product-detail-notes">
@@ -238,6 +251,28 @@
                 element.classList.add('active');
             }
 
+            function normalizeProductQuantity() {
+                const quantityInput = document.getElementById('productQuantityInput');
+                if (!quantityInput) {
+                    return 1;
+                }
+
+                const parsedValue = parseInt(quantityInput.value, 10);
+                const normalizedValue = Number.isNaN(parsedValue) || parsedValue < 1 ? 1 : parsedValue;
+                quantityInput.value = normalizedValue;
+                return normalizedValue;
+            }
+
+            function changeProductQuantity(delta) {
+                const quantityInput = document.getElementById('productQuantityInput');
+                if (!quantityInput) {
+                    return;
+                }
+
+                const nextValue = normalizeProductQuantity() + delta;
+                quantityInput.value = nextValue < 1 ? 1 : nextValue;
+            }
+
             document.addEventListener('DOMContentLoaded', function() {
                 const variantItems = document.querySelectorAll('.product-variant-card');
                 const currentPrice = document.getElementById('productCurrentPrice');
@@ -262,7 +297,7 @@
                     return;
                 }
                 const variantId = selectedVariant.getAttribute('data-variant-id');
-                const quantity = 1;
+                const quantity = normalizeProductQuantity();
 
                 const url = '${pageContext.request.contextPath}/cart';
                 const params = new URLSearchParams();
@@ -295,7 +330,7 @@
 
                         if (btn) {
                             const originalText = btn.innerText;
-                            btn.innerText = 'Added';
+                            btn.innerText = quantity > 1 ? ('Added x' + quantity) : 'Added';
                             btn.classList.add('is-success');
 
                             setTimeout(() => {
