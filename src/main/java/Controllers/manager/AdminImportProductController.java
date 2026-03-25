@@ -1,4 +1,4 @@
-package Controllers.admin;
+package Controllers.manager;
 
 import DALs.ImportProductDAO;
 import Model.Brand;
@@ -15,7 +15,7 @@ import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.List;
 
-public class ImportProductController extends HttpServlet {
+public class AdminImportProductController extends HttpServlet {
 
     private final ImportProductDAO dao = new ImportProductDAO();
 
@@ -230,4 +230,6 @@ public class ImportProductController extends HttpServlet {
         }
     }
 }
+
+
 

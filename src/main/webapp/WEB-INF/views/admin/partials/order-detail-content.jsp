@@ -9,7 +9,12 @@
             <h4>Order Detail</h4>
             <p class="text-muted mb-0">Review full information for order #${order.orderId}.</p>
         </div>
-        <a href="${pageContext.request.contextPath}/admin/manage-orders" class="btn btn-outline-secondary">
+        <c:url var="adminBackToOrdersUrl" value="/admin/manage-orders">
+            <c:if test="${not empty searchKeyword}">
+                <c:param name="keyword" value="${searchKeyword}" />
+            </c:if>
+        </c:url>
+        <a href="${adminBackToOrdersUrl}" class="btn btn-outline-secondary">
             <i class="bi bi-arrow-left me-1"></i>Back to Orders
         </a>
     </div>

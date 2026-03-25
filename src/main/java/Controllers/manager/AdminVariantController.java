@@ -1,4 +1,4 @@
-package Controllers.admin;
+package Controllers.manager;
 
 import DALs.ProductVariantDAO;
 import Model.ProductVariant;
@@ -10,7 +10,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-public class ManageVariantController extends HttpServlet {
+public class AdminVariantController extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
@@ -107,3 +107,5 @@ public class ManageVariantController extends HttpServlet {
         return null;
     }
 }
+
+

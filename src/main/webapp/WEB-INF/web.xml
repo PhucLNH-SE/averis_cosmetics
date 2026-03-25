@@ -7,12 +7,12 @@
   
   <!-- Servlets -->
   <servlet>
-    <servlet-name>UserManagerController</servlet-name>
-    <servlet-class>Controllers.admin.UserManagerController</servlet-class>
+    <servlet-name>AdminUserController</servlet-name>
+    <servlet-class>Controllers.manager.AdminUserController</servlet-class>
   </servlet>
   <servlet>
     <servlet-name>AdminStatisticController</servlet-name>
-    <servlet-class>Controllers.admin.AdminStatisticController</servlet-class>
+    <servlet-class>Controllers.manager.AdminStatisticController</servlet-class>
   </servlet>
   <servlet>
     <servlet-name>ProfileController</servlet-name>
@@ -24,7 +24,7 @@
   </servlet>
   <servlet>
     <servlet-name>ManagerAuthController</servlet-name>
-    <servlet-class>Controllers.common.ManagerAuthController</servlet-class>
+    <servlet-class>Controllers.manager.ManagerAuthController</servlet-class>
   </servlet>
   <servlet>
     <servlet-name>GuestController</servlet-name>
@@ -39,20 +39,8 @@
     <servlet-class>Controllers.guest.ProductSuggestController</servlet-class>
   </servlet>
   <servlet>
-    <servlet-name>StaffController</servlet-name>
-    <servlet-class>Controllers.staff.StaffController</servlet-class>
-  </servlet>
-  <servlet>
-    <servlet-name>StaffBrandController</servlet-name>
-    <servlet-class>Controllers.staff.BrandController</servlet-class>
-  </servlet>
-  <servlet>
-    <servlet-name>StaffCategoryController</servlet-name>
-    <servlet-class>Controllers.staff.CategoryController</servlet-class>
-  </servlet>
-  <servlet>
-    <servlet-name>StaffProductController</servlet-name>
-    <servlet-class>Controllers.staff.StaffProductController</servlet-class>
+    <servlet-name>StaffDashboardController</servlet-name>
+    <servlet-class>Controllers.manager.StaffDashboardController</servlet-class>
   </servlet>
   <servlet>
     <servlet-name>CartController</servlet-name>
@@ -95,24 +83,24 @@
     <servlet-class>Controllers.customer.ReviewController</servlet-class>
   </servlet>
   <servlet>
-    <servlet-name>BrandController</servlet-name>
-    <servlet-class>Controllers.admin.BrandController</servlet-class>
+    <servlet-name>ManagerBrandController</servlet-name>
+    <servlet-class>Controllers.manager.ManagerBrandController</servlet-class>
   </servlet>
   <servlet>
-    <servlet-name>CategoryController</servlet-name>
-    <servlet-class>Controllers.admin.CategoryController</servlet-class>
+    <servlet-name>ManagerCategoryController</servlet-name>
+    <servlet-class>Controllers.manager.ManagerCategoryController</servlet-class>
   </servlet>
   <servlet>
-    <servlet-name>AdminManageOrderController</servlet-name>
-    <servlet-class>Controllers.admin.AdminManageOrderController</servlet-class>
+    <servlet-name>ManagerOrderController</servlet-name>
+    <servlet-class>Controllers.manager.ManagerOrderController</servlet-class>
 </servlet>
 <servlet>
-    <servlet-name>AdminManageFeedbackController</servlet-name>
-    <servlet-class>Controllers.admin.AdminManageFeedbackController</servlet-class>
+    <servlet-name>ManagerFeedbackController</servlet-name>
+    <servlet-class>Controllers.manager.ManagerFeedbackController</servlet-class>
 </servlet>
   <servlet>
-    <servlet-name>ManageProductController</servlet-name>
-    <servlet-class>Controllers.admin.ManageProductController</servlet-class>
+    <servlet-name>ManagerProductController</servlet-name>
+    <servlet-class>Controllers.manager.ManagerProductController</servlet-class>
     <multipart-config>
       <max-file-size>10485760</max-file-size>
       <max-request-size>15728640</max-request-size>
@@ -120,24 +108,16 @@
     </multipart-config>
   </servlet>
   <servlet>
-    <servlet-name>ManageVariantController</servlet-name>
-    <servlet-class>Controllers.admin.ManageVariantController</servlet-class>
+    <servlet-name>AdminVariantController</servlet-name>
+    <servlet-class>Controllers.manager.AdminVariantController</servlet-class>
   </servlet>
   <servlet>
-    <servlet-name>ManageOrderController</servlet-name>
-    <servlet-class>Controllers.staff.ManageOrderController</servlet-class>
+    <servlet-name>ManagerVoucherController</servlet-name>
+    <servlet-class>Controllers.manager.ManagerVoucherController</servlet-class>
   </servlet>
   <servlet>
-    <servlet-name>ManageFeedbackController</servlet-name>
-    <servlet-class>Controllers.staff.ManageFeedbackController</servlet-class>
-  </servlet>
-  <servlet>
-    <servlet-name>VoucherController</servlet-name>
-    <servlet-class>Controllers.admin.VoucherController</servlet-class>
-  </servlet>
-  <servlet>
-    <servlet-name>ManageStaffController</servlet-name>
-    <servlet-class>Controllers.admin.ManageStaffController</servlet-class>
+    <servlet-name>AdminStaffController</servlet-name>
+    <servlet-class>Controllers.manager.AdminStaffController</servlet-class>
   </servlet>
   <servlet>
     <servlet-name>CustomerVoucherController</servlet-name>
@@ -156,13 +136,13 @@
     <servlet-class>Controllers.guest.HeaderMenuController</servlet-class>
   </servlet>
   <servlet>
-    <servlet-name>ImportProductController</servlet-name>
-    <servlet-class>Controllers.admin.ImportProductController</servlet-class>
+    <servlet-name>AdminImportProductController</servlet-name>
+    <servlet-class>Controllers.manager.AdminImportProductController</servlet-class>
 </servlet>
 
   <!-- Servlet Mappings -->
   <servlet-mapping>
-    <servlet-name>UserManagerController</servlet-name>
+    <servlet-name>AdminUserController</servlet-name>
     <url-pattern>/admin/manage-users</url-pattern>
   </servlet-mapping>
   <servlet-mapping>
@@ -170,23 +150,23 @@
     <url-pattern>/admin/manage-statistic</url-pattern>
   </servlet-mapping>
   <servlet-mapping>
-    <servlet-name>CategoryController</servlet-name>
+    <servlet-name>ManagerCategoryController</servlet-name>
     <url-pattern>/admin/manage-category</url-pattern>
   </servlet-mapping>
   <servlet-mapping>
-    <servlet-name>CategoryController</servlet-name>
+    <servlet-name>ManagerCategoryController</servlet-name>
     <url-pattern>/admin/add-category</url-pattern>
   </servlet-mapping>
   <servlet-mapping>
-    <servlet-name>CategoryController</servlet-name>
+    <servlet-name>ManagerCategoryController</servlet-name>
     <url-pattern>/admin/update-category</url-pattern>
   </servlet-mapping>
   <servlet-mapping>
-    <servlet-name>AdminManageOrderController</servlet-name>
+    <servlet-name>ManagerOrderController</servlet-name>
     <url-pattern>/admin/manage-orders</url-pattern>
 </servlet-mapping>
 <servlet-mapping>
-    <servlet-name>AdminManageFeedbackController</servlet-name>
+    <servlet-name>ManagerFeedbackController</servlet-name>
     <url-pattern>/admin/manage-feedback</url-pattern>
 </servlet-mapping>
   <servlet-mapping>
@@ -226,23 +206,19 @@
     <url-pattern>/contact</url-pattern>
   </servlet-mapping>
   <servlet-mapping>
-    <servlet-name>StaffController</servlet-name>
-    <url-pattern>/StaffController</url-pattern>
-  </servlet-mapping>
-  <servlet-mapping>
-    <servlet-name>StaffController</servlet-name>
+    <servlet-name>StaffDashboardController</servlet-name>
     <url-pattern>/staff/dashboard</url-pattern>
   </servlet-mapping>
   <servlet-mapping>
-    <servlet-name>StaffBrandController</servlet-name>
+    <servlet-name>ManagerBrandController</servlet-name>
     <url-pattern>/staff/manage-brand</url-pattern>
   </servlet-mapping>
   <servlet-mapping>
-    <servlet-name>StaffCategoryController</servlet-name>
+    <servlet-name>ManagerCategoryController</servlet-name>
     <url-pattern>/staff/manage-category</url-pattern>
   </servlet-mapping>
   <servlet-mapping>
-    <servlet-name>StaffProductController</servlet-name>
+    <servlet-name>ManagerProductController</servlet-name>
     <url-pattern>/staff/manage-product</url-pattern>
   </servlet-mapping>
   <servlet-mapping>
@@ -278,11 +254,11 @@
     <url-pattern>/checkout</url-pattern>
   </servlet-mapping>
   <servlet-mapping>
-    <servlet-name>BrandController</servlet-name>
+    <servlet-name>ManagerBrandController</servlet-name>
     <url-pattern>/admin/brand</url-pattern>
   </servlet-mapping>
   <servlet-mapping>
-    <servlet-name>BrandController</servlet-name>
+    <servlet-name>ManagerBrandController</servlet-name>
     <url-pattern>/admin/manage-brand</url-pattern>
   </servlet-mapping>
   <servlet-mapping>
@@ -298,35 +274,31 @@
     <url-pattern>/review</url-pattern>
   </servlet-mapping>
   <servlet-mapping>
-    <servlet-name>ManageProductController</servlet-name>
+    <servlet-name>ManagerProductController</servlet-name>
     <url-pattern>/admin/manage-product</url-pattern>
   </servlet-mapping>
   <servlet-mapping>
-    <servlet-name>ManageVariantController</servlet-name>
+    <servlet-name>AdminVariantController</servlet-name>
     <url-pattern>/admin/manage-variant</url-pattern>
   </servlet-mapping>
   <servlet-mapping>
-    <servlet-name>ManageOrderController</servlet-name>
-    <url-pattern>/ManageOrderController</url-pattern>
-  </servlet-mapping>
-  <servlet-mapping>
-    <servlet-name>ManageOrderController</servlet-name>
+    <servlet-name>ManagerOrderController</servlet-name>
     <url-pattern>/staff/manage-orders</url-pattern>
   </servlet-mapping>
   <servlet-mapping>
-    <servlet-name>ManageFeedbackController</servlet-name>
+    <servlet-name>ManagerFeedbackController</servlet-name>
     <url-pattern>/staff/manage-feedback</url-pattern>
   </servlet-mapping>
   <servlet-mapping>
-    <servlet-name>VoucherController</servlet-name>
+    <servlet-name>ManagerVoucherController</servlet-name>
     <url-pattern>/admin/manage-voucher</url-pattern>
   </servlet-mapping>
   <servlet-mapping>
-    <servlet-name>VoucherController</servlet-name>
-    <url-pattern>/admin/delete-voucher</url-pattern>
+    <servlet-name>ManagerVoucherController</servlet-name>
+    <url-pattern>/staff/manage-voucher</url-pattern>
   </servlet-mapping>
   <servlet-mapping>
-    <servlet-name>ManageStaffController</servlet-name>
+    <servlet-name>AdminStaffController</servlet-name>
     <url-pattern>/admin/manage-staff</url-pattern>
   </servlet-mapping>
   <servlet-mapping>
@@ -374,19 +346,15 @@
         <filter-name>ManagerAuthFilter</filter-name>
         <url-pattern>/AdminControllers</url-pattern>
     </filter-mapping>
-    <filter-mapping>
-        <filter-name>ManagerAuthFilter</filter-name>
-        <url-pattern>/StaffController</url-pattern>
-    </filter-mapping>
     <welcome-file-list>
         <welcome-file>home</welcome-file>
     </welcome-file-list>
     <servlet-mapping>
-        <servlet-name>ImportProductController</servlet-name>
+        <servlet-name>AdminImportProductController</servlet-name>
         <url-pattern>/ImportProductController</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
-        <servlet-name>ImportProductController</servlet-name>
+        <servlet-name>AdminImportProductController</servlet-name>
         <url-pattern>/admin/import-product</url-pattern>
     </servlet-mapping>
     <session-config>
@@ -394,3 +362,7 @@
     </session-config>
   
 </web-app>
+
+
+
+

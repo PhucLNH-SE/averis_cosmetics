@@ -1,9 +1,10 @@
-package Controllers.admin;
+package Controllers.manager;
 
 import DALs.ProductDAO;
 import Model.Brand;
 import Model.Category;
 import Model.Product;
+import Model.ProductVariant;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -13,50 +14,68 @@ import jakarta.servlet.http.Part;
 import java.io.File;
 import java.io.IOException;
 import java.net.URLEncoder;
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
-public class ManageProductController extends HttpServlet {
+public class ManagerProductController extends HttpServlet {
+
+    private static final String ADMIN_LIST_URL = "/admin/manage-product";
+    private static final String STAFF_LIST_URL = "/staff/manage-product";
+    private static final String ADMIN_PANEL = "/WEB-INF/views/admin/admin-panel.jsp";
+    private static final String STAFF_PANEL = "/WEB-INF/views/staff/staff-panel.jsp";
+    private static final String ADMIN_CONTENT = "/WEB-INF/views/admin/partials/manage-product-content.jsp";
+    private static final String STAFF_CONTENT = "/WEB-INF/views/staff/partials/manage-product-content.jsp";
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-
-        ProductDAO dao = new ProductDAO();
-        HttpSession session = request.getSession();
-
-        String action = request.getParameter("action");
-        if (action == null) {
-            action = "";
-        }
-
-        switch (action) {
-            case "edit":
-                handleEdit(request, response, dao, session);
-                return;
-            case "delete":
-                handleDelete(request, response, dao, session);
-                return;
-            case "show":
-                handleShow(request, response, dao, session);
-                return;
-            default:
-                loadProductPage(request, response, dao, session);
-        }
-    }
-
-    @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-
+        response.setContentType("text/html;charset=UTF-8");
         request.setCharacterEncoding("UTF-8");
 
         ProductDAO dao = new ProductDAO();
         HttpSession session = request.getSession();
 
         String action = request.getParameter("action");
-        if (action == null) {
-            action = "";
+        if (action == null || action.trim().isEmpty()) {
+            action = "list";
+        }
+
+        switch (action) {
+            case "detail":
+                handleDetail(request, response, dao, session);
+                break;
+            case "edit":
+                if (isStaffRoute(request)) {
+                    response.sendError(HttpServletResponse.SC_FORBIDDEN);
+                    return;
+                }
+                handleEdit(request, response, dao, session);
+                break;
+            case "list":
+            default:
+                loadProductPage(request, response, dao, session);
+                break;
+        }
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        response.setContentType("text/html;charset=UTF-8");
+        request.setCharacterEncoding("UTF-8");
+
+        if (isStaffRoute(request)) {
+            response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+            return;
+        }
+
+        ProductDAO dao = new ProductDAO();
+        HttpSession session = request.getSession();
+
+        String action = request.getParameter("action");
+        if (action == null || action.trim().isEmpty()) {
+            action = "list";
         }
 
         switch (action) {
@@ -73,19 +92,13 @@ public class ManageProductController extends HttpServlet {
                 handleShow(request, response, dao, session);
                 break;
             default:
-                response.sendRedirect(request.getContextPath() + "/admin/manage-product");
+                response.sendRedirect(buildManageProductRedirect(request));
+                break;
         }
     }
 
     private void loadProductPage(HttpServletRequest request, HttpServletResponse response,
                                  ProductDAO dao, HttpSession session)
-            throws ServletException, IOException {
-        loadProductPage(request, response, dao, session, null, null);
-    }
-
-    private void loadProductPage(HttpServletRequest request, HttpServletResponse response,
-                                 ProductDAO dao, HttpSession session,
-                                 Product selectedProduct, String formMode)
             throws ServletException, IOException {
 
         if (session.getAttribute("successMsg") != null) {
@@ -98,60 +111,88 @@ public class ManageProductController extends HttpServlet {
             session.removeAttribute("errorMsg");
         }
 
-        String keyword = trimToNull(request.getParameter("keyword"));
-        String brandId = trimToNull(request.getParameter("brandId"));
-        String categoryId = trimToNull(request.getParameter("categoryId"));
-        String status = trimToNull(request.getParameter("status"));
-
-        List<Product> listP = dao.getProductsForAdminWithImportPrice(keyword, brandId, categoryId, status);
+        List<Product> listP;
         List<Brand> listB = dao.getAllBrands();
         List<Category> listC = dao.getAllCategories();
+        int activeCount;
+        int inactiveCount;
 
-        int activeCount = 0;
-        for (Product product : listP) {
-            if (product.isStatus()) {
-                activeCount++;
-            }
+        String keyword = trimToNull(request.getParameter("keyword"));
+        request.setAttribute("searchKeyword", keyword);
+
+        if (isStaffRoute(request)) {
+            Integer brandId = parsePositiveInteger(request.getParameter("brandId"));
+            Integer categoryId = parsePositiveInteger(request.getParameter("categoryId"));
+            String status = normalizeStatus(request.getParameter("status"));
+
+            listP = dao.getProductsForStaff(keyword, brandId, categoryId, parseStatus(status));
+            activeCount = countActiveProducts(listP);
+            inactiveCount = listP.size() - activeCount;
+
+            request.setAttribute("selectedBrandId", brandId);
+            request.setAttribute("selectedCategoryId", categoryId);
+            request.setAttribute("selectedStatus", status);
+            request.setAttribute("totalProductCount", dao.countAllProducts());
+        } else {
+            String brandId = trimToNull(request.getParameter("brandId"));
+            String categoryId = trimToNull(request.getParameter("categoryId"));
+            String status = trimToNull(request.getParameter("status"));
+
+            listP = dao.getProductsForAdminWithImportPrice(keyword, brandId, categoryId, status);
+            activeCount = countActiveProducts(listP);
+            inactiveCount = listP.size() - activeCount;
+
+            request.setAttribute("selectedBrandId", brandId);
+            request.setAttribute("selectedCategoryId", categoryId);
+            request.setAttribute("selectedStatus", status);
         }
 
         request.setAttribute("listP", listP);
         request.setAttribute("listB", listB);
         request.setAttribute("listC", listC);
-        request.setAttribute("searchKeyword", keyword);
-        request.setAttribute("selectedBrandId", brandId);
-        request.setAttribute("selectedCategoryId", categoryId);
-        request.setAttribute("selectedStatus", status);
         request.setAttribute("resultCount", listP.size());
         request.setAttribute("activeCount", activeCount);
-        request.setAttribute("inactiveCount", listP.size() - activeCount);
-        request.setAttribute("selectedProduct", selectedProduct);
-        request.setAttribute("formMode", formMode);
-
+        request.setAttribute("inactiveCount", inactiveCount);
         request.setAttribute("currentView", "products");
-        request.setAttribute("contentPage", "/WEB-INF/views/admin/partials/manage-product-content.jsp");
 
-        request.getRequestDispatcher("/WEB-INF/views/admin/admin-panel.jsp").forward(request, response);
+        boolean staffRoute = isStaffRoute(request);
+        request.setAttribute("contentPage", staffRoute ? STAFF_CONTENT : ADMIN_CONTENT);
+        request.getRequestDispatcher(staffRoute ? STAFF_PANEL : ADMIN_PANEL).forward(request, response);
+    }
+
+    private void handleDetail(HttpServletRequest request, HttpServletResponse response,
+                              ProductDAO dao, HttpSession session)
+            throws ServletException, IOException {
+        int id = parseInt(request.getParameter("id"));
+        Product product = dao.getProductById(id);
+
+        if (product == null) {
+            session.setAttribute("errorMsg", "Product detail is unavailable.");
+            response.sendRedirect(buildManageProductRedirect(request));
+            return;
+        }
+
+        applyPriceRange(product);
+        request.setAttribute("selectedDetailProduct", product);
+        request.setAttribute("detailMode", true);
+        loadProductPage(request, response, dao, session);
     }
 
     private void handleEdit(HttpServletRequest request, HttpServletResponse response,
                             ProductDAO dao, HttpSession session)
             throws ServletException, IOException {
-
         int id = parseInt(request.getParameter("id"));
-        if (id <= 0) {
-            session.setAttribute("errorMsg", "Product not found.");
+        Product product = dao.getProductById(id);
+
+        if (product == null) {
+            session.setAttribute("errorMsg", "Product could not be loaded for editing.");
             response.sendRedirect(buildManageProductRedirect(request));
             return;
         }
 
-        Product selectedProduct = dao.getProductById(id);
-        if (selectedProduct == null) {
-            session.setAttribute("errorMsg", "Product not found.");
-            response.sendRedirect(buildManageProductRedirect(request));
-            return;
-        }
-
-        loadProductPage(request, response, dao, session, selectedProduct, "update");
+        request.setAttribute("selectedProduct", product);
+        request.setAttribute("formMode", "update");
+        loadProductPage(request, response, dao, session);
     }
 
     private void handleDelete(HttpServletRequest request, HttpServletResponse response,
@@ -286,12 +327,94 @@ public class ManageProductController extends HttpServlet {
         return null;
     }
 
+    private int countActiveProducts(List<Product> products) {
+        int count = 0;
+        for (Product product : products) {
+            if (product.isStatus()) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    private void applyPriceRange(Product product) {
+        List<ProductVariant> variants = product.getVariants();
+        if (variants == null || variants.isEmpty()) {
+            product.setPrice(0);
+            product.setMaxPrice(0);
+            return;
+        }
+
+        double minPrice = variants.stream()
+                .map(ProductVariant::getPrice)
+                .filter(price -> price != null)
+                .min(Comparator.naturalOrder())
+                .map(price -> price.doubleValue())
+                .orElse(0.0);
+
+        double maxPrice = variants.stream()
+                .map(ProductVariant::getPrice)
+                .filter(price -> price != null)
+                .max(Comparator.naturalOrder())
+                .map(price -> price.doubleValue())
+                .orElse(minPrice);
+
+        product.setPrice(minPrice);
+        product.setMaxPrice(maxPrice);
+    }
+
+    private Integer parsePositiveInteger(String value) {
+        String normalized = trimToNull(value);
+        if (normalized == null) {
+            return null;
+        }
+
+        try {
+            int parsed = Integer.parseInt(normalized);
+            return parsed > 0 ? parsed : null;
+        } catch (NumberFormatException ex) {
+            return null;
+        }
+    }
+
+    private String normalizeStatus(String status) {
+        String normalized = trimToNull(status);
+        if (normalized == null) {
+            return null;
+        }
+
+        if ("active".equalsIgnoreCase(normalized)) {
+            return "active";
+        }
+        if ("inactive".equalsIgnoreCase(normalized)) {
+            return "inactive";
+        }
+        return null;
+    }
+
+    private Boolean parseStatus(String status) {
+        if (status == null) {
+            return null;
+        }
+        if ("active".equalsIgnoreCase(status)) {
+            return Boolean.TRUE;
+        }
+        if ("inactive".equalsIgnoreCase(status)) {
+            return Boolean.FALSE;
+        }
+        return null;
+    }
+
     private String trimToNull(String value) {
         if (value == null) {
             return null;
         }
         String trimmed = value.trim();
         return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    private boolean isStaffRoute(HttpServletRequest request) {
+        return request.getServletPath() != null && request.getServletPath().startsWith("/staff/");
     }
 
     private String buildManageProductRedirect(HttpServletRequest request) throws IOException {
@@ -312,7 +435,7 @@ public class ManageProductController extends HttpServlet {
                 request.getParameter("status")
         );
 
-        String redirectUrl = request.getContextPath() + "/admin/manage-product";
+        String redirectUrl = request.getContextPath() + (isStaffRoute(request) ? STAFF_LIST_URL : ADMIN_LIST_URL);
         StringBuilder query = new StringBuilder();
 
         if (keyword != null) {
@@ -350,4 +473,5 @@ public class ManageProductController extends HttpServlet {
         return null;
     }
 }
+
 
