@@ -1,6 +1,7 @@
 package Utils;
 
 import java.time.LocalDate;
+import java.time.Period;
 import java.util.HashMap;
 import java.util.Map;
 import org.mindrot.jbcrypt.BCrypt;
@@ -104,6 +105,51 @@ public class ValidationUtil {
 
         return errors;
     }
+    public static Map<String, String> validateEditProfile(
+        String fullName,
+        String gender,
+        String dateOfBirthStr) {
+
+    Map<String, String> errors = new HashMap<>();
+
+    if (fullName == null || fullName.trim().isEmpty()) {
+        errors.put("errorFullName", "Full name is required.");
+    } else if (!fullName.trim().matches(FULL_NAME_REGEX)) {
+        errors.put("errorFullName", "Full name must contain only letters and spaces.");
+    }
+
+    if (gender == null || gender.trim().isEmpty()) {
+        errors.put("errorGender", "Gender is required.");
+    } else {
+        String normalizedGender = gender.trim().toUpperCase();
+        if (!"MALE".equals(normalizedGender)
+                && !"FEMALE".equals(normalizedGender)
+                && !"OTHER".equals(normalizedGender)) {
+            errors.put("errorGender", "Please select a valid gender.");
+        }
+    }
+
+    if (dateOfBirthStr == null || dateOfBirthStr.trim().isEmpty()) {
+        errors.put("errorDateOfBirth", "Date of birth is required.");
+    } else {
+        try {
+            LocalDate dob = LocalDate.parse(dateOfBirthStr.trim());
+            LocalDate today = LocalDate.now();
+
+            if (dob.isAfter(today)) {
+                errors.put("errorDateOfBirth", "Date of birth cannot be in the future.");
+            } else if (dob.isBefore(LocalDate.of(1900, 1, 1))) {
+                errors.put("errorDateOfBirth", "Date of birth cannot be earlier than 1900.");
+            } else if (Period.between(dob, today).getYears() < 13) {
+                errors.put("errorDateOfBirth", "You must be at least 13 years old.");
+            }
+        } catch (Exception e) {
+            errors.put("errorDateOfBirth", "Please enter a valid date of birth.");
+        }
+    }
+
+    return errors;
+}
     public static Map<String, String> validateResetPassword(
         String password,
         String confirmPassword

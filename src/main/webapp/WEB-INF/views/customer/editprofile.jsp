@@ -19,26 +19,52 @@
                 </div>
 
                 <div class="profile-card__body">
+                    <c:if test="${not empty error}">
+                        <div class="profile-form-error">
+                            ${error}
+                        </div>
+                    </c:if>
+
                     <form action="${pageContext.request.contextPath}/profile?action=edit" method="post">
                         <div class="form-grid">
+                            <label for="fullName">Full name:</label>
+                            <div class="form-field">
+                                <input type="text"
+                                       id="fullName"
+                                       name="fullName"
+                                       value="${customer.fullName}"
+                                       class="${not empty errorFullName ? 'error' : ''}"
+                                       required />
+                                <c:if test="${not empty errorFullName}">
+                                    <span class="field-error">${errorFullName}</span>
+                                </c:if>
+                            </div>
 
+                            <label for="gender">Gender:</label>
+                            <div class="form-field">
+                                <select id="gender"
+                                        name="gender"
+                                        class="gender-wide ${not empty errorGender ? 'error' : ''}">
+                                    <option value="" ${empty customer.gender ? "selected" : ""}>-- Select --</option>
+                                    <option value="MALE"   ${customer.gender == "MALE" ? "selected" : ""}>Male</option>
+                                    <option value="FEMALE" ${customer.gender == "FEMALE" ? "selected" : ""}>Female</option>
+                                    <option value="OTHER"  ${customer.gender == "OTHER" ? "selected" : ""}>Other</option>
+                                </select>
+                                <c:if test="${not empty errorGender}">
+                                    <span class="field-error">${errorGender}</span>
+                                </c:if>
+                            </div>
 
-                            <label>Full name:</label>
-                            <input type="text" name="fullName" value="${customer.fullName}" required />
-
-                            <label>Gender:</label>
-                            <select name="gender" class="gender-wide">
-                                <option value="" ${empty customer.gender ? "selected" : ""}>-- Select --</option>
-                                <option value="MALE"   ${customer.gender == "MALE" ? "selected" : ""}>Male</option>
-                                <option value="FEMALE" ${customer.gender == "FEMALE" ? "selected" : ""}>Female</option>
-                                <option value="OTHER"  ${customer.gender == "OTHER" ? "selected" : ""}>Other</option>
-                            </select>
-
-                            <label>Date Of Birth:</label>
-                            <input type="date" id="dateOfBirth" name="dateOfBirth"
-                                   value="${param.dateOfBirth != null ? param.dateOfBirth : customer.dateOfBirth}"
-                                   required />
-                            <div class="hint">Format: yyyy-mm-dd</div>
+                            <label for="dateOfBirth">Date Of Birth:</label>
+                            <div class="form-field">
+                                <input type="date" id="dateOfBirth" name="dateOfBirth"
+                                       value="${not empty param.dateOfBirth ? param.dateOfBirth : (not empty dateOfBirth ? dateOfBirth : customer.dateOfBirth)}"
+                                       class="${not empty errorDateOfBirth ? 'error' : ''}"
+                                       required />
+                                <c:if test="${not empty errorDateOfBirth}">
+                                    <span class="field-error">${errorDateOfBirth}</span>
+                                </c:if>
+                            </div>
                         </div>
 
                         <div class="btns">
