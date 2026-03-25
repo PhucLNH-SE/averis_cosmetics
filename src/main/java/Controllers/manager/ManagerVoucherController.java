@@ -1,4 +1,4 @@
-package Controllers.admin;
+package Controllers.manager;
 
 import DALs.VoucherDAO;
 import Model.Voucher;
@@ -13,11 +13,16 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.regex.Pattern;
 
-public class VoucherController extends HttpServlet {
+public class ManagerVoucherController extends HttpServlet {
 
     private static final Pattern VOUCHER_CODE_PATTERN = Pattern.compile("^[A-Za-z0-9_-]{3,50}$");
     private static final BigDecimal MAX_PERCENT_DISCOUNT = new BigDecimal("100");
     private static final BigDecimal MAX_FIXED_DISCOUNT = new BigDecimal("999999999.99");
+    private static final String ADMIN_LIST_URL = "/admin/manage-voucher";
+    private static final String ADMIN_PANEL = "/WEB-INF/views/admin/admin-panel.jsp";
+    private static final String STAFF_PANEL = "/WEB-INF/views/staff/staff-panel.jsp";
+    private static final String ADMIN_CONTENT = "/WEB-INF/views/admin/partials/manage-voucher-content.jsp";
+    private static final String STAFF_CONTENT = "/WEB-INF/views/staff/partials/manage-voucher-content.jsp";
     private VoucherDAO voucherDAO;
 
     @Override
@@ -28,21 +33,46 @@ public class VoucherController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        response.setContentType("text/html;charset=UTF-8");
+        request.setCharacterEncoding("UTF-8");
+
         String action = request.getParameter("action");
-        if ("edit".equalsIgnoreCase(action)) {
-            showEditVoucherForm(request, response);
-            return;
+        if (action == null || action.trim().isEmpty()) {
+            action = "list";
         }
-        showManageVoucher(request, response, null, null);
+
+        if (isStaffRoute(request)) {
+            switch (action) {
+                case "list":
+                default:
+                    showManageVoucher(request, response, null, null);
+                    break;
+            }
+        } else {
+            switch (action) {
+                case "edit":
+                    showEditVoucherForm(request, response);
+                    break;
+                case "list":
+                default:
+                    showManageVoucher(request, response, null, null);
+                    break;
+            }
+        }
     }
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        response.setContentType("text/html;charset=UTF-8");
+        if (isStaffRoute(request)) {
+            response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+            return;
+        }
         request.setCharacterEncoding("UTF-8");
         String action = request.getParameter("action");
-        if (action == null) {
-            action = "";
+        if (action == null || action.trim().isEmpty()) {
+            action = "list";
         }
 
         switch (action) {
@@ -53,7 +83,7 @@ public class VoucherController extends HttpServlet {
                 updateVoucher(request, response);
                 break;
             default:
-                response.sendRedirect(request.getContextPath() + "/admin/manage-voucher");
+                response.sendRedirect(request.getContextPath() + ADMIN_LIST_URL);
                 break;
         }
     }
@@ -66,15 +96,16 @@ public class VoucherController extends HttpServlet {
         request.setAttribute("selectedVoucher", selectedVoucher);
         request.setAttribute("formMode", formMode);
         request.setAttribute("currentView", "voucher");
-        request.setAttribute("contentPage", "/WEB-INF/views/admin/partials/manage-voucher-content.jsp");
-        request.getRequestDispatcher("/WEB-INF/views/admin/admin-panel.jsp").forward(request, response);
+        boolean staffRoute = isStaffRoute(request);
+        request.setAttribute("contentPage", staffRoute ? STAFF_CONTENT : ADMIN_CONTENT);
+        request.getRequestDispatcher(staffRoute ? STAFF_PANEL : ADMIN_PANEL).forward(request, response);
     }
 
     private void showEditVoucherForm(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String idParam = request.getParameter("id");
         if (idParam == null || idParam.trim().isEmpty()) {
-            response.sendRedirect(request.getContextPath() + "/admin/manage-voucher?error=notFound");
+            response.sendRedirect(request.getContextPath() + ADMIN_LIST_URL + "?error=notFound");
             return;
         }
 
@@ -82,12 +113,12 @@ public class VoucherController extends HttpServlet {
             int voucherId = Integer.parseInt(idParam);
             Voucher selectedVoucher = voucherDAO.getById(voucherId);
             if (selectedVoucher == null) {
-                response.sendRedirect(request.getContextPath() + "/admin/manage-voucher?error=notFound");
+                response.sendRedirect(request.getContextPath() + ADMIN_LIST_URL + "?error=notFound");
                 return;
             }
             showManageVoucher(request, response, selectedVoucher, "update");
         } catch (NumberFormatException ex) {
-            response.sendRedirect(request.getContextPath() + "/admin/manage-voucher?error=notFound");
+            response.sendRedirect(request.getContextPath() + ADMIN_LIST_URL + "?error=notFound");
         }
     }
 
@@ -98,14 +129,14 @@ public class VoucherController extends HttpServlet {
             validateVoucher(voucher);
             Voucher existed = voucherDAO.getByCode(voucher.getCode());
             if (existed != null) {
-                response.sendRedirect(request.getContextPath() + "/admin/manage-voucher?error=duplicateCode");
+                response.sendRedirect(request.getContextPath() + ADMIN_LIST_URL + "?error=duplicateCode");
                 return;
             }
 
             boolean ok = voucherDAO.insert(voucher);
-            response.sendRedirect(request.getContextPath() + "/admin/manage-voucher?success=" + (ok ? "created" : "failed"));
+            response.sendRedirect(request.getContextPath() + ADMIN_LIST_URL + "?success=" + (ok ? "created" : "failed"));
         } catch (Exception ex) {
-            response.sendRedirect(request.getContextPath() + "/admin/manage-voucher?error=invalidData");
+            response.sendRedirect(request.getContextPath() + ADMIN_LIST_URL + "?error=invalidData");
         }
     }
 
@@ -115,13 +146,13 @@ public class VoucherController extends HttpServlet {
             Voucher voucher = buildVoucherFromRequest(request, true);
             Voucher existed = voucherDAO.getByCode(voucher.getCode());
             if (existed != null && existed.getVoucherId() != voucher.getVoucherId()) {
-                response.sendRedirect(request.getContextPath() + "/admin/manage-voucher?error=duplicateCode");
+                response.sendRedirect(request.getContextPath() + ADMIN_LIST_URL + "?error=duplicateCode");
                 return;
             }
 
             Voucher old = voucherDAO.getById(voucher.getVoucherId());
             if (old == null) {
-                response.sendRedirect(request.getContextPath() + "/admin/manage-voucher?error=notFound");
+                response.sendRedirect(request.getContextPath() + ADMIN_LIST_URL + "?error=notFound");
                 return;
             }
 
@@ -129,10 +160,14 @@ public class VoucherController extends HttpServlet {
             voucher.setCreatedAt(old.getCreatedAt());
             validateVoucher(voucher);
             boolean ok = voucherDAO.update(voucher);
-            response.sendRedirect(request.getContextPath() + "/admin/manage-voucher?success=" + (ok ? "updated" : "failed"));
+            response.sendRedirect(request.getContextPath() + ADMIN_LIST_URL + "?success=" + (ok ? "updated" : "failed"));
         } catch (Exception ex) {
-            response.sendRedirect(request.getContextPath() + "/admin/manage-voucher?error=invalidData");
+            response.sendRedirect(request.getContextPath() + ADMIN_LIST_URL + "?error=invalidData");
         }
+    }
+
+    private boolean isStaffRoute(HttpServletRequest request) {
+        return request.getServletPath() != null && request.getServletPath().startsWith("/staff/");
     }
 
     private Voucher buildVoucherFromRequest(HttpServletRequest request, boolean includeId) {
@@ -268,4 +303,6 @@ public class VoucherController extends HttpServlet {
         }
     }
 }
+
+
 

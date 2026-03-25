@@ -55,6 +55,12 @@
                         <i class="bi bi-grid-fill"></i>
                         <span>View Categories</span>
                     </a>
+                    <a class="admin-sidebar__link ${currentView == 'voucher' ? 'active' : ''}"
+                       href="${pageContext.request.contextPath}/staff/manage-voucher"
+                       title="View Vouchers">
+                        <i class="bi bi-ticket-perforated-fill"></i>
+                        <span>View Vouchers</span>
+                    </a>
                     <a class="admin-sidebar__link ${currentView == 'products' ? 'active' : ''}"
                        href="${pageContext.request.contextPath}/staff/manage-product"
                        title="View Products">
@@ -78,11 +84,7 @@
         </div>
 
         <jsp:include page="/WEB-INF/views/common/popup.jsp" />
-
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-        <c:if test="${currentView == 'products'}">
-            <script src="${pageContext.request.contextPath}/assets/js/staff-product.js"></script>
-        </c:if>
     </body>
 </html>
 

@@ -9,23 +9,14 @@
             <p class="text-muted mb-0">List of customer orders</p>
         </div>
         <form method="get" action="${pageContext.request.contextPath}/staff/manage-orders" class="mb-3 d-flex align-items-center gap-2">
-
-    <label><strong>Filter by Status:</strong></label>
-
-    <select name="status" class="form-select staff-order-filter-select">
-        <option value="">All</option>
-        <option value="CREATED" ${selectedStatus == 'CREATED' ? 'selected' : ''}>CREATED</option>
-        <option value="PROCESSING" ${selectedStatus == 'PROCESSING' ? 'selected' : ''}>PROCESSING</option>
-        <option value="SHIPPING" ${selectedStatus == 'SHIPPING' ? 'selected' : ''}>SHIPPING</option>
-        <option value="COMPLETED" ${selectedStatus == 'COMPLETED' ? 'selected' : ''}>COMPLETED</option>
-        <option value="CANCELLED" ${selectedStatus == 'CANCELLED' ? 'selected' : ''}>CANCELLED</option>
-    </select>
-
-    <button type="submit" class="btn btn-primary">
-        <i class="bi bi-funnel"></i> Filter
-    </button>
-
-</form>
+            <input type="text" name="keyword" class="form-control staff-order-filter-select"
+                   value="<c:out value='${searchKeyword}'/>"
+                   placeholder="Search by order ID, receiver, voucher, payment, status...">
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-search"></i> Search
+            </button>
+            <a href="${pageContext.request.contextPath}/staff/manage-orders" class="btn btn-outline-secondary">Reset</a>
+        </form>
     </div>
 
     <c:if test="${param.success == 'update'}">
@@ -46,6 +37,7 @@
     </c:if>
     <form action="${pageContext.request.contextPath}/staff/manage-orders" method="post">
         <input type="hidden" name="action" value="update">
+        <input type="hidden" name="returnKeyword" value="<c:out value='${searchKeyword}'/>">
         <div class="d-flex justify-content-end mb-3">
             <button type="submit" class="btn btn-add text-white">
                 <i class="bi bi-check2-circle"></i> Update Orders
@@ -73,6 +65,13 @@
                             <c:forEach var="o" items="${orderList}">
                                 <c:set var="canEdit"
                                        value="${not empty currentManagerId && (o.handledBy == null || o.handledBy == currentManagerId)}" />
+                                <c:url var="staffOrderDetailUrl" value="/staff/manage-orders">
+                                    <c:param name="action" value="detail" />
+                                    <c:param name="orderId" value="${o.orderId}" />
+                                    <c:if test="${not empty searchKeyword}">
+                                        <c:param name="keyword" value="${searchKeyword}" />
+                                    </c:if>
+                                </c:url>
                                 <tr>
                                     <td class="px-4">#${o.orderId}</td>
                                     <td><strong>${o.receiverName}</strong></td>
@@ -149,7 +148,7 @@
                                         </c:choose>
                                     </td>
                                     <td>
-                                    <a href="${pageContext.request.contextPath}/staff/manage-orders?action=detail&orderId=${o.orderId}"
+                                    <a href="${staffOrderDetailUrl}"
    class="btn btn-sm btn-primary">
    View Detail
 </a>

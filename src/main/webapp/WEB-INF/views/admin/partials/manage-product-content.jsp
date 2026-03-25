@@ -121,6 +121,22 @@
                 </thead>
                 <tbody>
                     <c:forEach items="${listP}" var="p">
+                        <c:url var="adminProductDetailUrl" value="/admin/manage-product">
+                            <c:param name="action" value="detail" />
+                            <c:param name="id" value="${p.productId}" />
+                            <c:param name="keyword" value="${searchKeyword}" />
+                            <c:param name="brandId" value="${selectedBrandId}" />
+                            <c:param name="categoryId" value="${selectedCategoryId}" />
+                            <c:param name="status" value="${selectedStatus}" />
+                        </c:url>
+                        <c:url var="adminProductEditUrl" value="/admin/manage-product">
+                            <c:param name="action" value="edit" />
+                            <c:param name="id" value="${p.productId}" />
+                            <c:param name="keyword" value="${searchKeyword}" />
+                            <c:param name="brandId" value="${selectedBrandId}" />
+                            <c:param name="categoryId" value="${selectedCategoryId}" />
+                            <c:param name="status" value="${selectedStatus}" />
+                        </c:url>
                         <tr>
                             <td class="fw-bold">${p.productId}</td>
                             <td>
@@ -195,8 +211,13 @@
                                     </button>
 
                                     <a class="btn btn-primary btn-sm px-3"
-                                       href="${pageContext.request.contextPath}/admin/manage-product?action=edit&id=${p.productId}&keyword=${searchKeyword}&brandId=${selectedBrandId}&categoryId=${selectedCategoryId}&status=${selectedStatus}">
-                                        <i class="fas fa-edit me-1"></i> Detail
+                                            href="${adminProductDetailUrl}">
+                                        <i class="fas fa-eye me-1"></i> Detail
+                                    </a>
+
+                                    <a class="btn btn-primary btn-sm px-3"
+                                            href="${adminProductEditUrl}">
+                                        <i class="fas fa-edit me-1"></i> Update
                                     </a>
 
                                     <c:choose>
@@ -347,6 +368,30 @@
     </div>
 </div>
 
+<div class="modal fade" id="productDetailModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content staff-product-detail-modal">
+            <div class="modal-header staff-product-detail-modal__header">
+                <h5 class="modal-title fw-bold">
+                    <c:out value="${not empty selectedDetailProduct ? selectedDetailProduct.name : 'Product Detail'}" />
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body staff-product-detail-modal__body" id="productDetailModalBody">
+                <c:choose>
+                    <c:when test="${not empty selectedDetailProduct}">
+                        <c:set var="detailProduct" value="${selectedDetailProduct}" scope="request" />
+                        <jsp:include page="/WEB-INF/views/common/product-detail-content.jsp" />
+                    </c:when>
+                    <c:otherwise>
+                        <p class="text-muted mb-0">Select a product to view more information.</p>
+                    </c:otherwise>
+                </c:choose>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="modal fade" id="addModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -425,7 +470,7 @@
         <div class="modal-content">
             <form action="${pageContext.request.contextPath}/admin/manage-product" method="post" enctype="multipart/form-data">
                 <input type="hidden" name="action" value="update">
-                <input type="hidden" name="productId" id="editId" value="${selectedProduct.productId}">
+                <input type="hidden" name="productId" id="editId">
                 <input type="hidden" name="returnKeyword" value="<c:out value='${searchKeyword}'/>">
                 <input type="hidden" name="returnBrandId" value="<c:out value='${selectedBrandId}'/>">
                 <input type="hidden" name="returnCategoryId" value="<c:out value='${selectedCategoryId}'/>">
@@ -448,7 +493,7 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Description</label>
-                        <textarea name="description" id="editDesc" class="form-control" rows="3"><c:out value="${selectedProduct.description}"/></textarea>
+                        <textarea name="description" id="editDesc" class="form-control" rows="3"><c:out value="${selectedProduct.description}" /></textarea>
                     </div>
                     <div class="row">
                         <div class="col-md-6 mb-3">
@@ -469,8 +514,7 @@
                         </div>
                     </div>
                     <div class="form-check form-switch mt-2">
-                        <input class="form-check-input" type="checkbox" name="status" value="true" id="editStatus"
-                               ${not empty selectedProduct and selectedProduct.status ? 'checked' : ''}>
+                        <input class="form-check-input" type="checkbox" name="status" value="true" id="editStatus" ${not empty selectedProduct and selectedProduct.status ? 'checked' : ''}>
                         <label class="form-check-label fw-bold" for="editStatus">Active</label>
                     </div>
                 </div>
@@ -622,12 +666,23 @@
         initPriceInputs();
     });
 
-    <c:if test="${formMode == 'update' and not empty selectedProduct}">
+</script>
+
+<c:if test="${detailMode and not empty selectedDetailProduct}">
+<script>
+    window.addEventListener('load', function () {
+        bootstrap.Modal.getOrCreateInstance(document.getElementById('productDetailModal')).show();
+    });
+</script>
+</c:if>
+
+<c:if test="${formMode == 'update' and not empty selectedProduct}">
+<script>
     window.addEventListener('load', function () {
         bootstrap.Modal.getOrCreateInstance(document.getElementById('editModal')).show();
     });
-    </c:if>
 </script>
+</c:if>
 
 
 

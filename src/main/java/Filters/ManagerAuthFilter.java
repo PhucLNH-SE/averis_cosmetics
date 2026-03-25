@@ -33,12 +33,7 @@ public class ManagerAuthFilter implements Filter {
                 ? "GUEST"
                 : manager.getManagerRole().toUpperCase();
 
-        if ("STAFF".equals(requiredRole)) {
-            if (!"STAFF".equals(role) && !"ADMIN".equals(role)) {
-                resp.sendRedirect(req.getContextPath() + "/manager-auth");
-                return;
-            }
-        } else if (!requiredRole.equals(role)) {
+        if (!requiredRole.equals(role)) {
             resp.sendRedirect(req.getContextPath() + "/manager-auth");
             return;
         }
@@ -50,9 +45,10 @@ public class ManagerAuthFilter implements Filter {
         if (path.startsWith("/admin/") || "/AdminControllers".equals(path)) {
             return "ADMIN";
         }
-        if (path.startsWith("/staff/") || "/StaffController".equals(path)) {
+        if (path.startsWith("/staff/")) {
             return "STAFF";
         }
         return null;
     }
 }
+

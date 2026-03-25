@@ -1,4 +1,4 @@
-package Controllers.admin;
+package Controllers.manager;
 
 import DALs.FeedbackDAO;
 import DALs.ManagerDAO;
@@ -15,7 +15,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import org.mindrot.jbcrypt.BCrypt;
 
-public class ManageStaffController extends HttpServlet {
+public class AdminStaffController extends HttpServlet {
 
     private boolean isUnauthorizedAdmin(Manager admin) {
         return admin == null || !"ADMIN".equals(admin.getManagerRole());
@@ -244,3 +244,5 @@ public class ManageStaffController extends HttpServlet {
         response.sendRedirect(request.getContextPath() + "/admin/manage-staff");
     }
 }
+
+
