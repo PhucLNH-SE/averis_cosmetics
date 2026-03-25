@@ -80,15 +80,6 @@ public class MomoReturnController extends HttpServlet {
                 if (!"FAILED".equalsIgnoreCase(order.getPaymentStatus())) {
                     orderDAO.updatePaymentFailed(orderId);
                 }
-                HttpSession session = request.getSession(false);
-                if (session != null) {
-                    session.removeAttribute("cart");
-
-                    Customer customer = (Customer) session.getAttribute("customer");
-                    if (customer != null) {
-                        cartDetailDAO.deleteAll(customer.getCustomerId());
-                    }
-                }
                 response.sendRedirect(request.getContextPath()
                         + "/checkout?error=Payment failed");
                 return;

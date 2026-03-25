@@ -540,17 +540,44 @@ public class OrderDAO extends DBContext {
     }
 
     public boolean updatePaymentFailed(int orderId) {
+        Connection conn = null;
+        try {
+            conn = this.connection;
+            if (conn == null) {
+                return false;
+            }
 
-        String sql = "UPDATE Orders SET payment_status = 'FAILED' WHERE order_id = ?";
+            conn.setAutoCommit(false);
 
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            String sql = "UPDATE Orders SET payment_status = 'FAILED' WHERE order_id = ?";
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setInt(1, orderId);
+                if (ps.executeUpdate() == 0) {
+                    conn.rollback();
+                    return false;
+                }
+            }
 
-            ps.setInt(1, orderId);
+            reactivateVoucherForFailedPayment(conn, orderId);
 
-            return ps.executeUpdate() > 0;
+            conn.commit();
+            return true;
 
         } catch (Exception e) {
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                } catch (SQLException ignored) {
+                }
+            }
             e.printStackTrace();
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.setAutoCommit(true);
+                } catch (SQLException ignored) {
+                }
+            }
         }
 
         return false;
@@ -862,6 +889,20 @@ public class OrderDAO extends DBContext {
         }
 
         return null;
+    }
+
+    private void reactivateVoucherForFailedPayment(Connection conn, int orderId) throws SQLException {
+        String sql = "UPDATE cv "
+                + "SET cv.status = 'ACTIVE', cv.used_at = NULL "
+                + "FROM Customer_Voucher cv "
+                + "JOIN Orders o ON o.customer_id = cv.customer_id AND o.voucher_id = cv.voucher_id "
+                + "WHERE o.order_id = ? "
+                + "AND cv.status = 'USED'";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, orderId);
+            ps.executeUpdate();
+        }
     }
 
     public boolean updateReview(int orderDetailId, int rating, String comment) {

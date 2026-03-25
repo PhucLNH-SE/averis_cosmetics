@@ -1,19 +1,32 @@
 package Controllers.customer;
 
-import DALs.*;
-import Model.*;
-import jakarta.servlet.*;
-import jakarta.servlet.http.*;
-
+import DALs.AddressDAO;
+import DALs.CartDetailDAO;
+import DALs.OrderDAO;
+import DALs.ProductDAO;
+import DALs.VoucherDAO;
+import Model.Address;
+import Model.CartItem;
+import Model.Customer;
+import Model.CustomerVoucher;
+import Model.ProductVariant;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.net.URLEncoder;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @SuppressWarnings("unchecked")
-public class CheckoutController extends HttpServlet {
+public class PaymentController extends HttpServlet {
 
     private AddressDAO addressDAO;
     private ProductDAO productDAO;
@@ -37,13 +50,58 @@ public class CheckoutController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
-
         Customer customer = getLoggedInCustomer(req, resp);
         if (customer == null) {
             return;
         }
 
-        Map<Integer, CartItem> cart = getCart(req);
+        loadCheckoutPage(req, resp, customer);
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
+        Customer customer = getLoggedInCustomer(req, resp);
+        if (customer == null) {
+            return;
+        }
+
+        Map<Integer, CartItem> cart = getSessionCart(req);
+        if (cart == null || cart.isEmpty()) {
+            resp.sendRedirect(req.getContextPath() + "/cart");
+            return;
+        }
+
+        String action = req.getParameter("action");
+        if (action == null || action.trim().isEmpty()) {
+            action = "placeOrder";
+        }
+
+        String voucherCode = req.getParameter("voucherCode");
+        if (voucherCode == null) {
+            voucherCode = "";
+        }
+        voucherCode = voucherCode.trim();
+
+        Map<Integer, CartItem> detailedCart = buildCartWithDetails(cart);
+        BigDecimal subtotal = calculateSubtotal(detailedCart);
+        List<Address> addresses = addressDAO.getAddressesByCustomerId(customer.getCustomerId());
+        List<CustomerVoucher> vouchers = getCheckoutVouchers(customer.getCustomerId());
+
+        String paymentMethod = req.getParameter("paymentMethod");
+
+        switch (action) {
+            case "applyVoucher":
+                applyVoucher(req, resp, customer, addresses, detailedCart, subtotal, voucherCode, paymentMethod, vouchers);
+                break;
+            default:
+                placeOrder(req, resp, customer, addresses, detailedCart, subtotal, voucherCode);
+        }
+    }
+
+    private void loadCheckoutPage(HttpServletRequest req, HttpServletResponse resp, Customer customer)
+            throws ServletException, IOException {
+        Map<Integer, CartItem> cart = getSessionCart(req);
         boolean isSuccess = "true".equals(req.getParameter("success"));
 
         if ((cart == null || cart.isEmpty()) && !isSuccess) {
@@ -70,48 +128,6 @@ public class CheckoutController extends HttpServlet {
         req.getRequestDispatcher("/WEB-INF/views/customer/checkout.jsp").forward(req, resp);
     }
 
-    @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp)
-            throws ServletException, IOException {
-
-        Customer customer = getLoggedInCustomer(req, resp);
-        if (customer == null) {
-            return;
-        }
-
-        Map<Integer, CartItem> cart = getCart(req);
-        if (cart == null || cart.isEmpty()) {
-            resp.sendRedirect(req.getContextPath() + "/cart");
-            return;
-        }
-
-        String action = req.getParameter("action");
-        if (action == null || action.trim().isEmpty()) {
-            action = "placeOrder";
-        }
-
-        String voucherCode = req.getParameter("voucherCode");
-        if (voucherCode == null) {
-            voucherCode = "";
-        }
-        voucherCode = voucherCode.trim();
-
-        Map<Integer, CartItem> detailedCart = buildCartWithDetails(cart);
-        BigDecimal subtotal = calculateSubtotal(detailedCart);
-        List<Address> addresses = addressDAO.getAddressesByCustomerId(customer.getCustomerId());
-        List<CustomerVoucher> vouchers = getCheckoutVouchers(customer.getCustomerId());
-
-        String paymentMethod = req.getParameter("paymentMethod");
-
-        switch (action) {
-            case "applyVoucher":
-                handleApplyVoucher(req, resp, customer, addresses, detailedCart, subtotal, voucherCode, paymentMethod, vouchers);
-                break;
-            default:
-                handlePlaceOrder(req, resp, customer, addresses, detailedCart, subtotal, voucherCode);
-        }
-    }
-
     private Customer getLoggedInCustomer(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         HttpSession session = req.getSession();
         Customer customer = (Customer) session.getAttribute("customer");
@@ -122,11 +138,11 @@ public class CheckoutController extends HttpServlet {
         return customer;
     }
 
-    private Map<Integer, CartItem> getCart(HttpServletRequest req) {
+    private Map<Integer, CartItem> getSessionCart(HttpServletRequest req) {
         return (Map<Integer, CartItem>) req.getSession().getAttribute("cart");
     }
 
-    private void handleApplyVoucher(HttpServletRequest req, HttpServletResponse resp,
+    private void applyVoucher(HttpServletRequest req, HttpServletResponse resp,
             Customer customer, List<Address> addresses,
             Map<Integer, CartItem> cart, BigDecimal subtotal,
             String voucherCode, String paymentMethod, List<CustomerVoucher> vouchers)
@@ -163,102 +179,158 @@ public class CheckoutController extends HttpServlet {
         req.getRequestDispatcher("/WEB-INF/views/customer/checkout.jsp").forward(req, resp);
     }
 
-    private void handlePlaceOrder(HttpServletRequest req, HttpServletResponse resp,
+    private void placeOrder(HttpServletRequest req, HttpServletResponse resp,
             Customer customer, List<Address> addresses,
             Map<Integer, CartItem> cart, BigDecimal subtotal,
             String voucherCode) throws IOException {
 
-        String addressIdStr = req.getParameter("addressId");
-        String paymentMethod = req.getParameter("paymentMethod");
-
-        if (paymentMethod == null) {
-            paymentMethod = "";
-        }
-        paymentMethod = paymentMethod.trim().toUpperCase();
-
-        if (addressIdStr == null || addressIdStr.isEmpty()) {
-            redirectError(resp, req, "Please select a delivery address!");
+        CheckoutRequest checkoutRequest = parseCheckoutRequest(req);
+        String inputError = validateCheckoutInput(checkoutRequest, addresses);
+        if (inputError != null) {
+            redirectError(resp, req, inputError);
             return;
         }
 
-        if (paymentMethod.isEmpty()) {
-            redirectError(resp, req, "Please select a payment method!");
+        VoucherSelection voucherSelection = resolveVoucherSelection(customer.getCustomerId(), voucherCode, subtotal);
+        if (voucherSelection.errorMessage != null) {
+            redirectError(resp, req, voucherSelection.errorMessage);
             return;
         }
 
-        int addressId;
-        try {
-            addressId = Integer.parseInt(addressIdStr);
-        } catch (Exception e) {
-            redirectError(resp, req, "Invalid address!");
+        String stockValidationMessage = validateCartStock(cart);
+        if (stockValidationMessage != null) {
+            redirectError(resp, req, stockValidationMessage);
             return;
         }
 
-        boolean validAddress = addresses.stream().anyMatch(a -> a.getAddressId() == addressId);
-        if (!validAddress) {
-            redirectError(resp, req, "Invalid address!");
-            return;
-        }
-
-        CustomerVoucher voucher = null;
-        BigDecimal discount = BigDecimal.ZERO;
-        Integer voucherId = null;
-        Integer customerVoucherId = null;
-
-        if (!voucherCode.isEmpty()) {
-            VoucherResolution resolution = resolveVoucherForCheckout(customer.getCustomerId(), voucherCode, false);
-            if (!resolution.isSuccess()) {
-                redirectError(resp, req, "Invalid voucher!");
-                return;
-            }
-            voucher = resolution.getVoucher();
-            voucherId = voucher.getVoucherId();
-            customerVoucherId = voucher.getCustomerVoucherId();
-            discount = calculateDiscount(subtotal, voucher);
-        }
-
-        BigDecimal finalTotal = subtotal.subtract(discount);
-        if (finalTotal.compareTo(BigDecimal.ZERO) < 0) {
-            finalTotal = BigDecimal.ZERO;
-        }
-        for (CartItem item : cart.values()) {
-            ProductVariant variant = productDAO.getVariantById(item.getVariant().getVariantId());
-
-            if (variant == null) {
-                redirectError(resp, req, "Product not found");
-                return;
-            }
-
-            if (variant.getStock() < item.getQuantity()) {
-                redirectError(resp, req, "Product is out of stock: " + variant.getVariantName());
-                return;
-            }
-        }
-
-        int orderId = orderDAO.placeOrder(customer.getCustomerId(), addressId, paymentMethod,
-                finalTotal, new ArrayList<CartItem>(cart.values()), voucherId, customerVoucherId, discount);
+        int orderId = createOrder(customer.getCustomerId(), checkoutRequest, cart, voucherSelection);
 
         if (orderId <= 0) {
             redirectError(resp, req, "Order failed! Please try again later.");
             return;
         }
 
-        HttpSession session = req.getSession();
-
-        switch (paymentMethod) {
-            case "COD":
-                session.removeAttribute("cart");
-                cartDetailDAO.deleteAll(customer.getCustomerId());
-                resp.sendRedirect(req.getContextPath() + "/checkout?success=true&orderId=" + orderId);
-                break;
-
-            case "MOMO":
-                resp.sendRedirect(req.getContextPath() + "/momo-payment?orderId=" + orderId);
-                break;
-
-            default:
-                redirectError(resp, req, "Invalid payment method!");
+        if ("COD".equals(checkoutRequest.paymentMethod)) {
+            processCodPayment(req, resp, customer, orderId);
+            return;
         }
+
+        processMomoPayment(req, resp, orderId);
+    }
+
+    private CheckoutRequest parseCheckoutRequest(HttpServletRequest req) {
+        CheckoutRequest checkoutRequest = new CheckoutRequest();
+        checkoutRequest.addressIdRaw = req.getParameter("addressId");
+
+        String paymentMethod = req.getParameter("paymentMethod");
+        if (paymentMethod == null) {
+            paymentMethod = "";
+        }
+        checkoutRequest.paymentMethod = paymentMethod.trim().toUpperCase();
+
+        try {
+            checkoutRequest.addressId = Integer.parseInt(checkoutRequest.addressIdRaw);
+        } catch (Exception e) {
+            checkoutRequest.addressId = null;
+        }
+
+        return checkoutRequest;
+    }
+
+    private String validateCheckoutInput(CheckoutRequest checkoutRequest, List<Address> addresses) {
+        if (checkoutRequest.addressIdRaw == null || checkoutRequest.addressIdRaw.isEmpty()) {
+            return "Please select a delivery address!";
+        }
+
+        if (checkoutRequest.paymentMethod.isEmpty()) {
+            return "Please select a payment method!";
+        }
+
+        if (checkoutRequest.addressId == null) {
+            return "Invalid address!";
+        }
+
+        boolean validAddress = addresses.stream().anyMatch(a -> a.getAddressId() == checkoutRequest.addressId);
+        if (!validAddress) {
+            return "Invalid address!";
+        }
+
+        if (!"COD".equals(checkoutRequest.paymentMethod) && !"MOMO".equals(checkoutRequest.paymentMethod)) {
+            return "Invalid payment method!";
+        }
+
+        return null;
+    }
+
+    private VoucherSelection resolveVoucherSelection(int customerId, String voucherCode, BigDecimal subtotal) {
+        VoucherSelection selection = new VoucherSelection();
+        selection.discount = BigDecimal.ZERO;
+
+        if (voucherCode == null || voucherCode.isEmpty()) {
+            return selection;
+        }
+
+        VoucherResolution resolution = resolveVoucherForCheckout(customerId, voucherCode, false);
+        if (!resolution.isSuccess()) {
+            selection.errorMessage = "Invalid voucher!";
+            return selection;
+        }
+
+        selection.voucher = resolution.getVoucher();
+        selection.voucherId = selection.voucher.getVoucherId();
+        selection.customerVoucherId = selection.voucher.getCustomerVoucherId();
+        selection.discount = calculateDiscount(subtotal, selection.voucher);
+        return selection;
+    }
+
+    private String validateCartStock(Map<Integer, CartItem> cart) {
+        for (CartItem item : cart.values()) {
+            ProductVariant variant = productDAO.getVariantById(item.getVariant().getVariantId());
+
+            if (variant == null) {
+                return "Product not found";
+            }
+
+            if (variant.getStock() < item.getQuantity()) {
+                return "Product is out of stock: " + variant.getVariantName();
+            }
+        }
+
+        return null;
+    }
+
+    private int createOrder(int customerId, CheckoutRequest checkoutRequest,
+            Map<Integer, CartItem> cart, VoucherSelection voucherSelection) {
+        BigDecimal finalTotal = calculateFinalTotal(calculateSubtotal(cart), voucherSelection.discount);
+
+        return orderDAO.placeOrder(
+                customerId,
+                checkoutRequest.addressId,
+                checkoutRequest.paymentMethod,
+                finalTotal,
+                new ArrayList<CartItem>(cart.values()),
+                voucherSelection.voucherId,
+                voucherSelection.customerVoucherId,
+                voucherSelection.discount
+        );
+    }
+
+    private BigDecimal calculateFinalTotal(BigDecimal subtotal, BigDecimal discount) {
+        BigDecimal finalTotal = subtotal.subtract(discount == null ? BigDecimal.ZERO : discount);
+        return finalTotal.compareTo(BigDecimal.ZERO) < 0 ? BigDecimal.ZERO : finalTotal;
+    }
+
+    private void processCodPayment(HttpServletRequest req, HttpServletResponse resp,
+            Customer customer, int orderId) throws IOException {
+        HttpSession session = req.getSession();
+        session.removeAttribute("cart");
+        cartDetailDAO.deleteAll(customer.getCustomerId());
+        resp.sendRedirect(req.getContextPath() + "/checkout?success=true&orderId=" + orderId);
+    }
+
+    private void processMomoPayment(HttpServletRequest req, HttpServletResponse resp, int orderId)
+            throws IOException {
+        resp.sendRedirect(req.getContextPath() + "/momo-payment?orderId=" + orderId);
     }
 
     private void forwardWithError(HttpServletRequest req, HttpServletResponse resp, String error,
@@ -460,6 +532,20 @@ public class CheckoutController extends HttpServlet {
         boolean isClaimedDuringCheckout() {
             return claimedDuringCheckout;
         }
+    }
+
+    private static final class CheckoutRequest {
+        private String addressIdRaw;
+        private Integer addressId;
+        private String paymentMethod;
+    }
+
+    private static final class VoucherSelection {
+        private CustomerVoucher voucher;
+        private Integer voucherId;
+        private Integer customerVoucherId;
+        private BigDecimal discount;
+        private String errorMessage;
     }
 }
 
