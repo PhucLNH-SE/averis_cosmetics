@@ -275,6 +275,7 @@ public class CustomerDAO extends DBContext {
         return null;
     }
 
+    //NganNK - Lay tat ca customers tu DB de vao list roi return ve controller
     public List<Customer> getAllCustomers() {
         List<Customer> customers = new ArrayList<>();
         String sql = "SELECT * FROM Customers ORDER BY customer_id ASC";
