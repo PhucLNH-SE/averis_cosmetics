@@ -25,7 +25,7 @@ public class AdminStaffController extends HttpServlet {
             HttpSession session, ManagerDAO dao, Manager selectedStaff, String formMode, String inlineError)
             throws ServletException, IOException {
 
-        List<Manager> listStaff = dao.getAllManagers();
+        List<Manager> listStaff = dao.getAllStaff();
         request.setAttribute("listStaff", listStaff);
 
         if (session.getAttribute("successMsg") != null) {

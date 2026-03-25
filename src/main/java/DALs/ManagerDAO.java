@@ -67,7 +67,7 @@ public class ManagerDAO extends DBContext {
     // ========================================================
 
     // 1. Lấy danh sách tất cả nhân sự
-    public List<Manager> getAllManagers() {
+    public List<Manager> getAllStaff() {
         List<Manager> list = new ArrayList<>();
         String sql = "SELECT manager_id, full_name, email, password, manager_role, status "
                 + "FROM Manager "

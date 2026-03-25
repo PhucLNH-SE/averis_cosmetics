@@ -37,57 +37,54 @@
                     </thead>
                     <tbody>
                         <c:forEach items="${listStaff}" var="s">
-                            <%-- Only show STAFF, hide ADMIN --%>
-                            <c:if test="${s.managerRole == 'STAFF'}">
-                                <tr>
-                                    <td>
-                                        <div class="d-flex align-items-center">
-                                            <div class="staff-avatar-placeholder me-3">
-                                                ${fn:substring(s.fullName, 0, 1)}
-                                            </div>
-                                            <span class="fw-bold text-dark">${s.fullName}</span>
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="staff-avatar-placeholder me-3">
+                                            ${fn:substring(s.fullName, 0, 1)}
                                         </div>
-                                    </td>
-                                    <td>${s.email}</td>
-                                    <td>
-                                        <span class="role-badge-staff">
-                                            ${s.managerRole}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <span class="${s.status ? 'status-active' : 'status-inactive'}">
-                                            <i class="fas ${s.status ? 'fa-check-circle' : 'fa-ban'} me-1"></i>
-                                            ${s.status ? 'Active' : 'Banned'}
-                                        </span>
-                                    </td>
-                                    <td class="text-center">
-                                        <a class="btn btn-info btn-sm text-white px-3 me-1"
-                                           href="${pageContext.request.contextPath}/admin/manage-staff?action=detail&managerId=${s.managerId}">
-                                            <i class="fas fa-eye"></i> View
-                                        </a>
+                                        <span class="fw-bold text-dark">${s.fullName}</span>
+                                    </div>
+                                </td>
+                                <td>${s.email}</td>
+                                <td>
+                                    <span class="role-badge-staff">
+                                        ${s.managerRole}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="${s.status ? 'status-active' : 'status-inactive'}">
+                                        <i class="fas ${s.status ? 'fa-check-circle' : 'fa-ban'} me-1"></i>
+                                        ${s.status ? 'Active' : 'Banned'}
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <a class="btn btn-info btn-sm text-white px-3 me-1"
+                                       href="${pageContext.request.contextPath}/admin/manage-staff?action=detail&managerId=${s.managerId}">
+                                        <i class="fas fa-eye"></i> View
+                                    </a>
 
-                                        <a class="btn btn-primary btn-sm px-3 me-1"
-                                           href="${pageContext.request.contextPath}/admin/manage-staff?action=edit&managerId=${s.managerId}">
-                                            <i class="fas fa-edit"></i> Edit
-                                        </a>
+                                    <a class="btn btn-primary btn-sm px-3 me-1"
+                                       href="${pageContext.request.contextPath}/admin/manage-staff?action=edit&managerId=${s.managerId}">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </a>
 
-                                        <c:choose>
-                                            <c:when test="${s.status}">
-                                                <button class="btn btn-danger btn-sm px-3" title="Ban Account"
-                                                        onclick="openDeleteModal('${s.managerId}', '${fn:escapeXml(s.fullName)}')">
-                                                    <i class="fas fa-ban"></i> Ban
-                                                </button>
-                                            </c:when>
-                                            <c:otherwise>
-                                                <button class="btn btn-success btn-sm px-3" title="Unlock Account"
-                                                        onclick="openUnbanModal('${s.managerId}', '${fn:escapeXml(s.fullName)}')">
-                                                    <i class="fas fa-unlock"></i> Unlock
-                                                </button>
-                                            </c:otherwise>
-                                        </c:choose>
-                                    </td>
-                                </tr>
-                            </c:if>
+                                    <c:choose>
+                                        <c:when test="${s.status}">
+                                            <button class="btn btn-danger btn-sm px-3" title="Ban Account"
+                                                    onclick="openDeleteModal('${s.managerId}', '${fn:escapeXml(s.fullName)}')">
+                                                <i class="fas fa-ban"></i> Ban
+                                            </button>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <button class="btn btn-success btn-sm px-3" title="Unlock Account"
+                                                    onclick="openUnbanModal('${s.managerId}', '${fn:escapeXml(s.fullName)}')">
+                                                <i class="fas fa-unlock"></i> Unlock
+                                            </button>
+                                        </c:otherwise>
+                                    </c:choose>
+                                </td>
+                            </tr>
                         </c:forEach>
                     </tbody>
                 </table>
