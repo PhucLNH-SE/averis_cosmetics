@@ -15,6 +15,10 @@
     <servlet-class>Controllers.manager.AdminStatisticController</servlet-class>
   </servlet>
   <servlet>
+    <servlet-name>AdminStatisticReportController</servlet-name>
+    <servlet-class>Controllers.manager.AdminStatisticReportController</servlet-class>
+  </servlet>
+  <servlet>
     <servlet-name>ProfileController</servlet-name>
     <servlet-class>Controllers.customer.ProfileController</servlet-class>
   </servlet>
@@ -67,8 +71,8 @@
     <servlet-class>Controllers.customer.AddressApiController</servlet-class>
   </servlet>
   <servlet>
-    <servlet-name>CheckoutController</servlet-name>
-    <servlet-class>Controllers.customer.CheckoutController</servlet-class>
+    <servlet-name>PaymentController</servlet-name>
+    <servlet-class>Controllers.customer.PaymentController</servlet-class>
   </servlet>
   <servlet>
     <servlet-name>ForgetPasswordController</servlet-name>
@@ -144,6 +148,10 @@
   <servlet-mapping>
     <servlet-name>AdminUserController</servlet-name>
     <url-pattern>/admin/manage-users</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>AdminStatisticReportController</servlet-name>
+    <url-pattern>/admin/manage-statistic-report</url-pattern>
   </servlet-mapping>
   <servlet-mapping>
     <servlet-name>AdminStatisticController</servlet-name>
@@ -250,7 +258,7 @@
     <url-pattern>/address-api</url-pattern>
   </servlet-mapping>
   <servlet-mapping>
-    <servlet-name>CheckoutController</servlet-name>
+    <servlet-name>PaymentController</servlet-name>
     <url-pattern>/checkout</url-pattern>
   </servlet-mapping>
   <servlet-mapping>
@@ -362,6 +370,7 @@
     </session-config>
   
 </web-app>
+
 
 
 
