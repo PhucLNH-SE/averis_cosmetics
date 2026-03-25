@@ -80,7 +80,7 @@
     </div>
 
     <div class="row g-3">
-        <div class="col-12 col-xl-7">
+        <div class="col-12 col-xl-6">
             <div class="table-card statistic-table-card">
                 <div class="table-card__head">
                     <h3>Top Selling Products in Month ${selectedMonth}</h3>
@@ -146,7 +146,7 @@
             </div>
         </div>
 
-        <div class="col-12 col-xl-5">
+        <div class="col-12 col-xl-6">
             <div class="table-card statistic-table-card">
                 <div class="table-card__head">
                     <h3>Low Stock Products</h3>
@@ -225,21 +225,31 @@
         }
 
         new Chart(revenueProfitCanvas, {
-            type: 'bar',
+            type: 'line',
             data: {
                 labels: ${revenueProfitLabelsJson},
                 datasets: [
                     {
                         label: 'Revenue',
                         data: ${revenueChartDataJson},
-                        backgroundColor: '#2563eb',
-                        borderRadius: 10
+                        borderColor: '#2563eb',
+                        backgroundColor: 'rgba(37, 99, 235, 0.12)',
+                        fill: false,
+                        tension: 0,
+                        borderWidth: 3,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
                     },
                     {
                         label: 'Profit',
                         data: ${profitChartDataJson},
-                        backgroundColor: '#059669',
-                        borderRadius: 10
+                        borderColor: '#059669',
+                        backgroundColor: 'rgba(5, 150, 105, 0.12)',
+                        fill: false,
+                        tension: 0,
+                        borderWidth: 3,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
                     }
                 ]
             },
@@ -269,22 +279,33 @@
                         data: ${totalOrdersChartDataJson},
                         borderColor: '#1d4ed8',
                         backgroundColor: 'rgba(29, 78, 216, 0.12)',
-                        fill: true,
-                        tension: 0.3
+                        fill: false,
+                        tension: 0,
+                        borderWidth: 3,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
                     },
                     {
                         label: 'Completed',
                         data: ${completedOrdersChartDataJson},
                         borderColor: '#059669',
                         backgroundColor: 'rgba(5, 150, 105, 0.08)',
-                        tension: 0.3
+                        fill: false,
+                        tension: 0,
+                        borderWidth: 3,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
                     },
                     {
                         label: 'Cancelled',
                         data: ${cancelledOrdersChartDataJson},
                         borderColor: '#dc2626',
                         backgroundColor: 'rgba(220, 38, 38, 0.08)',
-                        tension: 0.3
+                        fill: false,
+                        tension: 0,
+                        borderWidth: 3,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
                     }
                 ]
             },

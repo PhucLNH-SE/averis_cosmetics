@@ -381,6 +381,7 @@
 }
 
 .product-back-link {
+    margin: 10px 0px 10px -2px;
     display: inline-flex;
     align-items: center;
     gap: 10px;
@@ -6485,6 +6486,16 @@ body {
     overflow: hidden;
 }
 
+.statistic-table-card {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.statistic-table-card .table-responsive {
+    flex: 1;
+}
+
 .chart-card {
     min-height: 420px;
     padding: 20px;
@@ -6501,7 +6512,7 @@ body {
 
 .chart-card__head h3,
 .table-card__head h3 {
-    margin: 0;
+    margin: 14px 0px 0px 24px;
     font-size: 1.1rem;
 }
 
@@ -6509,6 +6520,7 @@ body {
 .table-card__head span {
     color: #64748b;
     font-size: 0.9rem;
+    margin: 14px 24px 0px 0px;
 }
 
 .chart-card canvas {
@@ -9709,7 +9721,7 @@ body {
 }
 
 .checkout-page .voucher-input-group button{
-    padding: 12px 20px;
+    padding: 12px 13px;
     background: var(--accent);
     color: white;
     border: none;
