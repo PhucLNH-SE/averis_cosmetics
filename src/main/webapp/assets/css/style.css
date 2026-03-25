@@ -10759,3 +10759,7 @@ body {
     color: #fff;
 }
 
+
+.admin-shell-body .card.table-card.mb-4 .card-body {
+    padding: 10px;
+}
