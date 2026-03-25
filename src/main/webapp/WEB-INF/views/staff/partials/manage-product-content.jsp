@@ -47,7 +47,6 @@
                                 type="text"
                                 name="keyword"
                                 class="form-control product-search-form__input"
-                                placeholder="Search by id, name, brand or category"
                                 value="<c:out value='${searchKeyword}'/>"
                                 autocomplete="off">
                         </div>

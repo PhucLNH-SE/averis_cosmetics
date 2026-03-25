@@ -69,7 +69,7 @@ public class ManagerDAO extends DBContext {
     // 1. Lấy danh sách tất cả nhân sự
     public List<Manager> getAllManagers() {
         List<Manager> list = new ArrayList<>();
-        String sql = "SELECT manager_id, full_name, email, password, manager_role, status FROM Manager ORDER BY manager_role, manager_id DESC";
+        String sql = "SELECT manager_id, full_name, email, password, manager_role, status FROM Manager ORDER BY manager_id ASC";
         try (PreparedStatement ps = connection.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {

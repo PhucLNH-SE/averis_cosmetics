@@ -41,15 +41,15 @@
         <c:set var="popupMessage" scope="request" value="${not empty param.message ? param.message : 'Order status transition is not valid.'}" />
         <c:set var="popupType" scope="request" value="error" />
     </c:if>
-    <div class="card table-card">
-        <div class="card-body p-0">
-            <form action="${pageContext.request.contextPath}/admin/manage-orders" method="post">
-                <input type="hidden" name="action" value="update">
-                <div class="p-3 d-flex justify-content-end">
-                    <button type="submit" class="btn btn-add text-white">
-                        <i class="bi bi-check2-circle"></i> Update Orders
-                    </button>
-                </div>
+    <form action="${pageContext.request.contextPath}/admin/manage-orders" method="post">
+        <input type="hidden" name="action" value="update">
+        <div class="d-flex justify-content-end mb-3">
+            <button type="submit" class="btn btn-add text-white">
+                <i class="bi bi-check2-circle"></i> Update Orders
+            </button>
+        </div>
+        <div class="card table-card">
+            <div class="card-body p-0">
                 <div class="table-responsive">
                     <table class="table">
                         <thead>
@@ -127,9 +127,9 @@
                         </tbody>
                     </table>
                 </div>
-            </form>
+            </div>
         </div>
-    </div>
+    </form>
 </section>
 
 
