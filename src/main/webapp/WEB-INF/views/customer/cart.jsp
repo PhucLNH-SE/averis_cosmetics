@@ -92,12 +92,16 @@
                                     <input type="hidden" name="action" value="update"> <input type="hidden" name="variantId" value="${entry.key}">
                                     
                                     <div class="qty-control">
-                                        <button type="button" class="qty-btn" onclick="updateQty('${entry.key}', -1)">-</button>
-                                        
-                                        <input type="number" name="quantity" id="qty-${entry.key}" 
-                                               value="${entry.value.quantity}" class="qty-input" readonly>
-                                        
-                                        <button type="button" class="qty-btn" onclick="updateQty('${entry.key}', 1)">+</button>
+                                        <button type="button" class="qty-btn" onclick="updateQty('${entry.key}', -1, ${entry.value.variant.stock})">-</button>
+
+                                        <input type="number" name="quantity" id="qty-${entry.key}"
+                                               value="${entry.value.quantity}" class="qty-input"
+                                               min="1" inputmode="numeric"
+                                               aria-label="Cart item quantity"
+                                               onchange="submitQty('${entry.key}', ${entry.value.variant.stock})"
+                                               onblur="submitQty('${entry.key}', ${entry.value.variant.stock})">
+
+                                        <button type="button" class="qty-btn" onclick="updateQty('${entry.key}', 1, ${entry.value.variant.stock})">+</button>
                                     </div>
                                     
                                     <c:if test="${entry.value.quantity >= entry.value.variant.stock}">
@@ -155,12 +159,42 @@
     <jsp:include page="/assets/footer.jsp" />
 
     <script>
-        function updateQty(variantId, delta) {
+        function normalizeCartQuantity(variantId, maxStock) {
             const input = document.getElementById('qty-' + variantId);
-            let currentVal = parseInt(input.value);
-            let newVal = currentVal + delta;
+            if (!input) {
+                return 1;
+            }
 
-            if (newVal < 1) return;
+            const parsedValue = parseInt(input.value, 10);
+            let normalizedValue = Number.isNaN(parsedValue) || parsedValue < 1 ? 1 : parsedValue;
+
+            const max = parseInt(maxStock, 10);
+            if (!Number.isNaN(max) && max > 0 && normalizedValue > max) {
+                normalizedValue = max;
+            }
+
+            input.value = normalizedValue;
+            return normalizedValue;
+        }
+
+        function submitQty(variantId, maxStock) {
+            normalizeCartQuantity(variantId, maxStock);
+            document.getElementById('form-' + variantId).submit();
+        }
+
+        function updateQty(variantId, delta, maxStock) {
+            const input = document.getElementById('qty-' + variantId);
+            if (!input) return;
+
+            let newVal = normalizeCartQuantity(variantId, maxStock) + delta;
+            if (newVal < 1) {
+                newVal = 1;
+            }
+
+            const max = parseInt(maxStock, 10);
+            if (!Number.isNaN(max) && max > 0 && newVal > max) {
+                newVal = max;
+            }
 
             input.value = newVal;
             
