@@ -67,9 +67,10 @@ public class ManagerDAO extends DBContext {
     // ========================================================
 
     // 1. Lấy danh sách tất cả nhân sự
-    public List<Manager> getAllManagers() {
+    public List<Manager> getAllStaff() {
         List<Manager> list = new ArrayList<>();
-        String sql = "SELECT manager_id, full_name, email, password, manager_role, status FROM Manager ORDER BY manager_id ASC";
+        String sql = "SELECT manager_id, full_name, email, password, manager_role, status "
+                + "FROM Manager WHERE manager_role = 'STAFF' ORDER BY manager_id ASC";
         try (PreparedStatement ps = connection.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
@@ -164,7 +165,8 @@ public class ManagerDAO extends DBContext {
             int paramIndex = 5;
             // Nếu có đổi pass thì gán giá trị pass (đã bị hash) vào
             if (changePassword) {
-                ps.setString(paramIndex++, m.getPassword()); 
+                String hashedPassword = BCrypt.hashpw(m.getPassword(), BCrypt.gensalt());
+                ps.setString(paramIndex++, hashedPassword);
             }
             // Gán ID vào tham số cuối cùng
             ps.setInt(paramIndex, m.getManagerId());

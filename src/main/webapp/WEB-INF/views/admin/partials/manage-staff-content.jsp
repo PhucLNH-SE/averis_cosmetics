@@ -1,6 +1,5 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
-<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <section class="admin-content__section admin-page admin-page--staff">
     <div class="container-fluid staff-main-container">
@@ -28,7 +27,7 @@
                 <table class="table table-hover align-middle">
                     <thead class="table-light">
                         <tr>
-                            <th>Staff Name</th>
+                            <th>Staff ID</th>
                             <th>Email</th>
                             <th>Role</th>
                             <th>Status</th>
@@ -37,57 +36,47 @@
                     </thead>
                     <tbody>
                         <c:forEach items="${listStaff}" var="s">
-                            <%-- Only show STAFF, hide ADMIN --%>
-                            <c:if test="${s.managerRole == 'STAFF'}">
-                                <tr>
-                                    <td>
-                                        <div class="d-flex align-items-center">
-                                            <div class="staff-avatar-placeholder me-3">
-                                                ${fn:substring(s.fullName, 0, 1)}
-                                            </div>
-                                            <span class="fw-bold text-dark">${s.fullName}</span>
-                                        </div>
-                                    </td>
-                                    <td>${s.email}</td>
-                                    <td>
-                                        <span class="role-badge-staff">
-                                            ${s.managerRole}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <span class="${s.status ? 'status-active' : 'status-inactive'}">
-                                            <i class="fas ${s.status ? 'fa-check-circle' : 'fa-ban'} me-1"></i>
-                                            ${s.status ? 'Active' : 'Banned'}
-                                        </span>
-                                    </td>
-                                    <td class="text-center">
-                                        <a class="btn btn-info btn-sm text-white px-3 me-1"
-                                           href="${pageContext.request.contextPath}/admin/manage-staff?action=detail&managerId=${s.managerId}">
-                                            <i class="fas fa-eye"></i> View
-                                        </a>
+                            <tr>
+                                <td class="fw-bold text-dark">#${s.managerId}</td>
+                                <td>${s.email}</td>
+                                <td>
+                                    <span class="role-badge-staff">
+                                        ${s.managerRole}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="${s.status ? 'status-active' : 'status-inactive'}">
+                                        <i class="fas ${s.status ? 'fa-check-circle' : 'fa-ban'} me-1"></i>
+                                        ${s.status ? 'Active' : 'Banned'}
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <a class="btn btn-info btn-sm text-white px-3 me-1"
+                                       href="${pageContext.request.contextPath}/admin/manage-staff?action=detail&managerId=${s.managerId}">
+                                        <i class="fas fa-eye"></i> View
+                                    </a>
 
-                                        <a class="btn btn-primary btn-sm px-3 me-1"
-                                           href="${pageContext.request.contextPath}/admin/manage-staff?action=edit&managerId=${s.managerId}">
-                                            <i class="fas fa-edit"></i> Edit
-                                        </a>
+                                    <a class="btn btn-primary btn-sm px-3 me-1"
+                                       href="${pageContext.request.contextPath}/admin/manage-staff?action=edit&managerId=${s.managerId}">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </a>
 
-                                        <c:choose>
-                                            <c:when test="${s.status}">
-                                                <button class="btn btn-danger btn-sm px-3" title="Ban Account"
-                                                        onclick="openDeleteModal('${s.managerId}', '${fn:escapeXml(s.fullName)}')">
-                                                    <i class="fas fa-ban"></i> Ban
-                                                </button>
-                                            </c:when>
-                                            <c:otherwise>
-                                                <button class="btn btn-success btn-sm px-3" title="Unlock Account"
-                                                        onclick="openUnbanModal('${s.managerId}', '${fn:escapeXml(s.fullName)}')">
-                                                    <i class="fas fa-unlock"></i> Unlock
-                                                </button>
-                                            </c:otherwise>
-                                        </c:choose>
-                                    </td>
-                                </tr>
-                            </c:if>
+                                    <c:choose>
+                                        <c:when test="${s.status}">
+                                            <button class="btn btn-danger btn-sm px-3" title="Ban Account"
+                                                    onclick="openDeleteModal('${s.managerId}')">
+                                                <i class="fas fa-ban"></i> Ban
+                                            </button>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <button class="btn btn-success btn-sm px-3" title="Unlock Account"
+                                                    onclick="openUnbanModal('${s.managerId}')">
+                                                <i class="fas fa-unlock"></i> Unlock
+                                            </button>
+                                        </c:otherwise>
+                                    </c:choose>
+                                </td>
+                            </tr>
                         </c:forEach>
                     </tbody>
                 </table>
@@ -193,7 +182,7 @@
                     <div class="modal-body p-4">
                         <i class="fas fa-user-slash text-danger mb-3 staff-modal-icon"></i>
                         <h5 class="fw-bold mb-3">Ban Account?</h5>
-                        <p class="text-muted small mb-4">Are you sure you want to deactivate <strong id="deleteName" class="text-dark"></strong>? They will no longer be able to log in.</p>
+                        <p class="text-muted small mb-4">Are you sure you want to deactivate staff account <strong id="deleteName" class="text-dark"></strong>? They will no longer be able to log in.</p>
                         <div class="d-flex justify-content-center gap-2">
                             <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">
                                 <i class="bi bi-x-circle"></i> Cancel
@@ -217,7 +206,7 @@
                     <div class="modal-body p-4">
                         <i class="fas fa-unlock text-success mb-3 staff-modal-icon"></i>
                         <h5 class="fw-bold mb-3">Unlock Account?</h5>
-                        <p class="text-muted small mb-4">Are you sure you want to restore access for <strong id="unbanName" class="text-dark"></strong>? They will be able to log in again.</p>
+                        <p class="text-muted small mb-4">Are you sure you want to restore access for staff account <strong id="unbanName" class="text-dark"></strong>? They will be able to log in again.</p>
                         <div class="d-flex justify-content-center gap-2">
                             <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">
                                 <i class="bi bi-x-circle"></i> Cancel
@@ -234,15 +223,15 @@
 </section>
 
 <script>
-    function openDeleteModal(id, name) {
+    function openDeleteModal(id) {
         document.getElementById('deleteId').value = id;
-        document.getElementById('deleteName').innerText = name;
+        document.getElementById('deleteName').innerText = '#' + id;
         new bootstrap.Modal(document.getElementById('deleteModal')).show();
     }
 
-    function openUnbanModal(id, name) {
+    function openUnbanModal(id) {
         document.getElementById('unbanId').value = id;
-        document.getElementById('unbanName').innerText = name;
+        document.getElementById('unbanName').innerText = '#' + id;
         new bootstrap.Modal(document.getElementById('unbanModal')).show();
     }
 
