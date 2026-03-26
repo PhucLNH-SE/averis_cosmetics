@@ -8,6 +8,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
@@ -162,7 +163,21 @@ public class ForgetPasswordController extends HttpServlet {
             return;
         }
 
+        setLoginFlashMessage(
+                request.getSession(),
+                "Your password has been reset successfully. Please sign in with your new password.",
+                "success"
+        );
         response.sendRedirect(request.getContextPath() + "/auth?action=login");
+    }
+
+    private void setLoginFlashMessage(HttpSession session, String message, String type) {
+        if (session == null) {
+            return;
+        }
+
+        session.setAttribute("loginPopupMessage", message);
+        session.setAttribute("loginPopupType", type);
     }
 }
 

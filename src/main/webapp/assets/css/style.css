@@ -4916,6 +4916,13 @@ body {
     line-height: 1.6;
 }
 
+.popup-actions {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
 .popup-btn {
     display: inline-block;
     background: linear-gradient(135deg, #b45309, #92400e);
@@ -4934,6 +4941,26 @@ body {
 .popup-btn:hover {
     transform: translateY(-2px);
     box-shadow: 0 8px 15px rgba(180, 83, 9, 0.4);
+}
+
+.popup-btn-secondary {
+    background: #fff;
+    color: #92400e;
+    border: 1px solid rgba(146, 64, 14, 0.22);
+    box-shadow: none;
+}
+
+.popup-btn-secondary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 15px rgba(146, 64, 14, 0.12);
+}
+
+.popup-icon.warning {
+    background: linear-gradient(135deg, #fef3c7, #fde68a);
+}
+
+.popup-icon.warning svg {
+    color: #d97706;
 }
 
 

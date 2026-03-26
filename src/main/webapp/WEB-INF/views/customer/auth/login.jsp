@@ -22,11 +22,9 @@
             <p>Sign in to continue your shopping experience</p>
         </div>
 
-        <!-- SUCCESS MESSAGE -->
-        <c:if test="${not empty successMessage}">
-            <div class="success-message">
-                ${successMessage}
-            </div>
+        <c:if test="${not empty successMessage && empty popupMessage}">
+            <c:set var="popupMessage" scope="request" value="${successMessage}" />
+            <c:set var="popupType" scope="request" value="success" />
         </c:if>
 
         <form action="${pageContext.request.contextPath}/auth?action=login"

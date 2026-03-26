@@ -370,7 +370,9 @@
                                                                 <i class="fas fa-eye"></i> View Detail
                                                             </a>
                                                             <c:if test="${o.orderStatus == 'CREATED' || o.orderStatus == 'PROCESSING'}">
-                                                                <a href="#" onclick="confirmCancel(${o.orderId})" class="action-btn cancel">
+                                                                <a href="${pageContext.request.contextPath}/profile?action=cancelOrder&orderId=${o.orderId}"
+                                                                   onclick="return confirmCancel(${o.orderId});"
+                                                                   class="action-btn cancel">
                                                                     <i class="fas fa-times"></i> Cancel
                                                                 </a>
                                                             </c:if>
@@ -831,24 +833,19 @@
 <%-- (Sections above unchanged) --%>
 
 <jsp:include page="/assets/footer.jsp" />
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
                                                 function confirmCancel(orderId) {
-                                                    Swal.fire({
-                                                        title: 'Cancel Order',
-                                                        text: 'Are you sure you want to cancel this order?',
-                                                        icon: 'warning',
-                                                        showCancelButton: true,
-                                                        confirmButtonText: 'Yes, Cancel',
-                                                        cancelButtonText: 'No',
-                                                        confirmButtonColor: '#d33',
-                                                        cancelButtonColor: '#3085d6'
-                                                    }).then((result) => {
-                                                        if (result.isConfirmed) {
-                                                            window.location.href =
-                                                                    '${pageContext.request.contextPath}/profile?action=cancelOrder&orderId=' + orderId;
-                                                        }
-                                                    });
+                                                    showConfirmPopup(
+                                                            'Are you sure you want to cancel order #' + orderId + '?',
+                                                            'Cancel Order',
+                                                            'Yes',
+                                                            'No',
+                                                            function () {
+                                                                window.location.href =
+                                                                        '${pageContext.request.contextPath}/profile?action=cancelOrder&orderId=' + orderId;
+                                                            }
+                                                            );
+                                                    return false;
                                                 }
    
                                                 function openAddressPopup(mode, trigger) {

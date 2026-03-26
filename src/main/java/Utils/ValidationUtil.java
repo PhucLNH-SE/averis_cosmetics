@@ -169,7 +169,7 @@ public class ValidationUtil {
 }
 public static void validateCodStatus(String paymentMethod, String paymentStatus, String orderStatus) {
     if (paymentMethod == null || paymentStatus == null || orderStatus == null) {
-        throw new IllegalArgumentException("Cannot validate COD because payment method, payment status, or order status is null.");
+        throw new IllegalArgumentException("Unable to validate COD order status because the payment method, payment status, or order status is missing.");
     }
 
     String normalizedPaymentMethod = paymentMethod.trim().toUpperCase();
@@ -177,7 +177,7 @@ public static void validateCodStatus(String paymentMethod, String paymentStatus,
     String normalizedOrderStatus = normalizeOrderStatus(orderStatus);
 
     if (!"COD".equals(normalizedPaymentMethod)) {
-        throw new IllegalArgumentException("This rule applies only to COD orders.");
+        throw new IllegalArgumentException("COD validation rules can only be applied to orders that use the COD payment method.");
     }
 
     switch (normalizedPaymentStatus) {
@@ -191,13 +191,13 @@ public static void validateCodStatus(String paymentMethod, String paymentStatus,
             validateCodFailed(normalizedOrderStatus);
             break;
         default:
-            throw new IllegalArgumentException("Invalid payment status for COD: " + normalizedPaymentStatus);
+            throw new IllegalArgumentException("Unsupported payment status for COD orders: " + normalizedPaymentStatus + ".");
     }
 }
 
 public static void validateOrderStatusTransition(String currentOrderStatus, String newOrderStatus) {
     if (currentOrderStatus == null || newOrderStatus == null) {
-        throw new IllegalArgumentException("Cannot update order because the current status or new status is null.");
+        throw new IllegalArgumentException("Unable to update the order because the current status or target status is missing.");
     }
 
     String normalizedCurrentStatus = normalizeOrderStatus(currentOrderStatus);
@@ -212,26 +212,26 @@ public static void validateOrderStatusTransition(String currentOrderStatus, Stri
             if ("PROCESSING".equals(normalizedNewStatus) || "CANCELLED".equals(normalizedNewStatus)) {
                 return;
             }
-            throw new IllegalArgumentException("Cannot transition from CREATED to " + normalizedNewStatus +
-                    ". A newly created order can only be moved to PROCESSING or CANCELLED.");
+            throw new IllegalArgumentException("Invalid status transition from CREATED to " + normalizedNewStatus
+                    + ". Orders in CREATED status may only be updated to PROCESSING or CANCELLED.");
         case "PROCESSING":
             if ("SHIPPING".equals(normalizedNewStatus) || "CANCELLED".equals(normalizedNewStatus)) {
                 return;
             }
-            throw new IllegalArgumentException("Cannot transition from PROCESSING to " + normalizedNewStatus +
-                    ". An order in processing can only move to SHIPPING or CANCELLED.");
+            throw new IllegalArgumentException("Invalid status transition from PROCESSING to " + normalizedNewStatus
+                    + ". Orders in PROCESSING status may only be updated to SHIPPING or CANCELLED.");
         case "SHIPPING":
             if ("COMPLETED".equals(normalizedNewStatus) || "CANCELLED".equals(normalizedNewStatus)) {
                 return;
             }
-            throw new IllegalArgumentException("Cannot transition from SHIPPING to " + normalizedNewStatus +
-                    ". A shipping order can only be moved to COMPLETED or CANCELLED.");
+            throw new IllegalArgumentException("Invalid status transition from SHIPPING to " + normalizedNewStatus
+                    + ". Orders in SHIPPING status may only be updated to COMPLETED or CANCELLED.");
         case "COMPLETED":
-            throw new IllegalArgumentException("The order is already COMPLETED. This is the final status and cannot be changed to CANCELLED or any previous status.");
+            throw new IllegalArgumentException("The order is already in COMPLETED status. This is a final status and cannot be changed.");
         case "CANCELLED":
-            throw new IllegalArgumentException("The order is CANCELLED and cannot be updated to any other status.");
+            throw new IllegalArgumentException("The order is already CANCELLED and cannot be updated to any other status.");
         default:
-            throw new IllegalArgumentException("The current order status is invalid: " + normalizedCurrentStatus);
+            throw new IllegalArgumentException("Unsupported current order status: " + normalizedCurrentStatus + ".");
     }
 }
 
@@ -253,11 +253,11 @@ private static void validateCodPending(String orderStatus) {
 
     if ("COMPLETED".equals(orderStatus)) {
         throw new IllegalArgumentException(
-                "A COD order with a PENDING payment status cannot be in COMPLETED status, as payment has not been received.");
+                "A COD order with payment status PENDING cannot be marked as COMPLETED because payment has not been received yet.");
     }
 
     throw new IllegalArgumentException(
-            "Invalid order status for a COD order with payment_status = PENDING: " + orderStatus);
+            "Unsupported order status for a COD order with payment status PENDING: " + orderStatus + ".");
 }
 
 private static void validateCodSuccess(String orderStatus) {
@@ -267,21 +267,21 @@ private static void validateCodSuccess(String orderStatus) {
 
     if ("CREATED".equals(orderStatus)) {
         throw new IllegalArgumentException(
-                "A COD order that has been paid cannot revert back to CREATED.");
+                "A COD order with payment status SUCCESS cannot be moved back to CREATED.");
     }
 
     if ("PROCESSING".equals(orderStatus)) {
         throw new IllegalArgumentException(
-                "A COD order that has been paid cannot be in PROCESSING.");
+                "A COD order with payment status SUCCESS cannot remain in PROCESSING.");
     }
 
     if ("CANCELLED".equals(orderStatus)) {
         throw new IllegalArgumentException(
-                "A COD order that has been paid cannot be marked as CANCELLED.");
+                "A COD order with payment status SUCCESS cannot be marked as CANCELLED.");
     }
 
     throw new IllegalArgumentException(
-            "Invalid order status for a COD order with payment_status = SUCCESS: " + orderStatus);
+            "Unsupported order status for a COD order with payment status SUCCESS: " + orderStatus + ".");
 }
 
 private static void validateCodFailed(String orderStatus) {
@@ -294,11 +294,11 @@ private static void validateCodFailed(String orderStatus) {
         "SHIPPING".equals(orderStatus) ||
         "COMPLETED".equals(orderStatus)) {
         throw new IllegalArgumentException(
-                "A COD order with payment_status = FAILED can only be in CANCELLED status.");
+                "A COD order with payment status FAILED may only have the CANCELLED order status.");
     }
 
     throw new IllegalArgumentException(
-            "Invalid order status for a COD order with payment_status = FAILED: " + orderStatus);
+            "Unsupported order status for a COD order with payment status FAILED: " + orderStatus + ".");
 }
      public boolean checkLogin(String inputPassword, String storedPassword) {
         if (inputPassword == null || storedPassword == null) {
