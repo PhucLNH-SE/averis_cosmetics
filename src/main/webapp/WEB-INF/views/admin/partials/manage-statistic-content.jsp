@@ -238,7 +238,9 @@
                         tension: 0,
                         borderWidth: 3,
                         pointRadius: 4,
-                        pointHoverRadius: 6
+                        pointHoverRadius: 7,
+                        pointHitRadius: 16,
+                        hitRadius: 16
                     },
                     {
                         label: 'Profit',
@@ -249,16 +251,27 @@
                         tension: 0,
                         borderWidth: 3,
                         pointRadius: 4,
-                        pointHoverRadius: 6
+                        pointHoverRadius: 7,
+                        pointHitRadius: 16,
+                        hitRadius: 16
                     }
                 ]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                interaction: {
+                    mode: 'nearest',
+                    axis: 'xy',
+                    intersect: false
+                },
                 plugins: {
                     legend: {
                         position: 'bottom'
+                    },
+                    tooltip: {
+                        mode: 'nearest',
+                        intersect: false
                     }
                 },
                 scales: {
@@ -283,7 +296,9 @@
                         tension: 0,
                         borderWidth: 3,
                         pointRadius: 4,
-                        pointHoverRadius: 6
+                        pointHoverRadius: 7,
+                        pointHitRadius: 16,
+                        hitRadius: 16
                     },
                     {
                         label: 'Completed',
@@ -294,7 +309,9 @@
                         tension: 0,
                         borderWidth: 3,
                         pointRadius: 4,
-                        pointHoverRadius: 6
+                        pointHoverRadius: 7,
+                        pointHitRadius: 16,
+                        hitRadius: 16
                     },
                     {
                         label: 'Cancelled',
@@ -305,16 +322,27 @@
                         tension: 0,
                         borderWidth: 3,
                         pointRadius: 4,
-                        pointHoverRadius: 6
+                        pointHoverRadius: 7,
+                        pointHitRadius: 16,
+                        hitRadius: 16
                     }
                 ]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                interaction: {
+                    mode: 'nearest',
+                    axis: 'xy',
+                    intersect: false
+                },
                 plugins: {
                     legend: {
                         position: 'bottom'
+                    },
+                    tooltip: {
+                        mode: 'nearest',
+                        intersect: false
                     }
                 },
                 scales: {
