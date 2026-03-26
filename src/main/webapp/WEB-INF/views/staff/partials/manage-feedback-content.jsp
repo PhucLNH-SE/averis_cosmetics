@@ -70,6 +70,19 @@
 </section>
 
 <script>
+    function confirmFeedbackDelete(deleteUrl) {
+        showConfirmPopup(
+                'Delete this review?',
+                'Delete Review',
+                'Yes',
+                'No',
+                function () {
+                    window.location.href = deleteUrl;
+                }
+                );
+        return false;
+    }
+
     function viewProductReviews(productId, productName) {
         document.getElementById('modalProductName').innerText = productName;
         document.getElementById('modalCommentsArea').innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary"></div></div>';

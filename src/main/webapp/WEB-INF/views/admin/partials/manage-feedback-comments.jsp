@@ -41,7 +41,7 @@
                         <button class="btn btn-sm btn-primary px-3" type="button" data-bs-toggle="collapse" data-bs-target="#replyForm${c.orderDetailId}">
                             <i class="fas fa-reply me-1"></i> ${not empty c.responseContent ? 'Edit' : 'Reply'}
                         </button>
-                        <a href="${pageContext.request.contextPath}/admin/manage-feedback?action=delete&id=${c.orderDetailId}" class="btn btn-sm btn-danger" onclick="return confirm('Delete this review?')">
+                        <a href="${pageContext.request.contextPath}/admin/manage-feedback?action=delete&id=${c.orderDetailId}" class="btn btn-sm btn-danger" onclick="return confirmFeedbackDelete('${pageContext.request.contextPath}/admin/manage-feedback?action=delete&id=${c.orderDetailId}')">
                             <i class="fas fa-trash"></i> Delete
                         </a>
                     </div>
@@ -62,4 +62,3 @@
         </c:forEach>
     </c:otherwise>
 </c:choose>
-
