@@ -60,13 +60,6 @@ public class ManagerDAO extends DBContext {
         return null;
     }
 
-   
-    
-    // ========================================================
-    // CÁC HÀM MỚI BỔ SUNG CHO CHỨC NĂNG MANAGE STAFF
-    // ========================================================
-
-    // 1. Lấy danh sách tất cả nhân sự
     public List<Manager> getAllStaff() {
         List<Manager> list = new ArrayList<>();
         String sql = "SELECT manager_id, full_name, email, password, manager_role, status "
@@ -89,7 +82,7 @@ public class ManagerDAO extends DBContext {
         return list;
     }
 
-    // 2. Kiểm tra Email đã tồn tại chưa (Dùng khi Add/Edit để tránh lỗi trùng)
+
     public boolean isEmailExist(String email, int excludeId) {
         String sql = "SELECT 1 FROM Manager WHERE email = ? AND manager_id != ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -104,7 +97,7 @@ public class ManagerDAO extends DBContext {
         return false;
     }
     
-    // Kiểm tra Tên (Staff Name) đã tồn tại chưa
+
     public boolean isNameExist(String name, int excludeId) {
         String sql = "SELECT 1 FROM Manager WHERE full_name = ? AND manager_id != ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -119,20 +112,20 @@ public class ManagerDAO extends DBContext {
         return false;
     }
 
-    // 3. Thêm mới Staff (Có tự động mã hóa mật khẩu)
+
     public boolean addManager(Manager m) {
         String sql = "INSERT INTO Manager (full_name, email, password, manager_role, status) VALUES (?, ?, ?, ?, ?)";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setString(1, m.getFullName());
             ps.setString(2, m.getEmail());
             
-            // Tự động Hash mật khẩu bằng BCrypt
+
             String hashedPassword = BCrypt.hashpw(m.getPassword(), BCrypt.gensalt());
             ps.setString(3, hashedPassword); 
             
             ps.setString(4, m.getManagerRole());
             
-            // SỬA Ở ĐÂY: Dùng getStatus() và check null an toàn
+
             boolean isActive = m.getStatus() != null ? m.getStatus() : true; // Mặc định là true nếu null
             ps.setBoolean(5, isActive);
             
@@ -143,14 +136,14 @@ public class ManagerDAO extends DBContext {
         return false;
     }
 
-    // 4. Cập nhật Staff (Có hỗ trợ đổi Password nếu Admin nhập)
+
     public boolean updateManager(Manager m) {
-        // Kiểm tra xem có yêu cầu đổi pass không
+
         boolean changePassword = (m.getPassword() != null && !m.getPassword().trim().isEmpty());
         
         StringBuilder sql = new StringBuilder("UPDATE Manager SET full_name = ?, email = ?, manager_role = ?, status = ?");
         if (changePassword) {
-            sql.append(", password = ?"); // Nếu có thì thêm cột password vào câu SQL
+            sql.append(", password = ?");
         }
         sql.append(" WHERE manager_id = ?");
 
@@ -163,12 +156,12 @@ public class ManagerDAO extends DBContext {
             ps.setBoolean(4, isActive);
             
             int paramIndex = 5;
-            // Nếu có đổi pass thì gán giá trị pass (đã bị hash) vào
+
             if (changePassword) {
                 String hashedPassword = BCrypt.hashpw(m.getPassword(), BCrypt.gensalt());
                 ps.setString(paramIndex++, hashedPassword);
             }
-            // Gán ID vào tham số cuối cùng
+
             ps.setInt(paramIndex, m.getManagerId());
             
             return ps.executeUpdate() > 0;
@@ -178,7 +171,7 @@ public class ManagerDAO extends DBContext {
         return false;
     }
 
-    // 5. Xóa mềm (Soft Delete - Đổi status = 0 để Ban Account)
+
     public boolean banManager(int id) {
         String sql = "UPDATE Manager SET status = 0 WHERE manager_id = ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -190,7 +183,7 @@ public class ManagerDAO extends DBContext {
         return false;
     }
     
-    // 6. Mở khóa tài khoản (Đổi status = 1)
+
     public boolean unbanManager(int id) {
         String sql = "UPDATE Manager SET status = 1 WHERE manager_id = ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {

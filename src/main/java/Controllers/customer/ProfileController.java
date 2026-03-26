@@ -28,10 +28,6 @@ import java.util.List;
 import java.util.Map;
 import org.mindrot.jbcrypt.BCrypt;
 
-/**
- *
- * @author lengu
- */
 @MultipartConfig
 public class ProfileController extends HttpServlet {
 
@@ -148,7 +144,7 @@ public class ProfileController extends HttpServlet {
         OrderDAO dao = new OrderDAO();
         Orders order = dao.getOrderById(orderId);
 
-        // ÄÃ£ thay Ä‘á»•i hÃ m gá»i thÃ nh getOrderDetailsWithReview
+
         List<OrderDetail> details = dao.getOrderDetailsWithReview(orderId);
 
         request.setAttribute("order", order);

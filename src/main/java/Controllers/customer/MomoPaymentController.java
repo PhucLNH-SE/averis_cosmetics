@@ -29,7 +29,6 @@ public class MomoPaymentController extends HttpServlet {
         HttpSession session = request.getSession();
         Model.Customer customer = (Model.Customer) session.getAttribute("customer");
 
-        // Check login
         if (customer == null) {
             response.sendRedirect(request.getContextPath() + "/auth?action=login");
             return;
@@ -55,14 +54,13 @@ public class MomoPaymentController extends HttpServlet {
             return;
         }
 
-        // Security: check ownership
         if (order.getCustomerId() != customer.getCustomerId()) {
             LOGGER.warning("Unauthorized payment attempt: order " + orderId);
             response.sendRedirect(request.getContextPath() + "/cart");
             return;
         }
 
-        // Only allow PENDING
+
         if (!"PENDING".equalsIgnoreCase(order.getPaymentStatus())) {
             response.sendRedirect(request.getContextPath() + "/cart");
             return;

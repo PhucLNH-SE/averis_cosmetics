@@ -8,10 +8,6 @@ package Model;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-/**
- *
- * @author Admin
- */
 public class Voucher {
     private int voucherId;
     private String code;

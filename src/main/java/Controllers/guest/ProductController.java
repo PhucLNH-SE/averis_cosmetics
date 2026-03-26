@@ -74,7 +74,6 @@ public class ProductController extends HttpServlet {
                 return;
             }
         } catch (NumberFormatException e) {
-            // Ignore and redirect to product listing.
         }
         response.sendRedirect(request.getContextPath() + "/products");
     }

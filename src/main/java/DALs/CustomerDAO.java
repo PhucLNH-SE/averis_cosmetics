@@ -275,7 +275,6 @@ public class CustomerDAO extends DBContext {
         return null;
     }
 
-    //NganNK - Lay tat ca customers tu DB de vao list roi return ve controller
     public List<Customer> getAllCustomers() {
         List<Customer> customers = new ArrayList<>();
         String sql = "SELECT * FROM Customers ORDER BY customer_id ASC";
@@ -299,17 +298,14 @@ public class CustomerDAO extends DBContext {
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
 
-            // full_name (NOT NULL)
             ps.setString(1, customer.getFullName());
 
-            // gender (NULL được)
             if (customer.getGender() == null || customer.getGender().trim().isEmpty()) {
                 ps.setNull(2, Types.VARCHAR);
             } else {
                 ps.setString(2, customer.getGender().trim());
             }
 
-            // date_of_birth (NULL được)
             LocalDate dob = customer.getDateOfBirth();
             if (dob == null) {
                 ps.setNull(3, Types.DATE);
@@ -317,7 +313,6 @@ public class CustomerDAO extends DBContext {
                 ps.setDate(3, Date.valueOf(dob));
             }
 
-            // WHERE
             ps.setInt(4, customer.getCustomerId());
 
             return ps.executeUpdate() > 0;

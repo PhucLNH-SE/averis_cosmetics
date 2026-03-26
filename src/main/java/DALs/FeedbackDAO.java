@@ -10,7 +10,6 @@ import java.util.List;
 
 public class FeedbackDAO extends DBContext {
 
-    // UC-16.1: Lấy danh sách tất cả đánh giá
     public List<OrderDetail> getAllFeedbacks() {
         List<OrderDetail> list = new ArrayList<>();
         String sql = "SELECT od.order_detail_id, od.order_id, od.rating, od.review_comment, od.reviewed_at, "
@@ -39,7 +38,6 @@ public class FeedbackDAO extends DBContext {
         return list;
     }
 
-    // UC-16.4: Xem chi tiết 1 đánh giá
     public OrderDetail getFeedbackDetail(int orderDetailId) {
         String sql = "SELECT od.order_detail_id, od.order_id, od.rating, od.review_comment, od.reviewed_at, "
                    + "od.manager_response, od.response_content, od.responded_at, "
@@ -67,7 +65,6 @@ public class FeedbackDAO extends DBContext {
         return null;
     }
 
-    // UC-16.2: Staff viết câu trả lời cho đánh giá
     public boolean replyFeedback(int orderDetailId, int managerId, String responseContent) {
         String sql = "UPDATE Order_Detail "
                    + "SET manager_response = ?, response_content = ?, responded_at = GETDATE() "
@@ -85,7 +82,6 @@ public class FeedbackDAO extends DBContext {
         return false;
     }
 
-    // UC-16.3: Xóa đánh giá (Set NULL để không mất thông tin đơn hàng)
     public boolean deleteFeedback(int orderDetailId) {
         String sql = "UPDATE Order_Detail "
                    + "SET rating = NULL, review_comment = NULL, reviewed_at = NULL, "
@@ -101,7 +97,6 @@ public class FeedbackDAO extends DBContext {
         return false;
     }
 
-    // Hàm phụ trợ map ResultSet vào Object để code gọn gàng, không bị lặp
     private OrderDetail mapResultSetToOrderDetail(ResultSet rs) throws Exception {
         OrderDetail od = new OrderDetail();
         od.setOrderDetailId(rs.getInt("order_detail_id"));
@@ -127,7 +122,6 @@ public class FeedbackDAO extends DBContext {
         return od;
     }
     
-    // Lấy danh sách đánh giá của 1 sản phẩm cụ thể để hiển thị ngoài trang Product Detail
     public List<OrderDetail> getFeedbacksByProductId(int productId) {
         List<OrderDetail> list = new ArrayList<>();
         String sql = "SELECT od.order_detail_id, od.order_id, od.rating, od.review_comment, od.reviewed_at, "
@@ -149,7 +143,6 @@ public class FeedbackDAO extends DBContext {
                     OrderDetail od = new OrderDetail();
                     od.setOrderDetailId(rs.getInt("order_detail_id"));
                     
-                    // ĐÂY LÀ DÒNG FIX LỖI: Gán Order ID vào object
                     od.setOrderId(rs.getInt("order_id")); 
                     
                     od.setRating(rs.getInt("rating"));
@@ -264,7 +257,6 @@ public class FeedbackDAO extends DBContext {
         return list;
     }
 
-    // MỚI: Lấy danh sách tổng hợp Feedback theo từng sản phẩm (Group By Product)
     public List<ProductFeedbackSummary> getFeedbackSummaryList() {
         List<ProductFeedbackSummary> list = new ArrayList<>();
         String sql = "SELECT p.product_id, p.name AS product_name, "
@@ -287,7 +279,6 @@ public class FeedbackDAO extends DBContext {
                 summary.setProductName(rs.getString("product_name"));
                 
                 String imageUrl = rs.getString("image_url");
-                // Xử lý logic đường dẫn ảnh giống hàm getVariantById của bạn
                 if (imageUrl != null && !imageUrl.startsWith("assets/")) {
                     imageUrl = "assets/img/" + imageUrl;
                 }

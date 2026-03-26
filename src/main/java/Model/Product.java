@@ -14,7 +14,6 @@ public class Product {
     private String description;
     private boolean status;
     private double price;
-    // --- [THÊM MỚI] Dùng 'maxPrice' để hiển thị khoảng giá ---
     private double maxPrice;
     private Brand brand;
     private Category category;

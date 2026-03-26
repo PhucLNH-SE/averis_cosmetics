@@ -4,12 +4,6 @@
  */
 package Model;
 
-
-
-/**
- *
- * @author Admin
- */
 public class CartDetail {
     private int cartDetailId;  // cart_detail_id
     private int customerId;    // customer_id

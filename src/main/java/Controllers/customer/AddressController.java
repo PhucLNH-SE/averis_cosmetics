@@ -270,7 +270,6 @@ public class AddressController extends HttpServlet {
             addressDAO.setDefaultAddress(addressId, customer.getCustomerId());
 
         } catch (NumberFormatException e) {
-            // Silent fail - no message shown
         }
 
         redirectToAddressList(request, response);
