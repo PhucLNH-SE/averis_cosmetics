@@ -28,7 +28,7 @@ public class ManagerBrandController extends HttpServlet {
         forwardManageBrand(request, response, null, null, null);
     }
 
-    private void editBrand(HttpServletRequest request, HttpServletResponse response)
+    private void loadBrandForUpdate(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String brandIdParam = request.getParameter("id");
         if (brandIdParam == null || brandIdParam.trim().isEmpty()) {
@@ -136,7 +136,7 @@ public class ManagerBrandController extends HttpServlet {
         } else {
             switch (action) {
                 case "edit":
-                    editBrand(request, response);
+                    loadBrandForUpdate(request, response);
                     break;
                 case "list":
                 default:
