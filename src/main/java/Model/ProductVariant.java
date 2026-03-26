@@ -13,12 +13,10 @@ public class ProductVariant {
     private int stock;
     private boolean status;
 
-    // --- CÁC TRƯỜNG MỚI THÊM (để hiển thị trong Cart) ---
-    private String productName; // Tên sản phẩm gốc (VD: Kem dưỡng ẩm A)
-    private String imageUrl;    // Đường dẫn ảnh đại diện
+    private String productName;
+    private String imageUrl; 
         private String categoryName;
         private BigDecimal importPrice;
-    // ----------------------------------------------------
 
     public BigDecimal getImportPrice() {
         return importPrice;

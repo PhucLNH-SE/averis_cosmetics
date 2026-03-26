@@ -186,9 +186,7 @@ public class AddressDAO extends DBContext {
     }
 
     public boolean setDefaultAddress(int addressId, int customerId) {
-        // First set all addresses to not default
         String sql1 = "UPDATE Address SET is_default = 0 WHERE customer_id = ? AND is_deleted = 0";
-        // Then set the selected address as default
         String sql2 = "UPDATE Address SET is_default = 1 WHERE address_id = ? AND customer_id = ? AND is_deleted = 0";
 
         try {

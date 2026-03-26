@@ -152,29 +152,24 @@ public class CartController extends HttpServlet {
                 default:
                     ProductVariant v = variantDAO.getVariantById(variantId);
                     if (v != null) {
-                        // --- Check stock before adding ---
                         int currentQtyInCart = cart.containsKey(variantId) ? cart.get(variantId).getQuantity() : 0;
                         
                         if (currentQtyInCart + quantity > v.getStock()) {
                             String errorMsg = "Stock limit exceeded. Only " + v.getStock() + " item(s) available for this variant.";
                             
-                            // Return 400 (Bad Request) for AJAX
                             if ("true".equals(request.getParameter("ajax"))) {
                                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                                 response.setContentType("text/plain;charset=UTF-8");
                                 response.getWriter().write(errorMsg);
-                                return; // Stop: do not add
+                                return;
                             } else {
-                                // Non-AJAX form submit
                                 session.setAttribute("errorMsg", errorMsg);
                                 String referer = request.getHeader("referer");
                                 response.sendRedirect(referer != null ? referer : "products");
-                                return; // Stop: do not add
+                                return;
                             }
                         }
-                        // ----------------------------------------
 
-                        // Passed stock check: proceed to add
                         int finalQty = cartDetailDAO.addOrUpdate(customer.getCustomerId(), variantId, quantity);
                         if (finalQty > 0) {
                             if (cart.containsKey(variantId)) {

@@ -5,7 +5,7 @@ package Model;
 public class ProductImage {
     private int imageId;
     private int productId;
-    private String image;   // url/path
+    private String image;
     private boolean isMain;
 
     public ProductImage() {}

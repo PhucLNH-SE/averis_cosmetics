@@ -1,7 +1,4 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
+
 package Model;
 
 import java.math.BigDecimal;
@@ -15,7 +12,6 @@ public class PurchaseDetail {
     private BigDecimal importPrice;
     private Integer receivedQuantity;
 
-    // thêm 2 field để hiển thị
     private String productName;
     private String variantName;
 

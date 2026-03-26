@@ -21,7 +21,6 @@ public class VoucherController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        // Redirect to profile with voucher tab
         response.sendRedirect(request.getContextPath() + "/profile?action=view&tab=voucher");
     }
 

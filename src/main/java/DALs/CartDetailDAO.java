@@ -30,7 +30,6 @@ public class CartDetailDAO extends DBContext {
         return list;
     }
 
-    // --- HÀM HỖ TRỢ LẤY STOCK ---
     private int getVariantStock(int variantId) {
         String sql = "SELECT stock FROM Product_Variant WHERE variant_id = ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -44,9 +43,7 @@ public class CartDetailDAO extends DBContext {
         return 0;
     }
 
-    /** * Cập nhật số lượng có check stock.
-     * @return số lượng thực tế đã được set vào giỏ hàng (nếu out of stock sẽ trả về stock tối đa) 
-     */
+
     public int addOrUpdate(int customerId, int variantId, int addQuantity) {
         int stock = getVariantStock(variantId);
         if (stock <= 0) return 0; // Hết hàng thì không cho thêm
@@ -61,9 +58,8 @@ public class CartDetailDAO extends DBContext {
                     int currentQty = rs.getInt("quantity");
                     int newQty = currentQty + addQuantity;
                     
-                    // --- BẮT ĐẦU CHECK STOCK ---
                     if (newQty > stock) {
-                        newQty = stock; // Ép về max stock nếu vượt
+                        newQty = stock;
                     }
                     // ---------------------------
 
@@ -81,7 +77,7 @@ public class CartDetailDAO extends DBContext {
                     }
                 } else {
                     if (addQuantity > 0) {
-                        int finalAddQty = Math.min(addQuantity, stock); // Check stock cho lần thêm mới
+                        int finalAddQty = Math.min(addQuantity, stock);
                         String insertSql = "INSERT INTO Cart_Detail (customer_id, variant_id, quantity) VALUES (?, ?, ?)";
                         try (PreparedStatement psIns = connection.prepareStatement(insertSql)) {
                             psIns.setInt(1, customerId);
@@ -99,7 +95,6 @@ public class CartDetailDAO extends DBContext {
         return 0;
     }
 
-    /** Đặt số lượng (có check stock) */
     public int setQuantity(int customerId, int variantId, int quantity) {
         if (quantity <= 0) {
             delete(customerId, variantId);
@@ -107,7 +102,7 @@ public class CartDetailDAO extends DBContext {
         }
 
         int stock = getVariantStock(variantId);
-        int finalQty = Math.min(quantity, stock); // Không cho phép set vượt stock
+        int finalQty = Math.min(quantity, stock);
 
         if (finalQty == 0) {
             delete(customerId, variantId);
@@ -135,9 +130,7 @@ public class CartDetailDAO extends DBContext {
         return finalQty;
     }
 
-    /**
-     * TÍNH NĂNG MỚI: Đổi phân loại ngay trong giỏ hàng
-     */
+
     public boolean changeVariant(int customerId, int oldVariantId, int newVariantId) {
         if (oldVariantId == newVariantId) return true;
 
@@ -148,9 +141,7 @@ public class CartDetailDAO extends DBContext {
             try (ResultSet rs = psFind.executeQuery()) {
                 if (rs.next()) {
                     int currentQty = rs.getInt("quantity");
-                    // Xóa variant cũ
                     delete(customerId, oldVariantId);
-                    // Thêm số lượng đó vào variant mới (hàm addOrUpdate sẽ tự gộp nếu variant mới đã có sẵn, và tự check stock luôn)
                     addOrUpdate(customerId, newVariantId, currentQty);
                     return true;
                 }

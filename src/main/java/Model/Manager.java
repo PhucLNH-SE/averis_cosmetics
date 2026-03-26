@@ -4,12 +4,6 @@
  */
 package Model;
 
-
-
-/**
- *
- * @author Admin
- */
 public class Manager {
     private int managerId;        // manager_id (NOT NULL)
     private String fullName;      // full_name (NOT NULL)

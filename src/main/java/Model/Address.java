@@ -4,12 +4,6 @@
  */
 package Model;
 
-
-
-/**
- *
- * @author Admin
- */
 public class Address {
      private int addressId;        // address_id (NOT NULL)
     private int customerId;       // customer_id (NOT NULL)

@@ -915,10 +915,6 @@ public class ProductDAO extends DBContext {
 
         return null;
     }
-    
-    // =========================================================================
-    // CÁC HÀM MỚI THÊM ĐỂ LẤY GIÁ NHẬP (KHÔNG ẢNH HƯỞNG CODE CŨ CỦA TEAM)
-    // =========================================================================
 
     public List<Product> getAllProductsWithImportPrice() {
         List<Product> list = new ArrayList<>();
@@ -951,7 +947,6 @@ public class ProductDAO extends DBContext {
                     product = mapBaseProduct(rs, productId, true);
                     product.setPrice(rs.getDouble("min_price"));
                     product.setMaxPrice(rs.getDouble("max_price"));
-                    // GỌI ĐẾN HÀM LẤY VARIANT MỚI BÊN DƯỚI
                     product.setVariants(getProductVariantsWithImportPrice(productId)); 
                     productMap.put(productId, product);
                 }
@@ -1114,7 +1109,6 @@ public class ProductDAO extends DBContext {
 
     private List<ProductVariant> getProductVariantsWithImportPrice(int productId) {
         List<ProductVariant> variants = new ArrayList<>();
-        // Đã thêm avg_cost vào câu SELECT
         String sql = "SELECT variant_id, product_id, variant_name, price, stock, avg_cost, status "
                 + "FROM Product_Variant WHERE product_id = ? AND status = 1 "
                 + "ORDER BY price ASC, variant_id ASC";
@@ -1131,7 +1125,6 @@ public class ProductDAO extends DBContext {
                     variant.setPrice(rs.getBigDecimal("price"));
                     variant.setStock(rs.getInt("stock"));
                     variant.setStatus(rs.getBoolean("status"));
-                    // Set giá nhập vào đây (Dùng BigDecimal theo form mẫu cũ của bro)
                     variant.setImportPrice(rs.getBigDecimal("avg_cost")); 
                     variants.add(variant);
                 }

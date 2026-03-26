@@ -8,10 +8,6 @@ package Model;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-/**
- *
- * @author Admin
- */
 public class Orders {
     private int orderId;                
     private int customerId;              
@@ -30,7 +26,6 @@ public class Orders {
     private LocalDateTime createdAt;     
     private LocalDateTime paidAt; 
     private LocalDateTime completedAt;
-    // them username
  private String username; 
  private String receiverName;
     private String receiverPhone;

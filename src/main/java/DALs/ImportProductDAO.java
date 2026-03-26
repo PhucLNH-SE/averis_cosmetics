@@ -12,9 +12,6 @@ import java.util.List;
 
 public class ImportProductDAO extends DBContext {
 
-    // =============================
-    // GET ALL BRAND
-    // =============================
     public List<Brand> getAllBrands() {
 
         List<Brand> list = new ArrayList<>();
@@ -43,9 +40,6 @@ public class ImportProductDAO extends DBContext {
         return list;
     }
 
-    // =============================
-    // GET PRODUCT VARIANT BY BRAND
-    // =============================
     public List<ProductVariant> getVariantByBrand(int brandId) {
 
         List<ProductVariant> list = new ArrayList<>();
@@ -85,9 +79,6 @@ public class ImportProductDAO extends DBContext {
         return list;
     }
 
-    // =============================
-    // CREATE PURCHASE ORDER
-    // =============================
    public int createPurchaseOrder(int brandId, int adminId) {
     int orderId = -1;
     String sql = "INSERT INTO Purchase_Order (brand_id, created_by, created_at, status) "
@@ -119,9 +110,7 @@ public class ImportProductDAO extends DBContext {
     return orderId;
 }
 
-    // =============================
-    // INSERT PURCHASE DETAIL
-    // =============================
+
   public void insertPurchaseDetail(int orderId, int variantId, int quantity, double price) {
     String sql = "INSERT INTO Purchase_Order_Detail "
                + "(purchase_order_id, variant_id, quantity, import_price, received_quantity) "
@@ -153,9 +142,7 @@ public class ImportProductDAO extends DBContext {
         e.printStackTrace();
     }
 }
-    // =============================
-    // UPDATE PRODUCT STOCK
-    // =============================
+
     public void updateStock(int variantId, int quantity, double importPrice) {
 
         String selectSql = "SELECT stock, avg_cost FROM Product_Variant WHERE variant_id = ?";
@@ -201,9 +188,7 @@ public class ImportProductDAO extends DBContext {
         }
     }
 
-    // =============================
-    // UPDATE TOTAL AMOUNT
-    // =============================
+
     public void updateTotalAmount(int orderId, double total) {
 
         String sql =

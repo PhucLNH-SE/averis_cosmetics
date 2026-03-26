@@ -7,7 +7,6 @@ public class ProductFeedbackSummary {
     private double averageRating;
     private int totalFeedbacks;
 
-    // Getters and Setters
     public int getProductId() { return productId; }
     public void setProductId(int productId) { this.productId = productId; }
 

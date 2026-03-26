@@ -420,7 +420,7 @@ public class OrderDAO extends DBContext {
         updateOrder(orderId, paymentStatus, orderStatus, null);
     }
 
-  public boolean updateOrder(int orderId, String paymentStatus, String orderStatus, Integer handledBy) {
+    public boolean updateOrder(int orderId, String paymentStatus, String orderStatus, Integer handledBy) {
         Connection conn = null;
 
         try {
@@ -466,11 +466,11 @@ public class OrderDAO extends DBContext {
             try (PreparedStatement ps = conn.prepareStatement(sql)) {
                 ps.setString(1, paymentStatus);
                 ps.setString(2, orderStatus);
-              if (handledBy == null) {
-                  ps.setNull(3, java.sql.Types.INTEGER);
-              } else {
-                  ps.setInt(3, handledBy);
-              }
+                if (handledBy == null) {
+                    ps.setNull(3, java.sql.Types.INTEGER);
+                } else {
+                    ps.setInt(3, handledBy);
+                }
                 ps.setString(4, paymentStatus);
                 ps.setString(5, orderStatus);
                 ps.setInt(6, orderId);
@@ -503,10 +503,9 @@ public class OrderDAO extends DBContext {
     public boolean updatePaymentSuccess(int orderId) {
         Connection conn = null;
         try {
-            conn = new DBContext().connection; // ✅ FIX QUAN TRỌNG
+            conn = new DBContext().connection;
             conn.setAutoCommit(false);
 
-            // 2. update payment
             String sql = "UPDATE Orders SET payment_status = 'SUCCESS', paid_at = GETDATE() WHERE order_id = ?";
             try (PreparedStatement ps = conn.prepareStatement(sql)) {
                 ps.setInt(1, orderId);
@@ -598,8 +597,7 @@ public class OrderDAO extends DBContext {
 
         String sql = "SELECT "
                 + "o.order_id, "
-                + // thêm dòng này
-                "a.receiver_name, "
+                + "a.receiver_name, "
                 + "v.code AS voucher_code, "
                 + "o.discount_amount, "
                 + "o.order_status, "
@@ -621,7 +619,7 @@ public class OrderDAO extends DBContext {
 
                 Orders order = new Orders();
 
-                order.setOrderId(rs.getInt("order_id"));   // thêm dòng này
+                order.setOrderId(rs.getInt("order_id"));
                 order.setReceiverName(rs.getString("receiver_name"));
                 order.setVoucherCode(rs.getString("voucher_code"));
                 order.setDiscountAmount(rs.getBigDecimal("discount_amount"));
@@ -661,13 +659,6 @@ public class OrderDAO extends DBContext {
                 conn.rollback();
                 return false;
             }
-
-          //  boolean shouldRestoreStock = "COD".equalsIgnoreCase(order.getPaymentMethod())
-       //             || "SUCCESS".equalsIgnoreCase(order.getPaymentStatus());
-
-       //     if (shouldRestoreStock && !restoreStockForOrder(conn, orderId)) {
-       //         throw new SQLException("Cannot restore stock for order " + orderId);
-       //     }
 
             String sql = "UPDATE Orders "
                     + "SET order_status = 'CANCELLED', completed_at = NULL "
@@ -957,7 +948,6 @@ public class OrderDAO extends DBContext {
             while (rs.next()) {
                 OrderDetail od = new OrderDetail();
 
-                // Các trường dữ liệu phục vụ cho Review
                 od.setOrderDetailId(rs.getInt("order_detail_id"));
                 od.setRating(rs.getInt("rating"));
                 od.setReviewComment(rs.getString("review_comment"));
@@ -969,7 +959,6 @@ public class OrderDAO extends DBContext {
                     od.setRespondedAt(rs.getTimestamp("responded_at").toLocalDateTime());
                 }
 
-                // Các trường thông tin sản phẩm
                 od.setProductName(rs.getString("product_name"));
                 od.setImageUrl(rs.getString("image_url"));
                 od.setBrandName(rs.getString("brand_name"));
@@ -998,7 +987,6 @@ public class OrderDAO extends DBContext {
                     OrderDetail od = new OrderDetail();
                     od.setOrderDetailId(rs.getInt("order_detail_id"));
                     od.setOrderId(rs.getInt("order_id"));
-                    // Lấy các trường liên quan đến review để kiểm tra
                     od.setRating(rs.getInt("rating"));
                     od.setReviewComment(rs.getString("review_comment"));
                     if (rs.getTimestamp("reviewed_at") != null) {

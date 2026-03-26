@@ -54,7 +54,6 @@ public class AdminUserController extends HttpServlet {
         }
     }
 
-    //NganNK - Use to show user detail
     private void showDetail(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String idParam = trimToNull(request.getParameter("id"));
@@ -104,7 +103,6 @@ public class AdminUserController extends HttpServlet {
         }
     }
 
-    //NganNK - use to show user list 
     private void showUserList(HttpServletRequest request, HttpServletResponse response,
             Customer selectedUser, String modalMode)
             throws ServletException, IOException {

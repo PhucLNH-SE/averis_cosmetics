@@ -7,10 +7,7 @@ package Model;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-/**
- *
- * @author Admin
- */
+
 
     public class OrderDetail {
     private int orderDetailId;       // order_detail_id (NOT NULL)
@@ -18,16 +15,13 @@ import java.time.LocalDateTime;
     private int variantId;           // variant_id (NOT NULL)
     private int quantity;            // quantity (NOT NULL)
     private BigDecimal priceAtOrder; // price_at_order (NOT NULL) decimal(10,2)
-// thêm field
-    // Các trường phục vụ chức năng Feedback
+
     private Integer rating; 
     private String reviewComment;
     private LocalDateTime reviewedAt;
-    // Thêm các biến này bên dưới các biến review hiện tại
     private Integer managerResponse;
     private String responseContent;
     private LocalDateTime respondedAt;
-    // --- CÁC BIẾN PHỤ HIỂN THỊ CHO STAFF ---
     private String customerName;
     private String managerName;
         public String ProductName ;
@@ -57,7 +51,6 @@ import java.time.LocalDateTime;
     public void setCustomerName(String customerName) { this.customerName = customerName; }
     public String getManagerName() { return managerName; }
     public void setManagerName(String managerName) { this.managerName = managerName; }
-    // --- GETTER & SETTER ---
     
     public Integer getManagerResponse() {
         return managerResponse;

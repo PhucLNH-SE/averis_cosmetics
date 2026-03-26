@@ -8,10 +8,6 @@ package Model;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-/**
- *
- * @author Admin
- */
 public class Customer {
     private int customerId;               
     private String username;              
