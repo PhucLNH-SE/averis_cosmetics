@@ -15,6 +15,10 @@
     <servlet-class>Controllers.manager.AdminStatisticController</servlet-class>
   </servlet>
   <servlet>
+    <servlet-name>AdminStatisticReportController</servlet-name>
+    <servlet-class>Controllers.manager.AdminStatisticReportController</servlet-class>
+  </servlet>
+  <servlet>
     <servlet-name>ProfileController</servlet-name>
     <servlet-class>Controllers.customer.ProfileController</servlet-class>
   </servlet>
@@ -144,6 +148,10 @@
   <servlet-mapping>
     <servlet-name>AdminUserController</servlet-name>
     <url-pattern>/admin/manage-users</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>AdminStatisticReportController</servlet-name>
+    <url-pattern>/admin/manage-statistic-report</url-pattern>
   </servlet-mapping>
   <servlet-mapping>
     <servlet-name>AdminStatisticController</servlet-name>
@@ -362,6 +370,7 @@
     </session-config>
   
 </web-app>
+
 
 
 
