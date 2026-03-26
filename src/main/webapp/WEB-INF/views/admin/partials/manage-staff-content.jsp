@@ -2,16 +2,15 @@
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <section class="admin-content__section admin-page admin-page--staff">
-    <div class="container-fluid staff-main-container">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <div>
-                <h3 class="fw-bold mb-0">Staff Management</h3>
-                <p class="text-muted small">Manage system staff accounts</p>
-            </div>
-            <button class="btn btn-success px-3" data-bs-toggle="modal" data-bs-target="#addModal">
-                <i class="fas fa-user-plus me-1"></i> Add New Staff
-            </button>
+    <div class="page-header">
+        <div>
+            <h4>Manage Staff</h4>
+            <p class="text-muted mb-0">Manage system staff accounts</p>
         </div>
+        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addModal">
+            <i class="fas fa-user-plus me-1"></i> Add New Staff
+        </button>
+    </div>
 
         <c:if test="${not empty successMsg}">
             <c:set var="popupMessage" scope="request" value="${successMsg}" />
@@ -22,62 +21,77 @@
             <c:set var="popupType" scope="request" value="error" />
         </c:if>
 
-        <div class="card staff-table-card">
-            <div class="card-body p-4">
-                <table class="table table-hover align-middle">
-                    <thead class="table-light">
+    <div class="card table-card">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
                         <tr>
-                            <th>Staff ID</th>
+                            <th class="px-4">ID</th>
+                            <th>Full Name</th>
                             <th>Email</th>
                             <th>Role</th>
                             <th>Status</th>
-                            <th class="text-center">Actions</th>
+                            <th class="text-end px-4">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <c:forEach items="${listStaff}" var="s">
-                            <tr>
-                                <td class="fw-bold text-dark">#${s.managerId}</td>
-                                <td>${s.email}</td>
-                                <td>
-                                    <span class="role-badge-staff">
-                                        ${s.managerRole}
-                                    </span>
-                                </td>
-                                <td>
-                                    <span class="${s.status ? 'status-active' : 'status-inactive'}">
-                                        <i class="fas ${s.status ? 'fa-check-circle' : 'fa-ban'} me-1"></i>
-                                        ${s.status ? 'Active' : 'Banned'}
-                                    </span>
-                                </td>
-                                <td class="text-center">
-                                    <a class="btn btn-info btn-sm text-white px-3 me-1"
-                                       href="${pageContext.request.contextPath}/admin/manage-staff?action=detail&managerId=${s.managerId}">
-                                        <i class="fas fa-eye"></i> View
-                                    </a>
+                        <c:choose>
+                            <c:when test="${empty listStaff}">
+                                <tr>
+                                    <td colspan="6" class="text-center empty-state">
+                                        <i class="bi bi-inbox d-block"></i>
+                                        No staff found
+                                    </td>
+                                </tr>
+                            </c:when>
+                            <c:otherwise>
+                                <c:forEach items="${listStaff}" var="s">
+                                    <tr>
+                                        <td class="px-4">${s.managerId}</td>
+                                        <td><strong>${s.fullName}</strong></td>
+                                        <td>${s.email}</td>
+                                        <td>
+                                            <span class="role-badge-staff">
+                                                ${s.managerRole}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="${s.status ? 'status-active' : 'status-inactive'}">
+                                                <i class="fas ${s.status ? 'fa-check-circle' : 'fa-ban'} me-1"></i>
+                                                ${s.status ? 'Active' : 'Banned'}
+                                            </span>
+                                        </td>
+                                        <td class="text-end px-4">
+                                            <a class="btn btn-info btn-sm text-white me-1"
+                                               href="${pageContext.request.contextPath}/admin/manage-staff?action=detail&managerId=${s.managerId}">
+                                                <i class="fas fa-eye"></i> View
+                                            </a>
 
-                                    <a class="btn btn-primary btn-sm px-3 me-1"
-                                       href="${pageContext.request.contextPath}/admin/manage-staff?action=edit&managerId=${s.managerId}">
-                                        <i class="fas fa-edit"></i> Edit
-                                    </a>
+                                            <a class="btn btn-primary btn-sm me-1"
+                                               href="${pageContext.request.contextPath}/admin/manage-staff?action=edit&managerId=${s.managerId}">
+                                                <i class="fas fa-edit"></i> Edit
+                                            </a>
 
-                                    <c:choose>
-                                        <c:when test="${s.status}">
-                                            <button class="btn btn-danger btn-sm px-3" title="Ban Account"
-                                                    onclick="openDeleteModal('${s.managerId}')">
-                                                <i class="fas fa-ban"></i> Ban
-                                            </button>
-                                        </c:when>
-                                        <c:otherwise>
-                                            <button class="btn btn-success btn-sm px-3" title="Unlock Account"
-                                                    onclick="openUnbanModal('${s.managerId}')">
-                                                <i class="fas fa-unlock"></i> Unlock
-                                            </button>
-                                        </c:otherwise>
-                                    </c:choose>
-                                </td>
-                            </tr>
-                        </c:forEach>
+                                            <c:choose>
+                                                <c:when test="${s.status}">
+                                                    <button type="button" class="btn btn-danger btn-sm" title="Ban Account"
+                                                            onclick="openDeleteModal('${s.managerId}')">
+                                                        <i class="fas fa-ban"></i> Ban
+                                                    </button>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <button type="button" class="btn btn-success btn-sm" title="Unlock Account"
+                                                            onclick="openUnbanModal('${s.managerId}')">
+                                                        <i class="fas fa-unlock"></i> Unlock
+                                                    </button>
+                                                </c:otherwise>
+                                            </c:choose>
+                                        </td>
+                                    </tr>
+                                </c:forEach>
+                            </c:otherwise>
+                        </c:choose>
                     </tbody>
                 </table>
             </div>

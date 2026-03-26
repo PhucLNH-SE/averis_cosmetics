@@ -105,6 +105,7 @@
                                     <a href="${pageContext.request.contextPath}/admin/manage-statistic-report?action=detail&id=${report.reportId}"
                                        class="btn btn-info btn-sm text-white me-1">
                                         <i class="bi bi-eye"></i> View Detail
+                                    </a>
                                     <button type="button" class="btn btn-danger btn-sm text-white js-delete-report"
                                             data-report-id="${report.reportId}"
                                             data-report-name="${report.reportName}">
