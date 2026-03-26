@@ -255,7 +255,7 @@
                                                         <form action="${pageContext.request.contextPath}/address"
                                                               method="post"
                                                               class="address-delete-form"
-                                                              onsubmit="return confirm('Are you sure you want to delete this address?')">
+                                                              onsubmit="return confirmAddressDelete(this)">
                                                             <input type="hidden" name="action" value="delete">
                                                             <input type="hidden" name="id" value="${addr.addressId}">
                                                             <button type="submit"
@@ -843,6 +843,19 @@
                                                             function () {
                                                                 window.location.href =
                                                                         '${pageContext.request.contextPath}/profile?action=cancelOrder&orderId=' + orderId;
+                                                            }
+                                                            );
+                                                    return false;
+                                                }
+
+                                                function confirmAddressDelete(form) {
+                                                    showConfirmPopup(
+                                                            'Are you sure you want to delete this address?',
+                                                            'Delete Address',
+                                                            'Yes',
+                                                            'No',
+                                                            function () {
+                                                                form.submit();
                                                             }
                                                             );
                                                     return false;

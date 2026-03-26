@@ -281,8 +281,7 @@
 
             if (urlParams.get('error')) {
                 const errorMsg = decodeURIComponent(urlParams.get('error'));
-                showPopup(false, errorMsg, 'Error', 'Back to home',
-                    '${pageContext.request.contextPath}/home');
+                showPopup(false, errorMsg, 'Error', 'OK');
                 window.history.replaceState({}, document.title, window.location.pathname);
             }
 
