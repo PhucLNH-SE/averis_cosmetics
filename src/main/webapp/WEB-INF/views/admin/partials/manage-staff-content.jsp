@@ -185,7 +185,7 @@
         <div class="modal-dialog modal-sm modal-dialog-centered">
             <div class="modal-content text-center border-0 shadow">
                 <form action="${pageContext.request.contextPath}/admin/manage-staff" method="post">
-                    <input type="hidden" name="action" value="delete">
+                    <input type="hidden" name="action" value="ban">
                     <input type="hidden" name="managerId" id="deleteId">
                     <div class="modal-body p-4">
                         <i class="fas fa-user-slash text-danger mb-3 staff-modal-icon"></i>
