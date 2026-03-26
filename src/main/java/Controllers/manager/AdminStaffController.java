@@ -13,12 +13,30 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import org.mindrot.jbcrypt.BCrypt;
 
 public class AdminStaffController extends HttpServlet {
 
     private boolean isUnauthorizedAdmin(Manager admin) {
         return admin == null || !"ADMIN".equals(admin.getManagerRole());
+    }
+
+    private boolean isInvalidStaff(Manager manager) {
+        return manager == null || !"STAFF".equals(manager.getManagerRole());
+    }
+
+    private boolean resolveStatus(HttpServletRequest request) {
+        String[] values = request.getParameterValues("status");
+        if (values == null) {
+            return false;
+        }
+
+        for (String value : values) {
+            if (Boolean.parseBoolean(value)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private void forwardManageStaffPage(HttpServletRequest request, HttpServletResponse response,
@@ -69,7 +87,7 @@ public class AdminStaffController extends HttpServlet {
         }
 
         Manager staff = dao.getById(managerId);
-        if (staff == null) {
+        if (isInvalidStaff(staff)) {
             session.setAttribute("errorMsg", "Staff not found.");
             response.sendRedirect(request.getContextPath() + "/admin/manage-staff");
             return;
@@ -100,7 +118,7 @@ public class AdminStaffController extends HttpServlet {
         try {
             int managerId = Integer.parseInt(managerIdRaw);
             Manager selectedStaff = dao.getById(managerId);
-            if (selectedStaff == null) {
+            if (isInvalidStaff(selectedStaff)) {
                 session.setAttribute("errorMsg", "Staff not found.");
                 response.sendRedirect(request.getContextPath() + "/admin/manage-staff");
                 return;
@@ -119,7 +137,7 @@ public class AdminStaffController extends HttpServlet {
         String email = request.getParameter("email");
         String password = request.getParameter("password");
         String role = request.getParameter("role");
-        Boolean status = Boolean.parseBoolean(request.getParameter("status"));
+        Boolean status = resolveStatus(request);
 
         if (dao.isEmailExist(email, 0)) {
             session.setAttribute("errorMsg", "Email already exists!");
@@ -145,51 +163,68 @@ public class AdminStaffController extends HttpServlet {
         }
     }
 
+    private String validateStaffUpdate(Manager admin, ManagerDAO dao, Manager selectedStaff) {
+        Manager existingStaff = dao.getById(selectedStaff.getManagerId());
+        if (isInvalidStaff(existingStaff)) {
+            return "Staff not found.";
+        }
+
+        if (selectedStaff.getManagerId() == admin.getManagerId()
+                && (!"ADMIN".equals(selectedStaff.getManagerRole()) || !selectedStaff.getStatus())) {
+            return "You cannot demote or ban yourself!";
+        }
+
+        if (!"STAFF".equals(selectedStaff.getManagerRole())) {
+            return "Invalid staff role.";
+        }
+
+        if (dao.isEmailExist(selectedStaff.getEmail(), selectedStaff.getManagerId())) {
+            return "Email already exists in another account!";
+        }
+
+        if (dao.isNameExist(selectedStaff.getFullName(), selectedStaff.getManagerId())) {
+            return "Staff name already exists in another account!";
+        }
+
+        return null;
+    }
+
+    private void forwardUpdateStaffError(HttpServletRequest request, HttpServletResponse response,
+            HttpSession session, ManagerDAO dao, Manager selectedStaff, String error)
+            throws ServletException, IOException {
+        forwardManageStaffPage(request, response, session, dao, selectedStaff, "update", error);
+    }
+
     private void updateStaff(HttpServletRequest request, HttpServletResponse response,
             HttpSession session, Manager admin, ManagerDAO dao)
             throws ServletException, IOException {
-        int id = Integer.parseInt(request.getParameter("managerId"));
-        String name = request.getParameter("name");
-        String email = request.getParameter("email");
-        String role = request.getParameter("role");
         String password = request.getParameter("password");
-        Boolean status = Boolean.parseBoolean(request.getParameter("status"));
-
         Manager selectedStaff = new Manager();
-        selectedStaff.setManagerId(id);
-        selectedStaff.setFullName(name);
-        selectedStaff.setEmail(email);
-        selectedStaff.setManagerRole(role);
-        selectedStaff.setStatus(status);
+        selectedStaff.setManagerId(Integer.parseInt(request.getParameter("managerId")));
+        selectedStaff.setFullName(request.getParameter("name"));
+        selectedStaff.setEmail(request.getParameter("email"));
+        selectedStaff.setManagerRole(request.getParameter("role"));
+        selectedStaff.setStatus(resolveStatus(request));
 
-        if (id == admin.getManagerId() && (!"ADMIN".equals(role) || !status)) {
-            forwardManageStaffPage(request, response, session, dao, selectedStaff, "update",
-                    "You cannot demote or ban yourself!");
-            return;
-        }
-
-        if (dao.isEmailExist(email, id)) {
-            forwardManageStaffPage(request, response, session, dao, selectedStaff, "update",
-                    "Email already exists in another account!");
-            return;
-        }
-
-        if (dao.isNameExist(name, id)) {
-            forwardManageStaffPage(request, response, session, dao, selectedStaff, "update",
-                    "Staff name already exists in another account!");
+        String validationError = validateStaffUpdate(admin, dao, selectedStaff);
+        if (validationError != null) {
+            if ("Staff not found.".equals(validationError)) {
+                session.setAttribute("errorMsg", validationError);
+                return;
+            }
+            forwardUpdateStaffError(request, response, session, dao, selectedStaff, validationError);
             return;
         }
 
         Manager manager = new Manager();
-        manager.setManagerId(id);
-        manager.setFullName(name);
-        manager.setEmail(email);
-        manager.setManagerRole(role);
-        manager.setStatus(status);
+        manager.setManagerId(selectedStaff.getManagerId());
+        manager.setFullName(selectedStaff.getFullName());
+        manager.setEmail(selectedStaff.getEmail());
+        manager.setManagerRole(selectedStaff.getManagerRole());
+        manager.setStatus(selectedStaff.getStatus());
 
         if (password != null && !password.trim().isEmpty()) {
-            String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
-            manager.setPassword(hashedPassword);
+            manager.setPassword(password);
         } else {
             manager.setPassword(null);
         }
@@ -204,6 +239,12 @@ public class AdminStaffController extends HttpServlet {
     private void updateStaffStatus(HttpServletRequest request, HttpSession session,
             Manager admin, ManagerDAO dao, boolean active) {
         int id = Integer.parseInt(request.getParameter("managerId"));
+        Manager targetStaff = dao.getById(id);
+
+        if (isInvalidStaff(targetStaff)) {
+            session.setAttribute("errorMsg", "Staff not found.");
+            return;
+        }
 
         if (!active && id == admin.getManagerId()) {
             session.setAttribute("errorMsg", "You cannot ban yourself!");
