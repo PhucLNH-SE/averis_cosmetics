@@ -41,6 +41,7 @@ public class AuthController extends HttpServlet {
                 break;
             case "login":
             default:
+                consumeLoginFlashMessage(request.getSession(false), request);
                 request.getRequestDispatcher("/WEB-INF/views/customer/auth/login.jsp")
                         .forward(request, response);
                 break;
@@ -214,6 +215,28 @@ public class AuthController extends HttpServlet {
             }
         }
         return sb.toString();
+    }
+
+    private void consumeLoginFlashMessage(HttpSession session, HttpServletRequest request) {
+        if (session == null) {
+            return;
+        }
+
+        Object popupMessage = session.getAttribute("loginPopupMessage");
+        if (popupMessage == null) {
+            return;
+        }
+
+        request.setAttribute("popupMessage", popupMessage);
+        request.setAttribute(
+                "popupType",
+                session.getAttribute("loginPopupType") != null
+                        ? session.getAttribute("loginPopupType")
+                        : "success"
+        );
+
+        session.removeAttribute("loginPopupMessage");
+        session.removeAttribute("loginPopupType");
     }
 }
 

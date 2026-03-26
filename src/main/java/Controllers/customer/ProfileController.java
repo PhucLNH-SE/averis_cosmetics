@@ -112,7 +112,11 @@ public class ProfileController extends HttpServlet {
     boolean ok = dao.updateProfile(customer);
 
     if (ok) {
-        request.getSession().setAttribute("customer", customer);
+        HttpSession session = request.getSession(false);
+        if (session != null) {
+            session.setAttribute("customer", customer);
+            setProfileFlashMessage(session, "Profile updated successfully.", "success");
+        }
         response.sendRedirect(request.getContextPath() + "/profile?action=view");
     } else {
         request.setAttribute("error", "Update failed.");
@@ -198,6 +202,15 @@ public class ProfileController extends HttpServlet {
             }
             session.removeAttribute("profileMessage");
         }
+    }
+
+    private void setProfileFlashMessage(HttpSession session, String message, String type) {
+        if (session == null) {
+            return;
+        }
+
+        session.setAttribute("profileMessage", message);
+        session.setAttribute("profileMessageType", type);
     }
 
     private void changePassword(HttpServletRequest request,
@@ -291,16 +304,22 @@ public class ProfileController extends HttpServlet {
             throws ServletException, IOException {
 
         int orderId = Integer.parseInt(request.getParameter("orderId"));
+        HttpSession session = request.getSession(false);
 
         OrderDAO dao = new OrderDAO();
 
         boolean success = dao.cancelOrder(orderId);
 
         if (success) {
-            response.sendRedirect(request.getContextPath() + "/profile?action=orders&cancelSuccess=1");
+            setProfileFlashMessage(session,
+                    "Order #" + orderId + " has been cancelled successfully.",
+                    "success");
+            response.sendRedirect(request.getContextPath() + "/profile?action=orders");
         } else {
-            request.setAttribute("error", "Cannot cancel this order.");
-            showOrders(request, response, customer);
+            setProfileFlashMessage(session,
+                    "Unable to cancel this order. Please try again.",
+                    "error");
+            response.sendRedirect(request.getContextPath() + "/profile?action=orders");
         }
     }
 
