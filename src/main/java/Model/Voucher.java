@@ -16,7 +16,7 @@ public class Voucher {
     private int quantity;
     private LocalDateTime expiredAt;
     private Boolean status;
-
+    private Boolean showonfreevoucher;
     private String voucherType;
     private LocalDateTime fixedStartAt;
     private LocalDateTime fixedEndAt;
@@ -27,9 +27,7 @@ public class Voucher {
     public Voucher() {
     }
 
-    public Voucher(int voucherId, String code, String discountType, BigDecimal discountValue, int quantity,
-            LocalDateTime expiredAt, Boolean status, String voucherType, LocalDateTime fixedStartAt,
-            LocalDateTime fixedEndAt, Integer relativeDays, int claimedQuantity, LocalDateTime createdAt) {
+    public Voucher(int voucherId, String code, String discountType, BigDecimal discountValue, int quantity, LocalDateTime expiredAt, Boolean status, Boolean showonfreevoucher, String voucherType, LocalDateTime fixedStartAt, LocalDateTime fixedEndAt, Integer relativeDays, int claimedQuantity, LocalDateTime createdAt) {
         this.voucherId = voucherId;
         this.code = code;
         this.discountType = discountType;
@@ -37,6 +35,7 @@ public class Voucher {
         this.quantity = quantity;
         this.expiredAt = expiredAt;
         this.status = status;
+        this.showonfreevoucher = showonfreevoucher;
         this.voucherType = voucherType;
         this.fixedStartAt = fixedStartAt;
         this.fixedEndAt = fixedEndAt;
@@ -44,6 +43,16 @@ public class Voucher {
         this.claimedQuantity = claimedQuantity;
         this.createdAt = createdAt;
     }
+
+    public Boolean getShowonfreevoucher() {
+        return showonfreevoucher;
+    }
+
+    public void setShowonfreevoucher(Boolean showonfreevoucher) {
+        this.showonfreevoucher = showonfreevoucher;
+    }
+
+    
 
     public int getVoucherId() {
         return voucherId;
