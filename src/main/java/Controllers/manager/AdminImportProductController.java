@@ -18,6 +18,13 @@ import java.util.List;
 public class AdminImportProductController extends HttpServlet {
 
     private final ImportProductDAO dao = new ImportProductDAO();
+    private static final String ADMIN_URL = "/admin/import-product";
+    private static final String STAFF_URL = "/staff/manage-import-product";
+    private static final String ADMIN_PANEL = "/WEB-INF/views/admin/admin-panel.jsp";
+    private static final String STAFF_PANEL = "/WEB-INF/views/staff/staff-panel.jsp";
+    private static final String ADMIN_HISTORY_CONTENT = "/WEB-INF/views/admin/partials/manage-importproduct-content.jsp";
+    private static final String STAFF_IMPORT_CONTENT = "/WEB-INF/views/staff/partials/import-product-content.jsp";
+    private static final String DETAIL_PAGE = "/WEB-INF/views/staff/import-detail.jsp";
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -25,19 +32,33 @@ public class AdminImportProductController extends HttpServlet {
         String action = request.getParameter("action");
 
         if (action == null || action.trim().isEmpty()) {
-            action = "importproduct";
+            action = isStaffRoute(request) ? "importproduct" : "history";
         }
 
         switch (action) {
             case "history":
-                showHistory(request, response);
+                if (isStaffRoute(request)) {
+                    response.sendRedirect(buildImportUrl(request));
+                } else {
+                    showHistory(request, response);
+                }
                 break;
             case "viewdetail":
-                showDetail(request, response);
+                if (isStaffRoute(request)) {
+                    response.sendRedirect(buildImportUrl(request));
+                } else {
+                    showDetail(request, response);
+                }
                 break;
             case "importproduct":
+                if (isStaffRoute(request)) {
+                    showImportProduct(request, response);
+                } else {
+                    response.sendRedirect(buildHistoryUrl(request));
+                }
+                break;
             default:
-                showImportProduct(request, response);
+                response.sendRedirect(buildHistoryUrl(request));
                 break;
         }
     }
@@ -53,24 +74,41 @@ public class AdminImportProductController extends HttpServlet {
 
         switch (action) {
             case "receive":
+                if (isStaffRoute(request)) {
+                    response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+                    return;
+                }
                 receiveOrder(request, response);
                 break;
             case "importproduct":
-            default:
+                if (!isStaffRoute(request)) {
+                    response.sendRedirect(buildHistoryUrl(request));
+                    return;
+                }
                 importProduct(request, response);
+                break;
+            default:
+                response.sendRedirect(buildHistoryUrl(request));
                 break;
         }
     }
 
     private void showDetail(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        int orderId = Integer.parseInt(request.getParameter("orderId"));
+        Integer orderId = parseInteger(request.getParameter("orderId"));
+        if (orderId == null) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+            return;
+        }
+
         List<PurchaseDetail> details = dao.getImportOrderDetail(orderId);
         String status = dao.getImportOrderStatus(orderId);
         request.setAttribute("details", details);
         request.setAttribute("orderStatus", status);
         request.setAttribute("orderId", orderId);
-        request.getRequestDispatcher("/WEB-INF/views/admin/import-detail.jsp").forward(request, response);
+        request.setAttribute("canReceive", !isStaffRoute(request));
+        request.setAttribute("detailFormAction", request.getContextPath() + ADMIN_URL);
+        request.getRequestDispatcher(DETAIL_PAGE).forward(request, response);
     }
 
     private void showImportProduct(HttpServletRequest request, HttpServletResponse response)
@@ -104,9 +142,9 @@ public class AdminImportProductController extends HttpServlet {
         request.setAttribute("activeCount", activeCount);
         request.setAttribute("inactiveCount", listP.size() - activeCount);
 
-        request.setAttribute("currentView", "inventory");
-        request.setAttribute("contentPage", "/WEB-INF/views/admin/partials/import-product-content.jsp");
-        request.getRequestDispatcher("/WEB-INF/views/admin/admin-panel.jsp").forward(request, response);
+        request.setAttribute("currentView", "import-product");
+        request.setAttribute("contentPage", STAFF_IMPORT_CONTENT);
+        request.getRequestDispatcher(STAFF_PANEL).forward(request, response);
     }
 
     private String trimToNull(String value) {
@@ -192,16 +230,16 @@ public class AdminImportProductController extends HttpServlet {
         }
 
         dao.updateTotalAmount(orderId, total);
-        response.sendRedirect(request.getContextPath() + "/admin/import-product?action=history&success=import");
+        response.sendRedirect(buildImportUrl(request) + "&success=import");
     }
 
     private void showHistory(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         List<PurchaseOrder> history = dao.getImportHistory();
         request.setAttribute("history", history);
-        request.setAttribute("currentView", "inventory");
-        request.setAttribute("contentPage", "/WEB-INF/views/admin/partials/manage-importproduct-content.jsp");
-        request.getRequestDispatcher("/WEB-INF/views/admin/admin-panel.jsp").forward(request, response);
+        request.setAttribute("currentView", "import-product");
+        request.setAttribute("contentPage", ADMIN_HISTORY_CONTENT);
+        request.getRequestDispatcher(ADMIN_PANEL).forward(request, response);
     }
 
     private void receiveOrder(HttpServletRequest request, HttpServletResponse response)
@@ -218,17 +256,46 @@ public class AdminImportProductController extends HttpServlet {
         String orderIdRaw = trimToNull(request.getParameter("orderId"));
         if (orderIdRaw == null) {
 
-            response.sendRedirect(request.getContextPath() + "/admin/import-product?action=history&error=importFailed");
+            response.sendRedirect(request.getContextPath() + ADMIN_URL + "?action=history&error=importFailed");
             return;
         }
 
         int orderId = Integer.parseInt(orderIdRaw);
         boolean ok = dao.confirmReceipt(orderId, manager.getManagerId());
         if (ok) {
-            response.sendRedirect(request.getContextPath() + "/admin/import-product?action=history&success=received");
+            response.sendRedirect(request.getContextPath() + ADMIN_URL + "?action=history&success=received");
         } else {
-            response.sendRedirect(request.getContextPath() + "/admin/import-product?action=history&error=importFailed");
+            response.sendRedirect(request.getContextPath() + ADMIN_URL + "?action=history&error=importFailed");
         }
+    }
+
+    private boolean isStaffRoute(HttpServletRequest request) {
+        String servletPath = request.getServletPath();
+        return servletPath != null && servletPath.startsWith("/staff/");
+    }
+
+    private Integer parseInteger(String value) {
+        String trimmed = trimToNull(value);
+        if (trimmed == null) {
+            return null;
+        }
+
+        try {
+            return Integer.valueOf(trimmed);
+        } catch (NumberFormatException ex) {
+            return null;
+        }
+    }
+
+    private String buildHistoryUrl(HttpServletRequest request) {
+        if (isStaffRoute(request)) {
+            return buildImportUrl(request);
+        }
+        return request.getContextPath() + ADMIN_URL + "?action=history";
+    }
+
+    private String buildImportUrl(HttpServletRequest request) {
+        return request.getContextPath() + STAFF_URL + "?action=importproduct";
     }
 }
 

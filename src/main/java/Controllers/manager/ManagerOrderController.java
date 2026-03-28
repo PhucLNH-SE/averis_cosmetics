@@ -90,15 +90,31 @@ public class ManagerOrderController extends HttpServlet {
     private void viewOrderDetail(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        int orderId = Integer.parseInt(request.getParameter("orderId"));
+        Integer orderId = parseInteger(request.getParameter("orderId"));
+        if (orderId == null) {
+            response.sendRedirect(buildManageOrdersRedirect(request, "updateFailed", null, null));
+            return;
+        }
 
         OrderDAO dao = new OrderDAO();
         Orders order = dao.getOrderById(orderId);
+        if (order == null) {
+            response.sendRedirect(buildManageOrdersRedirect(request, "updateFailed", null, null));
+            return;
+        }
         List<OrderDetail> details = dao.getOrderDetailsByOrderId(orderId);
+
+        HttpSession session = request.getSession(false);
+        Manager manager = session == null ? null : (Manager) session.getAttribute("manager");
+        Integer currentManagerId = manager == null ? null : manager.getManagerId();
+        boolean canEditOrder = currentManagerId != null
+                && (order.getHandledBy() == null || order.getHandledBy().equals(currentManagerId));
 
         request.setAttribute("order", order);
         request.setAttribute("details", details);
         request.setAttribute("searchKeyword", trimToNull(request.getParameter("keyword")));
+        request.setAttribute("currentManagerId", currentManagerId);
+        request.setAttribute("canEditOrder", canEditOrder);
 
         if (order != null && order.getHandledBy() != null) {
             ManagerDAO managerDAO = new ManagerDAO();
@@ -131,69 +147,53 @@ public class ManagerOrderController extends HttpServlet {
             return;
         }
 
-        String[] orderIds = request.getParameterValues("orderId");
-        String[] paymentStatuses = request.getParameterValues("paymentStatus");
-        String[] orderStatuses = request.getParameterValues("orderStatus");
-        if (orderIds == null || paymentStatuses == null || orderStatuses == null) {
-            response.sendRedirect(buildManageOrdersRedirect(request, "updateFailed", null, null));
+        Integer orderId = parseInteger(request.getParameter("orderId"));
+        String paymentStatus = trimToNull(request.getParameter("paymentStatus"));
+        String orderStatus = trimToNull(request.getParameter("orderStatus"));
+
+        if (orderId == null || paymentStatus == null || orderStatus == null) {
+            response.sendRedirect(buildOrderDetailRedirect(request, orderId, "updateFailed", null, null));
             return;
         }
 
         OrderDAO dao = new OrderDAO();
         Integer handledBy = manager.getManagerId();
-        boolean hadForbidden = false;
-        boolean hadUpdateFailed = false;
-        String validationErrorMessage = null;
-
-        for (int i = 0; i < orderIds.length; i++) {
-            int orderId = Integer.parseInt(orderIds[i]);
-            Orders existingOrder = dao.getOrderUpdateInfo(orderId);
-
-            if (existingOrder == null) {
-                hadUpdateFailed = true;
-                continue;
-            }
-
-            boolean isChanged = !equalsIgnoreCase(existingOrder.getPaymentStatus(), paymentStatuses[i])
-                    || !equalsIgnoreCase(existingOrder.getOrderStatus(), orderStatuses[i]);
-            if (!isChanged) {
-                continue;
-            }
-
-            Integer existingHandledBy = existingOrder.getHandledBy();
-            boolean canUpdate = existingHandledBy == null || existingHandledBy.equals(handledBy);
-            if (!canUpdate) {
-                hadForbidden = true;
-                continue;
-            }
-
-            try {
-                ValidationUtil.validateOrderStatusTransition(existingOrder.getOrderStatus(), orderStatuses[i]);
-                if (equalsIgnoreCase(existingOrder.getPaymentMethod(), "COD")) {
-                    ValidationUtil.validateCodStatus(existingOrder.getPaymentMethod(),
-                            paymentStatuses[i], orderStatuses[i]);
-                }
-            } catch (IllegalArgumentException ex) {
-                if (validationErrorMessage == null) {
-                    validationErrorMessage = ex.getMessage();
-                }
-                continue;
-            }
-
-            if (!dao.updateOrder(orderId, paymentStatuses[i], orderStatuses[i], handledBy)) {
-                hadUpdateFailed = true;
-            }
+        Orders existingOrder = dao.getOrderUpdateInfo(orderId);
+        if (existingOrder == null) {
+            response.sendRedirect(buildOrderDetailRedirect(request, orderId, "updateFailed", null, null));
+            return;
         }
 
-        if (validationErrorMessage != null) {
-            response.sendRedirect(buildManageOrdersRedirect(request, "validationError", validationErrorMessage, null));
-        } else if (hadUpdateFailed) {
-            response.sendRedirect(buildManageOrdersRedirect(request, "updateFailed", null, null));
-        } else if (hadForbidden) {
-            response.sendRedirect(buildManageOrdersRedirect(request, "notAllowed", null, null));
-        } else {
-            response.sendRedirect(buildManageOrdersRedirect(request, null, null, "update"));
+        boolean isChanged = !equalsIgnoreCase(existingOrder.getPaymentStatus(), paymentStatus)
+                || !equalsIgnoreCase(existingOrder.getOrderStatus(), orderStatus);
+        if (!isChanged) {
+            response.sendRedirect(buildOrderDetailRedirect(request, orderId, null, null, "update"));
+            return;
         }
+
+        Integer existingHandledBy = existingOrder.getHandledBy();
+        boolean canUpdate = existingHandledBy == null || existingHandledBy.equals(handledBy);
+        if (!canUpdate) {
+            response.sendRedirect(buildOrderDetailRedirect(request, orderId, "notAllowed", null, null));
+            return;
+        }
+
+        try {
+            ValidationUtil.validateOrderStatusTransition(existingOrder.getOrderStatus(), orderStatus);
+            if (equalsIgnoreCase(existingOrder.getPaymentMethod(), "COD")) {
+                ValidationUtil.validateCodStatus(existingOrder.getPaymentMethod(), paymentStatus, orderStatus);
+            }
+        } catch (IllegalArgumentException ex) {
+            response.sendRedirect(buildOrderDetailRedirect(request, orderId, "validationError", ex.getMessage(), null));
+            return;
+        }
+
+        if (!dao.updateOrder(orderId, paymentStatus, orderStatus, handledBy)) {
+            response.sendRedirect(buildOrderDetailRedirect(request, orderId, "updateFailed", null, null));
+            return;
+        }
+
+        response.sendRedirect(buildOrderDetailRedirect(request, orderId, null, null, "update"));
     }
 
     private boolean isStaffRoute(HttpServletRequest request) {
@@ -231,6 +231,39 @@ public class ManagerOrderController extends HttpServlet {
         return redirect.toString();
     }
 
+    private String buildOrderDetailRedirect(HttpServletRequest request, Integer orderId,
+            String error, String message, String success) throws IOException {
+        if (orderId == null) {
+            return buildManageOrdersRedirect(request, error, message, success);
+        }
+
+        StringBuilder redirect = new StringBuilder(request.getContextPath())
+                .append(isStaffRoute(request) ? STAFF_URL : ADMIN_URL);
+
+        String keyword = trimToNull(firstNonBlank(
+                request.getParameter("returnKeyword"),
+                request.getParameter("keyword")
+        ));
+
+        StringBuilder query = new StringBuilder();
+        appendQueryParam(query, "action", "detail");
+        appendQueryParam(query, "orderId", String.valueOf(orderId));
+        if (keyword != null) {
+            appendQueryParam(query, "keyword", keyword);
+        }
+        if (error != null) {
+            appendQueryParam(query, "error", error);
+        }
+        if (message != null) {
+            appendQueryParam(query, "message", message);
+        }
+        if (success != null) {
+            appendQueryParam(query, "success", success);
+        }
+
+        return redirect.append("?").append(query).toString();
+    }
+
     private void appendQueryParam(StringBuilder query, String key, String value) throws IOException {
         if (query.length() > 0) {
             query.append("&");
@@ -246,6 +279,19 @@ public class ManagerOrderController extends HttpServlet {
         }
         String trimmed = value.trim();
         return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    private Integer parseInteger(String value) {
+        String trimmed = trimToNull(value);
+        if (trimmed == null) {
+            return null;
+        }
+
+        try {
+            return Integer.valueOf(trimmed);
+        } catch (NumberFormatException ex) {
+            return null;
+        }
     }
 
     private String firstNonBlank(String... values) {

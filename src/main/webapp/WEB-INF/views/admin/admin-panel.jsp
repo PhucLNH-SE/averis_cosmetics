@@ -66,11 +66,11 @@
                         <i class="bi bi-box-seam-fill"></i>
                         <span>Manage Products</span>
                     </a>
-                    <a class="admin-sidebar__link ${currentView == 'inventory' ? 'active' : ''}"
+                    <a class="admin-sidebar__link ${currentView == 'import-product' ? 'active' : ''}"
                        href="${pageContext.request.contextPath}/admin/import-product?action=history"
-                       title="Manage Inventory">
+                       title="Manage Import Product">
                         <i class="bi bi-boxes"></i>
-                        <span>Manage Inventory</span>
+                        <span>Manage Import Product</span>
                     </a>
                     <a class="admin-sidebar__link ${currentView == 'voucher' ? 'active' : ''}"
                        href="${pageContext.request.contextPath}/admin/manage-voucher"
