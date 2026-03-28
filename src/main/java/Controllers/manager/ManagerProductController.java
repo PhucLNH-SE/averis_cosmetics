@@ -252,6 +252,12 @@ public class ManagerProductController extends HttpServlet {
             throws IOException, ServletException {
 
         int id = parseInt(request.getParameter("productId"));
+        if (id <= 0) {
+            session.setAttribute("errorMsg", "Invalid product ID.");
+            response.sendRedirect(buildManageProductRedirect(request));
+            return;
+        }
+
         String name = request.getParameter("name");
         String desc = request.getParameter("description");
         int bid = parseInt(request.getParameter("brandId"));

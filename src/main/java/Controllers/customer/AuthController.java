@@ -118,7 +118,7 @@ public class AuthController extends HttpServlet {
         customer.setFullName(fullName);
         customer.setEmail(email);
         customer.setPassword(BCrypt.hashpw(password, BCrypt.gensalt()));
-        customer.setGender(normalizeGender(gender));
+        customer.setGender(gender);
         customer.setDateOfBirth(dateOfBirth);
         customer.setStatus(true);
         customer.setEmailVerified(false);
@@ -136,20 +136,20 @@ public class AuthController extends HttpServlet {
         }
     }
 
-    private String normalizeGender(String gender) {
-        if (gender == null || gender.trim().isEmpty()) {
-            return null;
-        }
-        String normalized = gender.trim().toUpperCase();
-        switch (normalized) {
-            case "MALE":
-            case "FEMALE":
-            case "OTHER":
-                return normalized;
-            default:
-                return null;
-        }
-    }
+//    private String normalizeGender(String gender) {
+//        if (gender == null || gender.trim().isEmpty()) {
+//            return null;
+//        }
+//        String normalized = gender.trim().toUpperCase();
+//        switch (normalized) {
+//            case "MALE":
+//            case "FEMALE":
+//            case "OTHER":
+//                return normalized;
+//            default:
+//                return null;
+//        }
+//    }
 
     private void loginCustomer(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -195,27 +195,27 @@ public class AuthController extends HttpServlet {
         }
     }
 
-    private String buildRegistrationErrorMessage(Map<String, String> errors) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("Please fix the highlighted fields and try again.");
-        for (String message : errors.values()) {
-            if (message != null && !message.trim().isEmpty()) {
-                sb.append("\\n").append(message.trim());
-            }
-        }
-        return sb.toString();
-    }
-
-    private String buildLoginErrorMessage(Map<String, String> errors) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("Please fix the highlighted fields and try again.");
-        for (String message : errors.values()) {
-            if (message != null && !message.trim().isEmpty()) {
-                sb.append("\\n").append(message.trim());
-            }
-        }
-        return sb.toString();
-    }
+//    private String buildRegistrationErrorMessage(Map<String, String> errors) {
+//        StringBuilder sb = new StringBuilder();
+//        sb.append("Please fix the highlighted fields and try again.");
+//        for (String message : errors.values()) {
+//            if (message != null && !message.trim().isEmpty()) {
+//                sb.append("\\n").append(message.trim());
+//            }
+//        }
+//        return sb.toString();
+//    }
+//
+//    private String buildLoginErrorMessage(Map<String, String> errors) {
+//        StringBuilder sb = new StringBuilder();
+//        sb.append("Please fix the highlighted fields and try again.");
+//        for (String message : errors.values()) {
+//            if (message != null && !message.trim().isEmpty()) {
+//                sb.append("\\n").append(message.trim());
+//            }
+//        }
+//        return sb.toString();
+//    }
 
     private void consumeLoginFlashMessage(HttpSession session, HttpServletRequest request) {
         if (session == null) {
