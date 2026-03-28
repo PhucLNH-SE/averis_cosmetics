@@ -3,9 +3,11 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <fmt:setLocale value="vi_VN"/>
 
-<form action="${pageContext.request.contextPath}/admin/import-product" method="post">
-    <input type="hidden" name="action" value="receive">
-    <input type="hidden" name="orderId" value="${orderId}">
+<form action="${detailFormAction}" method="post">
+    <c:if test="${canReceive}">
+        <input type="hidden" name="action" value="receive">
+        <input type="hidden" name="orderId" value="${orderId}">
+    </c:if>
 
     <table class="table table-sm mb-0">
         <thead>
@@ -53,13 +55,18 @@
     </table>
 
     <div class="p-3 border-top d-flex justify-content-end">
-        <c:if test="${orderStatus == 'PENDING'}">
-            <button type="submit" class="btn btn-add text-white">
-                <i class="bi bi-check-circle me-1"></i> Confirm Receipt
-            </button>
-        </c:if>
-        <c:if test="${orderStatus != 'PENDING'}">
-            <span class="badge bg-success">Order already received</span>
-        </c:if>
+        <c:choose>
+            <c:when test="${orderStatus != 'PENDING'}">
+                <span class="badge bg-success">Order already received</span>
+            </c:when>
+            <c:when test="${canReceive}">
+                <button type="submit" class="btn btn-add text-white">
+                    <i class="bi bi-check-circle me-1"></i> Approve Import Order
+                </button>
+            </c:when>
+            <c:otherwise>
+                <span class="badge bg-warning text-dark">Waiting for admin approval</span>
+            </c:otherwise>
+        </c:choose>
     </div>
 </form>
