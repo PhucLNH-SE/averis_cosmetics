@@ -97,7 +97,7 @@ public class ManagerCategoryController extends HttpServlet {
             return;
         }
 
-        boolean added = dao.addCategory(name, status);
+        boolean added = dao.insertCategory(name, status);
         response.sendRedirect(request.getContextPath()
                 + (added ? ADMIN_LIST_URL + "?success=add"
                         : ADMIN_LIST_URL + "?error=addFailed"));

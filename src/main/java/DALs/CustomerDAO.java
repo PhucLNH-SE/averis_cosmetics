@@ -58,21 +58,12 @@ public class CustomerDAO extends DBContext {
         String sql = "INSERT INTO Customers (username, full_name, email, password, gender, date_of_birth, status, email_verified) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            ps.setString(1, customer.getUsername());
-            ps.setString(2, customer.getFullName());
-            ps.setString(3, customer.getEmail());
-            ps.setString(4, customer.getPassword());
-            ps.setString(5, customer.getGender());
-            ps.setObject(6, customer.getDateOfBirth());
-            ps.setBoolean(7, customer.getStatus());
-            ps.setBoolean(8, customer.getEmailVerified());
-
-            int rowsAffected = ps.executeUpdate();
-
-            if (rowsAffected > 0) {
-                ResultSet generatedKeys = ps.getGeneratedKeys();
+            fillCustomerStatement(ps, customer, false);
+            if (ps.executeUpdate() > 0) {
+                try (ResultSet generatedKeys = ps.getGeneratedKeys()) {
                 if (generatedKeys.next()) {
                     customer.setCustomerId(generatedKeys.getInt(1));
+                }
                 }
                 return true;
             }
@@ -87,18 +78,8 @@ public class CustomerDAO extends DBContext {
         String sql = "UPDATE Customers SET username = ?, full_name = ?, email = ?, password = ?, gender = ?, date_of_birth = ?, status = ?, email_verified = ? WHERE customer_id = ?";
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setString(1, customer.getUsername());
-            ps.setString(2, customer.getFullName());
-            ps.setString(3, customer.getEmail());
-            ps.setString(4, customer.getPassword());
-            ps.setString(5, customer.getGender());
-            ps.setObject(6, customer.getDateOfBirth());
-            ps.setBoolean(7, customer.getStatus());
-            ps.setBoolean(8, customer.getEmailVerified());
-            ps.setInt(9, customer.getCustomerId());
-
-            int rowsAffected = ps.executeUpdate();
-            return rowsAffected > 0;
+            fillCustomerStatement(ps, customer, true);
+            return ps.executeUpdate() > 0;
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -141,81 +122,22 @@ public class CustomerDAO extends DBContext {
     }
 
     public boolean checkUsernameExists(String username) {
-        String sql = "SELECT COUNT(*) FROM Customers WHERE username = ?";
-
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setString(1, username);
-
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getInt(1) > 0;
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return false;
+        return existsByField("username", username);
     }
 
     public boolean checkEmailExists(String email) {
-        String sql = "SELECT COUNT(*) FROM Customers WHERE email = ?";
-
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setString(1, email);
-
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getInt(1) > 0;
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return false;
+        return existsByField("email", email);
     }
 
     public boolean checkUsernameExistsExceptId(String username, int customerId) {
-        String sql = "SELECT COUNT(*) FROM Customers WHERE username = ? AND customer_id <> ?";
-
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setString(1, username);
-            ps.setInt(2, customerId);
-
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getInt(1) > 0;
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return false;
+        return existsByFieldExceptId("username", username, customerId);
     }
 
     public boolean checkEmailExistsExceptId(String email, int customerId) {
         if (email == null || email.trim().isEmpty()) {
             return false;
         }
-
-        String sql = "SELECT COUNT(*) FROM Customers WHERE email = ? AND customer_id <> ?";
-
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setString(1, email);
-            ps.setInt(2, customerId);
-
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getInt(1) > 0;
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return false;
+        return existsByFieldExceptId("email", email, customerId);
     }
 
     public Customer getCustomerByAuthToken(String token, String type) {
@@ -324,21 +246,14 @@ public class CustomerDAO extends DBContext {
     }
 
     public boolean updatePassword(int customerId, String newPassword) {
-
-        String sql
-                = "UPDATE Customers "
+        String sql = "UPDATE Customers "
                 + "SET password = ? "
                 + "WHERE customer_id = ?";
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
-
-            String hashed = BCrypt.hashpw(newPassword, BCrypt.gensalt());
-
-            ps.setString(1, hashed);
+            ps.setString(1, hashPassword(newPassword));
             ps.setInt(2, customerId);
-
             return ps.executeUpdate() > 0;
-
         } catch (Exception e) {
             e.printStackTrace();
             return false;
@@ -367,26 +282,16 @@ public class CustomerDAO extends DBContext {
     }
 
     public Customer findByEmailAndVerified(String email) {
-
         String sql = "SELECT * FROM Customers "
                 + "WHERE email = ? AND email_verified = 1";
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
-
             ps.setString(1, email);
-
-            ResultSet rs = ps.executeQuery();
-
-            if (rs.next()) {
-
-                Customer c = new Customer();
-                c.setCustomerId(rs.getInt("customer_id"));
-                c.setEmail(rs.getString("email"));
-                c.setUsername(rs.getString("username"));
-
-                return c;
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapCustomerIdentity(rs);
+                }
             }
-
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -421,7 +326,6 @@ public class CustomerDAO extends DBContext {
     }
 
     public Customer findByResetToken(String token) {
-
         String sql = "SELECT * FROM Customers "
                 + "WHERE auth_token = ? "
                 + "AND auth_token_type = 'PASSWORD_RESET' "
@@ -429,16 +333,12 @@ public class CustomerDAO extends DBContext {
                 + "AND auth_token_expired_at > GETDATE()";
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
-
             ps.setString(1, token);
-            ResultSet rs = ps.executeQuery();
-
-            if (rs.next()) {
-                Customer c = new Customer();
-                c.setCustomerId(rs.getInt("customer_id"));
-                return c;
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapCustomerIdOnly(rs);
+                }
             }
-
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -447,9 +347,6 @@ public class CustomerDAO extends DBContext {
     }
 
     public boolean updatePasswordByToken(String token, String newPassword) {
-
-        String hash = BCrypt.hashpw(newPassword, BCrypt.gensalt());
-
         String sql = "UPDATE Customers SET password = ?, auth_token_used = 1 "
                 + "WHERE auth_token = ? "
                 + "AND auth_token_type = 'PASSWORD_RESET' "
@@ -457,17 +354,78 @@ public class CustomerDAO extends DBContext {
                 + "AND auth_token_expired_at > GETDATE()";
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
-
-            ps.setString(1, hash);
+            ps.setString(1, hashPassword(newPassword));
             ps.setString(2, token);
-
             return ps.executeUpdate() > 0;
-
         } catch (Exception e) {
             e.printStackTrace();
         }
 
         return false;
+    }
+
+    private void fillCustomerStatement(PreparedStatement ps, Customer customer, boolean includeId) throws Exception {
+        ps.setString(1, customer.getUsername());
+        ps.setString(2, customer.getFullName());
+        ps.setString(3, customer.getEmail());
+        ps.setString(4, customer.getPassword());
+        ps.setString(5, customer.getGender());
+        ps.setObject(6, customer.getDateOfBirth());
+        ps.setBoolean(7, customer.getStatus());
+        ps.setBoolean(8, customer.getEmailVerified());
+
+        if (includeId) {
+            ps.setInt(9, customer.getCustomerId());
+        }
+    }
+
+    private boolean existsByField(String fieldName, String value) {
+        String sql = "SELECT 1 FROM Customers WHERE " + fieldName + " = ?";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, value);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    private boolean existsByFieldExceptId(String fieldName, String value, int customerId) {
+        String sql = "SELECT 1 FROM Customers WHERE " + fieldName + " = ? AND customer_id <> ?";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, value);
+            ps.setInt(2, customerId);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    private String hashPassword(String rawPassword) {
+        return BCrypt.hashpw(rawPassword, BCrypt.gensalt());
+    }
+
+    private Customer mapCustomerIdentity(ResultSet rs) throws Exception {
+        Customer customer = new Customer();
+        customer.setCustomerId(rs.getInt("customer_id"));
+        customer.setEmail(rs.getString("email"));
+        customer.setUsername(rs.getString("username"));
+        return customer;
+    }
+
+    private Customer mapCustomerIdOnly(ResultSet rs) throws Exception {
+        Customer customer = new Customer();
+        customer.setCustomerId(rs.getInt("customer_id"));
+        return customer;
     }
 
 }

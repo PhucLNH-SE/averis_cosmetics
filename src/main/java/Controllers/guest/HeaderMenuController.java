@@ -26,7 +26,7 @@ public class HeaderMenuController extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         List<Category> categories = categoryDAO.getAllCategories();
-        List<Brand> brands = brandDAO.getAll();
+        List<Brand> brands = brandDAO.getAllBrands();
 
         StringBuilder json = new StringBuilder();
         json.append("{\"categories\":[");
