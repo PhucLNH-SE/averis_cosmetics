@@ -4,9 +4,9 @@ import DALs.StatisticDAO;
 import DALs.StatisticReportDAO;
 import Model.Manager;
 import Model.MonthlyStatisticSummary;
-import Model.ProductVariant;
 import Model.StatisticReport;
 import Model.StatisticReportItem;
+import Utils.StatisticUtils;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -14,17 +14,14 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.YearMonth;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 public class AdminStatisticReportController extends HttpServlet {
-
-    private static final int DEFAULT_LOW_STOCK_THRESHOLD = 10;
-    private static final int DEFAULT_TOP_SELLING_LIMIT = 5;
-    private static final int DEFAULT_LOW_STOCK_LIMIT = 5;
 
     private StatisticDAO statisticDAO;
     private StatisticReportDAO statisticReportDAO;
@@ -38,7 +35,7 @@ public class AdminStatisticReportController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        String action = trimToNull(request.getParameter("action"));
+        String action = StatisticUtils.trimToNull(request.getParameter("action"));
         String actionKey = action == null ? "" : action.toLowerCase();
 
         switch (actionKey) {
@@ -55,7 +52,7 @@ public class AdminStatisticReportController extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
-        String action = trimToNull(request.getParameter("action"));
+        String action = StatisticUtils.trimToNull(request.getParameter("action"));
         String actionKey = action == null ? "" : action.toLowerCase();
 
         switch (actionKey) {
@@ -73,12 +70,13 @@ public class AdminStatisticReportController extends HttpServlet {
 
     private void showReportList(HttpServletRequest request, HttpServletResponse response, StatisticReport selectedReport)
             throws ServletException, IOException {
-        YearMonth defaultPeriod = getDefaultPeriod();
+        int defaultYear = StatisticUtils.getDefaultPeriod().getYear();
+        int defaultMonth = StatisticUtils.getDefaultPeriod().getMonthValue();
         request.setAttribute("reportList", statisticReportDAO.getAllReports());
         request.setAttribute("selectedReport", selectedReport);
-        request.setAttribute("selectedMonth", defaultPeriod.getMonthValue());
-        request.setAttribute("selectedYear", defaultPeriod.getYear());
-        request.setAttribute("currentDate", LocalDate.now());
+        request.setAttribute("selectedPeriodType", StatisticUtils.PERIOD_MONTH);
+        request.setAttribute("selectedMonth", defaultMonth);
+        request.setAttribute("selectedYear", defaultYear);
         request.setAttribute("currentView", "statistic-report");
         request.setAttribute("contentPage", "/WEB-INF/views/admin/partials/manage-statistic-report-content.jsp");
         request.getRequestDispatcher("/WEB-INF/views/admin/admin-panel.jsp").forward(request, response);
@@ -86,7 +84,7 @@ public class AdminStatisticReportController extends HttpServlet {
 
     private void showReportDetail(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        String reportIdRaw = trimToNull(request.getParameter("id"));
+        String reportIdRaw = StatisticUtils.trimToNull(request.getParameter("id"));
         if (reportIdRaw == null) {
             response.sendRedirect(request.getContextPath() + "/admin/manage-statistic-report?error=notFound");
             return;
@@ -100,6 +98,7 @@ public class AdminStatisticReportController extends HttpServlet {
                 return;
             }
 
+            prepareDetailView(request, selectedReport);
             showReportList(request, response, selectedReport);
         } catch (NumberFormatException ex) {
             response.sendRedirect(request.getContextPath() + "/admin/manage-statistic-report?error=notFound");
@@ -115,41 +114,39 @@ public class AdminStatisticReportController extends HttpServlet {
             return;
         }
 
-        String reportName = trimToNull(request.getParameter("reportName"));
-        String note = trimToNull(request.getParameter("note"));
-        YearMonth defaultPeriod = getDefaultPeriod();
+        String reportName = StatisticUtils.trimToNull(request.getParameter("reportName"));
+        String note = StatisticUtils.trimToNull(request.getParameter("note"));
+        String periodType = StatisticUtils.normalizePeriodType(request.getParameter("periodType"));
 
-        int month = parseIntOrDefault(request.getParameter("month"), defaultPeriod.getMonthValue());
-        int year = parseIntOrDefault(request.getParameter("year"), defaultPeriod.getYear());
+        int defaultYear = StatisticUtils.getDefaultPeriod().getYear();
+        int defaultMonth = StatisticUtils.getDefaultPeriod().getMonthValue();
+        int year = StatisticUtils.parseIntOrDefault(request.getParameter("year"), defaultYear);
+        Integer month = StatisticUtils.isYearPeriod(periodType)
+                ? null
+                : StatisticUtils.parseIntOrDefault(request.getParameter("month"), defaultMonth);
 
-        if (month < 1 || month > 12) {
+        if (!StatisticUtils.isValidPeriod(year, month, periodType)) {
             response.sendRedirect(request.getContextPath() + "/admin/manage-statistic-report?error=invalidPeriod");
             return;
         }
 
-        YearMonth selectedPeriod;
-        try {
-            selectedPeriod = YearMonth.of(year, month);
-        } catch (Exception ex) {
-            response.sendRedirect(request.getContextPath() + "/admin/manage-statistic-report?error=invalidPeriod");
-            return;
-        }
-
-        if (selectedPeriod.isAfter(YearMonth.now())) {
-            response.sendRedirect(request.getContextPath() + "/admin/manage-statistic-report?error=invalidPeriod");
-            return;
-        }
+        LocalDateTime periodStart = StatisticUtils.getPeriodStart(year, month, periodType);
+        LocalDateTime periodEnd = StatisticUtils.getPeriodEnd(year, month, periodType);
 
         if (reportName == null) {
-            reportName = "Statistic Report " + month + "/" + year;
+            reportName = StatisticUtils.isYearPeriod(periodType)
+                    ? "Statistic Report " + year
+                    : "Statistic Report " + month + "/" + year;
         }
 
-        MonthlyStatisticSummary summary = statisticDAO.getMonthlySummary(year, month);
-        List<Map<String, Object>> topSellingProducts = statisticDAO.getTopSellingProducts(year, month, DEFAULT_TOP_SELLING_LIMIT);
-        List<ProductVariant> lowStockProducts = statisticDAO.getLowStockProducts(DEFAULT_LOW_STOCK_THRESHOLD, DEFAULT_LOW_STOCK_LIMIT);
+        MonthlyStatisticSummary summary = statisticDAO.getSummary(year, month, periodType);
+        List<Map<String, Object>> soldProductDetails = statisticDAO.getSoldProductDetails(year, month, periodType);
+        List<Map<String, Object>> revenueProfitChart = statisticDAO.getRevenueProfitChartData(year, month, periodType);
+        List<Map<String, Object>> orderChart = statisticDAO.getOrderStatusChartData(year, month, periodType);
 
         StatisticReport report = new StatisticReport();
         report.setReportName(reportName);
+        report.setPeriodType(periodType);
         report.setReportMonth(month);
         report.setReportYear(year);
         report.setTotalRevenue(summary.getTotalRevenue());
@@ -158,10 +155,12 @@ public class AdminStatisticReportController extends HttpServlet {
         report.setCompletedOrders(summary.getCompletedOrders());
         report.setCancelledOrders(summary.getCancelledOrders());
         report.setNote(note);
+        report.setPeriodStartAt(StatisticUtils.toDate(periodStart));
+        report.setPeriodEndAt(StatisticUtils.toDate(periodEnd));
         report.setCreatedBy(manager.getManagerId());
         report.setStatus(true);
 
-        List<StatisticReportItem> items = buildReportItems(summary, topSellingProducts, lowStockProducts);
+        List<StatisticReportItem> items = buildReportItems(summary, soldProductDetails, revenueProfitChart, orderChart);
 
         boolean created = statisticReportDAO.createReport(report, items);
         response.sendRedirect(request.getContextPath() + "/admin/manage-statistic-report?success="
@@ -170,7 +169,7 @@ public class AdminStatisticReportController extends HttpServlet {
 
     private void deleteReport(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
-        String reportIdRaw = trimToNull(request.getParameter("id"));
+        String reportIdRaw = StatisticUtils.trimToNull(request.getParameter("id"));
         if (reportIdRaw == null) {
             response.sendRedirect(request.getContextPath() + "/admin/manage-statistic-report?error=notFound");
             return;
@@ -186,35 +185,65 @@ public class AdminStatisticReportController extends HttpServlet {
         }
     }
 
+    private void prepareDetailView(HttpServletRequest request, StatisticReport selectedReport) {
+        List<StatisticReportItem> items = selectedReport.getItems();
+        List<StatisticReportItem> soldProductItems = filterItemsByType(items, "SOLD_PRODUCT_DETAIL");
+        List<StatisticReportItem> revenueChartItems = filterItemsByType(items, "REVENUE_CHART");
+        List<StatisticReportItem> profitChartItems = filterItemsByType(items, "PROFIT_CHART");
+        List<StatisticReportItem> orderChartItems = filterItemsByType(items, "ORDER_CHART");
+
+        request.setAttribute("reportSoldProductItems", soldProductItems);
+        request.setAttribute("reportRevenueChartLabelsJson", toChartLabelsJson(revenueChartItems));
+        request.setAttribute("reportRevenueChartDataJson", toChartValuesJson(revenueChartItems));
+        request.setAttribute("reportProfitChartDataJson", toChartValuesJson(profitChartItems));
+        request.setAttribute("reportOrderChartLabelsJson", toChartLabelsJson(orderChartItems));
+        request.setAttribute("reportOrderTotalChartDataJson", toChartValuesJson(orderChartItems));
+        request.setAttribute("reportOrderCompletedChartDataJson", toOrderMetricJson(orderChartItems, "completed"));
+        request.setAttribute("reportOrderCancelledChartDataJson", toOrderMetricJson(orderChartItems, "cancelled"));
+    }
+
     private List<StatisticReportItem> buildReportItems(MonthlyStatisticSummary summary,
-            List<Map<String, Object>> topSellingProducts, List<ProductVariant> lowStockProducts) {
+            List<Map<String, Object>> soldProductDetails,
+            List<Map<String, Object>> revenueProfitChart,
+            List<Map<String, Object>> orderChart) {
         List<StatisticReportItem> items = new ArrayList<>();
         int displayOrder = 1;
 
-        items.add(createItem("SUMMARY", "Total Revenue", summary.getTotalRevenue(), "Monthly revenue snapshot", displayOrder++));
-        items.add(createItem("SUMMARY", "Total Profit", summary.getTotalProfit(), "Monthly profit snapshot", displayOrder++));
-        items.add(createItem("SUMMARY", "Total Orders", BigDecimal.valueOf(summary.getTotalOrders()), "Orders created in selected month", displayOrder++));
-        items.add(createItem("SUMMARY", "Completed Orders", BigDecimal.valueOf(summary.getCompletedOrders()), "Completed orders in selected month", displayOrder++));
-        items.add(createItem("SUMMARY", "Cancelled Orders", BigDecimal.valueOf(summary.getCancelledOrders()), "Cancelled orders in selected month", displayOrder++));
+        items.add(createItem("SUMMARY", "Total Revenue", summary.getTotalRevenue(), "Period revenue snapshot", displayOrder++));
+        items.add(createItem("SUMMARY", "Total Profit", summary.getTotalProfit(), "Period profit snapshot", displayOrder++));
+        items.add(createItem("SUMMARY", "Total Orders", BigDecimal.valueOf(summary.getTotalOrders()), "Orders created in selected period", displayOrder++));
+        items.add(createItem("SUMMARY", "Completed Orders", BigDecimal.valueOf(summary.getCompletedOrders()), "Completed orders in selected period", displayOrder++));
+        items.add(createItem("SUMMARY", "Cancelled Orders", BigDecimal.valueOf(summary.getCancelledOrders()), "Cancelled orders in selected period", displayOrder++));
 
-        for (Map<String, Object> product : topSellingProducts) {
+        for (Map<String, Object> product : soldProductDetails) {
             StatisticReportItem item = new StatisticReportItem();
-            item.setItemType("TOP_SELLING_PRODUCT");
-            item.setItemLabel(String.valueOf(product.get("productName")));
-            item.setItemValue(toBigDecimal(product.get("totalSold")));
-            item.setItemText("Revenue: " + toBigDecimal(product.get("revenue")).toPlainString());
-            item.setRefId(product.get("productId") instanceof Number ? ((Number) product.get("productId")).intValue() : null);
+            item.setItemType("SOLD_PRODUCT_DETAIL");
+            item.setItemLabel(String.valueOf(product.get("productName")) + " - " + String.valueOf(product.get("variantName")));
+            item.setItemValue(StatisticUtils.toBigDecimal(product.get("totalSold")));
+            item.setItemText("Revenue=" + StatisticUtils.toBigDecimal(product.get("revenue")).toPlainString()
+                    + ";Profit=" + StatisticUtils.toBigDecimal(product.get("profit")).toPlainString());
+            item.setRefId(product.get("variantId") instanceof Number ? ((Number) product.get("variantId")).intValue() : null);
             item.setDisplayOrder(displayOrder++);
             items.add(item);
         }
 
-        for (ProductVariant variant : lowStockProducts) {
+        for (Map<String, Object> point : revenueProfitChart) {
+            items.add(createItem("REVENUE_CHART", String.valueOf(point.get("label")),
+                    StatisticUtils.toBigDecimal(point.get("revenue")), null, displayOrder++));
+            items.add(createItem("PROFIT_CHART", String.valueOf(point.get("label")),
+                    StatisticUtils.toBigDecimal(point.get("profit")), null, displayOrder++));
+        }
+
+        for (Map<String, Object> point : orderChart) {
+            JSONObject payload = new JSONObject();
+            payload.put("completed", point.get("completedOrders") instanceof Number ? ((Number) point.get("completedOrders")).intValue() : 0);
+            payload.put("cancelled", point.get("cancelledOrders") instanceof Number ? ((Number) point.get("cancelledOrders")).intValue() : 0);
+
             StatisticReportItem item = new StatisticReportItem();
-            item.setItemType("LOW_STOCK_PRODUCT");
-            item.setItemLabel(variant.getProductName() + " - " + variant.getVariantName());
-            item.setItemValue(BigDecimal.valueOf(variant.getStock()));
-            item.setItemText("Current stock is below threshold");
-            item.setRefId(variant.getVariantId());
+            item.setItemType("ORDER_CHART");
+            item.setItemLabel(String.valueOf(point.get("label")));
+            item.setItemValue(StatisticUtils.toBigDecimal(point.get("totalOrders")));
+            item.setItemText(payload.toString());
             item.setDisplayOrder(displayOrder++);
             items.add(item);
         }
@@ -232,43 +261,43 @@ public class AdminStatisticReportController extends HttpServlet {
         return item;
     }
 
-    private YearMonth getDefaultPeriod() {
-        return YearMonth.now();
+    private List<StatisticReportItem> filterItemsByType(List<StatisticReportItem> items, String type) {
+        List<StatisticReportItem> filtered = new ArrayList<>();
+        for (StatisticReportItem item : items) {
+            if (type.equals(item.getItemType())) {
+                filtered.add(item);
+            }
+        }
+        return filtered;
     }
 
-    private BigDecimal toBigDecimal(Object value) {
-        switch (value == null ? "NULL" : value.getClass().getSimpleName()) {
-            case "BigDecimal":
-                return (BigDecimal) value;
-            case "Integer":
-            case "Long":
-            case "Double":
-            case "Float":
-            case "Short":
-            case "Byte":
-                return BigDecimal.valueOf(((Number) value).doubleValue());
-            default:
-                return BigDecimal.ZERO;
+    private String toChartLabelsJson(List<StatisticReportItem> items) {
+        JSONArray array = new JSONArray();
+        for (StatisticReportItem item : items) {
+            array.put(item.getItemLabel());
         }
+        return array.toString();
     }
 
-    private int parseIntOrDefault(String raw, int defaultValue) {
-        if (raw == null || raw.trim().isEmpty()) {
-            return defaultValue;
+    private String toChartValuesJson(List<StatisticReportItem> items) {
+        JSONArray array = new JSONArray();
+        for (StatisticReportItem item : items) {
+            array.put(item.getItemValue() == null ? 0 : item.getItemValue().doubleValue());
         }
-
-        try {
-            return Integer.parseInt(raw.trim());
-        } catch (NumberFormatException ex) {
-            return defaultValue;
-        }
+        return array.toString();
     }
 
-    private String trimToNull(String value) {
-        if (value == null) {
-            return null;
+    private String toOrderMetricJson(List<StatisticReportItem> items, String key) {
+        JSONArray array = new JSONArray();
+        for (StatisticReportItem item : items) {
+            if (item.getItemText() == null || item.getItemText().trim().isEmpty()) {
+                array.put(0);
+                continue;
+            }
+            JSONObject json = new JSONObject(item.getItemText());
+            array.put(json.optInt(key, 0));
         }
-        String trimmed = value.trim();
-        return trimmed.isEmpty() ? null : trimmed;
+        return array.toString();
     }
 }
+
