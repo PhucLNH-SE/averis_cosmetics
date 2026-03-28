@@ -50,7 +50,7 @@ public class MomoReturnController extends HttpServlet {
                 if (!"SUCCESS".equalsIgnoreCase(order.getPaymentStatus())) {
 
                     String targetStatus = resolvePaidOrderStatus(order);
-                    boolean success = orderDAO.updateOrder(orderId, "SUCCESS", targetStatus, null);
+                    boolean success = orderDAO.markPaymentSuccess(orderId, targetStatus);
                     System.out.println("Update result = " + success);
 
                     if (success) {
@@ -127,7 +127,7 @@ public class MomoReturnController extends HttpServlet {
 
         if ("0".equals(resultCode)) {
             String targetStatus = resolvePaidOrderStatus(order);
-            orderDAO.updateOrder(orderId, "SUCCESS", targetStatus, null);
+            orderDAO.markPaymentSuccess(orderId, targetStatus);
             LOGGER.info("Payment SUCCESS (IPN) for order " + orderId);
         } else {
             orderDAO.updatePaymentFailed(orderId);

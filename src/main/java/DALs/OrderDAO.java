@@ -4,12 +4,14 @@ import Model.CartItem;
 import Model.Orders;
 import Model.OrderDetail;
 import Utils.DBContext;
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.sql.Types;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -17,141 +19,139 @@ import java.util.List;
 public class OrderDAO extends DBContext {
 
     public int placeOrder(int customerId, int addressId, String paymentMethod,
-            java.math.BigDecimal totalAmount, List<CartItem> items) {
-        return placeOrder(customerId, addressId, paymentMethod, totalAmount, items, null, null, java.math.BigDecimal.ZERO);
-    }
+            BigDecimal totalAmount, List<CartItem> items,
+            Integer voucherId, Integer customerVoucherId, BigDecimal discountAmount) {
 
-    public int placeOrder(int customerId, int addressId, String paymentMethod,
-            java.math.BigDecimal totalAmount, List<CartItem> items,
-            Integer voucherId, java.math.BigDecimal discountAmount) {
-        return placeOrder(customerId, addressId, paymentMethod, totalAmount, items, voucherId, null, discountAmount);
-    }
+        if (items == null || items.isEmpty()) {
+            throw new RuntimeException("Cart is empty");
+        }
 
-    public int placeOrder(int customerId, int addressId, String paymentMethod,
-            java.math.BigDecimal totalAmount, List<CartItem> items,
-            Integer voucherId, Integer customerVoucherId, java.math.BigDecimal discountAmount) {
-        Connection conn = null;
-        PreparedStatement psOrder = null;
-        PreparedStatement psDetail = null;
-        PreparedStatement psStock = null;
-        PreparedStatement psVoucher = null;
-        ResultSet rs = null;
+        if (paymentMethod == null || paymentMethod.isBlank()) {
+            throw new RuntimeException("Payment method is required");
+        }
+
+        if (totalAmount == null || totalAmount.compareTo(BigDecimal.ZERO) < 0) {
+            throw new RuntimeException("Invalid total amount");
+        }
+
+        Connection conn = this.connection;
+        int orderId = -1;
+
+        if (conn == null) {
+            throw new RuntimeException("Database connection is null");
+        }
 
         try {
-            conn = this.connection;
-
-            if (conn == null) {
-                return -1;
-            }
-
             conn.setAutoCommit(false);
 
+            // ================= ORDER =================
             String sqlOrder = "INSERT INTO Orders (customer_id, address_id, voucher_id, discount_amount, payment_method, payment_status, order_status, total_amount) "
                     + "VALUES (?, ?, ?, ?, ?, 'PENDING', 'CREATED', ?)";
-            psOrder = conn.prepareStatement(sqlOrder, Statement.RETURN_GENERATED_KEYS);
 
-            psOrder.setInt(1, customerId);
-            psOrder.setInt(2, addressId);
-            if (voucherId == null) {
-                psOrder.setNull(3, java.sql.Types.INTEGER);
-            } else {
-                psOrder.setInt(3, voucherId);
-            }
-            psOrder.setBigDecimal(4, discountAmount == null ? java.math.BigDecimal.ZERO : discountAmount);
-            psOrder.setString(5, paymentMethod);
-            psOrder.setBigDecimal(6, totalAmount);
-            psOrder.executeUpdate();
+            try (PreparedStatement psOrder = conn.prepareStatement(sqlOrder, Statement.RETURN_GENERATED_KEYS)) {
 
-            int orderId = -1;
+                psOrder.setInt(1, customerId);
+                psOrder.setInt(2, addressId);
 
-            rs = psOrder.getGeneratedKeys();
-
-            if (rs.next()) {
-                orderId = rs.getInt(1);
-            }
-            if (orderId == -1) {
-                throw new SQLException("Cannot create order");
-            }
-
-            String sqlDetail = "INSERT INTO Order_Detail (order_id, variant_id, quantity, price_at_order, cost_price_at_order) VALUES (?, ?, ?, ?, ?)";
-
-            psDetail = conn.prepareStatement(sqlDetail);
-
-            for (CartItem item : items) {
-
-                if (item.getVariant() == null || item.getVariant().getPrice() == null) {
-                    throw new SQLException("Invalid cart item");
+                if (voucherId == null) {
+                    psOrder.setNull(3, Types.INTEGER);
+                } else {
+                    psOrder.setInt(3, voucherId);
                 }
 
-                psDetail.setInt(1, orderId);
-                psDetail.setInt(2, item.getVariant().getVariantId());
-                psDetail.setInt(3, item.getQuantity());
-                psDetail.setBigDecimal(4, item.getVariant().getPrice());
-                psDetail.setBigDecimal(5, item.getVariant().getImportPrice() == null ? java.math.BigDecimal.ZERO : item.getVariant().getImportPrice());
+                if (discountAmount == null) {
+                    psOrder.setNull(4, Types.DECIMAL);
+                } else {
+                    psOrder.setBigDecimal(4, discountAmount);
+                }
 
-                psDetail.addBatch();
+                psOrder.setString(5, paymentMethod);
+                psOrder.setBigDecimal(6, totalAmount);
+
+                psOrder.executeUpdate();
+
+                try (ResultSet rs = psOrder.getGeneratedKeys()) {
+                    if (rs.next()) {
+                        orderId = rs.getInt(1);
+                    }
+                }
             }
 
-            psDetail.executeBatch();
+            if (orderId == -1) {
+                throw new RuntimeException("Cannot create order");
+            }
 
+            // ================= ORDER DETAIL =================
+            String sqlDetail = "INSERT INTO Order_Detail (order_id, variant_id, quantity, price_at_order, cost_price_at_order) VALUES (?, ?, ?, ?, ?)";
+
+            try (PreparedStatement psDetail = conn.prepareStatement(sqlDetail)) {
+
+                for (CartItem item : items) {
+
+                    if (item == null
+                            || item.getVariant() == null
+                            || item.getVariant().getPrice() == null
+                            || item.getQuantity() <= 0) {
+                        throw new RuntimeException("Invalid cart item");
+                    }
+
+                    BigDecimal cost = item.getVariant().getImportPrice();
+                    if (cost == null) {
+                        cost = BigDecimal.ZERO;
+                    }
+
+                    psDetail.setInt(1, orderId);
+                    psDetail.setInt(2, item.getVariant().getVariantId());
+                    psDetail.setInt(3, item.getQuantity());
+                    psDetail.setBigDecimal(4, item.getVariant().getPrice());
+                    psDetail.setBigDecimal(5, cost);
+
+                    psDetail.addBatch();
+                }
+
+                psDetail.executeBatch();
+            }
+
+            // ================= VOUCHER =================
             if (customerVoucherId != null) {
+
                 String sqlVoucher = "UPDATE Customer_Voucher "
                         + "SET status = 'USED', used_at = GETDATE() "
                         + "WHERE customer_voucher_id = ? "
                         + "AND status = 'ACTIVE' "
                         + "AND GETDATE() BETWEEN effective_from AND effective_to";
-                psVoucher = conn.prepareStatement(sqlVoucher);
-                psVoucher.setInt(1, customerVoucherId);
 
-                if (psVoucher.executeUpdate() == 0) {
-                    throw new SQLException("Voucher is no longer valid for checkout");
+                try (PreparedStatement psVoucher = conn.prepareStatement(sqlVoucher)) {
+                    psVoucher.setInt(1, customerVoucherId);
+
+                    if (psVoucher.executeUpdate() == 0) {
+                        throw new RuntimeException("Voucher is no longer valid");
+                    }
                 }
             }
 
             conn.commit();
             return orderId;
 
-        } catch (SQLException e) {
-            if (conn != null) {
-                try {
-                    conn.rollback();
-                } catch (SQLException ignored) {
-                }
+        } catch (Exception e) {
+
+            try {
+                conn.rollback();
+            } catch (SQLException ignored) {
             }
 
             e.printStackTrace();
             return -1;
 
         } finally {
-            if (conn != null) {
-                try {
-                    conn.setAutoCommit(true);
-                } catch (SQLException ignored) {
-                }
-            }
-
-            closeResources(rs, psOrder, psDetail, psStock, psVoucher);
-        }
-    }
-
-    private void closeResources(ResultSet rs, PreparedStatement... stmts) {
-
-        if (rs != null) {
             try {
-                rs.close();
+                conn.setAutoCommit(true);
             } catch (SQLException ignored) {
             }
         }
-
-        for (PreparedStatement ps : stmts) {
-            if (ps != null) {
-                try {
-                    ps.close();
-                } catch (SQLException ignored) {
-                }
-            }
-        }
     }
+
+   
 
     public Orders getOrderById(int orderId) {
 
@@ -412,11 +412,7 @@ public class OrderDAO extends DBContext {
         return list;
     }
 
-    public void updateOrder(int orderId, String paymentStatus, String orderStatus) {
-        updateOrder(orderId, paymentStatus, orderStatus, null);
-    }
-
-    public boolean updateOrder(int orderId, String paymentStatus, String orderStatus, Integer handledBy) {
+    public boolean updateOrderState(int orderId, String paymentStatus, String orderStatus, Integer handledBy) {
         Connection conn = null;
 
         try {
@@ -451,26 +447,9 @@ public class OrderDAO extends DBContext {
                 throw new SQLException("Cannot restore stock for order " + orderId);
             }
 
-            String sql = "UPDATE Orders "
-                    + "SET payment_status = ?, "
-                    + "    order_status = ?, "
-                    + "    handled_by = COALESCE(?, handled_by), "
-                    + "    paid_at = CASE WHEN ? = 'SUCCESS' AND paid_at IS NULL THEN GETDATE() ELSE paid_at END, "
-                    + "    completed_at = CASE WHEN ? = 'COMPLETED' THEN ISNULL(completed_at, GETDATE()) ELSE NULL END "
-                    + "WHERE order_id = ?";
-
-            try (PreparedStatement ps = conn.prepareStatement(sql)) {
-                ps.setString(1, paymentStatus);
-                ps.setString(2, orderStatus);
-                if (handledBy == null) {
-                    ps.setNull(3, java.sql.Types.INTEGER);
-                } else {
-                    ps.setInt(3, handledBy);
-                }
-                ps.setString(4, paymentStatus);
-                ps.setString(5, orderStatus);
-                ps.setInt(6, orderId);
-                ps.executeUpdate();
+            if (!applyOrderStateUpdate(conn, orderId, paymentStatus, orderStatus, handledBy)) {
+                conn.rollback();
+                return false;
             }
 
             conn.commit();
@@ -496,42 +475,8 @@ public class OrderDAO extends DBContext {
         return false;
     }
 
-    public boolean updatePaymentSuccess(int orderId) {
-        Connection conn = null;
-        try {
-            conn = new DBContext().connection;
-            conn.setAutoCommit(false);
-
-            String sql = "UPDATE Orders SET payment_status = 'SUCCESS', paid_at = GETDATE() WHERE order_id = ?";
-            try (PreparedStatement ps = conn.prepareStatement(sql)) {
-                ps.setInt(1, orderId);
-                int rows = ps.executeUpdate();
-
-                if (rows == 0) {
-                    throw new SQLException("Update failed");
-                }
-            }
-
-            conn.commit();
-            return true;
-
-        } catch (Exception e) {
-            try {
-                if (conn != null) {
-                    conn.rollback();
-                }
-            } catch (Exception ignored) {
-            }
-            e.printStackTrace();
-        } finally {
-            try {
-                if (conn != null) {
-                    conn.close();
-                }
-            } catch (Exception ignored) {
-            }
-        }
-        return false;
+    public boolean markPaymentSuccess(int orderId, String orderStatus) {
+        return updateOrderState(orderId, "SUCCESS", orderStatus, null);
     }
 
     public boolean updatePaymentFailed(int orderId) {
@@ -544,7 +489,14 @@ public class OrderDAO extends DBContext {
 
             conn.setAutoCommit(false);
 
-            String sql = "UPDATE Orders SET payment_status = 'FAILED' WHERE order_id = ?";
+            String sql = "UPDATE Orders "
+                    + "SET payment_status = 'FAILED', "
+                    + "    order_status = CASE "
+                    + "        WHEN order_status = 'CREATED' THEN 'CANCELLED' "
+                    + "        ELSE order_status "
+                    + "    END "
+                    + "WHERE order_id = ? "
+                    + "AND payment_status <> 'SUCCESS'";
             try (PreparedStatement ps = conn.prepareStatement(sql)) {
                 ps.setInt(1, orderId);
                 if (ps.executeUpdate() == 0) {
@@ -575,15 +527,6 @@ public class OrderDAO extends DBContext {
             }
         }
 
-        return false;
-    }
-
-    public boolean deductStockAfterPayment(int orderId) {
-        try {
-            return deductStockForOrder(connection, orderId);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
         return false;
     }
 
@@ -656,17 +599,17 @@ public class OrderDAO extends DBContext {
                 return false;
             }
 
-            String sql = "UPDATE Orders "
-                    + "SET order_status = 'CANCELLED', completed_at = NULL "
-                    + "WHERE order_id = ?";
+            boolean shouldRestoreStock = "PROCESSING".equalsIgnoreCase(order.getOrderStatus())
+                    && ("COD".equalsIgnoreCase(order.getPaymentMethod())
+                    || "SUCCESS".equalsIgnoreCase(order.getPaymentStatus()));
 
-            try (PreparedStatement ps = conn.prepareStatement(sql)) {
-                ps.setInt(1, orderId);
-                boolean updated = ps.executeUpdate() > 0;
-                if (!updated) {
-                    conn.rollback();
-                    return false;
-                }
+            if (shouldRestoreStock && !restoreStockForOrder(conn, orderId)) {
+                throw new SQLException("Cannot restore stock for cancelled order " + orderId);
+            }
+
+            if (!applyOrderStateUpdate(conn, orderId, order.getPaymentStatus(), "CANCELLED", null)) {
+                conn.rollback();
+                return false;
             }
 
             conn.commit();
@@ -690,6 +633,31 @@ public class OrderDAO extends DBContext {
         }
 
         return false;
+    }
+
+    private boolean applyOrderStateUpdate(Connection conn, int orderId,
+            String paymentStatus, String orderStatus, Integer handledBy) throws SQLException {
+        String sql = "UPDATE Orders "
+                + "SET payment_status = ?, "
+                + "    order_status = ?, "
+                + "    handled_by = COALESCE(?, handled_by), "
+                + "    paid_at = CASE WHEN ? = 'SUCCESS' AND paid_at IS NULL THEN GETDATE() ELSE paid_at END, "
+                + "    completed_at = CASE WHEN ? = 'COMPLETED' THEN ISNULL(completed_at, GETDATE()) ELSE NULL END "
+                + "WHERE order_id = ?";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, paymentStatus);
+            ps.setString(2, orderStatus);
+            if (handledBy == null) {
+                ps.setNull(3, java.sql.Types.INTEGER);
+            } else {
+                ps.setInt(3, handledBy);
+            }
+            ps.setString(4, paymentStatus);
+            ps.setString(5, orderStatus);
+            ps.setInt(6, orderId);
+            return ps.executeUpdate() > 0;
+        }
     }
 
     public List<Orders> getOrdersByStatus(String status) {
@@ -826,6 +794,11 @@ public class OrderDAO extends DBContext {
     }
 
     private boolean deductStockForOrder(Connection conn, int orderId) throws SQLException {
+        int expectedRows = countOrderDetailRows(conn, orderId);
+        if (expectedRows <= 0) {
+            throw new SQLException("Order has no details");
+        }
+
         String sql = "UPDATE pv "
                 + "SET pv.stock = pv.stock - od.quantity "
                 + "FROM Product_Variant pv "
@@ -836,7 +809,7 @@ public class OrderDAO extends DBContext {
             ps.setInt(1, orderId);
             int rows = ps.executeUpdate();
 
-            if (rows == 0) {
+            if (rows != expectedRows) {
                 throw new SQLException("Stock not enough");
             }
 
@@ -876,6 +849,21 @@ public class OrderDAO extends DBContext {
         }
 
         return null;
+    }
+
+    private int countOrderDetailRows(Connection conn, int orderId) throws SQLException {
+        String sql = "SELECT COUNT(*) AS total_rows FROM Order_Detail WHERE order_id = ?";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, orderId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("total_rows");
+                }
+            }
+        }
+
+        return 0;
     }
 
     private void reactivateVoucherForFailedPayment(Connection conn, int orderId) throws SQLException {

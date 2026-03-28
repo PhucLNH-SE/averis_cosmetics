@@ -128,7 +128,7 @@ public class ManagerOrderController extends HttpServlet {
         request.getRequestDispatcher(staffRoute ? STAFF_PANEL : ADMIN_PANEL).forward(request, response);
     }
 
-    private void updateOrderStatus(HttpServletRequest request, HttpServletResponse response)
+     private void updateOrderStatus(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         HttpSession session = request.getSession(false);
         Manager manager = session == null ? null : (Manager) session.getAttribute("manager");
@@ -147,53 +147,69 @@ public class ManagerOrderController extends HttpServlet {
             return;
         }
 
-        Integer orderId = parseInteger(request.getParameter("orderId"));
-        String paymentStatus = trimToNull(request.getParameter("paymentStatus"));
-        String orderStatus = trimToNull(request.getParameter("orderStatus"));
-
-        if (orderId == null || paymentStatus == null || orderStatus == null) {
-            response.sendRedirect(buildOrderDetailRedirect(request, orderId, "updateFailed", null, null));
+        String[] orderIds = request.getParameterValues("orderId");
+        String[] paymentStatuses = request.getParameterValues("paymentStatus");
+        String[] orderStatuses = request.getParameterValues("orderStatus");
+        if (orderIds == null || paymentStatuses == null || orderStatuses == null) {
+            response.sendRedirect(buildManageOrdersRedirect(request, "updateFailed", null, null));
             return;
         }
 
         OrderDAO dao = new OrderDAO();
         Integer handledBy = manager.getManagerId();
-        Orders existingOrder = dao.getOrderUpdateInfo(orderId);
-        if (existingOrder == null) {
-            response.sendRedirect(buildOrderDetailRedirect(request, orderId, "updateFailed", null, null));
-            return;
-        }
+        boolean hadForbidden = false;
+        boolean hadUpdateFailed = false;
+        String validationErrorMessage = null;
 
-        boolean isChanged = !equalsIgnoreCase(existingOrder.getPaymentStatus(), paymentStatus)
-                || !equalsIgnoreCase(existingOrder.getOrderStatus(), orderStatus);
-        if (!isChanged) {
-            response.sendRedirect(buildOrderDetailRedirect(request, orderId, null, null, "update"));
-            return;
-        }
+        for (int i = 0; i < orderIds.length; i++) {
+            int orderId = Integer.parseInt(orderIds[i]);
+            Orders existingOrder = dao.getOrderUpdateInfo(orderId);
 
-        Integer existingHandledBy = existingOrder.getHandledBy();
-        boolean canUpdate = existingHandledBy == null || existingHandledBy.equals(handledBy);
-        if (!canUpdate) {
-            response.sendRedirect(buildOrderDetailRedirect(request, orderId, "notAllowed", null, null));
-            return;
-        }
-
-        try {
-            ValidationUtil.validateOrderStatusTransition(existingOrder.getOrderStatus(), orderStatus);
-            if (equalsIgnoreCase(existingOrder.getPaymentMethod(), "COD")) {
-                ValidationUtil.validateCodStatus(existingOrder.getPaymentMethod(), paymentStatus, orderStatus);
+            if (existingOrder == null) {
+                hadUpdateFailed = true;
+                continue;
             }
-        } catch (IllegalArgumentException ex) {
-            response.sendRedirect(buildOrderDetailRedirect(request, orderId, "validationError", ex.getMessage(), null));
-            return;
+
+            boolean isChanged = !equalsIgnoreCase(existingOrder.getPaymentStatus(), paymentStatuses[i])
+                    || !equalsIgnoreCase(existingOrder.getOrderStatus(), orderStatuses[i]);
+            if (!isChanged) {
+                continue;
+            }
+
+            Integer existingHandledBy = existingOrder.getHandledBy();
+            boolean canUpdate = existingHandledBy == null || existingHandledBy.equals(handledBy);
+            if (!canUpdate) {
+                hadForbidden = true;
+                continue;
+            }
+
+            try {
+                ValidationUtil.validateOrderStatusTransition(existingOrder.getOrderStatus(), orderStatuses[i]);
+                if (equalsIgnoreCase(existingOrder.getPaymentMethod(), "COD")) {
+                    ValidationUtil.validateCodStatus(existingOrder.getPaymentMethod(),
+                            paymentStatuses[i], orderStatuses[i]);
+                }
+            } catch (IllegalArgumentException ex) {
+                if (validationErrorMessage == null) {
+                    validationErrorMessage = ex.getMessage();
+                }
+                continue;
+            }
+
+            if (!dao.updateOrderState(orderId, paymentStatuses[i], orderStatuses[i], handledBy)) {
+                hadUpdateFailed = true;
+            }
         }
 
-        if (!dao.updateOrder(orderId, paymentStatus, orderStatus, handledBy)) {
-            response.sendRedirect(buildOrderDetailRedirect(request, orderId, "updateFailed", null, null));
-            return;
+        if (validationErrorMessage != null) {
+            response.sendRedirect(buildManageOrdersRedirect(request, "validationError", validationErrorMessage, null));
+        } else if (hadUpdateFailed) {
+            response.sendRedirect(buildManageOrdersRedirect(request, "updateFailed", null, null));
+        } else if (hadForbidden) {
+            response.sendRedirect(buildManageOrdersRedirect(request, "notAllowed", null, null));
+        } else {
+            response.sendRedirect(buildManageOrdersRedirect(request, null, null, "update"));
         }
-
-        response.sendRedirect(buildOrderDetailRedirect(request, orderId, null, null, "update"));
     }
 
     private boolean isStaffRoute(HttpServletRequest request) {
