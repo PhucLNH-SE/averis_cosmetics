@@ -180,7 +180,7 @@ public class ManagerOrderController extends HttpServlet {
                 continue;
             }
 
-            if (!dao.updateOrder(orderId, paymentStatuses[i], orderStatuses[i], handledBy)) {
+            if (!dao.updateOrderState(orderId, paymentStatuses[i], orderStatuses[i], handledBy)) {
                 hadUpdateFailed = true;
             }
         }
