@@ -117,7 +117,7 @@ public class AddressDAO extends DBContext {
         String deleteSql = "UPDATE Address SET is_deleted = 1, is_default = 0 "
                 + "WHERE address_id = ? AND customer_id = ? AND is_deleted = 0";
         String fallbackDefaultSql = "SELECT TOP 1 address_id FROM Address "
-                + "WHERE customer_id = ? AND is_deleted = 0 ORDER BY is_default DESC, address_id ASC";
+                + "WHERE customer_id = ? AND is_deleted = 0 ORDER BY address_id DESC";
         String setDefaultSql = "UPDATE Address SET is_default = 1 WHERE address_id = ? AND customer_id = ? AND is_deleted = 0";
 
         try {
