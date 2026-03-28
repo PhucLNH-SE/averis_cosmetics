@@ -9,7 +9,8 @@ public class StatisticReport {
 
     private int reportId;
     private String reportName;
-    private int reportMonth;
+    private String periodType;
+    private Integer reportMonth;
     private int reportYear;
     private BigDecimal totalRevenue = BigDecimal.ZERO;
     private BigDecimal totalProfit = BigDecimal.ZERO;
@@ -17,6 +18,8 @@ public class StatisticReport {
     private int completedOrders;
     private int cancelledOrders;
     private String note;
+    private Date periodStartAt;
+    private Date periodEndAt;
     private int createdBy;
     private String createdByName;
     private boolean status;
@@ -40,11 +43,19 @@ public class StatisticReport {
         this.reportName = reportName;
     }
 
-    public int getReportMonth() {
+    public String getPeriodType() {
+        return periodType;
+    }
+
+    public void setPeriodType(String periodType) {
+        this.periodType = periodType;
+    }
+
+    public Integer getReportMonth() {
         return reportMonth;
     }
 
-    public void setReportMonth(int reportMonth) {
+    public void setReportMonth(Integer reportMonth) {
         this.reportMonth = reportMonth;
     }
 
@@ -102,6 +113,22 @@ public class StatisticReport {
 
     public void setNote(String note) {
         this.note = note;
+    }
+
+    public Date getPeriodStartAt() {
+        return periodStartAt;
+    }
+
+    public void setPeriodStartAt(Date periodStartAt) {
+        this.periodStartAt = periodStartAt;
+    }
+
+    public Date getPeriodEndAt() {
+        return periodEndAt;
+    }
+
+    public void setPeriodEndAt(Date periodEndAt) {
+        this.periodEndAt = periodEndAt;
     }
 
     public int getCreatedBy() {
