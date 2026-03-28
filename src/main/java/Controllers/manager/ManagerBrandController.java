@@ -38,7 +38,7 @@ public class ManagerBrandController extends HttpServlet {
 
         try {
             int brandId = Integer.parseInt(brandIdParam);
-            Brand selectedBrand = brandDAO.getById(brandId);
+            Brand selectedBrand = brandDAO.getBrandById(brandId);
             if (selectedBrand == null) {
                 response.sendRedirect(request.getContextPath() + ADMIN_LIST_URL + "?error=notFound");
                 return;
@@ -63,7 +63,7 @@ public class ManagerBrandController extends HttpServlet {
         brand.setName(name);
         brand.setStatus(status);
 
-        boolean success = brandDAO.insert(brand);
+        boolean success = brandDAO.insertBrand(brand);
         if (success) {
             response.sendRedirect(request.getContextPath() + ADMIN_LIST_URL + "?success=add");
         } else {
@@ -91,7 +91,7 @@ public class ManagerBrandController extends HttpServlet {
         brand.setName(name);
         brand.setStatus(status);
 
-        boolean success = brandDAO.update(brand);
+        boolean success = brandDAO.updateBrand(brand);
         if (success) {
             response.sendRedirect(request.getContextPath() + ADMIN_LIST_URL + "?success=update");
         } else {
@@ -102,7 +102,7 @@ public class ManagerBrandController extends HttpServlet {
     private void forwardManageBrand(HttpServletRequest request, HttpServletResponse response,
             Brand selectedBrand, String formMode, String error)
             throws ServletException, IOException {
-        List<Brand> brands = brandDAO.getAll();
+        List<Brand> brands = brandDAO.getAllBrands();
         request.setAttribute("brands", brands);
         request.setAttribute("selectedBrand", selectedBrand);
         request.setAttribute("formMode", formMode);
