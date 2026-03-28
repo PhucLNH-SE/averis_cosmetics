@@ -6547,8 +6547,9 @@ body {
 .chart-card,
 .statistic-table-card {
     background: #ffffff;
-    border-radius: 22px;
-    box-shadow: 0 16px 32px rgba(15, 23, 42, 0.06);
+    border: 1px solid #e5e7eb;
+    border-radius: 18px;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.05);
     overflow: hidden;
 }
 
@@ -6563,35 +6564,39 @@ body {
 }
 
 .chart-card {
-    min-height: 420px;
-    padding: 20px;
+        height: 100%;
+    padding: 24px 24px 18px;
 }
 
 .chart-card__head,
 .table-card__head {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
     gap: 12px;
-    margin-bottom: 18px;
+    margin-bottom: 16px;
+    padding: 14px 25px 0px 25px;
 }
 
 .chart-card__head h3,
 .table-card__head h3 {
-    margin: 14px 0px 0px 24px;
+    margin: 0;
+    color: #111827;
     font-size: 1.1rem;
+    font-weight: 600;
 }
 
 .chart-card__head span,
 .table-card__head span {
-    color: #64748b;
-    font-size: 0.9rem;
-    margin: 14px 24px 0px 0px;
+    color: #6b7280;
+    font-size: 0.88rem;
+    margin: 2px 0 0;
+    text-align: right;
 }
 
 .chart-card canvas {
     width: 100% !important;
-    height: 320px !important;
+    height: 360px !important;
 }
 
 .product-cell {
@@ -10789,4 +10794,84 @@ body {
 
 .admin-shell-body .card.table-card.mb-4 .card-body {
     padding: 10px;
+}
+
+
+
+.chart-card--orders {
+    display: flex;
+    flex-direction: column;
+}
+
+.orders-overview-stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.orders-overview-stat {
+    text-align: center;
+}
+
+.orders-overview-stat__value {
+    display: block;
+    color: #111827;
+    font-size: 1.7rem;
+    line-height: 1.1;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.orders-overview-stat__label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #6b7280;
+    font-size: 0.92rem;
+}
+
+.orders-overview-stat__dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.orders-overview-stat__dot--completed {
+    background: #10b981;
+}
+
+.orders-overview-stat__dot--pending {
+    background: #f59e0b;
+}
+
+.orders-overview-stat__dot--cancelled {
+    background: #ef4444;
+}
+
+@media (max-width: 767.98px) {
+    .orders-overview-stats {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+}
+
+
+.orders-overview-stats.orders-overview-stats--four {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+@media (max-width: 991.98px) {
+    .orders-overview-stats.orders-overview-stats--four {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+.chart-card--orders canvas {
+    height: 260px !important;
+}
+
+.chart-card--orders .orders-overview-stats {
+    margin-top: 14px;
+    margin-bottom: 0;
 }
