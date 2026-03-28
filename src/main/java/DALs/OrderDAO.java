@@ -155,8 +155,9 @@ public class OrderDAO extends DBContext {
 
     public Orders getOrderById(int orderId) {
 
-        String sql = "SELECT o.*, a.receiver_name, a.phone, a.street_address, a.ward, a.district, a.province "
+        String sql = "SELECT o.*, v.code AS voucher_code, a.receiver_name, a.phone, a.street_address, a.ward, a.district, a.province "
                 + "FROM Orders o "
+                + "LEFT JOIN Voucher v ON o.voucher_id = v.voucher_id "
                 + "LEFT JOIN Address a ON o.address_id = a.address_id "
                 + "WHERE o.order_id = ?";
 
@@ -175,6 +176,7 @@ public class OrderDAO extends DBContext {
                     order.setAddressId(rs.getInt("address_id"));
                     order.setHandledBy(rs.getObject("handled_by", Integer.class));
                     order.setVoucherId(rs.getObject("voucher_id", Integer.class));
+                    order.setVoucherCode(rs.getString("voucher_code"));
                     order.setDiscountAmount(rs.getBigDecimal("discount_amount"));
                     order.setPaymentMethod(rs.getString("payment_method"));
                     order.setPaymentStatus(rs.getString("payment_status"));
@@ -215,8 +217,6 @@ public class OrderDAO extends DBContext {
 
         String sql = "SELECT o.order_id, "
                 + "a.receiver_name, "
-                + "v.code AS voucher_code, "
-                + "o.discount_amount, "
                 + "o.payment_method, "
                 + "o.payment_status, "
                 + "o.order_status, "
@@ -227,7 +227,7 @@ public class OrderDAO extends DBContext {
                 + "JOIN Address a ON o.address_id = a.address_id "
                 + "LEFT JOIN Voucher v ON o.voucher_id = v.voucher_id "
                 + "LEFT JOIN Manager m ON o.handled_by = m.manager_id "
-                + "ORDER BY o.order_id ASC";
+                + "ORDER BY o.order_id DESC";
 
         try {
 
@@ -240,8 +240,6 @@ public class OrderDAO extends DBContext {
 
                 order.setOrderId(rs.getInt("order_id"));
                 order.setReceiverName(rs.getString("receiver_name"));
-                order.setVoucherCode(rs.getString("voucher_code"));
-                order.setDiscountAmount(rs.getBigDecimal("discount_amount"));
                 order.setPaymentMethod(rs.getString("payment_method"));
                 order.setPaymentStatus(rs.getString("payment_status"));
                 order.setOrderStatus(rs.getString("order_status"));
@@ -268,8 +266,6 @@ public class OrderDAO extends DBContext {
         List<Orders> list = new ArrayList<>();
         String sql = "SELECT o.order_id, "
                 + "a.receiver_name, "
-                + "v.code AS voucher_code, "
-                + "o.discount_amount, "
                 + "o.payment_method, "
                 + "o.payment_status, "
                 + "o.order_status, "
@@ -300,8 +296,6 @@ public class OrderDAO extends DBContext {
                     Orders order = new Orders();
                     order.setOrderId(rs.getInt("order_id"));
                     order.setReceiverName(rs.getString("receiver_name"));
-                    order.setVoucherCode(rs.getString("voucher_code"));
-                    order.setDiscountAmount(rs.getBigDecimal("discount_amount"));
                     order.setPaymentMethod(rs.getString("payment_method"));
                     order.setPaymentStatus(rs.getString("payment_status"));
                     order.setOrderStatus(rs.getString("order_status"));
@@ -324,6 +318,7 @@ public class OrderDAO extends DBContext {
 
         String sql = "SELECT "
                 + "p.name AS product_name, "
+                + "v.variant_name, "
                 + "b.name AS brand_name, "
                 + "c.name AS category_name, "
                 + "od.quantity, "
@@ -355,6 +350,7 @@ public class OrderDAO extends DBContext {
                 OrderDetail od = new OrderDetail();
 
                 od.setProductName(rs.getString("product_name"));
+                od.setVariantName(rs.getString("variant_name"));
                 od.setImageUrl(rs.getString("image_url"));
                 od.setBrandName(rs.getString("brand_name"));
                 od.setCategoryName(rs.getString("category_name"));

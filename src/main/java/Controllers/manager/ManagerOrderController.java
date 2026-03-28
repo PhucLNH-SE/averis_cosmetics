@@ -90,15 +90,31 @@ public class ManagerOrderController extends HttpServlet {
     private void viewOrderDetail(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        int orderId = Integer.parseInt(request.getParameter("orderId"));
+        Integer orderId = parseInteger(request.getParameter("orderId"));
+        if (orderId == null) {
+            response.sendRedirect(buildManageOrdersRedirect(request, "updateFailed", null, null));
+            return;
+        }
 
         OrderDAO dao = new OrderDAO();
         Orders order = dao.getOrderById(orderId);
+        if (order == null) {
+            response.sendRedirect(buildManageOrdersRedirect(request, "updateFailed", null, null));
+            return;
+        }
         List<OrderDetail> details = dao.getOrderDetailsByOrderId(orderId);
+
+        HttpSession session = request.getSession(false);
+        Manager manager = session == null ? null : (Manager) session.getAttribute("manager");
+        Integer currentManagerId = manager == null ? null : manager.getManagerId();
+        boolean canEditOrder = currentManagerId != null
+                && (order.getHandledBy() == null || order.getHandledBy().equals(currentManagerId));
 
         request.setAttribute("order", order);
         request.setAttribute("details", details);
         request.setAttribute("searchKeyword", trimToNull(request.getParameter("keyword")));
+        request.setAttribute("currentManagerId", currentManagerId);
+        request.setAttribute("canEditOrder", canEditOrder);
 
         if (order != null && order.getHandledBy() != null) {
             ManagerDAO managerDAO = new ManagerDAO();
@@ -112,7 +128,7 @@ public class ManagerOrderController extends HttpServlet {
         request.getRequestDispatcher(staffRoute ? STAFF_PANEL : ADMIN_PANEL).forward(request, response);
     }
 
-    private void updateOrderStatus(HttpServletRequest request, HttpServletResponse response)
+     private void updateOrderStatus(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         HttpSession session = request.getSession(false);
         Manager manager = session == null ? null : (Manager) session.getAttribute("manager");
@@ -231,6 +247,39 @@ public class ManagerOrderController extends HttpServlet {
         return redirect.toString();
     }
 
+    private String buildOrderDetailRedirect(HttpServletRequest request, Integer orderId,
+            String error, String message, String success) throws IOException {
+        if (orderId == null) {
+            return buildManageOrdersRedirect(request, error, message, success);
+        }
+
+        StringBuilder redirect = new StringBuilder(request.getContextPath())
+                .append(isStaffRoute(request) ? STAFF_URL : ADMIN_URL);
+
+        String keyword = trimToNull(firstNonBlank(
+                request.getParameter("returnKeyword"),
+                request.getParameter("keyword")
+        ));
+
+        StringBuilder query = new StringBuilder();
+        appendQueryParam(query, "action", "detail");
+        appendQueryParam(query, "orderId", String.valueOf(orderId));
+        if (keyword != null) {
+            appendQueryParam(query, "keyword", keyword);
+        }
+        if (error != null) {
+            appendQueryParam(query, "error", error);
+        }
+        if (message != null) {
+            appendQueryParam(query, "message", message);
+        }
+        if (success != null) {
+            appendQueryParam(query, "success", success);
+        }
+
+        return redirect.append("?").append(query).toString();
+    }
+
     private void appendQueryParam(StringBuilder query, String key, String value) throws IOException {
         if (query.length() > 0) {
             query.append("&");
@@ -246,6 +295,19 @@ public class ManagerOrderController extends HttpServlet {
         }
         String trimmed = value.trim();
         return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    private Integer parseInteger(String value) {
+        String trimmed = trimToNull(value);
+        if (trimmed == null) {
+            return null;
+        }
+
+        try {
+            return Integer.valueOf(trimmed);
+        } catch (NumberFormatException ex) {
+            return null;
+        }
     }
 
     private String firstNonBlank(String... values) {

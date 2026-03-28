@@ -13,12 +13,13 @@ public class StatisticReportDAO extends DBContext {
 
     public List<StatisticReport> getAllReports() {
         List<StatisticReport> reports = new ArrayList<>();
-        String sql = "SELECT sr.report_id, sr.report_name, sr.report_month, sr.report_year, "
+        String sql = "SELECT sr.report_id, sr.report_name, sr.period_type, sr.report_month, sr.report_year, "
                 + "sr.total_revenue, sr.total_profit, sr.total_orders, sr.completed_orders, sr.cancelled_orders, "
-                + "sr.note, sr.created_by, sr.status, sr.created_at, sr.updated_at, m.full_name AS created_by_name "
+                + "sr.note, sr.period_start_at, sr.period_end_at, sr.created_by, sr.status, sr.created_at, sr.updated_at, "
+                + "m.full_name AS created_by_name "
                 + "FROM Statistic_Report sr "
                 + "JOIN Manager m ON sr.created_by = m.manager_id "
-                + "ORDER BY sr.report_year DESC, sr.report_month DESC, sr.report_id DESC";
+                + "ORDER BY sr.report_year DESC, ISNULL(sr.report_month, 0) DESC, sr.report_id DESC";
 
         try (PreparedStatement ps = connection.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
@@ -33,9 +34,10 @@ public class StatisticReportDAO extends DBContext {
     }
 
     public StatisticReport getReportById(int reportId) {
-        String reportSql = "SELECT sr.report_id, sr.report_name, sr.report_month, sr.report_year, "
+        String reportSql = "SELECT sr.report_id, sr.report_name, sr.period_type, sr.report_month, sr.report_year, "
                 + "sr.total_revenue, sr.total_profit, sr.total_orders, sr.completed_orders, sr.cancelled_orders, "
-                + "sr.note, sr.created_by, sr.status, sr.created_at, sr.updated_at, m.full_name AS created_by_name "
+                + "sr.note, sr.period_start_at, sr.period_end_at, sr.created_by, sr.status, sr.created_at, sr.updated_at, "
+                + "m.full_name AS created_by_name "
                 + "FROM Statistic_Report sr "
                 + "JOIN Manager m ON sr.created_by = m.manager_id "
                 + "WHERE sr.report_id = ?";
@@ -59,9 +61,9 @@ public class StatisticReportDAO extends DBContext {
 
     public boolean createReport(StatisticReport report, List<StatisticReportItem> items) {
         String reportSql = "INSERT INTO Statistic_Report "
-                + "(report_name, report_month, report_year, total_revenue, total_profit, total_orders, "
-                + "completed_orders, cancelled_orders, note, created_by, status, created_at, updated_at) "
-                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, GETDATE(), NULL)";
+                + "(report_name, period_type, report_month, report_year, total_revenue, total_profit, total_orders, "
+                + "completed_orders, cancelled_orders, note, period_start_at, period_end_at, created_by, status, created_at, updated_at) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, GETDATE(), NULL)";
 
         String itemSql = "INSERT INTO Statistic_Report_Item "
                 + "(report_id, item_type, item_label, item_value, item_text, ref_id, display_order) "
@@ -72,16 +74,23 @@ public class StatisticReportDAO extends DBContext {
 
             try (PreparedStatement reportPs = connection.prepareStatement(reportSql, Statement.RETURN_GENERATED_KEYS)) {
                 reportPs.setString(1, report.getReportName());
-                reportPs.setInt(2, report.getReportMonth());
-                reportPs.setInt(3, report.getReportYear());
-                reportPs.setBigDecimal(4, report.getTotalRevenue());
-                reportPs.setBigDecimal(5, report.getTotalProfit());
-                reportPs.setInt(6, report.getTotalOrders());
-                reportPs.setInt(7, report.getCompletedOrders());
-                reportPs.setInt(8, report.getCancelledOrders());
-                reportPs.setString(9, report.getNote());
-                reportPs.setInt(10, report.getCreatedBy());
-                reportPs.setBoolean(11, report.isStatus());
+                reportPs.setString(2, report.getPeriodType());
+                if (report.getReportMonth() == null) {
+                    reportPs.setNull(3, java.sql.Types.INTEGER);
+                } else {
+                    reportPs.setInt(3, report.getReportMonth());
+                }
+                reportPs.setInt(4, report.getReportYear());
+                reportPs.setBigDecimal(5, report.getTotalRevenue());
+                reportPs.setBigDecimal(6, report.getTotalProfit());
+                reportPs.setInt(7, report.getTotalOrders());
+                reportPs.setInt(8, report.getCompletedOrders());
+                reportPs.setInt(9, report.getCancelledOrders());
+                reportPs.setString(10, report.getNote());
+                reportPs.setTimestamp(11, report.getPeriodStartAt() == null ? null : new java.sql.Timestamp(report.getPeriodStartAt().getTime()));
+                reportPs.setTimestamp(12, report.getPeriodEndAt() == null ? null : new java.sql.Timestamp(report.getPeriodEndAt().getTime()));
+                reportPs.setInt(13, report.getCreatedBy());
+                reportPs.setBoolean(14, report.isStatus());
 
                 if (reportPs.executeUpdate() == 0) {
                     connection.rollback();
@@ -153,7 +162,7 @@ public class StatisticReportDAO extends DBContext {
         List<StatisticReportItem> items = new ArrayList<>();
         String sql = "SELECT item_id, report_id, item_type, item_label, item_value, item_text, ref_id, display_order "
                 + "FROM Statistic_Report_Item WHERE report_id = ? "
-                + "ORDER BY item_type ASC, display_order ASC, item_id ASC";
+                + "ORDER BY display_order ASC, item_id ASC";
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, reportId);
@@ -184,7 +193,10 @@ public class StatisticReportDAO extends DBContext {
         StatisticReport report = new StatisticReport();
         report.setReportId(rs.getInt("report_id"));
         report.setReportName(rs.getString("report_name"));
-        report.setReportMonth(rs.getInt("report_month"));
+        report.setPeriodType(rs.getString("period_type"));
+
+        int reportMonth = rs.getInt("report_month");
+        report.setReportMonth(rs.wasNull() ? null : reportMonth);
         report.setReportYear(rs.getInt("report_year"));
         report.setTotalRevenue(rs.getBigDecimal("total_revenue"));
         report.setTotalProfit(rs.getBigDecimal("total_profit"));
@@ -192,6 +204,8 @@ public class StatisticReportDAO extends DBContext {
         report.setCompletedOrders(rs.getInt("completed_orders"));
         report.setCancelledOrders(rs.getInt("cancelled_orders"));
         report.setNote(rs.getString("note"));
+        report.setPeriodStartAt(rs.getTimestamp("period_start_at"));
+        report.setPeriodEndAt(rs.getTimestamp("period_end_at"));
         report.setCreatedBy(rs.getInt("created_by"));
         report.setCreatedByName(rs.getString("created_by_name"));
         report.setStatus(rs.getBoolean("status"));
