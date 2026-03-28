@@ -634,14 +634,13 @@
                                                     <th>Discount</th>
                                                     <th>Start Date</th>
                                                     <th>Expiration Date</th>
-                                                    <th>Status</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 <c:choose>
                                                     <c:when test="${empty myVouchers}">
                                                         <tr>
-                                                            <td colspan="5" class="voucher-empty">You do not have any vouchers yet.</td>
+                                                            <td colspan="4" class="voucher-empty">You do not have any vouchers yet.</td>
                                                         </tr>
                                                     </c:when>
                                                     <c:otherwise>
@@ -663,11 +662,6 @@
                                                                 </td>
                                                                 <td>${fn:length(effectiveFromStr) > 16 ? fn:substring(effectiveFromStr, 0, 16) : effectiveFromStr}</td>
                                                                 <td>${fn:length(effectiveToStr) > 16 ? fn:substring(effectiveToStr, 0, 16) : effectiveToStr}</td>
-                                                                <td>
-                                                                    <span class="voucher-status ${cv.status == 'ACTIVE' ? 'active' : (cv.status == 'USED' ? 'used' : 'expired')}">
-                                                                        ${cv.status}
-                                                                    </span>
-                                                                </td>
                                                             </tr>
                                                         </c:forEach>
                                                     </c:otherwise>

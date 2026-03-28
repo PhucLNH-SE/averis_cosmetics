@@ -6,25 +6,16 @@
 <section class="admin-content__section">
     <div class="page-header">
         <div>
-            <h4>Import History</h4>
-            <p class="text-muted mb-0">Review and confirm received quantities</p>
+            <h4>Manage Import Product</h4>
+            <p class="text-muted mb-0">Review and approve import orders from staff</p>
         </div>
-        <div class="d-flex gap-2">
-            <a href="${pageContext.request.contextPath}/admin/import-product?action=importproduct" class="btn btn-add text-white">
-                <i class="bi bi-plus-circle me-1"></i> Import Product
-            </a>
-            <a href="${pageContext.request.contextPath}/admin/manage-statistic" class="btn btn-back">
-                <i class="bi bi-arrow-left"></i> Back
-            </a>
-        </div>
+        <a href="${pageContext.request.contextPath}/admin/manage-statistic" class="btn btn-back">
+            <i class="bi bi-arrow-left"></i> Back
+        </a>
     </div>
 
-    <c:if test="${param.success == 'import'}">
-        <c:set var="popupMessage" scope="request" value="Import order created successfully." />
-        <c:set var="popupType" scope="request" value="success" />
-    </c:if>
     <c:if test="${param.success == 'received'}">
-        <c:set var="popupMessage" scope="request" value="Import receipt confirmed successfully." />
+        <c:set var="popupMessage" scope="request" value="Import order approved successfully." />
         <c:set var="popupType" scope="request" value="success" />
     </c:if>
     <c:if test="${param.error == 'importFailed'}">
@@ -71,7 +62,7 @@
                                 <td class="text-end">
                                     <button type="button" class="btn btn-sm btn-outline-primary"
                                             onclick="openImportDetail(${h.purchaseOrderId})">
-                                        View
+                                        Review
                                     </button>
                                 </td>
                             </tr>
