@@ -31,6 +31,7 @@
                     </p>
                     <div class="hero-actions">
                         <a class="hero-btn primary" href="${pageContext.request.contextPath}/products">Shop now</a>
+                        <a class="hero-btn voucher" href="${pageContext.request.contextPath}/voucher-free">GET FREE VOUCHER!!</a>
                     </div>
                 </div>
 
