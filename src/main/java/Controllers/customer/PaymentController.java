@@ -43,10 +43,11 @@ public class PaymentController extends HttpServlet {
         voucherDAO = new VoucherDAO();
     }
 
-    void setVoucherDAO(VoucherDAO voucherDAO) {
-        this.voucherDAO = voucherDAO;
-    }
+//    void setVoucherDAO(VoucherDAO voucherDAO) {
+//        this.voucherDAO = voucherDAO;
+//    }
 
+    //PhucLNH - load checkout page
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
@@ -128,6 +129,7 @@ public class PaymentController extends HttpServlet {
         req.getRequestDispatcher("/WEB-INF/views/customer/checkout.jsp").forward(req, resp);
     }
 
+    //PhucLNH - check customer login
     private Customer getLoggedInCustomer(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         HttpSession session = req.getSession();
         Customer customer = (Customer) session.getAttribute("customer");

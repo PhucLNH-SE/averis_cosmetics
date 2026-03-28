@@ -470,7 +470,7 @@
         <div class="modal-content">
             <form action="${pageContext.request.contextPath}/admin/manage-product" method="post" enctype="multipart/form-data">
                 <input type="hidden" name="action" value="update">
-                <input type="hidden" name="productId" id="editId">
+                <input type="hidden" name="productId" id="editId" value="${not empty selectedProduct ? selectedProduct.productId : ''}">
                 <input type="hidden" name="returnKeyword" value="<c:out value='${searchKeyword}'/>">
                 <input type="hidden" name="returnBrandId" value="<c:out value='${selectedBrandId}'/>">
                 <input type="hidden" name="returnCategoryId" value="<c:out value='${selectedCategoryId}'/>">
