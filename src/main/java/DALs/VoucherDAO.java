@@ -86,17 +86,18 @@ public class VoucherDAO extends DBContext {
         }
     }
 
-    public boolean markShowOnFreeVoucher(int voucherId) {
-        String sql = "UPDATE Voucher SET show_on_free_voucher = 1 WHERE voucher_id = ?";
+    public boolean setShowOnHome(int voucherId, boolean showOnHome) {
+        String sql = "UPDATE Voucher SET show_on_free_voucher = ? WHERE voucher_id = ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setInt(1, voucherId);
+            ps.setBoolean(1, showOnHome);
+            ps.setInt(2, voucherId);
             int updated = ps.executeUpdate();
             if (updated > 0) {
                 return true;
             }
 
             Voucher voucher = getById(voucherId);
-            return voucher != null && Boolean.TRUE.equals(voucher.getShowonfreevoucher());
+            return voucher != null && Boolean.valueOf(showOnHome).equals(voucher.getShowonfreevoucher());
         } catch (Exception e) {
             e.printStackTrace();
             return false;

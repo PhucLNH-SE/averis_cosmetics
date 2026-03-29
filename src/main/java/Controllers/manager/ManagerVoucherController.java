@@ -82,8 +82,8 @@ public class ManagerVoucherController extends HttpServlet {
             case "update":
                 updateVoucher(request, response);
                 break;
-            case "markFree":
-                markVoucherAsFree(request, response);
+            case "toggleHome":
+                toggleVoucherHomeVisibility(request, response);
                 break;
             default:
                 response.sendRedirect(request.getContextPath() + ADMIN_LIST_URL);
@@ -169,11 +169,11 @@ public class ManagerVoucherController extends HttpServlet {
         }
     }
 
-    private void markVoucherAsFree(HttpServletRequest request, HttpServletResponse response)
+    private void toggleVoucherHomeVisibility(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
         String voucherIdRaw = request.getParameter("voucherId");
         if (voucherIdRaw == null || voucherIdRaw.trim().isEmpty()) {
-            response.sendRedirect(request.getContextPath() + ADMIN_LIST_URL + "?error=freeFailed");
+            response.sendRedirect(request.getContextPath() + ADMIN_LIST_URL + "?error=toggleHomeFailed");
             return;
         }
 
@@ -185,10 +185,16 @@ public class ManagerVoucherController extends HttpServlet {
                 return;
             }
 
-            boolean ok = voucherDAO.markShowOnFreeVoucher(voucherId);
-            response.sendRedirect(request.getContextPath() + ADMIN_LIST_URL + "?success=" + (ok ? "free" : "failed"));
+            boolean targetState = !Boolean.TRUE.equals(voucher.getShowonfreevoucher());
+            boolean ok = voucherDAO.setShowOnHome(voucherId, targetState);
+            if (!ok) {
+                response.sendRedirect(request.getContextPath() + ADMIN_LIST_URL + "?error=toggleHomeFailed");
+                return;
+            }
+            response.sendRedirect(request.getContextPath() + ADMIN_LIST_URL
+                    + "?success=" + (targetState ? "shownOnHome" : "hiddenFromHome"));
         } catch (NumberFormatException ex) {
-            response.sendRedirect(request.getContextPath() + ADMIN_LIST_URL + "?error=freeFailed");
+            response.sendRedirect(request.getContextPath() + ADMIN_LIST_URL + "?error=toggleHomeFailed");
         }
     }
 

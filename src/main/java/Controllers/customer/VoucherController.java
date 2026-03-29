@@ -80,12 +80,19 @@ public class VoucherController extends HttpServlet {
     }
 
     private String buildVoucherRedirect(HttpServletRequest request, String paramName, String value) {
-        String baseUrl = isFreeVoucherRoute(request)
-                ? request.getContextPath() + "/voucher-free"
-                : request.getContextPath() + "/profile?action=view&tab=voucher";
+        String source = request.getParameter("source");
+        String baseUrl;
+        if ("home".equalsIgnoreCase(source)) {
+            baseUrl = request.getContextPath() + "/home";
+        } else if (isFreeVoucherRoute(request)) {
+            baseUrl = request.getContextPath() + "/voucher-free";
+        } else {
+            baseUrl = request.getContextPath() + "/profile?action=view&tab=voucher";
+        }
 
         return baseUrl
                 + (baseUrl.contains("?") ? "&" : "?")
+                + ("home".equalsIgnoreCase(source) ? "voucherPopup=1&" : "")
                 + paramName
                 + "="
                 + URLEncoder.encode(value, StandardCharsets.UTF_8);

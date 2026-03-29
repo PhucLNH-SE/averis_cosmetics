@@ -95,19 +95,18 @@ public class PaymentController extends HttpServlet {
     private void loadCheckoutPage(HttpServletRequest req, HttpServletResponse resp, Customer customer)
             throws ServletException, IOException {
         Map<Integer, CartItem> cart = getSessionCart(req);
-        boolean isSuccess = "true".equals(req.getParameter("success"));
-
-        if ((cart == null || cart.isEmpty()) && !isSuccess) {
+        if (cart == null || cart.isEmpty()) {
             resp.sendRedirect(req.getContextPath() + "/cart");
             return;
         }
 
-        PaymentContext context = buildPaymentContext(customer, cart, "", "COD");
-        if (!isSuccess && validateCartStock(context.cart) != null) {
-            resp.sendRedirect(req.getContextPath() + "/cart");
-            return;
-        }
-
+        PaymentContext context = buildPaymentContext(
+                customer,
+                cart,
+                req.getParameter("voucherCode"),
+                req.getParameter("paymentMethod")
+        );
+        context.errorMessage = req.getParameter("error");
         renderCheckout(req, resp, context);
     }
 
@@ -280,17 +279,8 @@ public class PaymentController extends HttpServlet {
                 return "Product not found";
             }
 
-            if (variant.getStock() <= 0) {
-                return "Product is sold out: " + variant.getVariantName();
-            }
-
             if (variant.getStock() < item.getQuantity()) {
                 return "Product is out of stock: " + variant.getVariantName();
-            }
-
-            if (variant.getStock() <= item.getQuantity()
-                    && orderDAO.hasProcessingOrderForVariant(variant.getVariantId())) {
-                return "Product is sold out: " + variant.getVariantName();
             }
         }
 
@@ -323,7 +313,7 @@ public class PaymentController extends HttpServlet {
         HttpSession session = req.getSession();
         session.removeAttribute("cart");
         cartDetailDAO.deleteAll(customer.getCustomerId());
-        resp.sendRedirect(req.getContextPath() + "/checkout?success=true&orderId=" + orderId);
+        resp.sendRedirect(req.getContextPath() + "/order-success?orderId=" + orderId);
     }
 
     private void processMomoPayment(HttpServletRequest req, HttpServletResponse resp, int orderId)
