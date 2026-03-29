@@ -102,7 +102,13 @@ public class PaymentController extends HttpServlet {
             return;
         }
 
-        renderCheckout(req, resp, buildPaymentContext(customer, cart, "", "COD"));
+        PaymentContext context = buildPaymentContext(customer, cart, "", "COD");
+        if (!isSuccess && validateCartStock(context.cart) != null) {
+            resp.sendRedirect(req.getContextPath() + "/cart");
+            return;
+        }
+
+        renderCheckout(req, resp, context);
     }
 
     //PhucLNH - check customer login
@@ -274,8 +280,17 @@ public class PaymentController extends HttpServlet {
                 return "Product not found";
             }
 
+            if (variant.getStock() <= 0) {
+                return "Product is sold out: " + variant.getVariantName();
+            }
+
             if (variant.getStock() < item.getQuantity()) {
                 return "Product is out of stock: " + variant.getVariantName();
+            }
+
+            if (variant.getStock() <= item.getQuantity()
+                    && orderDAO.hasProcessingOrderForVariant(variant.getVariantId())) {
+                return "Product is sold out: " + variant.getVariantName();
             }
         }
 

@@ -601,6 +601,12 @@
     color: #b45309;
 }
 
+.product-variant-stock {
+    font-size: 13px;
+    color: #6b7280;
+    margin-top: auto;
+}
+
 .product-detail-actions {
     display: flex;
     flex-wrap: wrap;
@@ -2564,6 +2570,13 @@ textarea.form-control {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+.order-item .item-variant {
+    color: #b45309;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 4px;
 }
 
 .order-item .item-meta {
@@ -9310,6 +9323,15 @@ body {
     font-weight: 600;
 }
 
+.cart-page .cart-stock-note--soldout{
+    display: inline-block;
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin-top: 6px;
+}
+
 
 .cart-page .btn-delete{
     font-size: 13px;
@@ -9396,6 +9418,21 @@ body {
 
 .cart-page .btn-checkout:hover{
     background: var(--accent-hover);
+}
+
+.cart-page .btn-checkout--disabled,
+.cart-page .btn-checkout--disabled:hover{
+    background: #d1d5db;
+    color: #6b7280;
+    cursor: not-allowed;
+}
+
+.cart-page .cart-checkout-note{
+    margin-top: 12px;
+    color: var(--danger);
+    font-size: 13px;
+    font-weight: 600;
+    text-align: center;
 }
 
 .cart-page .continue-link{
@@ -10821,10 +10858,26 @@ body {
     align-items: center;
     margin-bottom: 12px;
 }
+.product-detail-page .review-customer{
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
 .product-detail-page .user-name{
     font-weight: 700;
     color: #1e293b;
     font-size: 1.05rem;
+}
+.product-detail-page .review-variant{
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: #fff7ed;
+    color: #b45309;
+    font-size: 12px;
+    font-weight: 600;
 }
 .product-detail-page .review-date{
     color: #94a3b8;
@@ -11155,8 +11208,14 @@ body {
 
 .feedback-product-name {
     font-weight: 500;
-    margin-bottom: 16px;
+    margin-bottom: 6px;
     color: #374151;
+}
+
+.feedback-product-meta {
+    margin-bottom: 16px;
+    color: #6b7280;
+    font-size: 0.95rem;
 }
 
 .feedback-rating-block {

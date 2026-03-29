@@ -519,6 +519,24 @@ public class OrderDAO extends DBContext {
         }
     }
 
+    public boolean hasProcessingOrderForVariant(int variantId) {
+        String sql = "SELECT TOP 1 1 "
+                + "FROM Order_Detail od "
+                + "JOIN Orders o ON od.order_id = o.order_id "
+                + "WHERE od.variant_id = ? AND o.order_status = 'PROCESSING'";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, variantId);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
     private void validateCartItem(CartItem item) {
         if (item == null
                 || item.getVariant() == null
@@ -945,6 +963,7 @@ public class OrderDAO extends DBContext {
                 + "od.response_content, "
                 + "od.responded_at, "
                 + "p.name AS product_name, "
+                + "v.variant_name, "
                 + "b.name AS brand_name, "
                 + "c.name AS category_name, "
                 + "od.quantity, "
@@ -980,6 +999,7 @@ public class OrderDAO extends DBContext {
                 }
 
                 od.setProductName(rs.getString("product_name"));
+                od.setVariantName(rs.getString("variant_name"));
                 od.setImageUrl(rs.getString("image_url"));
                 od.setBrandName(rs.getString("brand_name"));
                 od.setCategoryName(rs.getString("category_name"));
