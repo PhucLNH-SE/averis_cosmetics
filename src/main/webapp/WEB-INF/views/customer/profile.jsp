@@ -453,6 +453,9 @@
                                                     </div>
                                                     <div class="item-details">
                                                         <div class="item-name">${d.productName}</div>
+                                                        <c:if test="${not empty d.variantName}">
+                                                            <div class="item-variant">${d.variantName}</div>
+                                                        </c:if>
                                                         <div class="item-meta">
                                                             <span>${d.brandName}</span>
                                                             <span class="separator">|</span>
@@ -481,6 +484,9 @@
                                                                     <button type="button" class="btn-feedback btn-feedback--primary"
                                                                             data-id="${d.orderDetailId}"
                                                                             data-name="${fn:escapeXml(d.productName)}"
+                                                                            data-variant="${fn:escapeXml(d.variantName)}"
+                                                                            data-brand="${fn:escapeXml(d.brandName)}"
+                                                                            data-category="${fn:escapeXml(d.categoryName)}"
                                                                             data-rating="5"
                                                                             data-comment=""
                                                                             onclick="openFeedbackPopup(this)">
@@ -510,6 +516,9 @@
                                                                             <button type="button" class="btn-edit-feedback btn-edit-feedback--secondary"
                                                                                     data-id="${d.orderDetailId}"
                                                                                     data-name="${fn:escapeXml(d.productName)}"
+                                                                                    data-variant="${fn:escapeXml(d.variantName)}"
+                                                                                    data-brand="${fn:escapeXml(d.brandName)}"
+                                                                                    data-category="${fn:escapeXml(d.categoryName)}"
                                                                                     data-rating="${d.rating}"
                                                                                     data-comment="${fn:escapeXml(displayComment)}"
                                                                                     onclick="openFeedbackPopup(this)">
@@ -556,6 +565,7 @@
                                         <input type="hidden" name="orderId" value="${order.orderId}">
 
                                         <p id="feedbackProductName" class="feedback-product-name"></p>
+                                        <p id="feedbackProductMeta" class="feedback-product-meta"></p>
 
                                         <div class="feedback-rating-block">
                                             <input type="hidden" name="rating" id="feedbackRating" value="5">
@@ -952,12 +962,19 @@
                                                     // Read data from the clicked button's data attributes
                                                     const orderDetailId = buttonElement.getAttribute('data-id');
                                                     const productName = buttonElement.getAttribute('data-name');
+                                                    const variantName = buttonElement.getAttribute('data-variant') || '';
+                                                    const brandName = buttonElement.getAttribute('data-brand') || '';
+                                                    const categoryName = buttonElement.getAttribute('data-category') || '';
                                                     const existingRating = parseInt(buttonElement.getAttribute('data-rating')) || 5;
                                                     const existingComment = buttonElement.getAttribute('data-comment') || '';
+                                                    const productMeta = variantName
+                                                            ? `Classification: ${variantName}`
+                                                            : [brandName, categoryName].filter(Boolean).join(' | ');
 
                                                     // Fill the form with existing data
                                                     document.getElementById('feedbackOrderDetailId').value = orderDetailId;
                                                     document.getElementById('feedbackProductName').textContent = productName;
+                                                    document.getElementById('feedbackProductMeta').textContent = productMeta;
 
                                                     // Reset and restore previous values
                                                     form.reset();

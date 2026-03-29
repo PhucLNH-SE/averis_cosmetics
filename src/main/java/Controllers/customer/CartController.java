@@ -1,6 +1,7 @@
 package Controllers.customer;
 
 import DALs.CartDetailDAO;
+import DALs.OrderDAO;
 import DALs.ProductDAO;
 import DALs.ProductVariantDAO;
 import jakarta.servlet.ServletException;
@@ -20,6 +21,7 @@ public class CartController extends HttpServlet {
     ProductDAO productDAO = new ProductDAO();
     CartDetailDAO cartDetailDAO = new CartDetailDAO();
     ProductVariantDAO variantDAO = new ProductVariantDAO();
+    OrderDAO orderDAO = new OrderDAO();
 
     private Map<Integer, CartItem> loadCartFromDb(int customerId) {
         Map<Integer, CartItem> cart = new HashMap<>();
@@ -31,6 +33,46 @@ public class CartController extends HttpServlet {
             }
         }
         return cart;
+    }
+
+    private boolean isEffectivelySoldOut(CartItem item) {
+        if (item == null || item.getVariant() == null) {
+            return true;
+        }
+
+        int stock = item.getVariant().getStock();
+        if (stock <= 0) {
+            return true;
+        }
+
+        return item.getQuantity() >= stock
+                && orderDAO.hasProcessingOrderForVariant(item.getVariant().getVariantId());
+    }
+
+    private Map<Integer, Boolean> buildSoldOutFlags(Map<Integer, CartItem> cart) {
+        Map<Integer, Boolean> flags = new HashMap<>();
+        if (cart == null || cart.isEmpty()) {
+            return flags;
+        }
+
+        for (Map.Entry<Integer, CartItem> entry : cart.entrySet()) {
+            flags.put(entry.getKey(), isEffectivelySoldOut(entry.getValue()));
+        }
+        return flags;
+    }
+
+    private boolean hasUnavailableCartItem(Map<Integer, CartItem> cart) {
+        if (cart == null || cart.isEmpty()) {
+            return false;
+        }
+
+        for (CartItem item : cart.values()) {
+            if (isEffectivelySoldOut(item) || item == null || item.getVariant() == null
+                    || item.getQuantity() > item.getVariant().getStock()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
@@ -52,7 +94,6 @@ public class CartController extends HttpServlet {
         }
 
         HttpSession session = request.getSession();
-        Map<Integer, CartItem> cart = (Map<Integer, CartItem>) session.getAttribute("cart");
         Customer customer = (Customer) session.getAttribute("customer");
 
         if (customer == null) {
@@ -61,10 +102,8 @@ public class CartController extends HttpServlet {
             return;
         }
 
-        if (cart == null) {
-            cart = loadCartFromDb(customer.getCustomerId());
-            session.setAttribute("cart", cart);
-        }
+        Map<Integer, CartItem> cart = loadCartFromDb(customer.getCustomerId());
+        session.setAttribute("cart", cart);
         if (cart == null) cart = new HashMap<>();
 
         BigDecimal total = BigDecimal.ZERO;
@@ -82,6 +121,8 @@ public class CartController extends HttpServlet {
         request.setAttribute("cart", cart);
         request.setAttribute("total", total);
         request.setAttribute("availableVariants", availableVariants);
+        request.setAttribute("soldOutFlags", buildSoldOutFlags(cart));
+        request.setAttribute("hasUnavailableItems", hasUnavailableCartItem(cart));
 
         request.getRequestDispatcher("/WEB-INF/views/customer/cart.jsp").forward(request, response);
     }
@@ -153,9 +194,12 @@ public class CartController extends HttpServlet {
                     ProductVariant v = variantDAO.getVariantById(variantId);
                     if (v != null) {
                         int currentQtyInCart = cart.containsKey(variantId) ? cart.get(variantId).getQuantity() : 0;
+                        int remainingQty = Math.max(0, v.getStock() - currentQtyInCart);
                         
                         if (currentQtyInCart + quantity > v.getStock()) {
-                            String errorMsg = "Stock limit exceeded. Only " + v.getStock() + " item(s) available for this variant.";
+                            String errorMsg = remainingQty > 0
+                                    ? "You can only add up to " + remainingQty + " more product(s) for this variant."
+                                    : "You cannot add more of this product because you have already reached the available stock limit.";
                             
                             if ("true".equals(request.getParameter("ajax"))) {
                                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);

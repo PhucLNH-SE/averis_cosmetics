@@ -126,6 +126,7 @@ public class FeedbackDAO extends DBContext {
         List<OrderDetail> list = new ArrayList<>();
         String sql = "SELECT od.order_detail_id, od.order_id, od.rating, od.review_comment, od.reviewed_at, "
                    + "od.manager_response, od.response_content, od.responded_at, "
+                   + "pv.variant_name, "
                    + "c.full_name AS customer_name, "
                    + "m.full_name AS manager_name "
                    + "FROM Order_Detail od "
@@ -153,6 +154,7 @@ public class FeedbackDAO extends DBContext {
                     }
 
                     od.setResponseContent(rs.getString("response_content"));
+                    od.setVariantName(rs.getString("variant_name"));
                     if (rs.getTimestamp("responded_at") != null) {
                         od.setRespondedAt(rs.getTimestamp("responded_at").toLocalDateTime());
                     }
