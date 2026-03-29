@@ -1,4 +1,4 @@
-﻿<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <!DOCTYPE html>
 <html lang="en">
@@ -9,7 +9,7 @@
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
         <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
         <link href="${pageContext.request.contextPath}/assets/css/style.css" rel="stylesheet">
-        <c:if test="${currentView == 'feedback' || currentView == 'import-product'}">
+        <c:if test="${currentView == 'feedback'}">
             <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
         </c:if>
     </head>
@@ -67,11 +67,11 @@
                         <i class="bi bi-box-seam-fill"></i>
                         <span>View Products</span>
                     </a>
-                    <a class="admin-sidebar__link ${currentView == 'import-product' ? 'active' : ''}"
-                       href="${pageContext.request.contextPath}/staff/manage-import-product?action=importproduct"
-                       title="Manage Import Product">
+                    <a class="admin-sidebar__link ${currentView == 'import' ? 'active' : ''}"
+                       href="${pageContext.request.contextPath}/staff/import-product?action=history"
+                       title="Manage Import">
                         <i class="bi bi-boxes"></i>
-                        <span>Manage Import Product</span>
+                        <span>Manage Import</span>
                     </a>
 
                 </nav>

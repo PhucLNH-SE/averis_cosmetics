@@ -6,246 +6,181 @@
 <section class="admin-content__section admin-page admin-page--product">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h3 class="fw-bold mb-0">Import Products</h3>
-            <p class="text-muted small mb-0">Select a product and import its variants</p>
+            <h3 class="fw-bold mb-0">Create Import Order</h3>
+            <p class="text-muted small mb-0">Create one import order with multiple products, and use brand only as a filter</p>
         </div>
-        <a class="btn btn-outline-secondary px-3" href="${pageContext.request.contextPath}/admin/import-product?action=history">
-            <i class="bi bi-arrow-left"></i> Back to History
-        </a>
+        <div class="d-flex gap-2">
+            <button type="button" class="btn btn-outline-primary px-3" data-bs-toggle="modal" data-bs-target="#supplierModal">
+                <i class="bi bi-building-add"></i> Add Supplier
+            </button>
+            <a class="btn btn-outline-secondary px-3" href="${pageContext.request.contextPath}/admin/import-product?action=history">
+                <i class="bi bi-arrow-left"></i> Back to History
+            </a>
+        </div>
     </div>
 
     <c:if test="${not empty error}">
         <c:set var="popupMessage" scope="request" value="${error}" />
         <c:set var="popupType" scope="request" value="error" />
     </c:if>
+    <c:if test="${param.success == 'supplierAdded'}">
+        <c:set var="popupMessage" scope="request" value="Supplier added successfully." />
+        <c:set var="popupType" scope="request" value="success" />
+    </c:if>
 
-    <div class="card shadow-sm">
-        <div class="card-body p-4 pb-0">
-            <div class="product-overview">
-                <div class="product-overview__card product-overview__card--results">
-                    <span class="product-overview__label">Results</span>
-                    <strong class="product-overview__value">${resultCount}</strong>
-                </div>
-                <div class="product-overview__card product-overview__card--active">
-                    <span class="product-overview__label">Active</span>
-                    <strong class="product-overview__value">${activeCount}</strong>
-                </div>
-                <div class="product-overview__card product-overview__card--inactive">
-                    <span class="product-overview__label">Inactive</span>
-                    <strong class="product-overview__value">${inactiveCount}</strong>
+    <form action="${pageContext.request.contextPath}/admin/import-product" method="post" id="createImportOrderForm">
+        <input type="hidden" name="action" value="importproduct">
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-white border-0 pt-4 px-4">
+                <h5 class="fw-bold mb-1">Import Order Information</h5>
+                <p class="text-muted small mb-0">Fill in the import order header before adding items</p>
+            </div>
+            <div class="card-body p-4">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold">Import Code</label>
+                        <input type="text" class="form-control" name="importCode" value="${nextImportCode}" readonly>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold">Supplier</label>
+                        <select name="supplierId" class="form-select" required>
+                            <option value="">Select supplier</option>
+                            <c:forEach items="${supplierList}" var="supplier">
+                                <option value="${supplier.supplierId}">${supplier.name}</option>
+                            </c:forEach>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold">Brand Filter</label>
+                        <select id="importOrderBrandId" class="form-select" onchange="handleBrandChange()">
+                            <option value="">All brands</option>
+                            <c:forEach items="${listB}" var="b">
+                                <option value="${b.brandId}">${b.name}</option>
+                            </c:forEach>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold">Invoice No</label>
+                        <input type="text" class="form-control" name="invoiceNo" placeholder="Optional">
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label fw-semibold">Note</label>
+                        <textarea class="form-control" name="note" rows="2" placeholder="Import note"></textarea>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="card-body p-4">
-            <div class="product-toolbar mb-4">
-                <form action="${pageContext.request.contextPath}/admin/import-product" method="get" class="product-search-form">
-                    <input type="hidden" name="action" value="importproduct">
-                    <div class="product-filter-grid">
-                        <div>
-                            <label class="form-label fw-semibold mb-2" for="importSearchKeyword">Keyword</label>
-                            <div class="product-search-form__input-wrap">
-                                <i class="fas fa-search product-search-form__icon"></i>
-                                <input
-                                    id="importSearchKeyword"
-                                    type="text"
-                                    name="keyword"
-                                    class="form-control product-search-form__input"
-                                    value="<c:out value='${searchKeyword}'/>">
-                            </div>
-                        </div>
-                        <div>
-                            <label class="form-label fw-semibold mb-2" for="importBrandFilter">Brand</label>
-                            <select id="importBrandFilter" name="brandId" class="form-select product-filter-select">
-                                <option value="">All brands</option>
-                                <c:forEach items="${listB}" var="b">
-                                    <option value="${b.brandId}" ${selectedBrandId == b.brandId ? 'selected' : ''}>${b.name}</option>
-                                </c:forEach>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="form-label fw-semibold mb-2" for="importCategoryFilter">Category</label>
-                            <select id="importCategoryFilter" name="categoryId" class="form-select product-filter-select">
-                                <option value="">All categories</option>
-                                <c:forEach items="${listC}" var="c">
-                                    <option value="${c.categoryId}" ${selectedCategoryId == c.categoryId ? 'selected' : ''}>${c.name}</option>
-                                </c:forEach>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="form-label fw-semibold mb-2" for="importStatusFilter">Status</label>
-                            <select id="importStatusFilter" name="status" class="form-select product-filter-select">
-                                <option value="">All status</option>
-                                <option value="active" ${selectedStatus == 'active' ? 'selected' : ''}>Active</option>
-                                <option value="inactive" ${selectedStatus == 'inactive' ? 'selected' : ''}>Inactive</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="product-search-form__row">
-                        <button type="submit" class="btn btn-primary px-4">
-                            <i class="fas fa-filter me-1"></i> Search
-                        </button>
-                        <a class="btn btn-outline-secondary px-4" href="${pageContext.request.contextPath}/admin/import-product?action=importproduct">
-                            Reset
-                        </a>
-                    </div>
-                    <p class="text-muted small mb-0 mt-2">
-                        Showing ${resultCount} product(s)<c:if test="${not empty searchKeyword}"> for "<c:out value="${searchKeyword}"/>"</c:if>
-                    </p>
-                </form>
-            </div>
 
-            <div class="table-responsive">
-                <table class="table table-hover align-middle">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Image</th>
-                            <th>Product Name</th>
-                            <th>Category</th>
-                            <th>Price Range</th>
-                            <th class="text-center">Total Stock</th>
-                            <th>Status</th>
-                            <th class="text-center">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <c:forEach items="${listP}" var="p">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
+                <div>
+                    <h5 class="fw-bold mb-1">Import Items</h5>
+                    <p class="text-muted small mb-0">Add multiple products and variants. Brand only helps filter product choices</p>
+                </div>
+                <button type="button" class="btn btn-primary" onclick="addImportRow()">
+                    <i class="bi bi-plus-circle me-1"></i> Add Item
+                </button>
+            </div>
+            <div class="card-body p-4">
+                <div class="table-responsive">
+                    <table class="table align-middle" id="importItemsTable">
+                        <thead>
                             <tr>
-                                <td class="fw-bold">${p.productId}</td>
-                                <td>
-                                    <c:choose>
-                                        <c:when test="${not empty p.mainImage}">
-                                            <img src="${pageContext.request.contextPath}/assets/img/${p.mainImage}"
-                                                 class="product-img-td product-img-td--cover border" width="50" height="50"
-                                                 onerror="this.src='${pageContext.request.contextPath}/assets/img/Logo.png';">
-                                        </c:when>
-                                        <c:otherwise>
-                                            <img src="${pageContext.request.contextPath}/assets/img/Logo.png" class="product-img-td border" width="50" height="50">
-                                        </c:otherwise>
-                                    </c:choose>
-                                </td>
-                                <td>${p.name}</td>
-                                <td>${p.category.name}</td>
-                                <td>
-                                    <c:choose>
-                                        <c:when test="${p.price == 0}">
-                                            <span class="text-muted small">No variants</span>
-                                        </c:when>
-                                        <c:when test="${p.price == p.maxPrice}">
-                                            <span class="text-primary fw-bold">
-                                                <fmt:formatNumber value="${p.price}" pattern="#,##0"/> VND
-                                            </span>
-                                        </c:when>
-                                        <c:otherwise>
-                                            <span class="text-primary fw-bold">
-                                                <fmt:formatNumber value="${p.price}" pattern="#,##0"/> VND -
-                                                <fmt:formatNumber value="${p.maxPrice}" pattern="#,##0"/> VND
-                                            </span>
-                                        </c:otherwise>
-                                    </c:choose>
-                                </td>
-                                <td class="text-center">
-                                    <span class="fw-bold ${p.totalStock > 0 ? 'text-dark' : 'text-danger'}">
-                                        ${p.totalStock}
-                                    </span>
-                                </td>
-                                <td>
-                                    <span class="${p.status ? 'text-success' : 'text-danger'} fw-bold">
-                                        <i class="fas ${p.status ? 'fa-check-circle' : 'fa-times-circle'} me-1"></i>${p.status ? 'Active' : 'Inactive'}
-                                    </span>
-                                </td>
-                                <td class="text-center">
-                                    <button class="btn btn-primary btn-sm px-3"
-                                            data-id="${p.productId}"
-                                            data-name="<c:out value='${p.name}' />"
-                                            data-brand-id="${p.brand.brandId}"
-                                            onclick="openImportModal(this)">
-                                        <i class="fas fa-truck-loading me-1"></i> Import
-                                    </button>
-                                </td>
+                                <th style="min-width: 220px;">Product</th>
+                                <th style="min-width: 220px;">Variant</th>
+                                <th class="text-center" style="min-width: 120px;">Current Stock</th>
+                                <th class="text-center" style="min-width: 140px;">Quantity</th>
+                                <th class="text-center" style="min-width: 160px;">Import Price</th>
+                                <th class="text-end" style="min-width: 160px;">Subtotal</th>
+                                <th class="text-center" style="width: 80px;">Remove</th>
                             </tr>
-                        </c:forEach>
-                        <c:if test="${empty listP}">
-                            <tr>
-                                <td colspan="8" class="text-center py-5 text-muted">
-                                    No products matched your search.
-                                </td>
-                            </tr>
-                        </c:if>
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody id="importItemsBody">
+                        </tbody>
+                    </table>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mt-3">
+                    <p class="text-muted small mb-0">One import order can include products from multiple brands.</p>
+                    <div class="fw-bold fs-5">
+                        Total:
+                        <span id="importOrderGrandTotal">0 VND</span>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer bg-white border-0 px-4 pb-4 d-flex justify-content-end gap-2">
+                <a class="btn btn-outline-secondary px-4" href="${pageContext.request.contextPath}/admin/import-product?action=history">Cancel</a>
+                <button type="submit" class="btn btn-primary px-4">
+                    <i class="bi bi-check2-circle me-1"></i> Save Import Order
+                </button>
             </div>
         </div>
-    </div>
+    </form>
 </section>
 
-<div id="import-variants-storage" class="d-none">
-    <c:forEach items="${listP}" var="p">
-        <div id="import-variants-${p.productId}">
-            <c:choose>
-                <c:when test="${empty p.variants}">
-                    <div class="alert alert-warning py-3 text-center mb-0">
-                        <i class="fas fa-exclamation-circle me-1"></i> No variants.
-                    </div>
-                </c:when>
-                <c:otherwise>
-                    <div class="table-responsive">
-                        <table class="table table-bordered align-middle mb-0">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Variant</th>
-                                    <th class="text-center">Stock</th>
-                                    <th class="text-center">Import Price</th>
-                                    <th class="text-center">Quantity</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <c:forEach items="${p.variants}" var="v">
-                                    <tr>
-                                        <td class="fw-semibold">${v.variantName}</td>
-                                        <td class="text-center">${v.stock}</td>
-                                        <td class="text-center">
-                                            <input type="number" class="form-control form-control-sm text-end"
-                                                   name="price" placeholder="0" step="1000" min="0">
-                                        </td>
-                                        <td class="text-center">
-                                            <input type="number" class="form-control form-control-sm text-end"
-                                                   name="quantity" placeholder="0" min="0">
-                                            <input type="hidden" name="variantId" value="${v.variantId}">
-                                        </td>
-                                    </tr>
-                                </c:forEach>
-                            </tbody>
-                        </table>
-                    </div>
-                </c:otherwise>
-            </c:choose>
-        </div>
+<div id="product-options-storage" class="d-none">
+    <select id="brand-products-all">
+        <option value="">Select product</option>
+        <c:forEach items="${listP}" var="product">
+            <option value="${product.productId}">${product.name}</option>
+        </c:forEach>
+    </select>
+    <c:forEach items="${listB}" var="brand">
+        <select id="brand-products-${brand.brandId}">
+            <option value="">Select product</option>
+            <c:forEach items="${listP}" var="product">
+                <c:if test="${product.brand.brandId == brand.brandId}">
+                    <option value="${product.productId}">${product.name}</option>
+                </c:if>
+            </c:forEach>
+        </select>
     </c:forEach>
 </div>
 
-<div class="modal fade" id="importModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+<div id="variant-options-storage" class="d-none">
+    <c:forEach items="${listP}" var="product">
+        <select id="product-variants-${product.productId}">
+            <option value="">Select variant</option>
+            <c:forEach items="${product.variants}" var="variant">
+                <option value="${variant.variantId}"
+                        data-stock="${variant.stock}"
+                        data-default-price="${variant.importPrice}"
+                        data-label="${product.name} - ${variant.variantName}">
+                    ${variant.variantName}
+                </option>
+            </c:forEach>
+        </select>
+    </c:forEach>
+</div>
+
+<div class="modal fade" id="supplierModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
         <div class="modal-content">
             <form action="${pageContext.request.contextPath}/admin/import-product" method="post">
-                <input type="hidden" name="action" value="importproduct">
-                <input type="hidden" name="brandId" id="importBrandId">
+                <input type="hidden" name="action" value="addsupplier">
                 <div class="modal-header bg-primary text-white">
                     <h5 class="modal-title fw-bold">
-                        <i class="fas fa-truck-loading me-2"></i>Import Variants: <span id="importProductName"></span>
+                        <i class="bi bi-building-add me-2"></i>Add Supplier
                     </h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body bg-light p-4">
-                    <div id="importVariantList" class="bg-white p-3 rounded shadow-sm"></div>
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Supplier Name</label>
+                        <input type="text" class="form-control" name="supplierName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Phone</label>
+                        <input type="text" class="form-control" name="supplierPhone" required>
+                    </div>
+                    <div class="mb-0">
+                        <label class="form-label fw-semibold">Address</label>
+                        <textarea class="form-control" name="supplierAddress" rows="3" required></textarea>
+                    </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">
-                        <i class="bi bi-x-circle"></i> Cancel
-                    </button>
-                    <button type="submit" class="btn btn-primary px-4">
-                        <i class="bi bi-check2-circle"></i> Create Import Order
-                    </button>
+                    <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary px-4">Save Supplier</button>
                 </div>
             </form>
         </div>
@@ -253,17 +188,114 @@
 </div>
 
 <script>
-    function openImportModal(button) {
-        const productId = button.getAttribute('data-id');
-        const productName = button.getAttribute('data-name');
-        const brandId = button.getAttribute('data-brand-id');
-
-        document.getElementById('importProductName').innerText = productName;
-        document.getElementById('importBrandId').value = brandId;
-
-        const variantHtml = document.getElementById('import-variants-' + productId).innerHTML;
-        document.getElementById('importVariantList').innerHTML = variantHtml;
-
-        bootstrap.Modal.getOrCreateInstance(document.getElementById('importModal')).show();
+    function getBrandId() {
+        const brandSelect = document.getElementById('importOrderBrandId');
+        return brandSelect ? brandSelect.value : '';
     }
+
+    function buildProductOptionsHtml(brandId) {
+        const source = document.getElementById(brandId ? 'brand-products-' + brandId : 'brand-products-all');
+        return source ? source.innerHTML : '<option value="">Select product</option>';
+    }
+
+    function buildVariantOptionsHtml(productId) {
+        if (!productId) {
+            return '<option value="">Select variant</option>';
+        }
+        const source = document.getElementById('product-variants-' + productId);
+        return source ? source.innerHTML : '<option value="">Select variant</option>';
+    }
+
+    function addImportRow(silent) {
+        const brandId = getBrandId();
+        const tbody = document.getElementById('importItemsBody');
+        const row = document.createElement('tr');
+        row.innerHTML = ""
+                + "<td>"
+                + "    <select class=\"form-select import-product-select\" onchange=\"handleProductChange(this)\" required>"
+                + buildProductOptionsHtml(brandId)
+                + "    </select>"
+                + "</td>"
+                + "<td>"
+                + "    <select class=\"form-select import-variant-select\" name=\"variantId\" onchange=\"handleVariantChange(this)\" required>"
+                + "        <option value=\"\">Select variant</option>"
+                + "    </select>"
+                + "</td>"
+                + "<td class=\"text-center\">"
+                + "    <span class=\"badge bg-light text-dark border import-current-stock\">0</span>"
+                + "</td>"
+                + "<td>"
+                + "    <input type=\"number\" class=\"form-control text-end\" name=\"quantity\" min=\"1\" value=\"1\" onchange=\"updateRowSubtotal(this)\" oninput=\"updateRowSubtotal(this)\" required>"
+                + "</td>"
+                + "<td>"
+                + "    <input type=\"number\" class=\"form-control text-end\" name=\"price\" min=\"0\" step=\"1000\" value=\"0\" onchange=\"updateRowSubtotal(this)\" oninput=\"updateRowSubtotal(this)\" required>"
+                + "</td>"
+                + "<td class=\"text-end fw-bold import-row-subtotal\">0 VND</td>"
+                + "<td class=\"text-center\">"
+                + "    <button type=\"button\" class=\"btn btn-outline-danger btn-sm\" onclick=\"removeImportRow(this)\">"
+                + "        <i class=\"bi bi-trash\"></i>"
+                + "    </button>"
+                + "</td>";
+        tbody.appendChild(row);
+        updateGrandTotal();
+    }
+
+    function handleBrandChange() {
+        // Brand works only as a filter for the next item rows.
+    }
+
+    function handleProductChange(selectEl) {
+        const row = selectEl.closest('tr');
+        const variantSelect = row.querySelector('.import-variant-select');
+        variantSelect.innerHTML = buildVariantOptionsHtml(selectEl.value);
+        row.querySelector('.import-current-stock').textContent = '0';
+        const priceInput = row.querySelector('input[name="price"]');
+        priceInput.value = 0;
+        updateRowSubtotal(priceInput);
+    }
+
+    function handleVariantChange(selectEl) {
+        const row = selectEl.closest('tr');
+        const selectedOption = selectEl.options[selectEl.selectedIndex];
+        const stock = selectedOption ? (selectedOption.getAttribute('data-stock') || '0') : '0';
+        const defaultPrice = selectedOption ? (selectedOption.getAttribute('data-default-price') || '0') : '0';
+        row.querySelector('.import-current-stock').textContent = stock;
+        row.querySelector('input[name="price"]').value = defaultPrice;
+        updateRowSubtotal(selectEl);
+    }
+
+    function updateRowSubtotal(sourceEl) {
+        const row = sourceEl.closest('tr');
+        const qty = Number(row.querySelector('input[name="quantity"]').value || 0);
+        const price = Number(row.querySelector('input[name="price"]').value || 0);
+        const subtotal = qty * price;
+        row.querySelector('.import-row-subtotal').textContent = subtotal.toLocaleString('vi-VN') + ' VND';
+        updateGrandTotal();
+    }
+
+    function updateGrandTotal() {
+        let total = 0;
+        document.querySelectorAll('#importItemsBody tr').forEach(function (row) {
+            const qty = Number(row.querySelector('input[name="quantity"]').value || 0);
+            const price = Number(row.querySelector('input[name="price"]').value || 0);
+            total += qty * price;
+        });
+        document.getElementById('importOrderGrandTotal').textContent = total.toLocaleString('vi-VN') + ' VND';
+    }
+
+    function removeImportRow(button) {
+        const row = button.closest('tr');
+        row.remove();
+        if (!document.querySelector('#importItemsBody tr')) {
+            updateGrandTotal();
+            return;
+        }
+        updateGrandTotal();
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        addImportRow(true);
+    });
 </script>
+
+

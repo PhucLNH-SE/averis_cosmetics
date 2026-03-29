@@ -1,11 +1,10 @@
-
 package Model;
 
 import java.math.BigDecimal;
 
 public class PurchaseDetail {
 
-  private int purchaseDetailId;
+    private int purchaseDetailId;
     private int purchaseOrderId;
     private int variantId;
     private int quantity;
@@ -14,11 +13,13 @@ public class PurchaseDetail {
 
     private String productName;
     private String variantName;
+    private String brandName;
 
     public PurchaseDetail() {
     }
 
-    public PurchaseDetail(int purchaseDetailId, int purchaseOrderId, int variantId, int quantity, BigDecimal importPrice, Integer receivedQuantity, String productName, String variantName) {
+    public PurchaseDetail(int purchaseDetailId, int purchaseOrderId, int variantId, int quantity,
+            BigDecimal importPrice, Integer receivedQuantity, String productName, String variantName, String brandName) {
         this.purchaseDetailId = purchaseDetailId;
         this.purchaseOrderId = purchaseOrderId;
         this.variantId = variantId;
@@ -27,6 +28,7 @@ public class PurchaseDetail {
         this.receivedQuantity = receivedQuantity;
         this.productName = productName;
         this.variantName = variantName;
+        this.brandName = brandName;
     }
 
     public int getPurchaseDetailId() {
@@ -92,5 +94,12 @@ public class PurchaseDetail {
     public void setVariantName(String variantName) {
         this.variantName = variantName;
     }
-    
+
+    public String getBrandName() {
+        return brandName;
+    }
+
+    public void setBrandName(String brandName) {
+        this.brandName = brandName;
+    }
 }

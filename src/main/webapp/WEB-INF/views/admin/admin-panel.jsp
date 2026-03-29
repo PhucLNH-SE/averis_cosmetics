@@ -66,11 +66,11 @@
                         <i class="bi bi-box-seam-fill"></i>
                         <span>Manage Products</span>
                     </a>
-                    <a class="admin-sidebar__link ${currentView == 'import-product' ? 'active' : ''}"
+                    <a class="admin-sidebar__link ${currentView == 'import' ? 'active' : ''}"
                        href="${pageContext.request.contextPath}/admin/import-product?action=history"
-                       title="Manage Import Product">
+                       title="Manage Import">
                         <i class="bi bi-boxes"></i>
-                        <span>Manage Import Product</span>
+                        <span>Manage Import</span>
                     </a>
                     <a class="admin-sidebar__link ${currentView == 'voucher' ? 'active' : ''}"
                        href="${pageContext.request.contextPath}/admin/manage-voucher"
@@ -118,6 +118,7 @@
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     </body>
 </html>
+
 
 
 

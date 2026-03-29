@@ -314,10 +314,6 @@
     <url-pattern>/my-voucher</url-pattern>
   </servlet-mapping>
   <servlet-mapping>
-    <servlet-name>CustomerVoucherController</servlet-name>
-    <url-pattern>/voucher-free</url-pattern>
-  </servlet-mapping>
-  <servlet-mapping>
     <servlet-name>MomoPaymentController</servlet-name>
     <url-pattern>/momo-payment</url-pattern>
   </servlet-mapping>
@@ -371,7 +367,7 @@
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>AdminImportProductController</servlet-name>
-        <url-pattern>/staff/manage-import-product</url-pattern>
+        <url-pattern>/staff/import-product</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>30</session-timeout>
