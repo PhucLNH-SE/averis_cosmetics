@@ -95,7 +95,7 @@ public class ImportProductDAO extends DBContext {
         return orderId;
     }
 
-    public void insertPurchaseDetail(int orderId, int variantId, int quantity, double price) {
+    public void insertPurchaseDetail(int orderId, int variantId, int quantity, BigDecimal price) {
         String sql = "INSERT INTO Import_Order_Detail (import_order_id, variant_id, quantity, import_price, received_quantity) "
                 + "VALUES (?, ?, ?, ?, ?)";
 
@@ -104,7 +104,7 @@ public class ImportProductDAO extends DBContext {
             ps.setInt(1, orderId);
             ps.setInt(2, variantId);
             ps.setInt(3, quantity);
-            ps.setBigDecimal(4, BigDecimal.valueOf(price));
+            ps.setBigDecimal(4, price == null ? BigDecimal.ZERO : price);
             ps.setNull(5, java.sql.Types.INTEGER);
             ps.executeUpdate();
         } catch (Exception e) {
@@ -153,16 +153,96 @@ public class ImportProductDAO extends DBContext {
         }
     }
 
-    public void updateTotalAmount(int orderId, double total) {
+    public void updateTotalAmount(int orderId, BigDecimal total) {
         String sql = "UPDATE Import_Order SET total_amount = ? WHERE import_order_id = ?";
 
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
-            ps.setDouble(1, total);
+            ps.setBigDecimal(1, total == null ? BigDecimal.ZERO : total);
             ps.setInt(2, orderId);
             ps.executeUpdate();
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    public int createPurchaseOrderWithDetails(Integer supplierId, int adminId, String importCode, String invoiceNo,
+            String note, List<Integer> variantIds, List<Integer> quantities, List<BigDecimal> prices, BigDecimal total) {
+        int orderId = -1;
+        boolean previousAutoCommit = true;
+        String orderSql = "INSERT INTO Import_Order (import_code, supplier_id, created_by, invoice_no, note, created_at, status) "
+                + "VALUES (?, ?, ?, ?, ?, GETDATE(), ?)";
+        String detailSql = "INSERT INTO Import_Order_Detail (import_order_id, variant_id, quantity, import_price, received_quantity) "
+                + "VALUES (?, ?, ?, ?, ?)";
+        String totalSql = "UPDATE Import_Order SET total_amount = ? WHERE import_order_id = ?";
+
+        try {
+            previousAutoCommit = connection.getAutoCommit();
+            connection.setAutoCommit(false);
+
+            try (PreparedStatement orderPs = connection.prepareStatement(orderSql, Statement.RETURN_GENERATED_KEYS)) {
+                orderPs.setString(1, importCode);
+                if (supplierId == null) {
+                    orderPs.setNull(2, java.sql.Types.INTEGER);
+                } else {
+                    orderPs.setInt(2, supplierId);
+                }
+                orderPs.setInt(3, adminId);
+                orderPs.setString(4, invoiceNo);
+                orderPs.setString(5, note);
+                orderPs.setString(6, "PENDING");
+                orderPs.executeUpdate();
+
+                try (ResultSet rs = orderPs.getGeneratedKeys()) {
+                    if (rs.next()) {
+                        orderId = rs.getInt(1);
+                    }
+                }
+            }
+
+            if (orderId <= 0) {
+                connection.rollback();
+                return -1;
+            }
+
+            try (PreparedStatement detailPs = connection.prepareStatement(detailSql)) {
+                for (int i = 0; i < variantIds.size(); i++) {
+                    detailPs.setInt(1, orderId);
+                    detailPs.setInt(2, variantIds.get(i));
+                    detailPs.setInt(3, quantities.get(i));
+                    detailPs.setBigDecimal(4, prices.get(i) == null ? BigDecimal.ZERO : prices.get(i));
+                    detailPs.setNull(5, java.sql.Types.INTEGER);
+                    detailPs.addBatch();
+                }
+                detailPs.executeBatch();
+            }
+
+            try (PreparedStatement totalPs = connection.prepareStatement(totalSql)) {
+                totalPs.setBigDecimal(1, total == null ? BigDecimal.ZERO : total);
+                totalPs.setInt(2, orderId);
+                int updatedRows = totalPs.executeUpdate();
+                if (updatedRows == 0) {
+                    connection.rollback();
+                    return -1;
+                }
+            }
+
+            connection.commit();
+            return orderId;
+        } catch (Exception e) {
+            e.printStackTrace();
+            try {
+                connection.rollback();
+            } catch (Exception rollbackEx) {
+                rollbackEx.printStackTrace();
+            }
+            return -1;
+        } finally {
+            try {
+                connection.setAutoCommit(previousAutoCommit);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
         }
     }
 

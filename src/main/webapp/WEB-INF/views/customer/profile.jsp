@@ -459,7 +459,7 @@
                                                         <div class="item-meta">
                                                             <span>${d.brandName}</span>
                                                             <span class="separator">|</span>
-                                                            <span>${d.categoryName}</span>
+                                                            <span><c:out value="${not empty d.variantName ? d.variantName : '-'}" /></span>
                                                         </div>
                                                     </div>
                                                     <div class="item-quantity">

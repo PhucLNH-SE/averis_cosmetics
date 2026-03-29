@@ -8341,6 +8341,180 @@ body {
     border-bottom: none;
 }
 
+.admin-shell-body .import-items-table-wrap{
+    overflow-x: auto;
+}
+
+.admin-shell-body .import-items-table{
+    width: 100%;
+    min-width: 1120px;
+    table-layout: fixed;
+}
+
+.admin-shell-body .import-items-table__product{
+    width: 24%;
+}
+
+.admin-shell-body .import-items-table__variant{
+    width: 22%;
+}
+
+.admin-shell-body .import-items-table__stock{
+    width: 10%;
+}
+
+.admin-shell-body .import-items-table__qty,
+.admin-shell-body .import-items-table__price,
+.admin-shell-body .import-items-table__subtotal{
+    width: 12%;
+}
+
+.admin-shell-body .import-items-table__remove{
+    width: 8%;
+}
+
+.admin-shell-body .import-items-table__product,
+.admin-shell-body .import-items-table__variant,
+.admin-shell-body .import-items-table__subtotal{
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+.admin-shell-body .import-items-table select,
+.admin-shell-body .import-items-table input{
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+}
+
+.admin-shell-body .import-items-table__price-input{
+    font-variant-numeric: tabular-nums;
+}
+
+.admin-shell-body .import-total-limit-feedback{
+    max-width: 420px;
+}
+
+.admin-shell-body .import-detail-table-wrap{
+    overflow-x: auto;
+    padding-bottom: 4px;
+}
+
+.admin-shell-body .import-detail-modal-dialog{
+    max-width: min(1280px, calc(100vw - 32px));
+}
+
+.admin-shell-body .import-detail-table{
+    width: 100%;
+    min-width: 1140px;
+    table-layout: fixed;
+}
+
+.admin-shell-body .import-detail-table__brand{
+    width: 13%;
+}
+
+.admin-shell-body .import-detail-table__product{
+    width: 19%;
+}
+
+.admin-shell-body .import-detail-table__variant{
+    width: 15%;
+}
+
+.admin-shell-body .import-detail-table__ordered,
+.admin-shell-body .import-detail-table__price,
+.admin-shell-body .import-detail-table__received,
+.admin-shell-body .import-detail-table__subtotal{
+    width: 13.25%;
+}
+
+.admin-shell-body .import-detail-table__brand,
+.admin-shell-body .import-detail-table__product,
+.admin-shell-body .import-detail-table__variant{
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+.admin-shell-body .import-detail-table__ordered,
+.admin-shell-body .import-detail-table__price,
+.admin-shell-body .import-detail-table__received,
+.admin-shell-body .import-detail-table__subtotal{
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+.admin-shell-body .import-detail-table__received-input{
+    width: 168px;
+    max-width: 100%;
+    min-width: 0;
+    margin-left: auto;
+    font-variant-numeric: tabular-nums;
+}
+
+.admin-shell-body .import-detail-card{
+    min-height: 116px;
+}
+
+.admin-shell-body .import-detail-card__label{
+    letter-spacing: .01em;
+}
+
+.admin-shell-body .import-detail-card__value{
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+.admin-shell-body .import-detail-card__value--code,
+.admin-shell-body .import-detail-card__meta{
+    font-variant-numeric: tabular-nums;
+}
+
+.admin-shell-body .import-detail-summary{
+    display: inline-flex;
+    align-items: baseline;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.admin-shell-body .import-detail-summary__label{
+    white-space: nowrap;
+}
+
+.admin-shell-body .import-detail-summary__value{
+    white-space: nowrap;
+    font-size: 1rem;
+    font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 991.98px){
+    .admin-shell-body .import-detail-modal-dialog{
+        max-width: calc(100vw - 24px);
+        margin: .75rem auto;
+    }
+
+    .admin-shell-body .import-detail-table{
+        min-width: 980px;
+    }
+
+    .admin-shell-body .import-detail-card{
+        min-height: auto;
+    }
+}
+
+@media (max-width: 575.98px){
+    .admin-shell-body .import-detail-summary{
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .admin-shell-body .import-detail-table__received-input{
+        width: 152px;
+    }
+}
+
 
 .admin-shell-body .btn-toggle{
     background: none;
