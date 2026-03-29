@@ -314,6 +314,10 @@
     <url-pattern>/my-voucher</url-pattern>
   </servlet-mapping>
   <servlet-mapping>
+    <servlet-name>CustomerVoucherController</servlet-name>
+    <url-pattern>/voucher-free</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
     <servlet-name>MomoPaymentController</servlet-name>
     <url-pattern>/momo-payment</url-pattern>
   </servlet-mapping>
