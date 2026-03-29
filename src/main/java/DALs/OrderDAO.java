@@ -945,6 +945,7 @@ public class OrderDAO extends DBContext {
                 + "od.response_content, "
                 + "od.responded_at, "
                 + "p.name AS product_name, "
+                + "v.variant_name, "
                 + "b.name AS brand_name, "
                 + "c.name AS category_name, "
                 + "od.quantity, "
@@ -980,6 +981,7 @@ public class OrderDAO extends DBContext {
                 }
 
                 od.setProductName(rs.getString("product_name"));
+                od.setVariantName(rs.getString("variant_name"));
                 od.setImageUrl(rs.getString("image_url"));
                 od.setBrandName(rs.getString("brand_name"));
                 od.setCategoryName(rs.getString("category_name"));

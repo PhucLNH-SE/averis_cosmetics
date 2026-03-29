@@ -31,6 +31,10 @@
         <c:set var="popupMessage" scope="request" value="Failed to import product." />
         <c:set var="popupType" scope="request" value="error" />
     </c:if>
+    <c:if test="${param.error == 'totalAmountExceeded'}">
+        <c:set var="popupMessage" scope="request" value="Total amount cannot exceed 10,000,000,000 VND." />
+        <c:set var="popupType" scope="request" value="error" />
+    </c:if>
 
     <div class="card table-card">
         <div class="card-body p-0">
@@ -110,25 +114,126 @@
 </section>
 
 <div class="modal fade" id="importDetailModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable import-detail-modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Import Order Detail</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body" id="import-detail-body">
-                <div class="text-center">
-                    <div class="spinner-border" role="status">
-                        <span class="visually-hidden">Loading...</span>
-                    </div>
-                    <span class="ms-2">Loading...</span>
-                </div>
+                <c:choose>
+                    <c:when test="${autoOpenImportDetail}">
+                        <jsp:include page="/WEB-INF/views/admin/import-detail.jsp" />
+                    </c:when>
+                    <c:otherwise>
+                        <div class="text-center">
+                            <div class="spinner-border" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <span class="ms-2">Loading...</span>
+                        </div>
+                    </c:otherwise>
+                </c:choose>
             </div>
         </div>
     </div>
 </div>
 
 <script>
+    function parseImportDetailDigits(raw) {
+        const text = String(raw == null ? '' : raw).replace(/,/g, '').trim();
+        const dotParts = text.split('.');
+        const digits = dotParts.length === 2 && dotParts[1].length <= 2
+                ? (dotParts[0] || '').replace(/\D/g, '')
+                : text.replace(/\D/g, '');
+        return digits ? BigInt(digits) : 0n;
+    }
+
+    function formatImportDetailMoney(value) {
+        const digits = String(value == null ? 0 : value).replace(/^0+(?=\d)/, '') || '0';
+        return digits.replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ' VND';
+    }
+
+    function initializeImportDetailForm(root) {
+        const form = root.querySelector('form[data-import-detail-form]');
+        if (!form || form.dataset.initialized === 'true') {
+            return;
+        }
+
+        form.dataset.initialized = 'true';
+        const maxTotal = parseImportDetailDigits(form.getAttribute('data-max-total'));
+        const maxQuantity = parseImportDetailDigits(form.getAttribute('data-max-quantity'));
+
+        function normalizeImportDetailQuantityInput(input) {
+            input.value = String(input.value == null ? '' : input.value).replace(/\D/g, '');
+        }
+
+        function updateImportDetailTotals() {
+            let total = 0n;
+            let quantityOverflow = false;
+            form.querySelectorAll('tbody tr[data-import-price]').forEach(function (row) {
+                const qtyInput = row.querySelector('input[name="receivedQuantity"]');
+                const quantity = qtyInput
+                        ? parseImportDetailDigits(qtyInput.value)
+                        : parseImportDetailDigits(row.getAttribute('data-default-quantity'));
+                if (quantity > maxQuantity) {
+                    quantityOverflow = true;
+                }
+                const price = parseImportDetailDigits(row.getAttribute('data-import-price'));
+                const subtotal = quantity * price;
+                const subtotalEl = row.querySelector('.import-detail-row-subtotal');
+                if (subtotalEl) {
+                    subtotalEl.textContent = formatImportDetailMoney(subtotal);
+                }
+                total += subtotal;
+            });
+
+            const totalEl = form.querySelector('#importDetailGrandTotal');
+            if (totalEl) {
+                totalEl.textContent = formatImportDetailMoney(total);
+            }
+
+            const alertEl = form.querySelector('#importDetailTotalLimitAlert');
+            const submitBtn = form.querySelector('#confirmImportReceiptBtn');
+            const limitExceeded = total > maxTotal;
+            const blocked = limitExceeded || quantityOverflow;
+
+            if (alertEl) {
+                if (quantityOverflow) {
+                    alertEl.textContent = 'Received quantity cannot exceed 2.147.483.647.';
+                    alertEl.classList.remove('d-none');
+                } else if (limitExceeded) {
+                    alertEl.textContent = 'Total amount cannot exceed ' + formatImportDetailMoney(maxTotal) + '.';
+                    alertEl.classList.remove('d-none');
+                } else {
+                    alertEl.textContent = '';
+                    alertEl.classList.add('d-none');
+                }
+            }
+
+            if (submitBtn) {
+                submitBtn.disabled = blocked;
+            }
+            form.dataset.limitExceeded = blocked ? 'true' : 'false';
+        }
+
+        form.querySelectorAll('input[name="receivedQuantity"]').forEach(function (input) {
+            input.addEventListener('input', function () {
+                normalizeImportDetailQuantityInput(input);
+                updateImportDetailTotals();
+            });
+        });
+
+        form.addEventListener('submit', function (event) {
+            updateImportDetailTotals();
+            if (form.dataset.limitExceeded === 'true') {
+                event.preventDefault();
+            }
+        });
+
+        updateImportDetailTotals();
+    }
+
     function openImportDetail(orderId) {
         const modalEl = document.getElementById('importDetailModal');
         const modal = new bootstrap.Modal(modalEl);
@@ -143,6 +248,7 @@
             .then(function (res) { return res.text(); })
             .then(function (data) {
                 body.innerHTML = data;
+                initializeImportDetailForm(modalEl);
             })
             .catch(function () {
                 body.innerHTML = '<div class="text-danger">Error loading details</div>';
@@ -150,6 +256,14 @@
 
         modal.show();
     }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const modalEl = document.getElementById('importDetailModal');
+        initializeImportDetailForm(modalEl);
+        <c:if test="${autoOpenImportDetail}">
+            new bootstrap.Modal(modalEl).show();
+        </c:if>
+    });
 </script>
 
 
