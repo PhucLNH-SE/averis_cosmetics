@@ -67,6 +67,12 @@
                         <i class="bi bi-box-seam-fill"></i>
                         <span>View Products</span>
                     </a>
+                    <a class="admin-sidebar__link ${currentView == 'import' ? 'active' : ''}"
+                       href="${pageContext.request.contextPath}/staff/import-product?action=history"
+                       title="Manage Import">
+                        <i class="bi bi-boxes"></i>
+                        <span>Manage Import</span>
+                    </a>
 
                 </nav>
 

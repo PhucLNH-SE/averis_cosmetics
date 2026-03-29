@@ -365,6 +365,10 @@
         <servlet-name>AdminImportProductController</servlet-name>
         <url-pattern>/admin/import-product</url-pattern>
     </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>AdminImportProductController</servlet-name>
+        <url-pattern>/staff/import-product</url-pattern>
+    </servlet-mapping>
     <session-config>
         <session-timeout>30</session-timeout>
     </session-config>

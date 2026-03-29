@@ -7,8 +7,12 @@ import java.time.LocalDateTime;
 public class PurchaseOrder {
 
     private int purchaseOrderId;
+    private String importCode;
+    private Integer supplierId;
     private int brandId;
     private int createdBy;
+    private String invoiceNo;
+    private String note;
     private BigDecimal totalAmount;
     private LocalDateTime createdAt;
     private String status;
@@ -16,8 +20,13 @@ public class PurchaseOrder {
     private Integer receivedBy;
 
     private String managerName;
-private String managerRole;
-       private String brandName;
+    private String managerRole;
+    private String receivedByName;
+    private String brandName;
+    private String supplierName;
+    private String supplierPhone;
+    private String supplierAddress;
+
     public PurchaseOrder() {
     }
 
@@ -43,6 +52,22 @@ private String managerRole;
         this.purchaseOrderId = purchaseOrderId;
     }
 
+    public String getImportCode() {
+        return importCode;
+    }
+
+    public void setImportCode(String importCode) {
+        this.importCode = importCode;
+    }
+
+    public Integer getSupplierId() {
+        return supplierId;
+    }
+
+    public void setSupplierId(Integer supplierId) {
+        this.supplierId = supplierId;
+    }
+
     public int getBrandId() {
         return brandId;
     }
@@ -57,6 +82,22 @@ private String managerRole;
 
     public void setCreatedBy(int createdBy) {
         this.createdBy = createdBy;
+    }
+
+    public String getInvoiceNo() {
+        return invoiceNo;
+    }
+
+    public void setInvoiceNo(String invoiceNo) {
+        this.invoiceNo = invoiceNo;
+    }
+
+    public String getNote() {
+        return note;
+    }
+
+    public void setNote(String note) {
+        this.note = note;
     }
 
     public BigDecimal getTotalAmount() {
@@ -123,7 +164,35 @@ private String managerRole;
         this.brandName = brandName;
     }
 
-    
+    public String getReceivedByName() {
+        return receivedByName;
+    }
 
-   
+    public void setReceivedByName(String receivedByName) {
+        this.receivedByName = receivedByName;
+    }
+
+    public String getSupplierName() {
+        return supplierName;
+    }
+
+    public void setSupplierName(String supplierName) {
+        this.supplierName = supplierName;
+    }
+
+    public String getSupplierPhone() {
+        return supplierPhone;
+    }
+
+    public void setSupplierPhone(String supplierPhone) {
+        this.supplierPhone = supplierPhone;
+    }
+
+    public String getSupplierAddress() {
+        return supplierAddress;
+    }
+
+    public void setSupplierAddress(String supplierAddress) {
+        this.supplierAddress = supplierAddress;
+    }
 }

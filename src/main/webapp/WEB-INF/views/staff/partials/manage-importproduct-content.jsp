@@ -6,29 +6,17 @@
 <section class="admin-content__section">
     <div class="page-header">
         <div>
-            <h4>Manage Import</h4>
-            <p class="text-muted mb-0">Review and confirm received quantities</p>
-        </div>
-        <div class="d-flex gap-2">
-            <a href="${pageContext.request.contextPath}/admin/import-product?action=importproduct" class="btn btn-add text-white">
-                <i class="bi bi-plus-circle me-1"></i> Create Import Order
-            </a>
-            <a href="${pageContext.request.contextPath}/admin/manage-statistic" class="btn btn-back">
-                <i class="bi bi-arrow-left"></i> Back
-            </a>
+            <h4>Pending Import Orders</h4>
+            <p class="text-muted mb-0">Review pending import orders and confirm received quantities</p>
         </div>
     </div>
 
-    <c:if test="${param.success == 'import'}">
-        <c:set var="popupMessage" scope="request" value="Import order created successfully." />
-        <c:set var="popupType" scope="request" value="success" />
-    </c:if>
     <c:if test="${param.success == 'received'}">
         <c:set var="popupMessage" scope="request" value="Import receipt confirmed successfully." />
         <c:set var="popupType" scope="request" value="success" />
     </c:if>
     <c:if test="${param.error == 'importFailed'}">
-        <c:set var="popupMessage" scope="request" value="Failed to import product." />
+        <c:set var="popupMessage" scope="request" value="Failed to confirm import receipt." />
         <c:set var="popupType" scope="request" value="error" />
     </c:if>
 
@@ -41,11 +29,9 @@
                             <th>Import Code</th>
                             <th>Order ID</th>
                             <th>Supplier</th>
-                            <th>Manager</th>
-                            <th>Total Amount</th>
-                            <th>Status</th>
+                            <th>Created By</th>
                             <th>Created At</th>
-                            <th>Received Info</th>
+                            <th>Status</th>
                             <th class="text-end">Actions</th>
                         </tr>
                     </thead>
@@ -62,43 +48,26 @@
                                     <div>${h.managerName}</div>
                                     <small class="info-text">${h.managerRole}</small>
                                 </td>
-                                <td class="amount">
-                                    <fmt:formatNumber value="${h.totalAmount}" pattern="#,##0"/> VND
-                                </td>
-                                <td>
-                                    <span class="badge ${h.status == 'RECEIVED' ? 'bg-success' : 'bg-warning text-dark'}">
-                                        ${h.status}
-                                    </span>
-                                </td>
                                 <td>
                                     <fmt:parseDate value="${h.createdAt}" pattern="yyyy-MM-dd'T'HH:mm:ss" var="parsedCreatedAt" type="both" />
                                     <fmt:formatDate value="${parsedCreatedAt}" pattern="dd/MM/yyyy HH:mm" />
                                 </td>
                                 <td>
-                                    <c:choose>
-                                        <c:when test="${not empty h.receivedAt}">
-                                            <div>${empty h.receivedByName ? 'Updated' : h.receivedByName}</div>
-                                            <fmt:parseDate value="${h.receivedAt}" pattern="yyyy-MM-dd'T'HH:mm:ss" var="parsedReceivedAt" type="both" />
-                                            <small class="info-text"><fmt:formatDate value="${parsedReceivedAt}" pattern="dd/MM/yyyy HH:mm" /></small>
-                                        </c:when>
-                                        <c:otherwise>
-                                            <span class="text-muted">Pending</span>
-                                        </c:otherwise>
-                                    </c:choose>
+                                    <span class="badge bg-warning text-dark">${h.status}</span>
                                 </td>
                                 <td class="text-end">
                                     <button type="button" class="btn btn-sm btn-outline-primary"
                                             onclick="openImportDetail(${h.purchaseOrderId})">
-                                        View
+                                        Review
                                     </button>
                                 </td>
                             </tr>
                         </c:forEach>
                         <c:if test="${empty history}">
                             <tr>
-                                <td colspan="10" class="text-center empty-state">
+                                <td colspan="8" class="text-center empty-state">
                                     <i class="bi bi-inbox d-block"></i>
-                                    No Manage Import found
+                                    No pending import orders
                                 </td>
                             </tr>
                         </c:if>
@@ -139,7 +108,7 @@
             '<span class="ms-2">Loading...</span>' +
             '</div>';
 
-        fetch('${pageContext.request.contextPath}/admin/import-product?action=viewdetail&orderId=' + orderId)
+        fetch('${pageContext.request.contextPath}/staff/import-product?action=viewdetail&orderId=' + orderId)
             .then(function (res) { return res.text(); })
             .then(function (data) {
                 body.innerHTML = data;
@@ -151,7 +120,4 @@
         modal.show();
     }
 </script>
-
-
-
 
