@@ -3,13 +3,17 @@ package Controllers.guest;
 import DALs.CategoryDAO;
 import DALs.ProductDAO;
 import DALs.StatisticDAO;
+import DALs.VoucherDAO;
+import Model.Customer;
 import Model.Category;
 import Model.Product;
+import Model.Voucher;
 import java.io.IOException;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -60,6 +64,7 @@ public class GuestController extends HttpServlet {
         StatisticDAO statisticDAO = new StatisticDAO();
         ProductDAO productDAO = new ProductDAO();
         CategoryDAO categoryDAO = new CategoryDAO();
+        VoucherDAO voucherDAO = new VoucherDAO();
 
         List<Map<String, Object>> topSelling = statisticDAO.getTopSellingProducts(
                 now.getYear(),
@@ -136,6 +141,26 @@ public class GuestController extends HttpServlet {
 
         request.setAttribute("topSellingProducts", featuredProducts);
         request.setAttribute("featuredCategories", featuredCategories);
+
+        voucherDAO.expireOutdatedVouchers();
+        List<Voucher> homeVouchers = voucherDAO.getFreeVouchers();
+        HttpSession session = request.getSession(false);
+        Customer customer = session == null ? null : (Customer) session.getAttribute("customer");
+        if (customer != null) {
+            Map<Integer, Boolean> claimedVoucherIds = voucherDAO.getClaimedVoucherIdMap(customer.getCustomerId());
+            request.setAttribute("claimedVoucherIds", claimedVoucherIds);
+            if (homeVouchers != null && !homeVouchers.isEmpty()) {
+                List<Voucher> availableHomeVouchers = new ArrayList<>();
+                for (Voucher voucher : homeVouchers) {
+                    if (voucher == null || claimedVoucherIds.containsKey(voucher.getVoucherId())) {
+                        continue;
+                    }
+                    availableHomeVouchers.add(voucher);
+                }
+                homeVouchers = availableHomeVouchers;
+            }
+        }
+        request.setAttribute("homeVouchers", homeVouchers);
     }
 }
 

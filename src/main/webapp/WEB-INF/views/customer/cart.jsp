@@ -73,7 +73,8 @@
                                 <form action="cart" method="post" id="form-variant-${entry.key}" class="cart-variant-form">
                                     <input type="hidden" name="action" value="changeVariant">
                                     <input type="hidden" name="variantId" value="${entry.key}">
-                                    <select name="newVariantId" onchange="document.getElementById('form-variant-${entry.key}').submit()">
+                                    <select name="newVariantId" onchange="document.getElementById('form-variant-${entry.key}').submit()"
+                                            <c:if test="${soldOutFlags[entry.key]}">disabled</c:if>>
                                         <c:forEach items="${availableVariants[entry.value.variant.productId]}" var="v">
                                             <option value="${v.variantId}" ${v.variantId == entry.key ? 'selected' : ''}>
                                                 ${v.variantName}
@@ -92,19 +93,25 @@
                                     <input type="hidden" name="action" value="update"> <input type="hidden" name="variantId" value="${entry.key}">
                                     
                                     <div class="qty-control">
-                                        <button type="button" class="qty-btn" onclick="updateQty('${entry.key}', -1, ${entry.value.variant.stock})">-</button>
+                                        <button type="button" class="qty-btn" onclick="updateQty('${entry.key}', -1, ${entry.value.variant.stock})"
+                                                <c:if test="${soldOutFlags[entry.key]}">disabled</c:if>>-</button>
 
                                         <input type="number" name="quantity" id="qty-${entry.key}"
                                                value="${entry.value.quantity}" class="qty-input"
                                                min="1" inputmode="numeric"
                                                aria-label="Cart item quantity"
+                                               <c:if test="${soldOutFlags[entry.key]}">disabled</c:if>
                                                onchange="submitQty('${entry.key}', ${entry.value.variant.stock})"
                                                onblur="submitQty('${entry.key}', ${entry.value.variant.stock})">
 
-                                        <button type="button" class="qty-btn" onclick="updateQty('${entry.key}', 1, ${entry.value.variant.stock})">+</button>
+                                        <button type="button" class="qty-btn" onclick="updateQty('${entry.key}', 1, ${entry.value.variant.stock})"
+                                                <c:if test="${soldOutFlags[entry.key]}">disabled</c:if>>+</button>
                                     </div>
                                     
-                                    <c:if test="${entry.value.quantity >= entry.value.variant.stock}">
+                                    <c:if test="${soldOutFlags[entry.key]}">
+                                        <span class="cart-stock-note cart-stock-note--soldout">Sold out</span>
+                                    </c:if>
+                                    <c:if test="${not soldOutFlags[entry.key] and entry.value.variant.stock > 0 and entry.value.quantity >= entry.value.variant.stock}">
                                         <span class="cart-stock-note">(Max in stock)</span>
                                     </c:if>
                                 </form>
@@ -146,7 +153,19 @@
                     (VAT included if applicable)
                 </div>
 
-                <a href="checkout" class="btn-checkout">Proceed to Checkout</a>
+                <c:choose>
+                    <c:when test="${hasUnavailableItems}">
+                        <button type="button" class="btn-checkout btn-checkout--disabled" disabled>
+                            Proceed to Checkout
+                        </button>
+                        <div class="cart-checkout-note">
+                            Remove sold out items before checkout.
+                        </div>
+                    </c:when>
+                    <c:otherwise>
+                        <a href="checkout" class="btn-checkout">Proceed to Checkout</a>
+                    </c:otherwise>
+                </c:choose>
                 
                 <a href="${pageContext.request.contextPath}/products" class="continue-link">
                     &larr; Continue Shopping

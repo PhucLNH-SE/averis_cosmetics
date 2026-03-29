@@ -103,6 +103,7 @@
                                                     ${not empty variant.variantName ? variant.variantName : 'Variant '.concat(loop.index + 1)}
                                                 </span>
                                                 <span class="product-variant-price"><fmt:formatNumber value="${variant.price}" pattern="#,##0"/> VND</span>
+                                                <span class="product-variant-stock">In stock: ${variant.stock}</span>
                                             </button>
                                         </c:forEach>
                                     </div>
@@ -189,7 +190,12 @@
                                     <c:forEach var="r" items="${reviews}">
                                         <div class="review-item">
                                             <div class="review-meta">
-                                                <span class="user-name">${r.customerName}</span>
+                                                <div class="review-customer">
+                                                    <span class="user-name">${r.customerName}</span>
+                                                    <c:if test="${not empty r.variantName}">
+                                                        <span class="review-variant">${r.variantName}</span>
+                                                    </c:if>
+                                                </div>
                                                 <span class="review-date">
                                                     <i class="far fa-calendar-alt"></i>
                                                     <fmt:parseDate value="${r.reviewedAt}" pattern="yyyy-MM-dd'T'HH:mm:ss" var="parsedDate" type="both" />

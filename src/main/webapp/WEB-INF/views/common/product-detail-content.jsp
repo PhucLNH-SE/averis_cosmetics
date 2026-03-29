@@ -98,7 +98,6 @@
                                     <tr>
                                         <th>Variant</th>
                                         <th>Sale Price</th>
-                                        <th>Stock</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -106,7 +105,6 @@
                                         <tr>
                                             <td><c:out value="${variant.variantName}" /></td>
                                             <td><fmt:formatNumber value="${variant.price}" pattern="#,##0" /> VND</td>
-                                            <td>${variant.stock}</td>
                                         </tr>
                                     </c:forEach>
                                 </tbody>

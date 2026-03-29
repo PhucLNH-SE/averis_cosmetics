@@ -114,7 +114,6 @@
                         <th>Category</th>
                         <th>Price Range</th>
                         <th class="text-center">Import Price</th>
-                        <th class="text-center">Total Stock</th>
                         <th>Status</th>
                         <th class="text-center">Actions</th>
                     </tr>
@@ -188,12 +187,6 @@
                                         </ul>
                                     </c:otherwise>
                                 </c:choose>
-                            </td>
-
-                            <td class="text-center">
-                                <span class="fw-bold ${p.totalStock > 0 ? 'text-dark' : 'text-danger'}">
-                                    ${p.totalStock}
-                                </span>
                             </td>
 
                             <td>
@@ -288,10 +281,6 @@
                                                value="<fmt:formatNumber value='${v.price}' pattern='#,##0'/>"
                                                inputmode="numeric" autocomplete="off" required>
                                     </div>
-                                    <div class="variant-item__field variant-item__field--stock">
-                                        <label class="small text-muted mb-1 fw-bold text-success">Stock</label>
-                                        <input type="number" min="0" name="stock" class="form-control form-control-sm text-center fw-bold text-success" value="${v.stock}" readonly>
-                                    </div>
 
                                     <button type="submit" class="variant-action-btn variant-action-btn--save" title="Save changes">
                                         <i class="fas fa-save me-1"></i> Save
@@ -348,10 +337,7 @@
                                 <input type="text" name="price" class="form-control form-control-sm price-input"
                                        placeholder="Price" inputmode="numeric" autocomplete="off" required>
                             </div>
-                            <div class="col-md-2">
-                                <label class="small text-muted mb-1 fw-bold text-success">Stock</label>
-                                <input type="number" min="0" name="stock" class="form-control form-control-sm" value="0" readonly>
-                            </div>
+                            <input type="hidden" name="stock" value="0">
                             <div class="col-md-3 d-flex justify-content-end">
                                 <button type="submit" class="btn btn-primary btn-sm product-variant-add-btn">
                                     <i class="fas fa-plus"></i> Add

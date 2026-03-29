@@ -519,6 +519,24 @@ public class OrderDAO extends DBContext {
         }
     }
 
+    public boolean hasProcessingOrderForVariant(int variantId) {
+        String sql = "SELECT TOP 1 1 "
+                + "FROM Order_Detail od "
+                + "JOIN Orders o ON od.order_id = o.order_id "
+                + "WHERE od.variant_id = ? AND o.order_status = 'PROCESSING'";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, variantId);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
     private void validateCartItem(CartItem item) {
         if (item == null
                 || item.getVariant() == null

@@ -70,7 +70,7 @@ public class MomoReturnController extends HttpServlet {
                 }
 
                 response.sendRedirect(request.getContextPath()
-                        + "/checkout?success=true&orderId=" + orderId);
+                        + "/order-success?orderId=" + orderId);
                 return;
 
             } else {
@@ -78,7 +78,7 @@ public class MomoReturnController extends HttpServlet {
                     orderDAO.updatePaymentFailed(orderId);
                 }
                 response.sendRedirect(request.getContextPath()
-                        + "/checkout?error=Payment failed");
+                        + "/checkout?error=Payment failed&paymentMethod=MOMO");
                 return;
             }
         }
