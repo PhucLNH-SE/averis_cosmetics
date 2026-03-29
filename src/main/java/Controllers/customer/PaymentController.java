@@ -95,14 +95,19 @@ public class PaymentController extends HttpServlet {
     private void loadCheckoutPage(HttpServletRequest req, HttpServletResponse resp, Customer customer)
             throws ServletException, IOException {
         Map<Integer, CartItem> cart = getSessionCart(req);
-        boolean isSuccess = "true".equals(req.getParameter("success"));
-
-        if ((cart == null || cart.isEmpty()) && !isSuccess) {
+        if (cart == null || cart.isEmpty()) {
             resp.sendRedirect(req.getContextPath() + "/cart");
             return;
         }
 
-        renderCheckout(req, resp, buildPaymentContext(customer, cart, "", "COD"));
+        PaymentContext context = buildPaymentContext(
+                customer,
+                cart,
+                req.getParameter("voucherCode"),
+                req.getParameter("paymentMethod")
+        );
+        context.errorMessage = req.getParameter("error");
+        renderCheckout(req, resp, context);
     }
 
     //PhucLNH - check customer login
@@ -308,7 +313,7 @@ public class PaymentController extends HttpServlet {
         HttpSession session = req.getSession();
         session.removeAttribute("cart");
         cartDetailDAO.deleteAll(customer.getCustomerId());
-        resp.sendRedirect(req.getContextPath() + "/checkout?success=true&orderId=" + orderId);
+        resp.sendRedirect(req.getContextPath() + "/order-success?orderId=" + orderId);
     }
 
     private void processMomoPayment(HttpServletRequest req, HttpServletResponse resp, int orderId)

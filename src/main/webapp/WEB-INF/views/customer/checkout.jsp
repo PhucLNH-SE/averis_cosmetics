@@ -27,27 +27,13 @@
         <h1 class="page-title">Checkout</h1>
 
         <c:if test="${not empty error}">
-            <c:set var="popupMessage" scope="request" value="${error}" />
-            <c:set var="popupType" scope="request" value="error" />
+            <div class="alert-error">${error}</div>
         </c:if>
         <c:if test="${not empty successMessage}">
-            <c:set var="popupMessage" scope="request" value="${successMessage}" />
-            <c:set var="popupType" scope="request" value="success" />
+            <div class="alert-success">${successMessage}</div>
         </c:if>
 
-        <c:if test="${orderSuccess}">
-            <div class="checkout-section checkout-success">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="checkout-success-icon">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <h2 class="checkout-success-title">Your order has been placed successfully!</h2>
-                <p class="checkout-success-copy">Thank you for shopping with Averis Cosmetics.</p>
-                <a href="${pageContext.request.contextPath}/home" class="popup-btn checkout-success-link">Back to home</a>
-            </div>
-        </c:if>
-
-        <c:if test="${!orderSuccess}">
-            <form method="POST" action="${pageContext.request.contextPath}/checkout" id="checkoutForm">
+        <form method="POST" action="${pageContext.request.contextPath}/checkout" id="checkoutForm">
 
                 <div class="checkout-main">
                     <div class="checkout-section">
@@ -262,29 +248,13 @@
                     </div>
                 </div>
 
-            </form>
-        </c:if>
+        </form>
     </div>
 
     <jsp:include page="/assets/footer.jsp" />
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            const urlParams = new URLSearchParams(window.location.search);
-
-            if (urlParams.get('success') === 'true') {
-                const orderId = urlParams.get('orderId');
-                showPopup(true, 'Order placed successfully!<br>Order ID: #' + orderId, 'Success', 'Back to home',
-                    '${pageContext.request.contextPath}/home');
-                window.history.replaceState({}, document.title, window.location.pathname);
-            }
-
-            if (urlParams.get('error')) {
-                const errorMsg = decodeURIComponent(urlParams.get('error'));
-                showPopup(false, errorMsg, 'Error', 'OK');
-                window.history.replaceState({}, document.title, window.location.pathname);
-            }
-
             const defaultAddress = document.querySelector('input[name="addressId"][checked]');
             if (defaultAddress) {
                 const parentItem = defaultAddress.closest('.address-item');

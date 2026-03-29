@@ -20,8 +20,12 @@
         <c:set var="popupMessage" scope="request" value="Voucher updated successfully." />
         <c:set var="popupType" scope="request" value="success" />
     </c:if>
-    <c:if test="${param.success == 'free'}">
-        <c:set var="popupMessage" scope="request" value="Voucher marked as free successfully." />
+    <c:if test="${param.success == 'shownOnHome'}">
+        <c:set var="popupMessage" scope="request" value="Voucher is now visible on the home popup." />
+        <c:set var="popupType" scope="request" value="success" />
+    </c:if>
+    <c:if test="${param.success == 'hiddenFromHome'}">
+        <c:set var="popupMessage" scope="request" value="Voucher has been hidden from the home popup." />
         <c:set var="popupType" scope="request" value="success" />
     </c:if>
     <c:if test="${param.error == 'duplicateCode'}">
@@ -36,8 +40,8 @@
         <c:set var="popupMessage" scope="request" value="Voucher action failed." />
         <c:set var="popupType" scope="request" value="error" />
     </c:if>
-    <c:if test="${param.error == 'freeFailed'}">
-        <c:set var="popupMessage" scope="request" value="Failed to mark voucher as free." />
+    <c:if test="${param.error == 'toggleHomeFailed'}">
+        <c:set var="popupMessage" scope="request" value="Failed to update voucher visibility on home." />
         <c:set var="popupType" scope="request" value="error" />
     </c:if>
 
@@ -106,16 +110,20 @@
                                             <div class="voucher-actions">
                                                 <c:choose>
                                                     <c:when test="${v.showonfreevoucher}">
-                                                        <span class="voucher-btn-free-disabled">
-                                                            <i class="bi bi-gift-fill"></i> Free
-                                                        </span>
+                                                        <form action="${pageContext.request.contextPath}/admin/manage-voucher" method="post" class="d-inline">
+                                                            <input type="hidden" name="action" value="toggleHome">
+                                                            <input type="hidden" name="voucherId" value="${v.voucherId}">
+                                                            <button type="submit" class="voucher-btn-hide">
+                                                                <i class="bi bi-eye-slash"></i> Hide from Home
+                                                            </button>
+                                                        </form>
                                                     </c:when>
                                                     <c:otherwise>
                                                         <form action="${pageContext.request.contextPath}/admin/manage-voucher" method="post" class="d-inline">
-                                                            <input type="hidden" name="action" value="markFree">
+                                                            <input type="hidden" name="action" value="toggleHome">
                                                             <input type="hidden" name="voucherId" value="${v.voucherId}">
                                                             <button type="submit" class="voucher-btn-save">
-                                                                <i class="bi bi-gift"></i> Free
+                                                                <i class="bi bi-eye"></i> Show on Home
                                                             </button>
                                                         </form>
                                                     </c:otherwise>

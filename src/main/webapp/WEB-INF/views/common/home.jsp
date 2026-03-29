@@ -17,6 +17,119 @@
 <div class="home-layout">
     <jsp:include page="/assets/header.jsp" />
 
+    <c:if test="${not empty homeVouchers}">
+        <div class="home-voucher-modal" id="homeVoucherModal" aria-hidden="true">
+            <div class="home-voucher-modal__backdrop" onclick="closeHomeVoucherModal(event)"></div>
+            <div class="home-voucher-modal__panel">
+                <button type="button" class="home-voucher-modal__close" aria-label="Close voucher popup" onclick="closeHomeVoucherModal()">
+                    &times;
+                </button>
+
+                <div class="home-voucher-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="homeVoucherTitle">
+                    <div class="home-voucher-modal__hero">
+                        <div class="home-voucher-modal__visual">
+                            <div class="home-voucher-modal__sticker">Hot deal</div>
+                            <div class="home-voucher-modal__spark home-voucher-modal__spark--one"></div>
+                            <div class="home-voucher-modal__spark home-voucher-modal__spark--two"></div>
+                            <div class="home-voucher-modal__discount-badge">UP TO 50%</div>
+                            <div class="home-voucher-modal__ticket">
+                                <span>Voucher Drop</span>
+                            </div>
+                        </div>
+                        <div class="home-voucher-modal__hero-copy">
+                            <div class="home-voucher-modal__eyebrow">Averis exclusive offers</div>
+                            <h2 id="homeVoucherTitle" class="home-voucher-modal__title">Pick your voucher</h2>
+                        </div>
+                    </div>
+
+                    <c:if test="${param.success == 'claimed'}">
+                        <div class="home-voucher-modal__alert home-voucher-modal__alert--success">
+                            Voucher claimed successfully. It has been added to My Voucher.
+                        </div>
+                    </c:if>
+
+                    <c:if test="${not empty param.error}">
+                        <div class="home-voucher-modal__alert home-voucher-modal__alert--error">
+                            <c:choose>
+                                <c:when test="${param.error == 'emptyCode'}">Voucher code is missing.</c:when>
+                                <c:when test="${param.error == 'codeNotFound'}">This voucher is not available right now.</c:when>
+                                <c:when test="${param.error == 'outOfStock'}">This voucher has run out.</c:when>
+                                <c:when test="${param.error == 'alreadyClaimed'}">You already saved this voucher.</c:when>
+                                <c:when test="${param.error == 'voucherExpired'}">This voucher is no longer available.</c:when>
+                                <c:otherwise>Unable to claim voucher right now.</c:otherwise>
+                            </c:choose>
+                        </div>
+                    </c:if>
+
+                    <div class="home-voucher-modal__list">
+                        <c:forEach items="${homeVouchers}" var="voucher" varStatus="loop">
+                            <fmt:formatNumber value="${voucher.discountValue}" pattern="#,##0" var="discountDisplay"/>
+                            <div class="home-voucher-card ${loop.index == 0 ? 'home-voucher-card--featured' : ''}">
+                                <div class="home-voucher-card__main">
+                                    <div class="home-voucher-card__tag">Voucher</div>
+                                    <div class="home-voucher-card__discount">
+                                        <c:choose>
+                                            <c:when test="${voucher.discountType eq 'PERCENT'}">${discountDisplay}% OFF</c:when>
+                                            <c:otherwise>${discountDisplay} VND OFF</c:otherwise>
+                                        </c:choose>
+                                    </div>
+                                    <div class="home-voucher-card__code">${voucher.code}</div>
+                                    <div class="home-voucher-card__desc">
+                                        <c:choose>
+                                            <c:when test="${voucher.discountType eq 'PERCENT'}">Save instantly on your next checkout.</c:when>
+                                            <c:otherwise>Direct discount for qualifying orders.</c:otherwise>
+                                        </c:choose>
+                                    </div>
+                                </div>
+
+                                <div class="home-voucher-card__aside">
+                                    <div class="home-voucher-card__meta-line">
+                                        <span class="home-voucher-card__meta-label">Left</span>
+                                        <strong>${voucher.quantity - voucher.claimedQuantity}</strong>
+                                    </div>
+                                    <div class="home-voucher-card__meta-line">
+                                        <span class="home-voucher-card__meta-label">Valid</span>
+                                        <strong>
+                                            <c:choose>
+                                                <c:when test="${voucher.voucherType eq 'FIXED_END_DATE' && not empty voucher.fixedEndAt}">
+                                                    until ${fn:substring(fn:replace(voucher.fixedEndAt, 'T', ' '), 0, 16)}
+                                                </c:when>
+                                                <c:when test="${voucher.voucherType eq 'RELATIVE_DAYS' && not empty voucher.relativeDays}">
+                                                    ${voucher.relativeDays} days after claim
+                                                </c:when>
+                                                <c:otherwise>Limited time</c:otherwise>
+                                            </c:choose>
+                                        </strong>
+                                    </div>
+
+                                    <div class="home-voucher-card__actions">
+                                        <c:choose>
+                                            <c:when test="${not empty sessionScope.customer}">
+                                                <form action="${pageContext.request.contextPath}/voucher-free" method="post" class="home-voucher-card__form">
+                                                    <input type="hidden" name="voucherCode" value="${voucher.code}">
+                                                    <input type="hidden" name="source" value="home">
+                                                    <button type="submit" class="home-voucher-card__btn">
+                                                        Claim now
+                                                    </button>
+                                                </form>
+                                            </c:when>
+                                            <c:otherwise>
+                                                <a href="${pageContext.request.contextPath}/auth?action=login"
+                                                   class="home-voucher-card__btn">
+                                                    Login to claim
+                                                </a>
+                                            </c:otherwise>
+                                        </c:choose>
+                                    </div>
+                                </div>
+                            </div>
+                        </c:forEach>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </c:if>
+
     <main>
         <section class="home-hero">
             <div class="home-container hero-grid">
@@ -31,7 +144,7 @@
                     </p>
                     <div class="hero-actions">
                         <a class="hero-btn primary" href="${pageContext.request.contextPath}/products">Shop now</a>
-                        <a class="hero-btn voucher" href="${pageContext.request.contextPath}/voucher-free">GET FREE VOUCHER!!</a>
+                        <button type="button" class="hero-btn voucher" onclick="openHomeVoucherModal()">GET FREE VOUCHER!!</button>
                     </div>
                 </div>
 
@@ -228,6 +341,36 @@
 
     <jsp:include page="/assets/footer.jsp" />
 </div>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const shouldCleanUrl = new URLSearchParams(window.location.search).get('voucherPopup') === '1';
+        if (shouldCleanUrl) {
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+    });
+
+    function openHomeVoucherModal() {
+        const modal = document.getElementById('homeVoucherModal');
+        if (!modal) {
+            return;
+        }
+        modal.classList.add('show');
+        modal.setAttribute('aria-hidden', 'false');
+        document.body.classList.add('home-voucher-open');
+    }
+
+    function closeHomeVoucherModal(event) {
+        const modal = document.getElementById('homeVoucherModal');
+        if (!modal) {
+            return;
+        }
+        if (!event || event.target.classList.contains('home-voucher-modal__backdrop')) {
+            modal.classList.remove('show');
+            modal.setAttribute('aria-hidden', 'true');
+            document.body.classList.remove('home-voucher-open');
+        }
+    }
+</script>
 </body>
 </html>
 
