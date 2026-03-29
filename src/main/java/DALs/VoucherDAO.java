@@ -8,7 +8,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class VoucherDAO extends DBContext {
 
@@ -84,6 +86,23 @@ public class VoucherDAO extends DBContext {
         }
     }
 
+    public boolean markShowOnFreeVoucher(int voucherId) {
+        String sql = "UPDATE Voucher SET show_on_free_voucher = 1 WHERE voucher_id = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, voucherId);
+            int updated = ps.executeUpdate();
+            if (updated > 0) {
+                return true;
+            }
+
+            Voucher voucher = getById(voucherId);
+            return voucher != null && Boolean.TRUE.equals(voucher.getShowonfreevoucher());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
     public boolean softDelete(int voucherId) {
         String sql = "UPDATE Voucher SET status = 0 WHERE voucher_id = ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -140,6 +159,45 @@ public class VoucherDAO extends DBContext {
             e.printStackTrace();
         }
         return list;
+    }
+
+    public List<Voucher> getFreeVouchers() {
+        String sql = "SELECT * FROM Voucher "
+                + "WHERE show_on_free_voucher = 1 "
+                + "AND status = 1 "
+                + "AND quantity > claimed_quantity "
+                + "AND (voucher_type <> 'FIXED_END_DATE' OR fixed_end_at IS NULL OR fixed_end_at > GETDATE()) "
+                + "ORDER BY created_at DESC, voucher_id DESC";
+
+        List<Voucher> result = new ArrayList<>();
+        try (PreparedStatement ps = connection.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                result.add(mapVoucher(rs));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return result;
+    }
+
+    public Map<Integer, Boolean> getClaimedVoucherIdMap(int customerId) {
+        String sql = "SELECT voucher_id FROM Customer_Voucher WHERE customer_id = ?";
+        Map<Integer, Boolean> claimedVoucherIds = new HashMap<>();
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, customerId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    claimedVoucherIds.put(rs.getInt("voucher_id"), Boolean.TRUE);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return claimedVoucherIds;
     }
 
     public String claimVoucherWithReason(int customerId, String code) {
@@ -339,6 +397,7 @@ public class VoucherDAO extends DBContext {
         voucher.setQuantity(rs.getInt("quantity"));
         voucher.setExpiredAt(rs.getObject("expired_at", LocalDateTime.class));
         voucher.setStatus(rs.getBoolean("status"));
+        voucher.setShowonfreevoucher(rs.getBoolean("show_on_free_voucher"));
         voucher.setVoucherType(rs.getString("voucher_type"));
         voucher.setFixedStartAt(rs.getObject("fixed_start_at", LocalDateTime.class));
         voucher.setFixedEndAt(rs.getObject("fixed_end_at", LocalDateTime.class));

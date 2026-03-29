@@ -318,83 +318,15 @@ public class ProductDAO extends DBContext {
         sql.append("WHERE p.status = 1 ");
 
         List<Object> params = new ArrayList<>();
-        if (keyword != null && !keyword.trim().isEmpty()) {
-            sql.append("AND (p.name LIKE ? OR b.name LIKE ? OR c.name LIKE ?) ");
-            String searchParam = "%" + keyword.trim() + "%";
-            params.add(searchParam);
-            params.add(searchParam);
-            params.add(searchParam);
-        }
-        if (brandFilter != null && !brandFilter.trim().isEmpty()) {
-            sql.append("AND b.name = ? ");
-            params.add(brandFilter.trim());
-        }
-        if (categoryFilter != null && !categoryFilter.trim().isEmpty()) {
-            sql.append("AND c.name = ? ");
-            params.add(categoryFilter.trim());
-        }
+        appendGuestProductFilters(sql, params, keyword, brandFilter, categoryFilter);
 
         sql.append("GROUP BY p.product_id, p.name, p.description, p.status, ")
                 .append("         b.brand_id, b.name, b.status, ")
                 .append("         c.category_id, c.name, c.status, ")
-                .append("         pi.image_id, pi.image_url, pi.is_main ");
+                .append("         pi.image_id, pi.image_url, pi.is_main ")
+                .append(buildGuestSortClause(sortBy));
 
-        if (sortBy != null) {
-            switch (sortBy.toLowerCase()) {
-                case "price_asc":
-                    sql.append("ORDER BY min_price ASC, p.product_id DESC, pi.is_main DESC, pi.image_id ASC ");
-                    break;
-                case "price_desc":
-                    sql.append("ORDER BY min_price DESC, p.product_id DESC, pi.is_main DESC, pi.image_id ASC ");
-                    break;
-                case "name_asc":
-                    sql.append("ORDER BY p.name ASC, p.product_id DESC, pi.is_main DESC, pi.image_id ASC ");
-                    break;
-                case "name_desc":
-                    sql.append("ORDER BY p.name DESC, p.product_id DESC, pi.is_main DESC, pi.image_id ASC ");
-                    break;
-                case "top_sales":
-                    sql.append("ORDER BY total_sold DESC, p.product_id DESC, pi.is_main DESC, pi.image_id ASC ");
-                    break;
-                default:
-                    sql.append("ORDER BY p.product_id DESC, pi.is_main DESC, pi.image_id ASC ");
-                    break;
-            }
-        } else {
-            sql.append("ORDER BY p.product_id DESC, pi.is_main DESC, pi.image_id ASC ");
-        }
-
-        List<Product> list = new ArrayList<>();
-        try (PreparedStatement ps = connection.prepareStatement(sql.toString())) {
-            for (int i = 0; i < params.size(); i++) {
-                ps.setObject(i + 1, params.get(i));
-            }
-
-            try (ResultSet rs = ps.executeQuery()) {
-                Map<Integer, Product> productMap = new LinkedHashMap<>();
-
-                while (rs.next()) {
-                    int productId = rs.getInt("product_id");
-                    Product product = productMap.get(productId);
-
-                    if (product == null) {
-                        product = mapBaseProduct(rs, productId, true);
-                        product.setPrice(rs.getDouble("min_price"));
-                        product.setMaxPrice(rs.getDouble("max_price"));
-                        productMap.put(productId, product);
-                    }
-
-                    addImageFromRow(rs, product, productId);
-                }
-
-                finalizeMainImages(productMap);
-                list.addAll(productMap.values());
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return list;
+        return getGuestProducts(sql.toString(), params);
     }
 
     public List<Product> getFeaturedProductsForGuest(int topLimit, int randomLimit) {
@@ -439,36 +371,10 @@ public class ProductDAO extends DBContext {
                 + "         pi.image_id, pi.image_url, pi.is_main, f.ord, f.rn "
                 + "ORDER BY f.ord, f.rn, p.product_id DESC, pi.is_main DESC, pi.image_id ASC";
 
-        List<Product> list = new ArrayList<>();
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setInt(1, topLimit);
-            ps.setInt(2, randomLimit);
-
-            try (ResultSet rs = ps.executeQuery()) {
-                Map<Integer, Product> productMap = new LinkedHashMap<>();
-
-                while (rs.next()) {
-                    int productId = rs.getInt("product_id");
-                    Product product = productMap.get(productId);
-
-                    if (product == null) {
-                        product = mapBaseProduct(rs, productId, true);
-                        product.setPrice(rs.getDouble("min_price"));
-                        product.setMaxPrice(rs.getDouble("max_price"));
-                        productMap.put(productId, product);
-                    }
-
-                    addImageFromRow(rs, product, productId);
-                }
-
-                finalizeMainImages(productMap);
-                list.addAll(productMap.values());
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return list;
+        List<Object> params = new ArrayList<>();
+        params.add(topLimit);
+        params.add(randomLimit);
+        return getGuestProducts(sql, params);
     }
 
     public List<Brand> getAllBrands() {
@@ -725,6 +631,161 @@ public class ProductDAO extends DBContext {
         return list;
     }
 
+    private List<Product> getGuestProducts(String sql, List<Object> params) {
+        List<Product> list = new ArrayList<>();
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            setParameters(ps, params);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                Map<Integer, Product> productMap = new LinkedHashMap<>();
+
+                while (rs.next()) {
+                    int productId = rs.getInt("product_id");
+                    Product product = productMap.get(productId);
+
+                    if (product == null) {
+                        product = mapGuestListProduct(rs, productId);
+                        productMap.put(productId, product);
+                    }
+
+                    addImageFromRow(rs, product, productId);
+                }
+
+                finalizeMainImages(productMap);
+                list.addAll(productMap.values());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
+
+    private Product getGuestProductDetail(int productId, String sql) {
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, productId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                Product product = null;
+                Map<Integer, ProductImage> imageMap = new HashMap<>();
+
+                while (rs.next()) {
+                    if (product == null) {
+                        product = mapGuestDetailProduct(rs, productId);
+                    }
+
+                    addImageToMap(rs, productId, imageMap);
+                }
+
+                applyProductImages(product, imageMap);
+                return product;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    private Product mapGuestListProduct(ResultSet rs, int productId) throws Exception {
+        Product product = mapBaseProduct(rs, productId, true);
+        product.setPrice(rs.getDouble("min_price"));
+        product.setMaxPrice(rs.getDouble("max_price"));
+        return product;
+    }
+
+    private Product mapGuestDetailProduct(ResultSet rs, int productId) throws Exception {
+        Product product = mapBaseProduct(rs, productId, true);
+        product.setVariants(getProductVariants(productId));
+        return product;
+    }
+
+    private void addImageToMap(ResultSet rs, int productId, Map<Integer, ProductImage> imageMap) throws Exception {
+        int imageId = rs.getInt("image_id");
+        if (rs.wasNull() || imageMap.containsKey(imageId)) {
+            return;
+        }
+
+        ProductImage image = new ProductImage();
+        image.setImageId(imageId);
+        image.setProductId(productId);
+        image.setImage(rs.getString("image_url"));
+        image.setMain(rs.getBoolean("is_main"));
+        imageMap.put(imageId, image);
+    }
+
+    private void applyProductImages(Product product, Map<Integer, ProductImage> imageMap) {
+        if (product == null) {
+            return;
+        }
+
+        List<ProductImage> images = new ArrayList<>(imageMap.values());
+        product.setImages(images);
+
+        String mainImage = null;
+        for (ProductImage image : images) {
+            if (image.isMain()) {
+                mainImage = image.getImage();
+                break;
+            }
+        }
+
+        if (mainImage == null && !images.isEmpty()) {
+            mainImage = images.get(0).getImage();
+        }
+
+        product.setMainImage(mainImage);
+    }
+
+    private void appendGuestProductFilters(StringBuilder sql, List<Object> params,
+            String keyword, String brandFilter, String categoryFilter) {
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            sql.append("AND (p.name LIKE ? OR b.name LIKE ? OR c.name LIKE ?) ");
+            String searchParam = "%" + keyword.trim() + "%";
+            params.add(searchParam);
+            params.add(searchParam);
+            params.add(searchParam);
+        }
+
+        if (brandFilter != null && !brandFilter.trim().isEmpty()) {
+            sql.append("AND b.name = ? ");
+            params.add(brandFilter.trim());
+        }
+
+        if (categoryFilter != null && !categoryFilter.trim().isEmpty()) {
+            sql.append("AND c.name = ? ");
+            params.add(categoryFilter.trim());
+        }
+    }
+
+    private String buildGuestSortClause(String sortBy) {
+        if (sortBy == null) {
+            return "ORDER BY p.product_id DESC, pi.is_main DESC, pi.image_id ASC ";
+        }
+
+        switch (sortBy.toLowerCase()) {
+            case "price_asc":
+                return "ORDER BY min_price ASC, p.product_id DESC, pi.is_main DESC, pi.image_id ASC ";
+            case "price_desc":
+                return "ORDER BY min_price DESC, p.product_id DESC, pi.is_main DESC, pi.image_id ASC ";
+            case "name_asc":
+                return "ORDER BY p.name ASC, p.product_id DESC, pi.is_main DESC, pi.image_id ASC ";
+            case "name_desc":
+                return "ORDER BY p.name DESC, p.product_id DESC, pi.is_main DESC, pi.image_id ASC ";
+            case "top_sales":
+                return "ORDER BY total_sold DESC, p.product_id DESC, pi.is_main DESC, pi.image_id ASC ";
+            default:
+                return "ORDER BY p.product_id DESC, pi.is_main DESC, pi.image_id ASC ";
+        }
+    }
+
+    private void setParameters(PreparedStatement ps, List<Object> params) throws Exception {
+        for (int i = 0; i < params.size(); i++) {
+            ps.setObject(i + 1, params.get(i));
+        }
+    }
+
     private Product mapBaseProduct(ResultSet rs, int productId, boolean initImages) throws Exception {
         Product product = new Product();
         product.setProductId(productId);
@@ -864,56 +925,7 @@ public class ProductDAO extends DBContext {
                 + "WHERE p.product_id = ? AND p.status = 1 " //
                 + "ORDER BY pi.is_main DESC, pi.image_id ASC";
 
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setInt(1, productId);
-
-            try (ResultSet rs = ps.executeQuery()) {
-                Product product = null;
-                Map<Integer, ProductImage> imageMap = new HashMap<>();
-
-                while (rs.next()) {
-                    if (product == null) {
-                        product = mapBaseProduct(rs, productId, true);
-                        product.setVariants(getProductVariants(productId));
-                    }
-
-                    int imageId = rs.getInt("image_id");
-                    if (!rs.wasNull() && !imageMap.containsKey(imageId)) {
-                        ProductImage img = new ProductImage();
-                        img.setImageId(imageId);
-                        img.setProductId(productId);
-                        img.setImage(rs.getString("image_url"));
-                        img.setMain(rs.getBoolean("is_main"));
-                        imageMap.put(imageId, img);
-                    }
-                }
-
-                if (product != null) {
-                    List<ProductImage> images = new ArrayList<>(imageMap.values());
-                    product.setImages(images);
-
-                    String mainImage = null;
-                    for (ProductImage img : images) {
-                        if (img.isMain()) {
-                            mainImage = img.getImage();
-                            break;
-                        }
-                    }
-
-                    if (mainImage == null && !images.isEmpty()) {
-                        mainImage = images.get(0).getImage();
-                    }
-
-                    product.setMainImage(mainImage);
-                }
-
-                return product;
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return null;
+        return getGuestProductDetail(productId, sql);
     }
 
     public List<Product> getAllProductsWithImportPrice() {

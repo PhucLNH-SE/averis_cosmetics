@@ -25,7 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@SuppressWarnings("unchecked")
+
 public class PaymentController extends HttpServlet {
 
     private AddressDAO addressDAO;
@@ -43,9 +43,6 @@ public class PaymentController extends HttpServlet {
         voucherDAO = new VoucherDAO();
     }
 
-//    void setVoucherDAO(VoucherDAO voucherDAO) {
-//        this.voucherDAO = voucherDAO;
-//    }
 
     //PhucLNH - load checkout page
     @Override
@@ -84,19 +81,14 @@ public class PaymentController extends HttpServlet {
         }
         voucherCode = voucherCode.trim();
 
-        Map<Integer, CartItem> detailedCart = buildCartWithDetails(cart);
-        BigDecimal subtotal = calculateSubtotal(detailedCart);
-        List<Address> addresses = addressDAO.getAddressesByCustomerId(customer.getCustomerId());
-        List<CustomerVoucher> vouchers = getCheckoutVouchers(customer.getCustomerId());
-
-        String paymentMethod = req.getParameter("paymentMethod");
+        PaymentContext context = buildPaymentContext(customer, cart, voucherCode, req.getParameter("paymentMethod"));
 
         switch (action) {
             case "applyVoucher":
-                applyVoucher(req, resp, customer, addresses, detailedCart, subtotal, voucherCode, paymentMethod, vouchers);
+                applyVoucher(req, resp, context);
                 break;
             default:
-                placeOrder(req, resp, customer, addresses, detailedCart, subtotal, voucherCode);
+                processCheckout(req, resp, context);
         }
     }
 
@@ -110,23 +102,7 @@ public class PaymentController extends HttpServlet {
             return;
         }
 
-        Map<Integer, CartItem> detailedCart = buildCartWithDetails(cart);
-        BigDecimal subtotal = calculateSubtotal(detailedCart);
-
-        setCheckoutAttributes(
-                req,
-                customer,
-                addressDAO.getAddressesByCustomerId(customer.getCustomerId()),
-                detailedCart,
-                subtotal,
-                BigDecimal.ZERO,
-                subtotal,
-                "",
-                "COD",
-                getCheckoutVouchers(customer.getCustomerId())
-        );
-
-        req.getRequestDispatcher("/WEB-INF/views/customer/checkout.jsp").forward(req, resp);
+        renderCheckout(req, resp, buildPaymentContext(customer, cart, "", "COD"));
     }
 
     //PhucLNH - check customer login
@@ -144,145 +120,150 @@ public class PaymentController extends HttpServlet {
         return (Map<Integer, CartItem>) req.getSession().getAttribute("cart");
     }
 
-    private void applyVoucher(HttpServletRequest req, HttpServletResponse resp,
-            Customer customer, List<Address> addresses,
-            Map<Integer, CartItem> cart, BigDecimal subtotal,
-            String voucherCode, String paymentMethod, List<CustomerVoucher> vouchers)
-            throws ServletException, IOException {
+    private PaymentContext buildPaymentContext(Customer customer, Map<Integer, CartItem> cart,
+            String voucherCode, String paymentMethod) {
+        Map<Integer, CartItem> detailedCart = buildCartWithDetails(cart);
+        BigDecimal subtotal = calculateSubtotal(detailedCart);
 
-        String selectedPaymentMethod = normalizePaymentMethod(paymentMethod);
-
-        if (voucherCode.isEmpty()) {
-            forwardWithError(req, resp, "Please enter a voucher code.", customer, addresses, cart, subtotal, voucherCode, selectedPaymentMethod, vouchers);
-            return;
+        PaymentContext context = new PaymentContext();
+        context.customer = customer;
+        context.cart = detailedCart;
+        context.addresses = addressDAO.getAddressesByCustomerId(customer.getCustomerId());
+        context.checkoutVouchers = getCheckoutVouchers(customer.getCustomerId());
+        context.subtotal = subtotal;
+        context.discountAmount = BigDecimal.ZERO;
+        context.finalTotal = subtotal;
+        context.appliedVoucherCode = voucherCode == null ? "" : voucherCode.trim();
+        if (paymentMethod == null || paymentMethod.trim().isEmpty()) {
+            context.selectedPaymentMethod = "COD";
+        } else {
+            String normalizedPaymentMethod = paymentMethod.trim().toUpperCase();
+            context.selectedPaymentMethod = "MOMO".equals(normalizedPaymentMethod) ? "MOMO" : "COD";
         }
-
-        VoucherResolution resolution = resolveVoucherForCheckout(customer.getCustomerId(), voucherCode, true);
-        if (!resolution.isSuccess()) {
-            forwardWithError(req, resp, mapVoucherErrorMessage(resolution.getResultCode()),
-                    customer, addresses, cart, subtotal, voucherCode, selectedPaymentMethod, vouchers);
-            return;
-        }
-
-        CustomerVoucher voucher = resolution.getVoucher();
-        BigDecimal discount = calculateDiscount(subtotal, voucher);
-        BigDecimal finalTotal = subtotal.subtract(discount);
-        if (finalTotal.compareTo(BigDecimal.ZERO) < 0) {
-            finalTotal = BigDecimal.ZERO;
-        }
-
-        req.setAttribute("successMessage", resolution.isClaimedDuringCheckout()
-                ? "Voucher claimed and applied successfully."
-                : "Voucher applied successfully.");
-        setCheckoutAttributes(req, customer, addresses, cart, subtotal, discount, finalTotal, voucherCode,
-                selectedPaymentMethod,
-                resolution.isClaimedDuringCheckout() ? getCheckoutVouchers(customer.getCustomerId()) : vouchers);
-
-        req.getRequestDispatcher("/WEB-INF/views/customer/checkout.jsp").forward(req, resp);
+        return context;
     }
 
-    private void placeOrder(HttpServletRequest req, HttpServletResponse resp,
-            Customer customer, List<Address> addresses,
-            Map<Integer, CartItem> cart, BigDecimal subtotal,
-            String voucherCode) throws IOException {
+    private void applyVoucher(HttpServletRequest req, HttpServletResponse resp, PaymentContext context)
+            throws ServletException, IOException {
+        if (context.appliedVoucherCode.isEmpty()) {
+            context.errorMessage = "Please enter a voucher code.";
+            renderCheckout(req, resp, context);
+            return;
+        }
 
-        CheckoutRequest checkoutRequest = parseCheckoutRequest(req);
-        String inputError = validateCheckoutInput(checkoutRequest, addresses);
+        PaymentVoucherResult voucherResult = resolveVoucher(context.customer.getCustomerId(),
+                context.appliedVoucherCode, true, context.subtotal);
+        if (!voucherResult.isSuccess()) {
+            context.errorMessage = mapVoucherErrorMessage(voucherResult.getResultCode());
+            renderCheckout(req, resp, context);
+            return;
+        }
+
+        context.discountAmount = voucherResult.getDiscount();
+        context.finalTotal = calculateFinalTotal(context.subtotal, voucherResult.getDiscount());
+        context.successMessage = voucherResult.isClaimedDuringCheckout()
+                ? "Voucher claimed and applied successfully."
+                : "Voucher applied successfully.";
+        if (voucherResult.isClaimedDuringCheckout()) {
+            context.checkoutVouchers = getCheckoutVouchers(context.customer.getCustomerId());
+        }
+        renderCheckout(req, resp, context);
+    }
+
+    private void processCheckout(HttpServletRequest req, HttpServletResponse resp, PaymentContext context)
+            throws IOException {
+        String addressIdRaw = req.getParameter("addressId");
+        Integer addressId;
+        try {
+            addressId = Integer.parseInt(addressIdRaw);
+        } catch (Exception e) {
+            addressId = null;
+        }
+        String paymentMethod = req.getParameter("paymentMethod");
+        if (paymentMethod == null) {
+            paymentMethod = "";
+        }
+        paymentMethod = paymentMethod.trim().toUpperCase();
+
+        String inputError = validateCheckoutInput(addressIdRaw, addressId, paymentMethod, context.addresses);
         if (inputError != null) {
             redirectError(resp, req, inputError);
             return;
         }
 
-        VoucherSelection voucherSelection = resolveVoucherSelection(customer.getCustomerId(), voucherCode, subtotal);
-        if (voucherSelection.errorMessage != null) {
-            redirectError(resp, req, voucherSelection.errorMessage);
+        PaymentVoucherResult voucherResult = resolveVoucherForOrder(
+                context.customer.getCustomerId(),
+                context.appliedVoucherCode,
+                context.subtotal
+        );
+        if (voucherResult.getErrorMessage() != null) {
+            redirectError(resp, req, voucherResult.getErrorMessage());
             return;
         }
 
-        String stockValidationMessage = validateCartStock(cart);
+        String stockValidationMessage = validateCartStock(context.cart);
         if (stockValidationMessage != null) {
             redirectError(resp, req, stockValidationMessage);
             return;
         }
 
-        int orderId = createOrder(customer.getCustomerId(), checkoutRequest, cart, voucherSelection);
+        int orderId = createOrder(
+                context.customer.getCustomerId(),
+                addressId,
+                paymentMethod,
+                context.cart,
+                voucherResult
+        );
 
         if (orderId <= 0) {
             redirectError(resp, req, "Order failed! Please try again later.");
             return;
         }
 
-        if ("COD".equals(checkoutRequest.paymentMethod)) {
-            processCodPayment(req, resp, customer, orderId);
+        if ("COD".equals(paymentMethod)) {
+            processCodPayment(req, resp, context.customer, orderId);
             return;
         }
 
         processMomoPayment(req, resp, orderId);
     }
 
-    private CheckoutRequest parseCheckoutRequest(HttpServletRequest req) {
-        CheckoutRequest checkoutRequest = new CheckoutRequest();
-        checkoutRequest.addressIdRaw = req.getParameter("addressId");
-
-        String paymentMethod = req.getParameter("paymentMethod");
-        if (paymentMethod == null) {
-            paymentMethod = "";
-        }
-        checkoutRequest.paymentMethod = paymentMethod.trim().toUpperCase();
-
-        try {
-            checkoutRequest.addressId = Integer.parseInt(checkoutRequest.addressIdRaw);
-        } catch (Exception e) {
-            checkoutRequest.addressId = null;
-        }
-
-        return checkoutRequest;
-    }
-
-    private String validateCheckoutInput(CheckoutRequest checkoutRequest, List<Address> addresses) {
-        if (checkoutRequest.addressIdRaw == null || checkoutRequest.addressIdRaw.isEmpty()) {
+    private String validateCheckoutInput(String addressIdRaw, Integer addressId,
+            String paymentMethod, List<Address> addresses) {
+        if (addressIdRaw == null || addressIdRaw.isEmpty()) {
             return "Please select a delivery address!";
         }
 
-        if (checkoutRequest.paymentMethod.isEmpty()) {
+        if (paymentMethod.isEmpty()) {
             return "Please select a payment method!";
         }
 
-        if (checkoutRequest.addressId == null) {
+        if (addressId == null) {
             return "Invalid address!";
         }
 
-        boolean validAddress = addresses.stream().anyMatch(a -> a.getAddressId() == checkoutRequest.addressId);
+        boolean validAddress = addresses.stream().anyMatch(a -> a.getAddressId() == addressId);
         if (!validAddress) {
             return "Invalid address!";
         }
 
-        if (!"COD".equals(checkoutRequest.paymentMethod) && !"MOMO".equals(checkoutRequest.paymentMethod)) {
+        if (!"COD".equals(paymentMethod) && !"MOMO".equals(paymentMethod)) {
             return "Invalid payment method!";
         }
 
         return null;
     }
 
-    private VoucherSelection resolveVoucherSelection(int customerId, String voucherCode, BigDecimal subtotal) {
-        VoucherSelection selection = new VoucherSelection();
-        selection.discount = BigDecimal.ZERO;
-
+    private PaymentVoucherResult resolveVoucherForOrder(int customerId, String voucherCode, BigDecimal subtotal) {
         if (voucherCode == null || voucherCode.isEmpty()) {
-            return selection;
+            return PaymentVoucherResult.empty();
         }
 
-        VoucherResolution resolution = resolveVoucherForCheckout(customerId, voucherCode, false);
-        if (!resolution.isSuccess()) {
-            selection.errorMessage = "Invalid voucher!";
-            return selection;
+        PaymentVoucherResult voucherResult = resolveVoucher(customerId, voucherCode, false, subtotal);
+        if (!voucherResult.isSuccess()) {
+            voucherResult.errorMessage = "Invalid voucher!";
         }
-
-        selection.voucher = resolution.getVoucher();
-        selection.voucherId = selection.voucher.getVoucherId();
-        selection.customerVoucherId = selection.voucher.getCustomerVoucherId();
-        selection.discount = calculateDiscount(subtotal, selection.voucher);
-        return selection;
+        return voucherResult;
     }
 
     private String validateCartStock(Map<Integer, CartItem> cart) {
@@ -301,19 +282,19 @@ public class PaymentController extends HttpServlet {
         return null;
     }
 
-    private int createOrder(int customerId, CheckoutRequest checkoutRequest,
-            Map<Integer, CartItem> cart, VoucherSelection voucherSelection) {
-        BigDecimal finalTotal = calculateFinalTotal(calculateSubtotal(cart), voucherSelection.discount);
+    private int createOrder(int customerId, Integer addressId, String paymentMethod,
+            Map<Integer, CartItem> cart, PaymentVoucherResult voucherResult) {
+        BigDecimal finalTotal = calculateFinalTotal(calculateSubtotal(cart), voucherResult.getDiscount());
 
         return orderDAO.placeOrder(
                 customerId,
-                checkoutRequest.addressId,
-                checkoutRequest.paymentMethod,
+                addressId,
+                paymentMethod,
                 finalTotal,
                 new ArrayList<CartItem>(cart.values()),
-                voucherSelection.voucherId,
-                voucherSelection.customerVoucherId,
-                voucherSelection.discount
+                voucherResult.getVoucherId(),
+                voucherResult.getCustomerVoucherId(),
+                voucherResult.getDiscount()
         );
     }
 
@@ -335,14 +316,9 @@ public class PaymentController extends HttpServlet {
         resp.sendRedirect(req.getContextPath() + "/momo-payment?orderId=" + orderId);
     }
 
-    private void forwardWithError(HttpServletRequest req, HttpServletResponse resp, String error,
-            Customer customer, List<Address> addresses,
-            Map<Integer, CartItem> cart, BigDecimal subtotal,
-            String voucherCode, String paymentMethod, List<CustomerVoucher> vouchers)
+    private void renderCheckout(HttpServletRequest req, HttpServletResponse resp, PaymentContext context)
             throws ServletException, IOException {
-
-        req.setAttribute("error", error);
-        setCheckoutAttributes(req, customer, addresses, cart, subtotal, BigDecimal.ZERO, subtotal, voucherCode, paymentMethod, vouchers);
+        setCheckoutAttributes(req, context);
         req.getRequestDispatcher("/WEB-INF/views/customer/checkout.jsp").forward(req, resp);
     }
 
@@ -408,25 +384,30 @@ public class PaymentController extends HttpServlet {
         return discount;
     }
 
-    VoucherResolution resolveVoucherForCheckout(int customerId, String voucherCode, boolean allowAutoClaim) {
+    private PaymentVoucherResult resolveVoucher(int customerId, String voucherCode,
+            boolean allowAutoClaim, BigDecimal subtotal) {
         CustomerVoucher activeVoucher = voucherDAO.getActiveVoucherForCheckout(customerId, voucherCode);
         if (activeVoucher != null) {
-            return VoucherResolution.applied(activeVoucher, false);
+            return PaymentVoucherResult.applied(activeVoucher, false, calculateDiscount(subtotal, activeVoucher));
         }
 
         if (!allowAutoClaim) {
-            return VoucherResolution.failed("invalidVoucher");
+            return PaymentVoucherResult.failed("invalidVoucher");
         }
 
         String claimResult = voucherDAO.claimVoucherWithReason(customerId, voucherCode);
         if ("ok".equals(claimResult) || "alreadyClaimed".equals(claimResult)) {
             CustomerVoucher claimedVoucher = voucherDAO.getActiveVoucherForCheckout(customerId, voucherCode);
             if (claimedVoucher != null) {
-                return VoucherResolution.applied(claimedVoucher, "ok".equals(claimResult));
+                return PaymentVoucherResult.applied(
+                        claimedVoucher,
+                        "ok".equals(claimResult),
+                        calculateDiscount(subtotal, claimedVoucher)
+                );
             }
         }
 
-        return VoucherResolution.failed(claimResult);
+        return PaymentVoucherResult.failed(claimResult);
     }
 
     private String mapVoucherErrorMessage(String resultCode) {
@@ -448,31 +429,18 @@ public class PaymentController extends HttpServlet {
         }
     }
 
-    private void setCheckoutAttributes(HttpServletRequest req, Customer customer,
-            List<Address> addresses, Map<Integer, CartItem> cart,
-            BigDecimal subtotal, BigDecimal discount,
-            BigDecimal finalTotal, String voucherCode,
-            String paymentMethod,
-            List<CustomerVoucher> vouchers) {
-
-        req.setAttribute("cart", cart);
-        req.setAttribute("addresses", addresses);
-        req.setAttribute("total", subtotal);
-        req.setAttribute("discountAmount", discount);
-        req.setAttribute("finalTotal", finalTotal);
-        req.setAttribute("customer", customer);
-        req.setAttribute("appliedVoucherCode", voucherCode);
-        req.setAttribute("selectedPaymentMethod", normalizePaymentMethod(paymentMethod));
-        req.setAttribute("checkoutVouchers", vouchers);
-    }
-
-    private String normalizePaymentMethod(String paymentMethod) {
-        if (paymentMethod == null || paymentMethod.trim().isEmpty()) {
-            return "COD";
-        }
-
-        String normalized = paymentMethod.trim().toUpperCase();
-        return "MOMO".equals(normalized) ? "MOMO" : "COD";
+    private void setCheckoutAttributes(HttpServletRequest req, PaymentContext context) {
+        req.setAttribute("cart", context.cart);
+        req.setAttribute("addresses", context.addresses);
+        req.setAttribute("total", context.subtotal);
+        req.setAttribute("discountAmount", context.discountAmount);
+        req.setAttribute("finalTotal", context.finalTotal);
+        req.setAttribute("customer", context.customer);
+        req.setAttribute("appliedVoucherCode", context.appliedVoucherCode);
+        req.setAttribute("selectedPaymentMethod", context.selectedPaymentMethod);
+        req.setAttribute("checkoutVouchers", context.checkoutVouchers);
+        req.setAttribute("error", context.errorMessage);
+        req.setAttribute("successMessage", context.successMessage);
     }
 
     private List<CustomerVoucher> getCheckoutVouchers(int customerId) {
@@ -499,32 +467,50 @@ public class PaymentController extends HttpServlet {
         return result;
     }
 
-    static final class VoucherResolution {
+    private static final class PaymentContext {
+        private Customer customer;
+        private Map<Integer, CartItem> cart;
+        private List<Address> addresses;
+        private List<CustomerVoucher> checkoutVouchers;
+        private BigDecimal subtotal;
+        private BigDecimal discountAmount;
+        private BigDecimal finalTotal;
+        private String appliedVoucherCode;
+        private String selectedPaymentMethod;
+        private String errorMessage;
+        private String successMessage;
+    }
 
+    static final class PaymentVoucherResult {
         private final CustomerVoucher voucher;
         private final String resultCode;
         private final boolean claimedDuringCheckout;
+        private final BigDecimal discount;
+        private String errorMessage;
 
-        private VoucherResolution(CustomerVoucher voucher, String resultCode, boolean claimedDuringCheckout) {
+        private PaymentVoucherResult(CustomerVoucher voucher, String resultCode,
+                boolean claimedDuringCheckout, BigDecimal discount) {
             this.voucher = voucher;
             this.resultCode = resultCode;
             this.claimedDuringCheckout = claimedDuringCheckout;
+            this.discount = discount == null ? BigDecimal.ZERO : discount;
         }
 
-        static VoucherResolution applied(CustomerVoucher voucher, boolean claimedDuringCheckout) {
-            return new VoucherResolution(voucher, "ok", claimedDuringCheckout);
+        static PaymentVoucherResult empty() {
+            return new PaymentVoucherResult(null, "ok", false, BigDecimal.ZERO);
         }
 
-        static VoucherResolution failed(String resultCode) {
-            return new VoucherResolution(null, resultCode, false);
+        static PaymentVoucherResult applied(CustomerVoucher voucher, boolean claimedDuringCheckout,
+                BigDecimal discount) {
+            return new PaymentVoucherResult(voucher, "ok", claimedDuringCheckout, discount);
+        }
+
+        static PaymentVoucherResult failed(String resultCode) {
+            return new PaymentVoucherResult(null, resultCode, false, BigDecimal.ZERO);
         }
 
         boolean isSuccess() {
-            return voucher != null;
-        }
-
-        CustomerVoucher getVoucher() {
-            return voucher;
+            return "ok".equals(resultCode);
         }
 
         String getResultCode() {
@@ -534,20 +520,22 @@ public class PaymentController extends HttpServlet {
         boolean isClaimedDuringCheckout() {
             return claimedDuringCheckout;
         }
-    }
 
-    private static final class CheckoutRequest {
-        private String addressIdRaw;
-        private Integer addressId;
-        private String paymentMethod;
-    }
+        BigDecimal getDiscount() {
+            return discount;
+        }
 
-    private static final class VoucherSelection {
-        private CustomerVoucher voucher;
-        private Integer voucherId;
-        private Integer customerVoucherId;
-        private BigDecimal discount;
-        private String errorMessage;
+        Integer getVoucherId() {
+            return voucher == null ? null : voucher.getVoucherId();
+        }
+
+        Integer getCustomerVoucherId() {
+            return voucher == null ? null : voucher.getCustomerVoucherId();
+        }
+
+        String getErrorMessage() {
+            return errorMessage;
+        }
     }
 }
 

@@ -82,6 +82,9 @@ public class ManagerVoucherController extends HttpServlet {
             case "update":
                 updateVoucher(request, response);
                 break;
+            case "markFree":
+                markVoucherAsFree(request, response);
+                break;
             default:
                 response.sendRedirect(request.getContextPath() + ADMIN_LIST_URL);
                 break;
@@ -163,6 +166,29 @@ public class ManagerVoucherController extends HttpServlet {
             response.sendRedirect(request.getContextPath() + ADMIN_LIST_URL + "?success=" + (ok ? "updated" : "failed"));
         } catch (Exception ex) {
             response.sendRedirect(request.getContextPath() + ADMIN_LIST_URL + "?error=invalidData");
+        }
+    }
+
+    private void markVoucherAsFree(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+        String voucherIdRaw = request.getParameter("voucherId");
+        if (voucherIdRaw == null || voucherIdRaw.trim().isEmpty()) {
+            response.sendRedirect(request.getContextPath() + ADMIN_LIST_URL + "?error=freeFailed");
+            return;
+        }
+
+        try {
+            int voucherId = Integer.parseInt(voucherIdRaw);
+            Voucher voucher = voucherDAO.getById(voucherId);
+            if (voucher == null) {
+                response.sendRedirect(request.getContextPath() + ADMIN_LIST_URL + "?error=notFound");
+                return;
+            }
+
+            boolean ok = voucherDAO.markShowOnFreeVoucher(voucherId);
+            response.sendRedirect(request.getContextPath() + ADMIN_LIST_URL + "?success=" + (ok ? "free" : "failed"));
+        } catch (NumberFormatException ex) {
+            response.sendRedirect(request.getContextPath() + ADMIN_LIST_URL + "?error=freeFailed");
         }
     }
 
@@ -294,7 +320,7 @@ public class ManagerVoucherController extends HttpServlet {
         }
 
         if (Boolean.TRUE.equals(voucher.getStatus())) {
-            if (voucher.getQuantity() <= voucher.getClaimedQuantity()) {
+            if (voucher.getQuantity() < voucher.getClaimedQuantity()) {
                 throw new IllegalArgumentException("Cannot activate a voucher that is out of quantity.");
             }
             if ("FIXED_END_DATE".equals(voucherType) && !voucher.getFixedEndAt().isAfter(now)) {

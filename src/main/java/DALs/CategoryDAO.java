@@ -1,109 +1,109 @@
 package DALs;
 
+import Model.Category;
+import Utils.DBContext;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
 
-import Model.Category;
-import Utils.DBContext;
-
 public class CategoryDAO extends DBContext {
 
     public List<Category> getAllCategories() {
-        List<Category> list = new ArrayList<>();
+        List<Category> categories = new ArrayList<>();
         String sql = "SELECT category_id, name, status FROM Category ORDER BY category_id ASC";
 
         try (PreparedStatement ps = connection.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
+                ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
-                Category c = new Category();
-                c.setCategoryId(rs.getInt("category_id"));
-                c.setName(rs.getString("name"));
-                c.setStatus(rs.getBoolean("status"));
-                list.add(c);
+                categories.add(mapCategory(rs));
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        return list;
+        return categories;
     }
 
-    public Category getCategoryById(int id) {
+    public Category getCategoryById(int categoryId) {
         String sql = "SELECT category_id, name, status FROM Category WHERE category_id = ?";
+
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setInt(1, id);
+            ps.setInt(1, categoryId);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    Category c = new Category();
-                    c.setCategoryId(rs.getInt("category_id"));
-                    c.setName(rs.getString("name"));
-                    c.setStatus(rs.getBoolean("status"));
-                    return c;
+                    return mapCategory(rs);
                 }
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
+
         return null;
     }
 
-    public boolean addCategory(String name) {
+    public boolean insertCategory(String name) {
+        return insertCategory(name, true);
+    }
+
+    public boolean insertCategory(String name, boolean status) {
         String sql = "INSERT INTO Category(name, status) VALUES(?, ?)";
+
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setString(1, name);
-            ps.setBoolean(2, true);
+            fillCategoryStatement(ps, name, status, null);
             return ps.executeUpdate() > 0;
         } catch (Exception e) {
             e.printStackTrace();
         }
+
         return false;
     }
 
-    public boolean addCategory(String name, boolean status) {
-        String sql = "INSERT INTO Category(name, status) VALUES(?, ?)";
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setString(1, name);
-            ps.setBoolean(2, status);
-            return ps.executeUpdate() > 0;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
-
-    public boolean updateCategory(int id, String name, boolean status) {
+    public boolean updateCategory(int categoryId, String name, boolean status) {
         String sql = "UPDATE Category SET name = ?, status = ? WHERE category_id = ?";
+
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setString(1, name);
-            ps.setBoolean(2, status);
-            ps.setInt(3, id);
+            fillCategoryStatement(ps, name, status, categoryId);
             return ps.executeUpdate() > 0;
         } catch (Exception e) {
             e.printStackTrace();
         }
+
         return false;
     }
 
     public boolean existsByName(String name) {
         String sql = "SELECT 1 FROM Category WHERE name = ?";
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setString(1, name);
-            try (ResultSet rs = ps.executeQuery()) {
-                return rs.next();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return false;
+        return existsByName(sql, name, null);
     }
 
     public boolean existsByNameExceptId(String name, int excludeId) {
         String sql = "SELECT 1 FROM Category WHERE name = ? AND category_id <> ?";
+        return existsByName(sql, name, excludeId);
+    }
+
+    private Category mapCategory(ResultSet rs) throws Exception {
+        Category category = new Category();
+        category.setCategoryId(rs.getInt("category_id"));
+        category.setName(rs.getString("name"));
+        category.setStatus(rs.getBoolean("status"));
+        return category;
+    }
+
+    private void fillCategoryStatement(PreparedStatement ps, String name, boolean status, Integer categoryId) throws Exception {
+        ps.setString(1, name);
+        ps.setBoolean(2, status);
+        if (categoryId != null) {
+            ps.setInt(3, categoryId);
+        }
+    }
+
+    private boolean existsByName(String sql, String name, Integer excludeId) {
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setString(1, name);
-            ps.setInt(2, excludeId);
+            if (excludeId != null) {
+                ps.setInt(2, excludeId);
+            }
             try (ResultSet rs = ps.executeQuery()) {
                 return rs.next();
             }

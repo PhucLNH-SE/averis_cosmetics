@@ -20,6 +20,10 @@
         <c:set var="popupMessage" scope="request" value="Voucher updated successfully." />
         <c:set var="popupType" scope="request" value="success" />
     </c:if>
+    <c:if test="${param.success == 'free'}">
+        <c:set var="popupMessage" scope="request" value="Voucher marked as free successfully." />
+        <c:set var="popupType" scope="request" value="success" />
+    </c:if>
     <c:if test="${param.error == 'duplicateCode'}">
         <c:set var="popupMessage" scope="request" value="Voucher code already exists." />
         <c:set var="popupType" scope="request" value="error" />
@@ -30,6 +34,10 @@
     </c:if>
     <c:if test="${param.error == 'notFound' || param.success == 'failed'}">
         <c:set var="popupMessage" scope="request" value="Voucher action failed." />
+        <c:set var="popupType" scope="request" value="error" />
+    </c:if>
+    <c:if test="${param.error == 'freeFailed'}">
+        <c:set var="popupMessage" scope="request" value="Failed to mark voucher as free." />
         <c:set var="popupType" scope="request" value="error" />
     </c:if>
 
@@ -96,6 +104,22 @@
                                         </td>
                                         <td class="text-end px-4">
                                             <div class="voucher-actions">
+                                                <c:choose>
+                                                    <c:when test="${v.showonfreevoucher}">
+                                                        <span class="voucher-btn-free-disabled">
+                                                            <i class="bi bi-gift-fill"></i> Free
+                                                        </span>
+                                                    </c:when>
+                                                    <c:otherwise>
+                                                        <form action="${pageContext.request.contextPath}/admin/manage-voucher" method="post" class="d-inline">
+                                                            <input type="hidden" name="action" value="markFree">
+                                                            <input type="hidden" name="voucherId" value="${v.voucherId}">
+                                                            <button type="submit" class="voucher-btn-save">
+                                                                <i class="bi bi-gift"></i> Free
+                                                            </button>
+                                                        </form>
+                                                    </c:otherwise>
+                                                </c:choose>
                                                 <a href="${pageContext.request.contextPath}/admin/manage-voucher?action=edit&id=${v.voucherId}"
                                                    class="voucher-btn-edit">
                                                     <i class="bi bi-pencil-square"></i> Edit
@@ -339,14 +363,13 @@
             relativeInput.setCustomValidity('Valid days must be at least 1.');
         }
 
-        if (statusInput.value === '1') {
-            const quantityValue = Number(quantityInput.value);
-            if (quantityValue <= claimedQuantity) {
-                statusInput.setCustomValidity('Cannot set Active when voucher is out of quantity.');
-            } else if (voucherType === 'FIXED_END_DATE' && endInput.value && endInput.value <= nowValue) {
-                statusInput.setCustomValidity('Cannot set Active when voucher is expired.');
-            }
-        }
+      statusInput.setCustomValidity('');
+
+if (statusInput.value === '1') {
+    if (voucherType === 'FIXED_DATE' && endInput.value && endInput.value <= nowValue) {
+        statusInput.setCustomValidity('Cannot set Active when voucher is expired.');
+    }
+}
 
         if (!form.reportValidity()) {
             event.preventDefault();

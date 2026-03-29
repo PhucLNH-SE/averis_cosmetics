@@ -4464,6 +4464,7 @@ body {
     justify-content: center;
     cursor: pointer;
     transition: background .15s ease, color .15s ease;
+    text-decoration: none;
 }
 
 .search-toggle:hover {
@@ -5083,6 +5084,19 @@ body {
 .hero-btn.ghost:hover {
     border-color: var(--accent);
     color: var(--accent);
+}
+
+.hero-btn.voucher {
+    background: #fff7ef;
+    color: var(--accent-dark);
+    border: 1px solid rgba(180, 83, 9, 0.18);
+    box-shadow: 0 12px 26px rgba(180, 83, 9, 0.12);
+}
+
+.hero-btn.voucher:hover {
+    background: #ffe9cf;
+    color: var(--accent-dark);
+    transform: translateY(-2px);
 }
 
 .hero-media {
@@ -8160,6 +8174,7 @@ body {
 .admin-shell-body .admin-page .voucher-btn-edit,
 .admin-shell-body .admin-page .voucher-btn-delete,
 .admin-shell-body .admin-page .voucher-btn-save,
+.admin-shell-body .admin-page .voucher-btn-free-disabled,
 .admin-shell-body .admin-page .variant-action-btn {
     min-height: 42px;
     padding: 0.68rem 1rem;
@@ -8187,6 +8202,7 @@ body {
 .admin-shell-body .admin-page .voucher-btn-edit i,
 .admin-shell-body .admin-page .voucher-btn-delete i,
 .admin-shell-body .admin-page .voucher-btn-save i,
+.admin-shell-body .admin-page .voucher-btn-free-disabled i,
 .admin-shell-body .admin-page .variant-action-btn i {
     font-size: 0.92em;
     line-height: 1;
@@ -8231,6 +8247,14 @@ body {
     background: var(--admin-ui-success-hover);
     border-color: var(--admin-ui-success-hover);
     color: #fff;
+}
+
+.admin-shell-body .admin-page .voucher-btn-free-disabled {
+    background: #eef2f7;
+    border: 1px solid #d5dde8;
+    color: #64748b;
+    box-shadow: none;
+    cursor: default;
 }
 
 .admin-shell-body .admin-page .btn-danger,
@@ -8524,7 +8548,7 @@ body {
 }
 
 .admin-shell-body .admin-page--order-detail .order-detail-card__header {
-    padding: 18px 22px;
+    padding: 16px 20px;
     border-bottom: 1px solid var(--admin-ui-border);
     background: linear-gradient(180deg, #fbfdff 0%, #f3f7fc 100%);
 }
@@ -8538,6 +8562,13 @@ body {
 
 .admin-shell-body .admin-page--order-detail .order-detail-card--summary {
     padding: 22px;
+}
+
+.admin-shell-body .admin-page--order-detail .order-detail-overview {
+    display: grid;
+    grid-template-columns: 3fr 2fr;
+    gap: 14px;
+    align-items: start;
 }
 
 .admin-shell-body .admin-page--order-detail .order-detail-summary-grid {
@@ -8576,6 +8607,69 @@ body {
     line-height: 1.55;
 }
 
+.admin-shell-body .admin-page--order-detail .order-detail-info-list {
+    padding: 18px 20px;
+    display: grid;
+    gap: 10px;
+}
+
+.admin-shell-body .admin-page--order-detail .order-detail-info-line {
+    display: grid;
+    grid-template-columns: minmax(145px, 180px) minmax(0, 1fr);
+    gap: 12px;
+    align-items: start;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e9eef7;
+}
+
+.admin-shell-body .admin-page--order-detail .order-detail-info-line:last-child {
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.admin-shell-body .admin-page--order-detail .order-detail-info-label {
+    color: #64748b;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.admin-shell-body .admin-page--order-detail .order-detail-info-text {
+    color: var(--admin-ui-text);
+    font-size: 0.98rem;
+    font-weight: 700;
+    line-height: 1.5;
+}
+
+.admin-shell-body .admin-page--order-detail .order-detail-status-panel {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: fit-content;
+    margin: 4px auto 2px;
+    padding: 12px 18px;
+    border: 1px solid #d8e3f8;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #f7faff 0%, #eef4ff 100%);
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+}
+
+.admin-shell-body .admin-page--order-detail .order-detail-status-label {
+    color: #475569;
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.admin-shell-body .admin-page--order-detail .order-detail-status-value {
+    color: #1d4ed8;
+    font-size: 0.95rem;
+    font-weight: 800;
+}
+
 .admin-shell-body .admin-page--order-detail .order-detail-table-card .table-responsive {
     padding: 0;
 }
@@ -8602,6 +8696,17 @@ body {
     font-size: 1.05rem;
     font-weight: 700;
     color: #1e3a8a;
+}
+
+@media (max-width: 991.98px) {
+    .admin-shell-body .admin-page--order-detail .order-detail-overview {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-shell-body .admin-page--order-detail .order-detail-info-line {
+        grid-template-columns: 1fr;
+        gap: 6px;
+    }
 }
 
 .admin-shell-body .admin-page--product .product-overview__card,
@@ -8747,7 +8852,8 @@ body {
 
 .admin-shell-body .admin-page--voucher .voucher-btn-edit,
 .admin-shell-body .admin-page--voucher .voucher-btn-delete,
-.admin-shell-body .admin-page--voucher .voucher-btn-save {
+.admin-shell-body .admin-page--voucher .voucher-btn-save,
+.admin-shell-body .admin-page--voucher .voucher-btn-free-disabled {
     padding: 0.7rem 1rem;
 }
 
@@ -8778,7 +8884,8 @@ body {
     .admin-shell-body .admin-page .btn,
     .admin-shell-body .admin-page .voucher-btn-edit,
     .admin-shell-body .admin-page .voucher-btn-delete,
-    .admin-shell-body .admin-page .voucher-btn-save {
+.admin-shell-body .admin-page .voucher-btn-save,
+.admin-shell-body .admin-page .voucher-btn-free-disabled {
         width: 100%;
         justify-content: center;
     }
@@ -9969,6 +10076,328 @@ body {
     border: 1px dashed #d1d5db;
     border-radius: 10px;
     background: #fafafa;
+}
+
+.free-voucher-page {
+    min-height: 100vh;
+}
+
+.free-voucher-hero {
+    padding: 72px 0 30px;
+}
+
+.free-voucher-hero-grid {
+    align-items: center;
+}
+
+.free-voucher-hero-copy {
+    position: relative;
+    z-index: 1;
+}
+
+.free-voucher-hero-card {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(145deg, #fff7ef, #fff1df);
+    border: 1px solid rgba(180, 83, 9, 0.12);
+    border-radius: 30px;
+    padding: 30px;
+    box-shadow: 0 20px 42px rgba(31, 41, 55, 0.12);
+}
+
+.free-voucher-hero-card::before {
+    content: "";
+    position: absolute;
+    inset: auto -40px -40px auto;
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(180, 83, 9, 0.18) 0%, rgba(180, 83, 9, 0) 70%);
+}
+
+.free-voucher-hero-card__head {
+    position: relative;
+    z-index: 1;
+}
+
+.free-voucher-hero-card__head .section-pill {
+    margin-bottom: 16px;
+}
+
+.free-voucher-hero-card__head h3 {
+    margin: 0;
+    font-family: var(--font-display, "Playfair Display", serif);
+    font-size: clamp(24px, 3vw, 34px);
+    line-height: 1.2;
+}
+
+.free-voucher-summary {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+    margin: 26px 0 22px;
+}
+
+.free-voucher-summary-item {
+    background: rgba(255, 255, 255, 0.72);
+    border: 1px solid rgba(180, 83, 9, 0.12);
+    border-radius: 20px;
+    padding: 18px 16px;
+}
+
+.free-voucher-summary-item strong {
+    display: block;
+    margin-top: 8px;
+    font-size: 28px;
+    color: var(--accent-dark);
+}
+
+.free-voucher-summary-label {
+    display: block;
+    color: var(--muted);
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+}
+
+.free-voucher-hero-list {
+    position: relative;
+    z-index: 1;
+    margin: 0;
+    padding-left: 18px;
+    color: var(--muted);
+    line-height: 1.8;
+}
+
+.free-voucher-section {
+    padding: 20px 0 80px;
+    background: transparent;
+}
+
+.free-voucher-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 24px;
+}
+
+.free-voucher-card {
+    background: linear-gradient(145deg, #fff7ef, #fff1df);
+    border-radius: 28px;
+    padding: 24px;
+    box-shadow: 0 18px 35px rgba(31, 41, 55, 0.12);
+    border: 1px solid rgba(180, 83, 9, 0.12);
+    display: flex;
+    flex-direction: column;
+    min-height: 360px;
+    transition: transform .2s ease, box-shadow .2s ease;
+}
+
+.free-voucher-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 22px 44px rgba(31, 41, 55, 0.18);
+}
+
+.free-voucher-card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 18px;
+}
+
+.free-voucher-tag,
+.free-voucher-state {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 7px 14px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+}
+
+.free-voucher-tag {
+    background: rgba(180, 83, 9, 0.12);
+    color: var(--accent-dark);
+}
+
+.free-voucher-state {
+    background: #ecfdf3;
+    color: #0f766e;
+}
+
+.free-voucher-discount {
+    font-family: var(--font-display, "Playfair Display", serif);
+    font-size: clamp(28px, 3vw, 40px);
+    line-height: 1.15;
+    color: var(--accent-dark);
+}
+
+.free-voucher-code {
+    margin: 16px 0 14px;
+    padding: 14px 16px;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px dashed rgba(180, 83, 9, 0.3);
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: .08em;
+    color: var(--text);
+    text-align: center;
+}
+
+.free-voucher-note {
+    margin: 0 0 18px;
+    color: var(--muted);
+    line-height: 1.7;
+}
+
+.free-voucher-details {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: auto;
+    margin-bottom: 18px;
+}
+
+.free-voucher-detail {
+    background: rgba(255, 255, 255, 0.72);
+    border: 1px solid rgba(180, 83, 9, 0.12);
+    border-radius: 18px;
+    padding: 12px 14px;
+}
+
+.free-voucher-detail__label {
+    display: block;
+    color: var(--muted);
+    font-size: 12px;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+}
+
+.free-voucher-detail__value {
+    display: block;
+    color: var(--text);
+    font-weight: 700;
+}
+
+.free-voucher-claim {
+    display: flex;
+    align-items: stretch;
+    margin-top: auto;
+}
+
+.free-voucher-claim-form {
+    width: 100%;
+}
+
+.free-voucher-btn,
+.free-voucher-login,
+.free-voucher-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 48px;
+    padding: 12px 18px;
+    border-radius: 999px;
+    font-weight: 700;
+    text-decoration: none;
+    border: none;
+    transition: transform .2s ease, box-shadow .2s ease, background .2s ease;
+}
+
+.free-voucher-btn {
+    background: var(--accent);
+    color: #fff;
+    box-shadow: 0 12px 26px rgba(180, 83, 9, 0.24);
+    cursor: pointer;
+}
+
+.free-voucher-btn:hover {
+    background: var(--accent-dark);
+    color: #fff;
+    transform: translateY(-2px);
+}
+
+.free-voucher-login {
+    background: #fff;
+    color: var(--accent-dark);
+    border: 1px solid rgba(180, 83, 9, 0.18);
+}
+
+.free-voucher-login:hover {
+    background: #fff1df;
+    color: var(--accent-dark);
+}
+
+.free-voucher-pill {
+    background: #ecfdf3;
+    color: #0f766e;
+    border: 1px solid #a7f3d0;
+}
+
+.free-voucher-empty {
+    max-width: 760px;
+    margin: 0 auto;
+    background: rgba(255, 255, 255, 0.88);
+    border: 1px dashed rgba(180, 83, 9, 0.24);
+    border-radius: 28px;
+    padding: 52px 28px;
+    text-align: center;
+    color: var(--muted);
+    box-shadow: 0 18px 35px rgba(31, 41, 55, 0.08);
+}
+
+.free-voucher-empty h3 {
+    margin: 0 0 10px;
+    color: var(--text);
+    font-family: var(--font-display, "Playfair Display", serif);
+    font-size: clamp(26px, 3vw, 34px);
+}
+
+.free-voucher-empty p {
+    max-width: 520px;
+    margin: 0 auto 24px;
+    line-height: 1.7;
+}
+
+@media (max-width: 1100px) {
+    .free-voucher-summary,
+    .free-voucher-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 720px) {
+    .free-voucher-hero {
+        padding: 54px 0 24px;
+    }
+
+    .free-voucher-summary,
+    .free-voucher-grid,
+    .free-voucher-details {
+        grid-template-columns: 1fr;
+    }
+
+    .free-voucher-hero-card,
+    .free-voucher-card {
+        padding: 22px;
+    }
+
+    .free-voucher-card {
+        min-height: unset;
+    }
+
+    .free-voucher-card-top {
+        align-items: flex-start;
+        flex-direction: column;
+    }
 }
 
 .checkout-page .summary-divider{
