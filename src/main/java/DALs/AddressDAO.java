@@ -62,13 +62,7 @@ public class AddressDAO extends DBContext {
 
             try (PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
                 ps.setInt(1, address.getCustomerId());
-                ps.setString(2, address.getReceiverName());
-                ps.setString(3, address.getPhone());
-                ps.setString(4, address.getProvince());
-                ps.setString(5, address.getDistrict());
-                ps.setString(6, address.getWard());
-                ps.setString(7, address.getStreetAddress());
-                ps.setBoolean(8, address.getIsDefault() != null ? address.getIsDefault() : false);
+                fillAddressStatement(ps, address, 2);
 
                 int rowsAffected = ps.executeUpdate();
 
@@ -93,15 +87,9 @@ public class AddressDAO extends DBContext {
                 + "WHERE address_id = ? AND customer_id = ? AND is_deleted = 0";
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setString(1, address.getReceiverName());
-            ps.setString(2, address.getPhone());
-            ps.setString(3, address.getProvince());
-            ps.setString(4, address.getDistrict());
-            ps.setString(5, address.getWard());
-            ps.setString(6, address.getStreetAddress());
-            ps.setBoolean(7, address.getIsDefault() != null ? address.getIsDefault() : false);
-            ps.setInt(8, address.getAddressId());
-            ps.setInt(9, address.getCustomerId());
+            int nextIndex = fillAddressStatement(ps, address, 1);
+            ps.setInt(nextIndex++, address.getAddressId());
+            ps.setInt(nextIndex, address.getCustomerId());
 
             int rowsAffected = ps.executeUpdate();
             return rowsAffected > 0;
@@ -113,115 +101,73 @@ public class AddressDAO extends DBContext {
     }
 
     public String deleteAddress(int addressId, int customerId) {
-        String selectSql = "SELECT is_default FROM Address WHERE address_id = ? AND customer_id = ? AND is_deleted = 0";
-        String deleteSql = "UPDATE Address SET is_deleted = 1, is_default = 0 "
-                + "WHERE address_id = ? AND customer_id = ? AND is_deleted = 0";
-        String fallbackDefaultSql = "SELECT TOP 1 address_id FROM Address "
-                + "WHERE customer_id = ? AND is_deleted = 0 ORDER BY address_id DESC";
-        String setDefaultSql = "UPDATE Address SET is_default = 1 WHERE address_id = ? AND customer_id = ? AND is_deleted = 0";
-
         try {
             connection.setAutoCommit(false);
 
-            boolean wasDefault = false;
-            try (PreparedStatement selectPs = connection.prepareStatement(selectSql)) {
-                selectPs.setInt(1, addressId);
-                selectPs.setInt(2, customerId);
-                try (ResultSet rs = selectPs.executeQuery()) {
-                    if (!rs.next()) {
-                        connection.rollback();
-                        connection.setAutoCommit(true);
-                        return "Address not found.";
-                    }
-                    wasDefault = rs.getBoolean("is_default");
-                }
+            Boolean wasDefault = getActiveAddressDefaultFlag(addressId, customerId);
+            if (wasDefault == null) {
+                connection.rollback();
+                return "Address not found.";
             }
 
-            try (PreparedStatement deletePs = connection.prepareStatement(deleteSql)) {
-                deletePs.setInt(1, addressId);
-                deletePs.setInt(2, customerId);
+            if (!softDeleteAddress(addressId, customerId)) {
+                connection.rollback();
+                return "Failed to delete address.";
+            }
 
-                int rowsAffected = deletePs.executeUpdate();
-                if (rowsAffected == 0) {
+            if (wasDefault) {
+                int replacementAddressId = findLatestActiveAddressId(customerId);
+                if (replacementAddressId > 0 && !setDefaultAddressInternal(replacementAddressId, customerId)) {
                     connection.rollback();
-                    connection.setAutoCommit(true);
                     return "Failed to delete address.";
                 }
             }
 
-            if (wasDefault) {
-                int replacementAddressId = 0;
-                try (PreparedStatement fallbackPs = connection.prepareStatement(fallbackDefaultSql)) {
-                    fallbackPs.setInt(1, customerId);
-                    try (ResultSet rs = fallbackPs.executeQuery()) {
-                        if (rs.next()) {
-                            replacementAddressId = rs.getInt("address_id");
-                        }
-                    }
-                }
-
-                if (replacementAddressId > 0) {
-                    try (PreparedStatement setDefaultPs = connection.prepareStatement(setDefaultSql)) {
-                        setDefaultPs.setInt(1, replacementAddressId);
-                        setDefaultPs.setInt(2, customerId);
-                        setDefaultPs.executeUpdate();
-                    }
-                }
-            }
-
             connection.commit();
-            connection.setAutoCommit(true);
             return "success";
         } catch (Exception e) {
             try {
                 connection.rollback();
-                connection.setAutoCommit(true);
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
             e.printStackTrace();
+        } finally {
+            try {
+                connection.setAutoCommit(true);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
 
         return "Failed to delete address.";
     }
 
     public boolean setDefaultAddress(int addressId, int customerId) {
-        String sql1 = "UPDATE Address SET is_default = 0 WHERE customer_id = ? AND is_deleted = 0";
-        String sql2 = "UPDATE Address SET is_default = 1 WHERE address_id = ? AND customer_id = ? AND is_deleted = 0";
-
         try {
             connection.setAutoCommit(false);
 
-            try (PreparedStatement ps1 = connection.prepareStatement(sql1)) {
-                ps1.setInt(1, customerId);
-                ps1.executeUpdate();
-            }
-
-            try (PreparedStatement ps2 = connection.prepareStatement(sql2)) {
-                ps2.setInt(1, addressId);
-                ps2.setInt(2, customerId);
-
-                int rows = ps2.executeUpdate();
-
-                if (rows == 0) {
-                    connection.rollback();
-                    connection.setAutoCommit(true);
-                    return false;
-                }
+            if (!setDefaultAddressInternal(addressId, customerId)) {
+                connection.rollback();
+                return false;
             }
 
             connection.commit();
-            connection.setAutoCommit(true);
             return true;
 
         } catch (Exception e) {
             try {
                 connection.rollback();
-                connection.setAutoCommit(true);
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
             e.printStackTrace();
+        } finally {
+            try {
+                connection.setAutoCommit(true);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
 
         return false;
@@ -258,16 +204,83 @@ public class AddressDAO extends DBContext {
                 + "WHERE address_id = ? AND customer_id = ? AND is_deleted = 1";
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setString(1, address.getReceiverName());
-            ps.setString(2, address.getPhone());
-            ps.setString(3, address.getProvince());
-            ps.setString(4, address.getDistrict());
-            ps.setString(5, address.getWard());
-            ps.setString(6, address.getStreetAddress());
-            ps.setBoolean(7, address.getIsDefault() != null ? address.getIsDefault() : false);
-            ps.setInt(8, addressId);
-            ps.setInt(9, address.getCustomerId());
+            int nextIndex = fillAddressStatement(ps, address, 1);
+            ps.setInt(nextIndex++, addressId);
+            ps.setInt(nextIndex, address.getCustomerId());
             return ps.executeUpdate() > 0;
+        }
+    }
+
+    private Boolean getActiveAddressDefaultFlag(int addressId, int customerId) throws Exception {
+        String sql = "SELECT is_default FROM Address WHERE address_id = ? AND customer_id = ? AND is_deleted = 0";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, addressId);
+            ps.setInt(2, customerId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getBoolean("is_default");
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private int fillAddressStatement(PreparedStatement ps, Address address, int startIndex) throws Exception {
+        int index = startIndex;
+        ps.setString(index++, address.getReceiverName());
+        ps.setString(index++, address.getPhone());
+        ps.setString(index++, address.getProvince());
+        ps.setString(index++, address.getDistrict());
+        ps.setString(index++, address.getWard());
+        ps.setString(index++, address.getStreetAddress());
+        ps.setBoolean(index++, address.getIsDefault() != null ? address.getIsDefault() : false);
+        return index;
+    }
+
+    private boolean softDeleteAddress(int addressId, int customerId) throws Exception {
+        String sql = "UPDATE Address SET is_deleted = 1, is_default = 0 "
+                + "WHERE address_id = ? AND customer_id = ? AND is_deleted = 0";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, addressId);
+            ps.setInt(2, customerId);
+            return ps.executeUpdate() > 0;
+        }
+    }
+
+    private int findLatestActiveAddressId(int customerId) throws Exception {
+        String sql = "SELECT TOP 1 address_id FROM Address "
+                + "WHERE customer_id = ? AND is_deleted = 0 ORDER BY address_id DESC";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, customerId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("address_id");
+                }
+            }
+        }
+
+        return 0;
+    }
+
+    private boolean setDefaultAddressInternal(int addressId, int customerId) throws Exception {
+        String resetSql = "UPDATE Address SET is_default = 0 WHERE customer_id = ? AND is_deleted = 0";
+        String setSql = "UPDATE Address SET is_default = 1 WHERE address_id = ? AND customer_id = ? AND is_deleted = 0";
+
+        try (PreparedStatement resetPs = connection.prepareStatement(resetSql)) {
+            resetPs.setInt(1, customerId);
+            resetPs.executeUpdate();
+        }
+
+        try (PreparedStatement setPs = connection.prepareStatement(setSql)) {
+            setPs.setInt(1, addressId);
+            setPs.setInt(2, customerId);
+            return setPs.executeUpdate() > 0;
         }
     }
 

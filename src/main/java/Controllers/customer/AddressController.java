@@ -104,7 +104,6 @@ public class AddressController extends HttpServlet {
 
     private void showAddForm(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        setGeoapifyApiKey(request);
         request.getRequestDispatcher("/WEB-INF/views/customer/add-address.jsp").forward(request, response);
     }
 
@@ -130,20 +129,11 @@ public class AddressController extends HttpServlet {
             }
 
             request.setAttribute("address", address);
-            setGeoapifyApiKey(request);
             request.getRequestDispatcher("/WEB-INF/views/customer/edit-address.jsp").forward(request, response);
         } catch (NumberFormatException e) {
             setProfileFlashMessage(session, "Invalid address ID format", "error");
             redirectToAddressList(request, response);
         }
-    }
-
-    private void setGeoapifyApiKey(HttpServletRequest request) {
-        String geoapifyApiKey = getServletContext().getInitParameter("GEOAPIFY_API_KEY");
-        if (geoapifyApiKey == null || geoapifyApiKey.trim().isEmpty()) {
-            geoapifyApiKey = System.getenv("GEOAPIFY_API_KEY");
-        }
-        request.setAttribute("geoapifyApiKey", geoapifyApiKey);
     }
 
     private void addAddress(HttpServletRequest request, HttpServletResponse response, Customer customer)
@@ -201,7 +191,7 @@ public class AddressController extends HttpServlet {
             if (validationError != null) {
                 request.setAttribute("error", validationError);
                 request.setAttribute("address", address);
-                request.getRequestDispatcher("/views/customer/edit-address.jsp").forward(request, response);
+                request.getRequestDispatcher("/WEB-INF/views/customer/edit-address.jsp").forward(request, response);
                 return;
             }
 
