@@ -29,7 +29,7 @@ public class AdminImportProductController extends HttpServlet {
     private static final String ADMIN_HISTORY_CONTENT = "/WEB-INF/views/admin/partials/manage-importproduct-content.jsp";
     private static final String STAFF_HISTORY_CONTENT = "/WEB-INF/views/staff/partials/manage-importproduct-content.jsp";
     private static final String IMPORT_DETAIL_VIEW = "/WEB-INF/views/admin/import-detail.jsp";
-    private static final BigDecimal MAX_IMPORT_TOTAL_AMOUNT = new BigDecimal("10000000000");
+    private static final BigDecimal MAX_IMPORT_TOTAL_AMOUNT = new BigDecimal("9999999999");
     private static final BigInteger MAX_QUANTITY_VALUE = BigInteger.valueOf(Integer.MAX_VALUE);
 
     private final ImportProductDAO dao = new ImportProductDAO();
@@ -228,7 +228,7 @@ public class AdminImportProductController extends HttpServlet {
                 parsedQuantities.add(quantity);
                 parsedPrices.add(price);
                 if (total.compareTo(MAX_IMPORT_TOTAL_AMOUNT) > 0) {
-                    request.setAttribute("error", "Total amount cannot exceed 10,000,000,000 VND.");
+                    request.setAttribute("error", "Total amount cannot exceed 9,999,999,999 VND.");
                     showImportProduct(request, response);
                     return;
                 }
@@ -339,7 +339,7 @@ public class AdminImportProductController extends HttpServlet {
             BigDecimal receivedTotal = calculateReceiptTotal(orderId, variantIds, receivedQuantities);
             if (receivedTotal.compareTo(MAX_IMPORT_TOTAL_AMOUNT) > 0) {
                 showHistoryWithDetail(request, response, orderId, manager, variantIds, receivedQuantities,
-                        "Total amount cannot exceed 10,000,000,000 VND.");
+                        "Total amount cannot exceed 9,999,999,999 VND.");
                 return;
             }
 
