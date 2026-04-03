@@ -98,7 +98,7 @@ public class CartController extends HttpServlet {
 
         if (customer == null) {
             session.setAttribute("redirectAfterLogin", request.getContextPath() + "/cart");
-            response.sendRedirect(request.getContextPath() + "/auth?action=login");
+            response.sendRedirect(request.getContextPath() + "/login");
             return;
         }
 
@@ -146,7 +146,7 @@ public class CartController extends HttpServlet {
         Customer customer = (Customer) session.getAttribute("customer");
         if (customer == null) {
             session.setAttribute("redirectAfterLogin", request.getContextPath() + "/cart");
-            String loginUrl = request.getContextPath() + "/auth?action=login";
+            String loginUrl = request.getContextPath() + "/login";
             if ("true".equals(request.getParameter("ajax"))) {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 response.setContentType("text/plain");

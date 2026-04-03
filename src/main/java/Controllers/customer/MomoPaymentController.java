@@ -30,7 +30,7 @@ public class MomoPaymentController extends HttpServlet {
         Model.Customer customer = (Model.Customer) session.getAttribute("customer");
 
         if (customer == null) {
-            response.sendRedirect(request.getContextPath() + "/auth?action=login");
+            response.sendRedirect(request.getContextPath() + "/login");
             return;
         }
 

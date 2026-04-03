@@ -63,7 +63,7 @@
                                         <a class="hero-btn voucher" href="${pageContext.request.contextPath}/profile?action=view&tab=voucher">My Voucher</a>
                                     </c:when>
                                     <c:otherwise>
-                                        <a class="hero-btn voucher" href="${pageContext.request.contextPath}/auth?action=login">Login to Claim</a>
+                                        <a class="hero-btn voucher" href="${pageContext.request.contextPath}/login">Login to Claim</a>
                                     </c:otherwise>
                                 </c:choose>
                             </div>
@@ -191,7 +191,7 @@
                                                         </form>
                                                     </c:when>
                                                     <c:otherwise>
-                                                        <a class="free-voucher-login" href="${pageContext.request.contextPath}/auth?action=login">Login to Claim</a>
+                                                        <a class="free-voucher-login" href="${pageContext.request.contextPath}/login">Login to Claim</a>
                                                     </c:otherwise>
                                                 </c:choose>
                                             </div>

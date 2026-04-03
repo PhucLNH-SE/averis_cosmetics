@@ -59,7 +59,7 @@
           <a class="icon" href="${pageContext.request.contextPath}/logout">Logout</a>
         </c:when>
         <c:otherwise>
-          <a class="icon" href="${pageContext.request.contextPath}/auth">Register/Login</a>
+          <a class="icon" href="${pageContext.request.contextPath}/login">Register/Login</a>
         </c:otherwise>
       </c:choose>
     </div>

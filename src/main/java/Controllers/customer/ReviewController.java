@@ -17,7 +17,7 @@ public class ReviewController extends HttpServlet {
 
         HttpSession session = request.getSession(false);
         if (session == null || session.getAttribute("customer") == null) {
-            response.sendRedirect(request.getContextPath() + "/auth?action=login");
+            response.sendRedirect(request.getContextPath() + "/login");
             return;
         }
 

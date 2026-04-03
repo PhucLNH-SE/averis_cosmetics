@@ -116,7 +116,7 @@ public class PaymentController extends HttpServlet {
         Customer customer = (Customer) session.getAttribute("customer");
 
         if (customer == null) {
-            resp.sendRedirect(req.getContextPath() + "/auth?action=login");
+            resp.sendRedirect(req.getContextPath() + "/login");
         }
         return customer;
     }

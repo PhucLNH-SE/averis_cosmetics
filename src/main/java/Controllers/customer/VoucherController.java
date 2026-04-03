@@ -41,7 +41,7 @@ public class VoucherController extends HttpServlet {
         Customer customer = session == null ? null : (Customer) session.getAttribute("customer");
 
         if (customer == null) {
-            response.sendRedirect(request.getContextPath() + "/auth?action=login");
+            response.sendRedirect(request.getContextPath() + "/login");
             return;
         }
 

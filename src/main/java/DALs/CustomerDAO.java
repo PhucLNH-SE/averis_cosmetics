@@ -126,6 +126,7 @@ public class CustomerDAO extends DBContext {
 
         return customer;
     }
+    //PhucLNH - check username is exits
     public boolean checkUsernameExists(String username) {
         String sql = "SELECT COUNT(*) FROM Customers WHERE username = ?";
 
@@ -142,7 +143,7 @@ public class CustomerDAO extends DBContext {
 
         return false;
     }
-
+    //PhucLNH - check email is exits
     public boolean checkEmailExists(String email) {
         String sql = "SELECT COUNT(*) FROM Customers WHERE email = ?";
 

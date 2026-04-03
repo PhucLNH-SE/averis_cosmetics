@@ -32,7 +32,7 @@ public class CustomerAuthFilter implements Filter {
 
         if (session == null || session.getAttribute("customer") == null) {
 
-            resp.sendRedirect(req.getContextPath() + "/auth?action=login");
+            resp.sendRedirect(req.getContextPath() + "/login");
             return;
         }
 
