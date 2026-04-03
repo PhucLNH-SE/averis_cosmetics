@@ -24,6 +24,13 @@
         <c:set var="popupType" scope="request" value="error" />
     </c:if>
 
+    <form id="importSelectedVariantsForm"
+          action="${pageContext.request.contextPath}/admin/import-product"
+          method="get"
+          onsubmit="return validateSelectedVariantsBeforeImport();">
+        <input type="hidden" name="action" value="importproduct">
+    </form>
+
     <div class="card shadow-sm">
         <div class="card-body p-4 pb-0">
             <div class="product-overview">
@@ -104,6 +111,25 @@
                 </div>
             </div>
 
+            <div class="alert alert-light border d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+                <div>
+                    <div class="fw-semibold mb-1">Restock Selection</div>
+                    <div class="small text-muted">
+                        Expand products, tick the variants that need more stock, then continue to import.
+                    </div>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-secondary" id="selectedVariantsCountBadge">0 selected</span>
+                    <button type="submit"
+                            class="btn btn-warning btn-sm fw-semibold"
+                            form="importSelectedVariantsForm"
+                            id="importSelectedVariantsBtn"
+                            disabled>
+                        <i class="bi bi-box-arrow-up-right me-1"></i> Import More
+                    </button>
+                </div>
+            </div>
+
             <div class="table-responsive">
             <table class="table table-hover align-middle">
                 <thead>
@@ -137,8 +163,16 @@
                             <c:param name="status" value="${selectedStatus}" />
                         </c:url>
                         <tr>
-                            <td class="fw-bold">${p.productId}</td>
-                            <td>
+                            <td class="fw-bold product-row-toggle-cell"
+                                role="button"
+                                tabindex="0"
+                                onclick="toggleInlineVariantsById('inline-variants-${p.productId}')"
+                                onkeydown="handleToggleKey(event, 'inline-variants-${p.productId}')">${p.productId}</td>
+                            <td class="product-row-toggle-cell"
+                                role="button"
+                                tabindex="0"
+                                onclick="toggleInlineVariantsById('inline-variants-${p.productId}')"
+                                onkeydown="handleToggleKey(event, 'inline-variants-${p.productId}')">
                                 <c:choose>
                                     <c:when test="${not empty p.mainImage}">
                                         <img src="${pageContext.request.contextPath}/assets/img/${p.mainImage}"
@@ -150,9 +184,21 @@
                                     </c:otherwise>
                                 </c:choose>
                             </td>
-                            <td>${p.name}</td>
-                            <td>${p.category.name}</td>
-                            <td>
+                            <td class="product-row-toggle-cell"
+                                role="button"
+                                tabindex="0"
+                                onclick="toggleInlineVariantsById('inline-variants-${p.productId}')"
+                                onkeydown="handleToggleKey(event, 'inline-variants-${p.productId}')">${p.name}</td>
+                            <td class="product-row-toggle-cell"
+                                role="button"
+                                tabindex="0"
+                                onclick="toggleInlineVariantsById('inline-variants-${p.productId}')"
+                                onkeydown="handleToggleKey(event, 'inline-variants-${p.productId}')">${p.category.name}</td>
+                            <td class="product-row-toggle-cell"
+                                role="button"
+                                tabindex="0"
+                                onclick="toggleInlineVariantsById('inline-variants-${p.productId}')"
+                                onkeydown="handleToggleKey(event, 'inline-variants-${p.productId}')">
                                 <c:choose>
                                     <c:when test="${p.price == 0}">
                                         <span class="text-muted small">No variants</span>
@@ -171,7 +217,11 @@
                                 </c:choose>
                             </td>
                             
-                            <td>
+                            <td class="product-row-toggle-cell"
+                                role="button"
+                                tabindex="0"
+                                onclick="toggleInlineVariantsById('inline-variants-${p.productId}')"
+                                onkeydown="handleToggleKey(event, 'inline-variants-${p.productId}')">
                                 <c:choose>
                                     <c:when test="${empty p.variants}">
                                         <span class="text-muted small text-center d-block">None</span>
@@ -189,7 +239,11 @@
                                 </c:choose>
                             </td>
 
-                            <td>
+                            <td class="product-row-toggle-cell"
+                                role="button"
+                                tabindex="0"
+                                onclick="toggleInlineVariantsById('inline-variants-${p.productId}')"
+                                onkeydown="handleToggleKey(event, 'inline-variants-${p.productId}')">
                                 <span class="${p.status ? 'text-success' : 'text-danger'} fw-bold">
                                     <i class="fas ${p.status ? 'fa-check-circle' : 'fa-times-circle'} me-1"></i>${p.status ? 'Active' : 'Inactive'}
                                 </span>
@@ -229,6 +283,72 @@
                                                     onclick="openShowModal(this)">
                                                 <i class="fas fa-eye me-1"></i> Show
                                             </button>
+                                        </c:otherwise>
+                                    </c:choose>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr id="inline-variants-${p.productId}" class="d-none">
+                            <td colspan="8" class="bg-light">
+                                <div class="p-3">
+                                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                                        <div>
+                                            <div class="fw-semibold">Variants of ${p.name}</div>
+                                            <div class="small text-muted">Select one or more variants to prefill the import form.</div>
+                                        </div>
+                                    </div>
+                                    <c:choose>
+                                        <c:when test="${empty p.variants}">
+                                            <div class="text-muted small">No variants available.</div>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <div class="row g-3">
+                                                <c:forEach items="${p.variants}" var="variant">
+                                                    <div class="col-12">
+                                                        <label class="border rounded-3 p-3 w-100 bg-white d-flex justify-content-between align-items-start gap-3">
+                                                            <div>
+                                                                <div class="form-check mb-2">
+                                                                    <input class="form-check-input variant-import-checkbox"
+                                                                           type="checkbox"
+                                                                           name="variantId"
+                                                                           value="${variant.variantId}"
+                                                                           data-label="${p.name} - ${variant.variantName}"
+                                                                           form="importSelectedVariantsForm"
+                                                                           onchange="updateSelectedVariantsSummary()">
+                                                                    <span class="form-check-label fw-semibold">
+                                                                        ${variant.variantName}
+                                                                    </span>
+                                                                </div>
+                                                                <div class="d-flex flex-wrap gap-2">
+                                                                    <span class="badge bg-light text-dark border">
+                                                                        Sale:
+                                                                        <fmt:formatNumber value="${variant.price}" pattern="#,##0"/> VND
+                                                                    </span>
+                                                                    <span class="badge bg-light text-dark border">
+                                                                        Avg cost:
+                                                                        <fmt:formatNumber value="${variant.importPrice}" pattern="#,##0"/> VND
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                            <div class="text-end">
+                                                                <div class="small text-muted">Current stock</div>
+                                                                <div class="fw-bold mb-2">${variant.stock}</div>
+                                                                <c:choose>
+                                                                    <c:when test="${variant.stock <= 0}">
+                                                                        <span class="badge bg-danger">Out of stock</span>
+                                                                    </c:when>
+                                                                    <c:when test="${variant.stock <= 10}">
+                                                                        <span class="badge bg-warning text-dark">Low stock</span>
+                                                                    </c:when>
+                                                                    <c:otherwise>
+                                                                        <span class="badge bg-success">In stock</span>
+                                                                    </c:otherwise>
+                                                                </c:choose>
+                                                            </div>
+                                                        </label>
+                                                    </div>
+                                                </c:forEach>
+                                            </div>
                                         </c:otherwise>
                                     </c:choose>
                                 </div>
@@ -624,6 +744,41 @@
         bootstrap.Modal.getOrCreateInstance(document.getElementById('variantModal')).show();
     }
 
+    function toggleInlineVariantsById(targetId) {
+        const targetRow = document.getElementById(targetId);
+        if (!targetRow) {
+            return;
+        }
+
+        targetRow.classList.toggle('d-none');
+    }
+
+    function handleToggleKey(event, targetId) {
+        if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            toggleInlineVariantsById(targetId);
+        }
+    }
+
+    function updateSelectedVariantsSummary() {
+        const checkedItems = document.querySelectorAll('.variant-import-checkbox:checked');
+        const countBadge = document.getElementById('selectedVariantsCountBadge');
+        const importBtn = document.getElementById('importSelectedVariantsBtn');
+        const count = checkedItems.length;
+
+        countBadge.textContent = count + (count === 1 ? ' selected' : ' selected');
+        importBtn.disabled = count === 0;
+    }
+
+    function validateSelectedVariantsBeforeImport() {
+        const selected = document.querySelectorAll('.variant-import-checkbox:checked');
+        if (selected.length === 0) {
+            alert('Please select at least one variant to import.');
+            return false;
+        }
+        return true;
+    }
+
     function previewImage(input, previewId) {
         const preview = document.getElementById(previewId);
         if (input.files && input.files[0]) {
@@ -650,6 +805,7 @@
 
     document.addEventListener('DOMContentLoaded', function () {
         initPriceInputs();
+        updateSelectedVariantsSummary();
     });
 
 </script>

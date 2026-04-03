@@ -28,6 +28,12 @@
             </div>
         </c:if>
 
+        <c:if test="${not empty popupMessage}">
+            <div class="${popupType == 'error' ? 'error-message' : 'success-message'}">
+                ${popupMessage}
+            </div>
+        </c:if>
+
         <form action="${pageContext.request.contextPath}/auth?action=register"
               method="post" novalidate>
 

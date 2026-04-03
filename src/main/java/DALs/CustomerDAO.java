@@ -53,17 +53,23 @@ public class CustomerDAO extends DBContext {
 
         return null;
     }
-
     public boolean insertCustomer(Customer customer) {
         String sql = "INSERT INTO Customers (username, full_name, email, password, gender, date_of_birth, status, email_verified) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            fillCustomerStatement(ps, customer, false);
+            ps.setString(1, customer.getUsername());
+            ps.setString(2, customer.getFullName());
+            ps.setString(3, customer.getEmail());
+            ps.setString(4, customer.getPassword());
+            ps.setString(5, customer.getGender());
+            ps.setObject(6, customer.getDateOfBirth());
+            ps.setBoolean(7, customer.getStatus());
+            ps.setBoolean(8, customer.getEmailVerified());
             if (ps.executeUpdate() > 0) {
                 try (ResultSet generatedKeys = ps.getGeneratedKeys()) {
-                if (generatedKeys.next()) {
-                    customer.setCustomerId(generatedKeys.getInt(1));
-                }
+                    if (generatedKeys.next()) {
+                        customer.setCustomerId(generatedKeys.getInt(1));
+                    }
                 }
                 return true;
             }
@@ -120,13 +126,38 @@ public class CustomerDAO extends DBContext {
 
         return customer;
     }
-
     public boolean checkUsernameExists(String username) {
-        return existsByField("username", username);
+        String sql = "SELECT COUNT(*) FROM Customers WHERE username = ?";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, username);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
     }
 
     public boolean checkEmailExists(String email) {
-        return existsByField("email", email);
+        String sql = "SELECT COUNT(*) FROM Customers WHERE email = ?";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, email);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
     }
 
     public boolean checkUsernameExistsExceptId(String username, int customerId) {
@@ -377,21 +408,6 @@ public class CustomerDAO extends DBContext {
         if (includeId) {
             ps.setInt(9, customer.getCustomerId());
         }
-    }
-
-    private boolean existsByField(String fieldName, String value) {
-        String sql = "SELECT 1 FROM Customers WHERE " + fieldName + " = ?";
-
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setString(1, value);
-            try (ResultSet rs = ps.executeQuery()) {
-                return rs.next();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return false;
     }
 
     private boolean existsByFieldExceptId(String fieldName, String value, int customerId) {

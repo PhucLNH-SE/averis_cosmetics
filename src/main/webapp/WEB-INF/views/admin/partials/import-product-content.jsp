@@ -406,8 +406,9 @@
             row.querySelector('.import-current-stock').textContent = selectedOption
                     ? (selectedOption.getAttribute('data-stock') || '0')
                     : '0';
-            quantityInput.value = normalizeQuantityDigits(item.quantity) || '';
-            priceInput.value = normalizeMoneyDigits(item.price);
+            quantityInput.value = normalizeQuantityDigits(item.quantity) || '1';
+            priceInput.value = normalizeMoneyDigits(item.price)
+                    || (selectedOption ? normalizeMoneyDigits(selectedOption.getAttribute('data-default-price') || '0') : '0');
             updateRowSubtotal(priceInput);
         });
     }

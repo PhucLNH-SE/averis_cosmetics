@@ -20,7 +20,7 @@
         <c:set var="popupType" scope="request" value="error" />
     </c:if>
     <c:if test="${param.error == 'totalAmountExceeded'}">
-        <c:set var="popupMessage" scope="request" value="Total amount cannot exceed 10,000,000,000 VND." />
+        <c:set var="popupMessage" scope="request" value="Total amount cannot exceed 9,999,999,999 VND." />
         <c:set var="popupType" scope="request" value="error" />
     </c:if>
 
