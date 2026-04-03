@@ -232,23 +232,22 @@
 
                                                     <div class="address-card-actions">
                                                         <c:if test="${!addr.isDefault}">
-                                                            <a href="${pageContext.request.contextPath}/address?action=setdefault&id=${addr.addressId}"
-                                                               class="action-btn set-default"
-                                                               title="Set as default">
-                                                                <i class="fas fa-check"></i> Set Default
-                                                            </a>
+                                                            <form action="${pageContext.request.contextPath}/address"
+                                                                  method="post"
+                                                                  class="address-delete-form">
+                                                                <input type="hidden" name="action" value="setdefault">
+                                                                <input type="hidden" name="id" value="${addr.addressId}">
+                                                                <button type="submit"
+                                                                        class="action-btn set-default"
+                                                                        title="Set as default">
+                                                                    <i class="fas fa-check"></i> Set Default
+                                                                </button>
+                                                            </form>
                                                         </c:if>
                                                         <button type="button"
                                                                 class="action-btn edit"
                                                                 title="Edit address"
                                                                 data-address-id="${addr.addressId}"
-                                                                data-receiver-name="<c:out value='${addr.receiverName}'/>"
-                                                                data-phone="<c:out value='${addr.phone}'/>"
-                                                                data-province="<c:out value='${addr.province}'/>"
-                                                                data-district="<c:out value='${addr.district}'/>"
-                                                                data-ward="<c:out value='${addr.ward}'/>"
-                                                                data-street-address="<c:out value='${addr.streetAddress}'/>"
-                                                                data-is-default="${addr.isDefault}"
                                                                 onclick="openAddressPopup('edit', this)">
                                                             <i class="fas fa-pen"></i> Edit
                                                         </button>
