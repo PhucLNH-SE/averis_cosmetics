@@ -256,7 +256,8 @@ public class ImportProductDAO extends DBContext {
                 + "LEFT JOIN Supplier s ON po.supplier_id = s.supplier_id "
                 + "JOIN Manager m ON po.created_by = m.manager_id "
                 + "LEFT JOIN Manager mr ON po.received_by = mr.manager_id "
-                + "ORDER BY po.import_order_id ASC";
+                + "ORDER BY CASE WHEN po.status = 'PENDING' THEN 0 ELSE 1 END, "
+                + "po.created_at DESC, po.import_order_id DESC";
 
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
@@ -380,45 +381,6 @@ public class ImportProductDAO extends DBContext {
             e.printStackTrace();
         }
         return null;
-    }
-
-    public List<PurchaseOrder> getPendingImportOrders() {
-        List<PurchaseOrder> list = new ArrayList<>();
-        String sql = "SELECT po.import_order_id, po.import_code, m.full_name, m.manager_role, "
-                + "s.name AS supplier_name, s.phone AS supplier_phone, s.address AS supplier_address, "
-                + "po.invoice_no, po.note, po.total_amount, po.created_at, po.status "
-                + "FROM Import_Order po "
-                + "LEFT JOIN Supplier s ON po.supplier_id = s.supplier_id "
-                + "JOIN Manager m ON po.created_by = m.manager_id "
-                + "WHERE po.status = 'PENDING' "
-                + "ORDER BY po.created_at DESC";
-
-        try {
-            PreparedStatement ps = connection.prepareStatement(sql);
-            ResultSet rs = ps.executeQuery();
-
-            while (rs.next()) {
-                PurchaseOrder po = new PurchaseOrder();
-                po.setPurchaseOrderId(rs.getInt("import_order_id"));
-                po.setImportCode(rs.getString("import_code"));
-                po.setManagerName(rs.getString("full_name"));
-                po.setManagerRole(rs.getString("manager_role"));
-                po.setSupplierName(rs.getString("supplier_name"));
-                po.setSupplierPhone(rs.getString("supplier_phone"));
-                po.setSupplierAddress(rs.getString("supplier_address"));
-                po.setInvoiceNo(rs.getString("invoice_no"));
-                po.setNote(rs.getString("note"));
-                po.setTotalAmount(rs.getBigDecimal("total_amount"));
-                Timestamp createdAt = rs.getTimestamp("created_at");
-                po.setCreatedAt(createdAt == null ? null : createdAt.toLocalDateTime());
-                po.setStatus(rs.getString("status"));
-                list.add(po);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return list;
     }
 
     public boolean confirmReceipt(int orderId, int staffId, int[] variantIds, int[] receivedQuantities) {

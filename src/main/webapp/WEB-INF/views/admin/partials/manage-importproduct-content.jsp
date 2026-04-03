@@ -3,20 +3,27 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <fmt:setLocale value="vi_VN"/>
 
-<section class="admin-content__section">
+<c:set var="historyPageClasses" value="admin-content__section admin-page admin-page--imports" />
+<c:if test="${staffRoute}">
+    <c:set var="historyPageClasses" value="${historyPageClasses} staff-page staff-page--imports" />
+</c:if>
+
+<section class="${historyPageClasses}">
     <div class="page-header">
         <div>
             <h4>Manage Import</h4>
-            <p class="text-muted mb-0">Review and confirm received quantities</p>
+            <p class="text-muted mb-0">Track import orders and confirm received quantities with one shared workflow for admin and staff.</p>
         </div>
-        <div class="d-flex gap-2">
-            <a href="${pageContext.request.contextPath}/admin/import-product?action=importproduct" class="btn btn-add text-white">
-                <i class="bi bi-plus-circle me-1"></i> Create Import Order
-            </a>
-            <a href="${pageContext.request.contextPath}/admin/manage-statistic" class="btn btn-back">
-                <i class="bi bi-arrow-left"></i> Back
-            </a>
-        </div>
+        <c:if test="${canCreateImportOrder}">
+            <div class="import-history-page__actions">
+                <a href="${importBasePath}?action=importproduct" class="btn btn-add text-white">
+                    <i class="bi bi-plus-circle me-1"></i> Create Import Order
+                </a>
+                <a href="${pageContext.request.contextPath}/admin/manage-statistic" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Back
+                </a>
+            </div>
+        </c:if>
     </div>
 
     <c:if test="${param.success == 'import'}">
@@ -28,7 +35,7 @@
         <c:set var="popupType" scope="request" value="success" />
     </c:if>
     <c:if test="${param.error == 'importFailed'}">
-        <c:set var="popupMessage" scope="request" value="Failed to import product." />
+        <c:set var="popupMessage" scope="request" value="Failed to confirm import receipt." />
         <c:set var="popupType" scope="request" value="error" />
     </c:if>
     <c:if test="${param.error == 'totalAmountExceeded'}">
@@ -39,38 +46,44 @@
     <div class="card table-card">
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table">
+                <table class="table import-history-table">
                     <thead>
                         <tr>
-                            <th>Import Code</th>
+                            <th class="import-history-table__code">Import Code</th>
                             <th>Order ID</th>
-                            <th>Supplier</th>
-                            <th>Manager</th>
-                            <th>Total Amount</th>
+                            <th class="import-history-table__supplier">Supplier</th>
+                            <th class="import-history-table__manager">Created By</th>
+                            <th class="import-history-table__amount text-end">Total Amount</th>
                             <th>Status</th>
                             <th>Created At</th>
-                            <th>Received Info</th>
+                            <th class="import-history-table__received">Received Info</th>
                             <th class="text-end">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         <c:forEach var="h" items="${history}">
+                            <c:set var="importStatusClass" value="import-history-status--pending" />
+                            <c:if test="${h.status == 'RECEIVED'}">
+                                <c:set var="importStatusClass" value="import-history-status--received" />
+                            </c:if>
                             <tr>
-                                <td><strong>${empty h.importCode ? '-' : h.importCode}</strong></td>
-                                <td><strong>${h.purchaseOrderId}</strong></td>
-                                <td>
+                                <td class="import-history-table__code">
+                                    <strong>${empty h.importCode ? '-' : h.importCode}</strong>
+                                </td>
+                                <td><strong>#${h.purchaseOrderId}</strong></td>
+                                <td class="import-history-table__supplier">
                                     <div>${empty h.supplierName ? '-' : h.supplierName}</div>
                                     <small class="info-text">${empty h.invoiceNo ? 'No invoice' : h.invoiceNo}</small>
                                 </td>
-                                <td>
-                                    <div>${h.managerName}</div>
-                                    <small class="info-text">${h.managerRole}</small>
+                                <td class="import-history-table__manager">
+                                    <div>${empty h.managerName ? '-' : h.managerName}</div>
+                                    <small class="info-text">${empty h.managerRole ? 'Manager' : h.managerRole}</small>
                                 </td>
-                                <td class="amount">
+                                <td class="import-history-table__amount text-end">
                                     <fmt:formatNumber value="${h.totalAmount}" pattern="#,##0"/> VND
                                 </td>
                                 <td>
-                                    <span class="badge ${h.status == 'RECEIVED' ? 'bg-success' : 'bg-warning text-dark'}">
+                                    <span class="import-history-status ${importStatusClass}">
                                         ${h.status}
                                     </span>
                                 </td>
@@ -78,7 +91,7 @@
                                     <fmt:parseDate value="${h.createdAt}" pattern="yyyy-MM-dd'T'HH:mm:ss" var="parsedCreatedAt" type="both" />
                                     <fmt:formatDate value="${parsedCreatedAt}" pattern="dd/MM/yyyy HH:mm" />
                                 </td>
-                                <td>
+                                <td class="import-history-table__received">
                                     <c:choose>
                                         <c:when test="${not empty h.receivedAt}">
                                             <div>${empty h.receivedByName ? 'Updated' : h.receivedByName}</div>
@@ -86,23 +99,23 @@
                                             <small class="info-text"><fmt:formatDate value="${parsedReceivedAt}" pattern="dd/MM/yyyy HH:mm" /></small>
                                         </c:when>
                                         <c:otherwise>
-                                            <span class="text-muted">Pending</span>
+                                            <span class="info-text">Pending confirmation</span>
                                         </c:otherwise>
                                     </c:choose>
                                 </td>
                                 <td class="text-end">
-                                    <button type="button" class="btn btn-sm btn-outline-primary"
+                                    <button type="button" class="btn btn-sm btn-primary"
                                             onclick="openImportDetail(${h.purchaseOrderId})">
-                                        View
+                                        <i class="bi bi-eye me-1"></i> View Detail
                                     </button>
                                 </td>
                             </tr>
                         </c:forEach>
                         <c:if test="${empty history}">
                             <tr>
-                                <td colspan="10" class="text-center empty-state">
+                                <td colspan="9" class="text-center empty-state import-history-empty">
                                     <i class="bi bi-inbox d-block"></i>
-                                    No Manage Import found
+                                    No import orders found
                                 </td>
                             </tr>
                         </c:if>
@@ -244,7 +257,7 @@
             '<span class="ms-2">Loading...</span>' +
             '</div>';
 
-        fetch('${pageContext.request.contextPath}/admin/import-product?action=viewdetail&orderId=' + orderId)
+        fetch('${importBasePath}?action=viewdetail&orderId=' + orderId)
             .then(function (res) { return res.text(); })
             .then(function (data) {
                 body.innerHTML = data;
@@ -265,7 +278,3 @@
         </c:if>
     });
 </script>
-
-
-
-

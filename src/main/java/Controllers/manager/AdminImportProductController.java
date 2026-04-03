@@ -306,8 +306,12 @@ public class AdminImportProductController extends HttpServlet {
     private void showHistory(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         boolean staffRoute = isStaffRoute(request);
-        List<PurchaseOrder> history = staffRoute ? dao.getPendingImportOrders() : dao.getImportHistory();
+        List<PurchaseOrder> history = dao.getImportHistory();
         request.setAttribute("history", history);
+        request.setAttribute("staffRoute", staffRoute);
+        request.setAttribute("canCreateImportOrder", !staffRoute);
+        request.setAttribute("importBasePath", request.getContextPath()
+                + (staffRoute ? "/staff/import-product" : "/admin/import-product"));
         request.setAttribute("currentView", "import");
         request.setAttribute("contentPage", staffRoute ? STAFF_HISTORY_CONTENT : ADMIN_HISTORY_CONTENT);
         request.getRequestDispatcher(staffRoute ? STAFF_PANEL : ADMIN_PANEL).forward(request, response);
