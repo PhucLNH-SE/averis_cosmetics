@@ -166,7 +166,7 @@
                                 <c:otherwise>
                                     <p>
                                         You are not logged in.
-                                        <a href="${pageContext.request.contextPath}/auth">Please login</a>.
+                                        <a href="${pageContext.request.contextPath}/login">Please login</a>.
                                     </p>
                                 </c:otherwise>
                             </c:choose>

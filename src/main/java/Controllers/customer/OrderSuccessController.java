@@ -31,7 +31,7 @@ public class OrderSuccessController extends HttpServlet {
         Customer customer = (Customer) session.getAttribute("customer");
         
         if (customer == null) {
-            response.sendRedirect(request.getContextPath() + "/auth?action=login");
+            response.sendRedirect(request.getContextPath() + "/login");
             return;
         }
 

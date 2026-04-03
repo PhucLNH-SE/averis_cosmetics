@@ -12,7 +12,7 @@
     <div class="verify-result-box">
         <h2 class="verify-result-title ${success ? 'success' : 'error'}">${success ? 'Success' : 'Verification failed'}</h2>
         <p class="verify-result-message">${message}</p>
-        <a class="verify-result-link" href="${pageContext.request.contextPath}/auth?action=login">Sign in</a>
+        <a class="verify-result-link" href="${pageContext.request.contextPath}/login">Sign in</a>
     </div>
 </body>
 </html>

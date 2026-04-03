@@ -168,7 +168,7 @@ public class ForgetPasswordController extends HttpServlet {
                 "Your password has been reset successfully. Please sign in with your new password.",
                 "success"
         );
-        response.sendRedirect(request.getContextPath() + "/auth?action=login");
+        response.sendRedirect(request.getContextPath() + "/login");
     }
 
     private void setLoginFlashMessage(HttpSession session, String message, String type) {

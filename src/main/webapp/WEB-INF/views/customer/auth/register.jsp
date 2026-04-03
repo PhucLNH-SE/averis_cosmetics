@@ -34,7 +34,7 @@
             </div>
         </c:if>
 
-        <form action="${pageContext.request.contextPath}/auth?action=register"
+        <form action="${pageContext.request.contextPath}/register"
               method="post" novalidate>
 
             <!-- USERNAME -->
@@ -166,7 +166,7 @@
         <div class="auth-links">
             <p>
                 Already have an account?
-                <a href="${pageContext.request.contextPath}/auth?action=login">
+                <a href="${pageContext.request.contextPath}/login">
                     Login here
                 </a>
             </p>

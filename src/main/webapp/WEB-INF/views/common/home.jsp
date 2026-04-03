@@ -114,7 +114,7 @@
                                                 </form>
                                             </c:when>
                                             <c:otherwise>
-                                                <a href="${pageContext.request.contextPath}/auth?action=login"
+                                                <a href="${pageContext.request.contextPath}/login"
                                                    class="home-voucher-card__btn">
                                                     Login to claim
                                                 </a>
