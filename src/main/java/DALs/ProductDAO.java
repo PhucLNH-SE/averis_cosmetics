@@ -662,32 +662,6 @@ public class ProductDAO extends DBContext {
         return list;
     }
 
-    private Product getGuestProductDetail(int productId, String sql) {
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setInt(1, productId);
-
-            try (ResultSet rs = ps.executeQuery()) {
-                Product product = null;
-                Map<Integer, ProductImage> imageMap = new HashMap<>();
-
-                while (rs.next()) {
-                    if (product == null) {
-                        product = mapGuestDetailProduct(rs, productId);
-                    }
-
-                    addImageToMap(rs, productId, imageMap);
-                }
-
-                applyProductImages(product, imageMap);
-                return product;
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return null;
-    }
-
     private Product mapGuestListProduct(ResultSet rs, int productId) throws Exception {
         Product product = mapBaseProduct(rs, productId, true);
         product.setPrice(rs.getDouble("min_price"));
@@ -925,7 +899,29 @@ public class ProductDAO extends DBContext {
                 + "WHERE p.product_id = ? AND p.status = 1 " //
                 + "ORDER BY pi.is_main DESC, pi.image_id ASC";
 
-        return getGuestProductDetail(productId, sql);
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, productId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                Product product = null;
+                Map<Integer, ProductImage> imageMap = new HashMap<>();
+
+                while (rs.next()) {
+                    if (product == null) {
+                        product = mapGuestDetailProduct(rs, productId);
+                    }
+
+                    addImageToMap(rs, productId, imageMap);
+                }
+
+                applyProductImages(product, imageMap);
+                return product;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return null;
     }
 
     public List<Product> getAllProductsWithImportPrice() {
