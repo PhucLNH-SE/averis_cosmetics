@@ -14,8 +14,6 @@ public class VerifyEmailController extends HttpServlet {
 
     private CustomerDAO customerDAO = new CustomerDAO();
 
-    private static final String TYPE_EMAIL_VERIFY = "EMAIL_VERIFY";
-
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -27,7 +25,7 @@ public class VerifyEmailController extends HttpServlet {
             return;
         }
 
-        Customer customer = customerDAO.getCustomerByAuthToken(token.trim(), TYPE_EMAIL_VERIFY);
+        Customer customer = customerDAO.getCustomerByAuthToken(token.trim(), CustomerDAO.TYPE_EMAIL_VERIFY);
         if (customer == null) {
             request.setAttribute("message", "Invalid or expired verification link.");
             request.setAttribute("success", false);

@@ -92,6 +92,7 @@ public class PaymentController extends HttpServlet {
         }
     }
 
+    //PhucLNH - Payment
     private void loadCheckoutPage(HttpServletRequest req, HttpServletResponse resp, Customer customer)
             throws ServletException, IOException {
         Map<Integer, CartItem> cart = getSessionCart(req);
@@ -148,6 +149,7 @@ public class PaymentController extends HttpServlet {
         return context;
     }
 
+    //PhucLNH - Payment
     private void applyVoucher(HttpServletRequest req, HttpServletResponse resp, PaymentContext context)
             throws ServletException, IOException {
         if (context.appliedVoucherCode.isEmpty()) {
@@ -175,6 +177,7 @@ public class PaymentController extends HttpServlet {
         renderCheckout(req, resp, context);
     }
 
+    //PhucLNH - Payment
     private void processCheckout(HttpServletRequest req, HttpServletResponse resp, PaymentContext context)
             throws IOException {
         String addressIdRaw = req.getParameter("addressId");
@@ -233,6 +236,7 @@ public class PaymentController extends HttpServlet {
         processMomoPayment(req, resp, orderId);
     }
 
+    //PhucLNH - Payment
     private String validateCheckoutInput(String addressIdRaw, Integer addressId,
             String paymentMethod, List<Address> addresses) {
         if (addressIdRaw == null || addressIdRaw.isEmpty()) {
@@ -259,6 +263,7 @@ public class PaymentController extends HttpServlet {
         return null;
     }
 
+    //PhucLNH - Payment
     private PaymentVoucherResult resolveVoucherForOrder(int customerId, String voucherCode, BigDecimal subtotal) {
         if (voucherCode == null || voucherCode.isEmpty()) {
             return PaymentVoucherResult.empty();
@@ -271,6 +276,7 @@ public class PaymentController extends HttpServlet {
         return voucherResult;
     }
 
+    //PhucLNH - Payment
     private String validateCartStock(Map<Integer, CartItem> cart) {
         for (CartItem item : cart.values()) {
             ProductVariant variant = productDAO.getVariantById(item.getVariant().getVariantId());
@@ -287,6 +293,7 @@ public class PaymentController extends HttpServlet {
         return null;
     }
 
+    //PhucLNH - Payment
     private int createOrder(int customerId, Integer addressId, String paymentMethod,
             Map<Integer, CartItem> cart, PaymentVoucherResult voucherResult) {
         BigDecimal finalTotal = calculateFinalTotal(calculateSubtotal(cart), voucherResult.getDiscount());
@@ -303,11 +310,13 @@ public class PaymentController extends HttpServlet {
         );
     }
 
+    //PhucLNH - Payment
     private BigDecimal calculateFinalTotal(BigDecimal subtotal, BigDecimal discount) {
         BigDecimal finalTotal = subtotal.subtract(discount == null ? BigDecimal.ZERO : discount);
         return finalTotal.compareTo(BigDecimal.ZERO) < 0 ? BigDecimal.ZERO : finalTotal;
     }
 
+    //PhucLNH - Payment
     private void processCodPayment(HttpServletRequest req, HttpServletResponse resp,
             Customer customer, int orderId) throws IOException {
         HttpSession session = req.getSession();
@@ -316,21 +325,25 @@ public class PaymentController extends HttpServlet {
         resp.sendRedirect(req.getContextPath() + "/order-success?orderId=" + orderId);
     }
 
+    //PhucLNH - Payment
     private void processMomoPayment(HttpServletRequest req, HttpServletResponse resp, int orderId)
             throws IOException {
         resp.sendRedirect(req.getContextPath() + "/momo-payment?orderId=" + orderId);
     }
 
+    //PhucLNH - Payment
     private void renderCheckout(HttpServletRequest req, HttpServletResponse resp, PaymentContext context)
             throws ServletException, IOException {
         setCheckoutAttributes(req, context);
         req.getRequestDispatcher("/WEB-INF/views/customer/checkout.jsp").forward(req, resp);
     }
 
+    //PhucLNH - Payment
     private void redirectError(HttpServletResponse resp, HttpServletRequest req, String msg) throws IOException {
         resp.sendRedirect(req.getContextPath() + "/checkout?error=" + URLEncoder.encode(msg, "UTF-8"));
     }
 
+    //PhucLNH - Payment
     private Map<Integer, CartItem> buildCartWithDetails(Map<Integer, CartItem> cart) {
         Map<Integer, CartItem> result = new HashMap<Integer, CartItem>();
         if (cart == null) {
@@ -346,6 +359,7 @@ public class PaymentController extends HttpServlet {
         return result;
     }
 
+    //PhucLNH - Payment
     private BigDecimal calculateSubtotal(Map<Integer, CartItem> cart) {
         BigDecimal total = BigDecimal.ZERO;
         for (CartItem item : cart.values()) {
@@ -354,6 +368,7 @@ public class PaymentController extends HttpServlet {
         return total;
     }
 
+    //PhucLNH - Payment
     private BigDecimal calculateDiscount(BigDecimal subtotal, CustomerVoucher cv) {
         if (cv == null || cv.getVoucher() == null) {
             return BigDecimal.ZERO;
@@ -389,6 +404,7 @@ public class PaymentController extends HttpServlet {
         return discount;
     }
 
+    //PhucLNH - Payment
     private PaymentVoucherResult resolveVoucher(int customerId, String voucherCode,
             boolean allowAutoClaim, BigDecimal subtotal) {
         CustomerVoucher activeVoucher = voucherDAO.getActiveVoucherForCheckout(customerId, voucherCode);
@@ -415,6 +431,7 @@ public class PaymentController extends HttpServlet {
         return PaymentVoucherResult.failed(claimResult);
     }
 
+    //PhucLNH - Payment
     private String mapVoucherErrorMessage(String resultCode) {
         if (resultCode == null || resultCode.trim().isEmpty()) {
             return "Invalid or expired voucher.";
@@ -434,6 +451,7 @@ public class PaymentController extends HttpServlet {
         }
     }
 
+    //PhucLNH - Payment
     private void setCheckoutAttributes(HttpServletRequest req, PaymentContext context) {
         req.setAttribute("cart", context.cart);
         req.setAttribute("addresses", context.addresses);
@@ -448,6 +466,7 @@ public class PaymentController extends HttpServlet {
         req.setAttribute("successMessage", context.successMessage);
     }
 
+    //PhucLNH - Payment
     private List<CustomerVoucher> getCheckoutVouchers(int customerId) {
         voucherDAO.expireOutdatedVouchers();
 

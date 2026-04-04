@@ -56,7 +56,14 @@ public class SendVerifyEmailController extends HttpServlet {
         LocalDateTime expiredAt = LocalDateTime.now().plusHours(24);
         customerDAO.updateAuthTokenForVerification(customer.getCustomerId(), token, expiredAt);
         String verifyLink = buildVerifyLink(request, token);
-        MailUtil.sendVerificationEmail(customer.getEmail(), verifyLink);
+        boolean emailSent = MailUtil.sendVerificationEmail(customer.getEmail(), verifyLink);
+        if (!emailSent) {
+            session.setAttribute("profileMessage", "Unable to send verification email. Please try again later.");
+            session.setAttribute("profileMessageType", "error");
+            response.sendRedirect(request.getContextPath() + "/profile?action=view&tab=profile");
+            return;
+        }
+
         session.setAttribute("profileMessage", "Verification email sent. Please check your inbox (and spam folder).");
         session.setAttribute("profileMessageType", "success");
         session.setAttribute(COOLDOWN_KEY, now + VERIFY_EMAIL_COOLDOWN_SECONDS * 1000L);

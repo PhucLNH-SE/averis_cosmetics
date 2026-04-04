@@ -14,13 +14,9 @@ import org.mindrot.jbcrypt.BCrypt;
 
 public class RegisterController extends HttpServlet {
 
-    private CustomerDAO customerDAO;
+    private CustomerDAO customerDAO = new CustomerDAO();
 
-    @Override
-    public void init() throws ServletException {
-        customerDAO = new CustomerDAO();
-    }
-
+    //PhucLNH - Display Register form
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -28,12 +24,13 @@ public class RegisterController extends HttpServlet {
                 .forward(request, response);
     }
 
+    //PhucLNH - Recive form register
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         registerCustomer(request, response);
     }
-
+    //PhucLNH - Processing new account registrations
     private void registerCustomer(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String username = request.getParameter("username");
@@ -95,7 +92,6 @@ public class RegisterController extends HttpServlet {
 
         request.setAttribute("popupMessage", "Registration failed. Please try again.");
         request.setAttribute("popupType", "error");
-        request.setAttribute("errorMessage", "Registration failed.");
         request.getRequestDispatcher("/WEB-INF/views/customer/auth/register.jsp")
                 .forward(request, response);
     }
