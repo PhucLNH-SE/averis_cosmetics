@@ -16,16 +16,9 @@ public class MomoReturnController extends HttpServlet {
 
     private static final Logger LOGGER = Logger.getLogger(MomoReturnController.class.getName());
 
-    private OrderDAO orderDAO;
-    private CartDetailDAO cartDetailDAO;
-    private MomoService momoService;
-
-    @Override
-    public void init() {
-        orderDAO = new OrderDAO();
-        cartDetailDAO = new CartDetailDAO();
-        momoService = new MomoService();
-    }
+    private OrderDAO orderDAO = new OrderDAO();
+    private CartDetailDAO cartDetailDAO = new CartDetailDAO();
+    private MomoService momoService = new MomoService();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -37,6 +30,10 @@ public class MomoReturnController extends HttpServlet {
         if (resultCode != null && momoOrderId != null) {
 
             int orderId = extractOrderId(momoOrderId);
+            if (orderId <= 0) {
+                response.sendRedirect(request.getContextPath() + "/cart");
+                return;
+            }
             LOGGER.info("MoMo RETURN - raw: " + momoOrderId + " | parsed: " + orderId);
 
             Orders order = orderDAO.getOrderById(orderId);
@@ -51,7 +48,6 @@ public class MomoReturnController extends HttpServlet {
 
                     String targetStatus = resolvePaidOrderStatus(order);
                     boolean success = orderDAO.markPaymentSuccess(orderId, targetStatus);
-                    System.out.println("Update result = " + success);
 
                     if (success) {
                         HttpSession session = request.getSession(false);
@@ -66,6 +62,9 @@ public class MomoReturnController extends HttpServlet {
                         LOGGER.info("Payment SUCCESS (GET) for order " + orderId);
                     } else {
                         LOGGER.warning("Payment update FAILED for order " + orderId);
+                        response.sendRedirect(request.getContextPath()
+                                + "/checkout?error=Cannot update payment result&paymentMethod=MOMO");
+                        return;
                     }
                 }
 
@@ -75,7 +74,13 @@ public class MomoReturnController extends HttpServlet {
 
             } else {
                 if (!"FAILED".equalsIgnoreCase(order.getPaymentStatus())) {
-                    orderDAO.updatePaymentFailed(orderId);
+                    boolean updated = orderDAO.updatePaymentFailed(orderId);
+                    if (!updated) {
+                        LOGGER.warning("Payment failed update FAILED for order " + orderId);
+                        response.sendRedirect(request.getContextPath()
+                                + "/checkout?error=Cannot update payment result&paymentMethod=MOMO");
+                        return;
+                    }
                 }
                 response.sendRedirect(request.getContextPath()
                         + "/checkout?error=Payment failed&paymentMethod=MOMO");
@@ -113,6 +118,10 @@ public class MomoReturnController extends HttpServlet {
         }
 
         int orderId = extractOrderId(momoOrderId);
+        if (orderId <= 0) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            return;
+        }
         Orders order = orderDAO.getOrderById(orderId);
 
         if (order == null) {
@@ -127,11 +136,23 @@ public class MomoReturnController extends HttpServlet {
 
         if ("0".equals(resultCode)) {
             String targetStatus = resolvePaidOrderStatus(order);
-            orderDAO.markPaymentSuccess(orderId, targetStatus);
-            LOGGER.info("Payment SUCCESS (IPN) for order " + orderId);
+            boolean success = orderDAO.markPaymentSuccess(orderId, targetStatus);
+            if (success) {
+                LOGGER.info("Payment SUCCESS (IPN) for order " + orderId);
+            } else {
+                LOGGER.warning("Payment success update FAILED for order " + orderId);
+                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                return;
+            }
         } else {
-            orderDAO.updatePaymentFailed(orderId);
-            LOGGER.warning("Payment FAILED for order " + orderId);
+            boolean updated = orderDAO.updatePaymentFailed(orderId);
+            if (updated) {
+                LOGGER.warning("Payment FAILED for order " + orderId);
+            } else {
+                LOGGER.warning("Payment failed update FAILED for order " + orderId);
+                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                return;
+            }
         }
 
         response.setStatus(HttpServletResponse.SC_OK);
