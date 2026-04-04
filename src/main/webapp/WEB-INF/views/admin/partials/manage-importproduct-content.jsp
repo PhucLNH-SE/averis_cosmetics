@@ -38,11 +38,6 @@
         <c:set var="popupMessage" scope="request" value="Failed to confirm import receipt." />
         <c:set var="popupType" scope="request" value="error" />
     </c:if>
-    <c:if test="${param.error == 'totalAmountExceeded'}">
-        <c:set var="popupMessage" scope="request" value="Total amount cannot exceed 9,999,999,999 VND." />
-        <c:set var="popupType" scope="request" value="error" />
-    </c:if>
-
     <div class="card table-card">
         <div class="card-body p-0">
             <div class="table-responsive">

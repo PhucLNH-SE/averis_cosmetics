@@ -57,7 +57,7 @@ public class OrderDAO extends DBContext {
     }
 
    
-
+//get order id
     public Orders getOrderById(int orderId) {
         String sql = "SELECT o.*, v.code AS voucher_code, a.receiver_name, a.phone, a.street_address, a.ward, a.district, a.province "
                 + "FROM Orders o "
@@ -76,7 +76,7 @@ public class OrderDAO extends DBContext {
         }
         return null;
     }
-
+// get all order
     public List<Orders> getAllOrders() {
 
         List<Orders> list = new ArrayList<>();
@@ -122,7 +122,7 @@ public class OrderDAO extends DBContext {
 
         return list;
     }
-
+// search order
     public List<Orders> searchOrders(String keyword) {
         String normalizedKeyword = keyword == null ? null : keyword.trim();
         if (normalizedKeyword == null || normalizedKeyword.isEmpty()) {
@@ -177,7 +177,7 @@ public class OrderDAO extends DBContext {
 
         return list;
     }
-
+// get product by id
     public List<OrderDetail> getOrderDetailsByOrderId(int orderId) {
 
         List<OrderDetail> list = new ArrayList<>();
@@ -277,7 +277,7 @@ public class OrderDAO extends DBContext {
 
         return list;
     }
-
+// update trang thai don
     public boolean updateOrderState(int orderId, String paymentStatus, String orderStatus, Integer handledBy) {
         Connection conn = null;
 
@@ -294,7 +294,7 @@ public class OrderDAO extends DBContext {
                 conn.rollback();
                 return false;
             }
-
+// xu ly -kho khi ma k phai processing -> processing
             boolean shouldDeductStock
                     = !"PROCESSING".equalsIgnoreCase(order.getOrderStatus())
                     && "PROCESSING".equalsIgnoreCase(orderStatus);
@@ -583,7 +583,7 @@ public class OrderDAO extends DBContext {
         order.setProvince(rs.getString("province"));
         return order;
     }
-
+// get order
     public List<Orders> getOrdersByCustomerId(int customerId) {
 
         List<Orders> list = new ArrayList<>();
@@ -633,7 +633,7 @@ public class OrderDAO extends DBContext {
 
         return list;
     }
-
+// cancel order by id
     public boolean cancelOrder(int orderId) {
         Connection conn = null;
 
@@ -846,7 +846,7 @@ public class OrderDAO extends DBContext {
 
         return null;
     }
-
+//-ton kho
     private boolean deductStockForOrder(Connection conn, int orderId) throws SQLException {
         int expectedRows = countOrderDetailRows(conn, orderId);
         if (expectedRows <= 0) {
@@ -870,7 +870,7 @@ public class OrderDAO extends DBContext {
             return true;
         }
     }
-
+// restorStock
     private boolean restoreStockForOrder(Connection conn, int orderId) throws SQLException {
         String sql = "UPDATE pv "
                 + "SET pv.stock = pv.stock + od.quantity "
@@ -951,7 +951,7 @@ public class OrderDAO extends DBContext {
 
         return false;
     }
-
+// get order detail
     public List<OrderDetail> getOrderDetailsWithReview(int orderId) {
         List<OrderDetail> list = new ArrayList<>();
 

@@ -69,10 +69,11 @@ public class MailUtil {
             e.printStackTrace();
         }
     }
-
+// create token
     public static String generateToken() {
         return UUID.randomUUID().toString().replace("-", "");
     }
+    // send email to customer
     public static void sendResetPasswordEmail(String toEmail, String resetLink) {
         if (!loaded) {
             System.out.println("MailUtil: mail.properties not configured. Skip sending mail.");
@@ -89,6 +90,7 @@ public class MailUtil {
 
             MimeMessage msg = new MimeMessage(session);
             msg.setFrom(new InternetAddress(from, "Averis Cosmetics"));
+            // send mail to who
             msg.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
             msg.setSubject("Password Reset - Averis Cosmetics");
             msg.setText(
@@ -100,7 +102,7 @@ public class MailUtil {
                     + "Averis Cosmetics",
                     "UTF-8"
             );
-
+// send email
             Transport.send(msg);
 
         } catch (Exception e) {

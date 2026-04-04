@@ -37,28 +37,27 @@ public class AdminImportProductController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        String action = request.getParameter("action");
-
-        if (action == null || action.trim().isEmpty()) {
+        String action = toNullIfBlank(request.getParameter("action"));
+        if (action == null) {
             action = "importproduct";
         }
 
         switch (action) {
             case "history":
-                showHistory(request, response);
+                showImportOrderHistory(request, response);
                 break;
             case "viewdetail":
-                showDetail(request, response);
+                showImportOrderDetail(request, response);
                 break;
             case "importproduct":
-                if (isStaffRoute(request)) {
-                    showHistory(request, response);
+                if (isStaffImportRoute(request)) {
+                    showImportOrderHistory(request, response);
                 } else {
-                    showImportProduct(request, response);
+                    showCreateImportOrderPage(request, response);
                 }
                 break;
             default:
-                showHistory(request, response);
+                showImportOrderHistory(request, response);
                 break;
         }
     }
@@ -66,67 +65,34 @@ public class AdminImportProductController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        String action = request.getParameter("action");
-
-        if (action == null || action.trim().isEmpty()) {
+        String action = toNullIfBlank(request.getParameter("action"));
+        if (action == null) {
             action = "importproduct";
         }
 
         switch (action) {
             case "receive":
-                receiveOrder(request, response);
-                break;
-            case "addsupplier":
-                addSupplier(request, response);
+                confirmImportReceipt(request, response);
                 break;
             case "importproduct":
             default:
-                importProduct(request, response);
+                createImportOrder(request, response);
                 break;
         }
     }
 
-    private void showDetail(HttpServletRequest request, HttpServletResponse response)
+    private void showCreateImportOrderPage(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        int orderId = Integer.parseInt(request.getParameter("orderId"));
-        HttpSession session = request.getSession(false);
-        Manager manager = session == null ? null : (Manager) session.getAttribute("manager");
-        populateImportDetailAttributes(request, orderId, manager, null, null, null);
-        request.getRequestDispatcher(IMPORT_DETAIL_VIEW).forward(request, response);
-    }
-
-    private void showImportProduct(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        if (isStaffRoute(request)) {
-            showHistory(request, response);
+        if (isStaffImportRoute(request)) {
+            showImportOrderHistory(request, response);
             return;
         }
 
         ProductDAO productDao = new ProductDAO();
-
-        String keyword = trimToNull(request.getParameter("keyword"));
-        String categoryId = trimToNull(request.getParameter("categoryId"));
-        String status = trimToNull(request.getParameter("status"));
-
-        List<Product> listP = productDao.getProductsForAdminWithImportPrice(keyword, null, categoryId, status);
-        List<Model.Category> categories = productDao.getAllCategories();
+        List<Product> listP = productDao.getProductsForAdminWithImportPrice(null, null, null, null);
         List<Supplier> suppliers = supplierDAO.getAllActiveSuppliers();
 
-        int activeCount = 0;
-        for (Product product : listP) {
-            if (product.isStatus()) {
-                activeCount++;
-            }
-        }
-
         request.setAttribute("listP", listP);
-        request.setAttribute("listC", categories);
-        request.setAttribute("searchKeyword", keyword);
-        request.setAttribute("selectedCategoryId", categoryId);
-        request.setAttribute("selectedStatus", status);
-        request.setAttribute("resultCount", listP.size());
-        request.setAttribute("activeCount", activeCount);
-        request.setAttribute("inactiveCount", listP.size() - activeCount);
         request.setAttribute("supplierList", suppliers);
         request.setAttribute("nextImportCode", generateImportCode());
         request.setAttribute("maxImportTotalAmount", MAX_IMPORT_TOTAL_AMOUNT);
@@ -135,157 +101,118 @@ public class AdminImportProductController extends HttpServlet {
         request.getRequestDispatcher(ADMIN_PANEL).forward(request, response);
     }
 
-    private String trimToNull(String value) {
-        if (value == null) {
-            return null;
-        }
-        String trimmed = value.trim();
-        return trimmed.isEmpty() ? null : trimmed;
-    }
-
-    private void importProduct(HttpServletRequest request, HttpServletResponse response)
+    private void createImportOrder(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        if (isStaffRoute(request)) {
+        if (isStaffImportRoute(request)) {
             response.sendRedirect(request.getContextPath() + "/staff/import-product?action=history");
             return;
         }
 
         HttpSession session = request.getSession(false);
         Manager manager = session == null ? null : (Manager) session.getAttribute("manager");
-
         if (manager == null) {
             response.sendRedirect(request.getContextPath() + "/manager-auth");
             return;
         }
 
-        ImportOrder importOrder;
         try {
-            importOrder = buildImportOrder(request, manager.getManagerId());
+            String supplierIdRaw = toNullIfBlank(request.getParameter("supplierId"));
+            String importCode = toNullIfBlank(request.getParameter("importCode"));
+            String invoiceNo = toNullIfBlank(request.getParameter("invoiceNo"));
+            String note = toNullIfBlank(request.getParameter("note"));
+            String[] variantIds = request.getParameterValues("variantId");
+            String[] quantities = request.getParameterValues("quantity");
+            String[] prices = request.getParameterValues("price");
+
+            ValidationUtil.validateImportOrderInput(supplierIdRaw, variantIds, quantities, prices);
+
+            List<ImportOrderDetail> details = new ArrayList<>();
+            for (int i = 0; i < variantIds.length; i++) {
+                String variantIdRaw = variantIds[i];
+                String quantityRaw = i < quantities.length ? quantities[i] : null;
+                String priceRaw = i < prices.length ? prices[i] : null;
+
+                if (toNullIfBlank(variantIdRaw) == null) {
+                    continue;
+                }
+
+                ValidationUtil.validateImportItemInput(variantIdRaw, quantityRaw, priceRaw);
+                if (toNullIfBlank(quantityRaw) == null && toNullIfBlank(priceRaw) == null) {
+                    continue;
+                }
+
+                ImportOrderDetail detail = new ImportOrderDetail();
+                detail.setVariantId(ValidationUtil.parseImportVariantId(variantIdRaw));
+                detail.setQuantity(ValidationUtil.parseImportQuantity(quantityRaw));
+                detail.setImportPrice(ValidationUtil.parseImportPrice(priceRaw));
+
+                if (ValidationUtil.isValidImportItem(detail)) {
+                    details.add(detail);
+                }
+            }
+
+            ImportOrder importOrder = new ImportOrder();
+            importOrder.setSupplierId(ValidationUtil.parseImportSupplierId(supplierIdRaw));
+            importOrder.setCreatedBy(manager.getManagerId());
+            importOrder.setImportCode(importCode == null ? generateImportCode() : importCode);
+            importOrder.setInvoiceNo(invoiceNo);
+            importOrder.setNote(note);
+            importOrder.setStatus("PENDING");
+            importOrder.setDetails(details);
+            importOrder.setTotalAmount(importOrder.calculateTotalAmount());
+
+            ValidationUtil.validateImportOrder(importOrder, MAX_IMPORT_TOTAL_AMOUNT);
+
+            int orderId = dao.createPurchaseOrderWithDetails(importOrder);
+            if (orderId <= 0) {
+                request.setAttribute("error", "Failed to create import order.");
+                showCreateImportOrderPage(request, response);
+                return;
+            }
+
+            response.sendRedirect(request.getContextPath() + "/admin/import-product?action=history&success=import");
         } catch (IllegalArgumentException ex) {
             request.setAttribute("error", ex.getMessage());
-            showImportProduct(request, response);
+            showCreateImportOrderPage(request, response);
             return;
-        }
-
-        int orderId = dao.createPurchaseOrderWithDetails(importOrder);
-        if (orderId <= 0) {
-            request.setAttribute("error", "Failed to create import order.");
-            showImportProduct(request, response);
-            return;
-        }
-        response.sendRedirect(request.getContextPath() + "/admin/import-product?action=history&success=import");
-    }
-
-    private ImportOrder buildImportOrder(HttpServletRequest request, int managerId) {
-        String supplierIdRaw = trimToNull(request.getParameter("supplierId"));
-        String[] variantIds = request.getParameterValues("variantId");
-        String[] quantities = request.getParameterValues("quantity");
-        String[] prices = request.getParameterValues("price");
-
-        ValidationUtil.validateImportOrderInput(supplierIdRaw, variantIds, quantities, prices);
-
-        ImportOrder importOrder = new ImportOrder();
-        importOrder.setSupplierId(ValidationUtil.parseImportSupplierId(supplierIdRaw));
-        importOrder.setCreatedBy(managerId);
-        importOrder.setImportCode(resolveImportCode(trimToNull(request.getParameter("importCode"))));
-        importOrder.setInvoiceNo(trimToNull(request.getParameter("invoiceNo")));
-        importOrder.setNote(trimToNull(request.getParameter("note")));
-        importOrder.setStatus("PENDING");
-        importOrder.setDetails(extractImportDetails(variantIds, quantities, prices));
-        importOrder.setTotalAmount(importOrder.calculateTotalAmount());
-
-        ValidationUtil.validateImportOrder(importOrder, MAX_IMPORT_TOTAL_AMOUNT);
-        return importOrder;
-    }
-
-    private List<ImportOrderDetail> extractImportDetails(String[] variantIds, String[] quantities, String[] prices) {
-        List<ImportOrderDetail> details = new ArrayList<>();
-
-        for (int i = 0; i < variantIds.length; i++) {
-            String variantIdRaw = variantIds[i];
-            String quantityRaw = i < quantities.length ? quantities[i] : null;
-            String priceRaw = i < prices.length ? prices[i] : null;
-
-            if (trimToNull(variantIdRaw) == null) {
-                continue;
-            }
-
-            ValidationUtil.validateImportItemInput(variantIdRaw, quantityRaw, priceRaw);
-            if (trimToNull(quantityRaw) == null && trimToNull(priceRaw) == null) {
-                continue;
-            }
-
-            ImportOrderDetail detail = new ImportOrderDetail();
-            detail.setVariantId(ValidationUtil.parseImportVariantId(variantIdRaw));
-            detail.setQuantity(ValidationUtil.parseImportQuantity(quantityRaw));
-            detail.setImportPrice(ValidationUtil.parseImportPrice(priceRaw));
-
-            if (ValidationUtil.isValidImportItem(detail)) {
-                details.add(detail);
-            }
-        }
-
-        return details;
-    }
-
-    private String resolveImportCode(String importCode) {
-        return importCode == null ? generateImportCode() : importCode;
-    }
-
-    private void addSupplier(HttpServletRequest request, HttpServletResponse response)
-            throws IOException, ServletException {
-        if (isStaffRoute(request)) {
-            response.sendRedirect(request.getContextPath() + "/staff/import-product?action=history");
-            return;
-        }
-
-        HttpSession session = request.getSession(false);
-        Manager manager = session == null ? null : (Manager) session.getAttribute("manager");
-
-        if (manager == null) {
-            response.sendRedirect(request.getContextPath() + "/manager-auth");
-            return;
-        }
-
-        String name = trimToNull(request.getParameter("supplierName"));
-        String phone = trimToNull(request.getParameter("supplierPhone"));
-        String address = trimToNull(request.getParameter("supplierAddress"));
-
-        if (name == null || phone == null || address == null) {
-            request.setAttribute("error", "Please enter full supplier information.");
-            showImportProduct(request, response);
-            return;
-        }
-
-        Supplier supplier = new Supplier();
-        supplier.setName(name);
-        supplier.setPhone(phone);
-        supplier.setAddress(address);
-
-        if (supplierDAO.insert(supplier)) {
-            response.sendRedirect(request.getContextPath() + "/admin/import-product?action=importproduct&success=supplierAdded");
-        } else {
-            request.setAttribute("error", "Failed to add supplier. Please check duplicate name.");
-            showImportProduct(request, response);
         }
     }
 
-    private void showHistory(HttpServletRequest request, HttpServletResponse response)
+    private void showImportOrderHistory(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        boolean staffRoute = isStaffRoute(request);
+        boolean staffRoute = isStaffImportRoute(request);
+        String importBasePath = request.getContextPath()
+                + (staffRoute ? "/staff/import-product" : "/admin/import-product");
         List<ImportOrder> history = dao.getImportHistory();
+
         request.setAttribute("history", history);
         request.setAttribute("staffRoute", staffRoute);
         request.setAttribute("canCreateImportOrder", !staffRoute);
-        request.setAttribute("importBasePath", request.getContextPath()
-                + (staffRoute ? "/staff/import-product" : "/admin/import-product"));
+        request.setAttribute("importBasePath", importBasePath);
         request.setAttribute("currentView", "import");
         request.setAttribute("contentPage", staffRoute ? STAFF_HISTORY_CONTENT : ADMIN_HISTORY_CONTENT);
         request.getRequestDispatcher(staffRoute ? STAFF_PANEL : ADMIN_PANEL).forward(request, response);
     }
 
-    private void receiveOrder(HttpServletRequest request, HttpServletResponse response)
+    private void showImportOrderDetail(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        int orderId = Integer.parseInt(request.getParameter("orderId"));
+        boolean staffRoute = isStaffImportRoute(request);
+        String importBasePath = request.getContextPath()
+                + (staffRoute ? "/staff/import-product" : "/admin/import-product");
+        HttpSession session = request.getSession(false);
+        Manager manager = session == null ? null : (Manager) session.getAttribute("manager");
+
+        setImportOrderDetailAttributes(request, orderId, manager, null, null, null, importBasePath);
+        request.getRequestDispatcher(IMPORT_DETAIL_VIEW).forward(request, response);
+    }
+
+    private void confirmImportReceipt(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        boolean staffRoute = isStaffImportRoute(request);
+        String importBasePath = request.getContextPath()
+                + (staffRoute ? "/staff/import-product" : "/admin/import-product");
+        String historyRedirect = importBasePath + "?action=history";
         HttpSession session = request.getSession(false);
         Manager manager = session == null ? null : (Manager) session.getAttribute("manager");
 
@@ -294,153 +221,106 @@ public class AdminImportProductController extends HttpServlet {
             return;
         }
 
-        String orderIdRaw = trimToNull(request.getParameter("orderId"));
+        String orderIdRaw = toNullIfBlank(request.getParameter("orderId"));
         if (orderIdRaw == null) {
-            response.sendRedirect(buildHistoryRedirect(request, "importFailed", null));
+            response.sendRedirect(historyRedirect + "&error=importFailed");
             return;
         }
 
         String[] variantIdRaw = request.getParameterValues("variantId");
         String[] receivedQtyRaw = request.getParameterValues("receivedQuantity");
+
         try {
             int orderId = Integer.parseInt(orderIdRaw);
-            int[] variantIds = parseIntArray(variantIdRaw);
-            int[] receivedQuantities = parseQuantityArray(receivedQtyRaw);
+            int[] variantIds = new int[variantIdRaw == null ? 0 : variantIdRaw.length];
+            for (int i = 0; i < variantIds.length; i++) {
+                if (variantIdRaw[i] == null || variantIdRaw[i].trim().isEmpty()) {
+                    variantIds[i] = 0;
+                } else {
+                    variantIds[i] = Integer.parseInt(variantIdRaw[i].trim());
+                }
+            }
 
-            BigDecimal receivedTotal = calculateReceiptTotal(orderId, variantIds, receivedQuantities);
+            int[] receivedQuantities = new int[receivedQtyRaw == null ? 0 : receivedQtyRaw.length];
+            for (int i = 0; i < receivedQuantities.length; i++) {
+                if (receivedQtyRaw[i] == null || receivedQtyRaw[i].trim().isEmpty()) {
+                    receivedQuantities[i] = 0;
+                } else {
+                    receivedQuantities[i] = ValidationUtil.parseQuantityValue(receivedQtyRaw[i], "Invalid received quantity.");
+                }
+            }
+
+            List<ImportOrderDetail> details = dao.getImportOrderDetail(orderId);
+            BigDecimal receivedTotal = BigDecimal.ZERO;
+            for (ImportOrderDetail detail : details) {
+                int receivedQty = detail.getQuantity();
+
+                for (int i = 0; i < variantIds.length; i++) {
+                    if (variantIds[i] == detail.getVariantId()) {
+                        if (i < receivedQuantities.length && receivedQuantities[i] >= 0) {
+                            receivedQty = receivedQuantities[i];
+                        }
+                        break;
+                    }
+                }
+
+                detail.setReceivedQuantity(receivedQty);
+                receivedTotal = receivedTotal.add(detail.calculateSubtotal(receivedQty));
+            }
+
             if (receivedTotal.compareTo(MAX_IMPORT_TOTAL_AMOUNT) > 0) {
-                showHistoryWithDetail(request, response, orderId, manager, variantIds, receivedQuantities,
-                        "Total amount cannot exceed 9,999,999,999 VND.");
+                setImportOrderDetailAttributes(request, orderId, manager, variantIds, receivedQuantities,
+                        "Total amount cannot exceed 9,999,999,999 VND.", importBasePath);
+                request.setAttribute("autoOpenImportDetail", Boolean.TRUE);
+                showImportOrderHistory(request, response);
                 return;
             }
 
             boolean ok = dao.confirmReceipt(orderId, manager.getManagerId(), variantIds, receivedQuantities);
             if (!ok) {
-                showHistoryWithDetail(request, response, orderId, manager, variantIds, receivedQuantities,
-                        "Failed to confirm import receipt.");
+                setImportOrderDetailAttributes(request, orderId, manager, variantIds, receivedQuantities,
+                        "Failed to confirm import receipt.", importBasePath);
+                request.setAttribute("autoOpenImportDetail", Boolean.TRUE);
+                showImportOrderHistory(request, response);
                 return;
             }
 
-            response.sendRedirect(buildHistoryRedirect(request, null, "received"));
+            response.sendRedirect(historyRedirect + "&success=received");
         } catch (IllegalArgumentException ex) {
-            response.sendRedirect(buildHistoryRedirect(request, "importFailed", null));
+            response.sendRedirect(historyRedirect + "&error=importFailed");
         }
     }
 
-    private int[] parseIntArray(String[] values) {
-        if (values == null) {
-            return new int[0];
-        }
-
-        int[] result = new int[values.length];
-        for (int i = 0; i < values.length; i++) {
-            if (values[i] == null || values[i].trim().isEmpty()) {
-                result[i] = 0;
-            } else {
-                result[i] = Integer.parseInt(values[i].trim());
-            }
-        }
-        return result;
-    }
-
-    private int[] parseQuantityArray(String[] values) {
-        if (values == null) {
-            return new int[0];
-        }
-
-        int[] result = new int[values.length];
-        for (int i = 0; i < values.length; i++) {
-            if (values[i] == null || values[i].trim().isEmpty()) {
-                result[i] = 0;
-            } else {
-                result[i] = ValidationUtil.parseQuantityValue(values[i], "Invalid received quantity.");
-            }
-        }
-        return result;
-    }
-
-    private boolean isStaffRoute(HttpServletRequest request) {
-        return request.getRequestURI().startsWith(request.getContextPath() + "/staff/");
-    }
-
-    private BigDecimal calculateReceiptTotal(int orderId, int[] variantIds, int[] receivedQuantities) {
-        List<ImportOrderDetail> details = dao.getImportOrderDetail(orderId);
-        applyReceivedQuantities(details, variantIds, receivedQuantities);
-        return calculateReceiptTotal(details);
-    }
-
-    private BigDecimal calculateReceiptTotal(List<ImportOrderDetail> details) {
-        BigDecimal total = BigDecimal.ZERO;
-        for (ImportOrderDetail detail : details) {
-            int receivedQty = detail.getReceivedQuantity() != null ? detail.getReceivedQuantity() : detail.getQuantity();
-            total = total.add(detail.calculateSubtotal(receivedQty));
-        }
-
-        return total;
-    }
-
-    private void applyReceivedQuantities(List<ImportOrderDetail> details, int[] variantIds, int[] receivedQuantities) {
-        if (details == null || details.isEmpty() || variantIds == null || receivedQuantities == null) {
-            return;
-        }
-
-        for (ImportOrderDetail detail : details) {
-            detail.setReceivedQuantity(resolveReceivedQuantity(
-                    detail.getVariantId(),
-                    detail.getQuantity(),
-                    variantIds,
-                    receivedQuantities));
-        }
-    }
-
-    private int resolveReceivedQuantity(int variantId, int fallbackQuantity, int[] variantIds, int[] receivedQuantities) {
-        if (variantIds == null || receivedQuantities == null) {
-            return fallbackQuantity;
-        }
-
-        for (int i = 0; i < variantIds.length; i++) {
-            if (variantIds[i] == variantId) {
-                if (i < receivedQuantities.length && receivedQuantities[i] >= 0) {
-                    return receivedQuantities[i];
-                }
-                break;
-            }
-        }
-
-        return fallbackQuantity;
-    }
-
-    private String buildHistoryRedirect(HttpServletRequest request, String error, String success) {
-        StringBuilder redirect = new StringBuilder();
-        redirect.append(request.getContextPath())
-                .append(isStaffRoute(request) ? "/staff/import-product?action=history" : "/admin/import-product?action=history");
-        if (error != null) {
-            redirect.append("&error=").append(error);
-        }
-        if (success != null) {
-            redirect.append("&success=").append(success);
-        }
-        return redirect.toString();
-    }
-
-    private void showHistoryWithDetail(HttpServletRequest request, HttpServletResponse response,
-            int orderId, Manager manager, int[] variantIds, int[] receivedQuantities, String detailError)
-            throws ServletException, IOException {
-        populateImportDetailAttributes(request, orderId, manager, variantIds, receivedQuantities, detailError);
-        request.setAttribute("autoOpenImportDetail", Boolean.TRUE);
-        request.setAttribute("autoOpenImportOrderId", orderId);
-        showHistory(request, response);
-    }
-
-    private void populateImportDetailAttributes(HttpServletRequest request, int orderId, Manager manager,
-            int[] variantIds, int[] receivedQuantities, String detailError) {
+    private void setImportOrderDetailAttributes(HttpServletRequest request, int orderId, Manager manager,
+            int[] variantIds, int[] receivedQuantities, String detailError, String importBasePath) {
         ImportOrder importOrder = dao.getImportOrderById(orderId);
         List<ImportOrderDetail> details = dao.getImportOrderDetail(orderId);
         String status = dao.getImportOrderStatus(orderId);
 
-        applyReceivedQuantities(details, variantIds, receivedQuantities);
+        if (details != null && variantIds != null && receivedQuantities != null) {
+            for (ImportOrderDetail detail : details) {
+                int receivedQty = detail.getQuantity();
+
+                for (int i = 0; i < variantIds.length; i++) {
+                    if (variantIds[i] == detail.getVariantId()) {
+                        if (i < receivedQuantities.length && receivedQuantities[i] >= 0) {
+                            receivedQty = receivedQuantities[i];
+                        }
+                        break;
+                    }
+                }
+
+                detail.setReceivedQuantity(receivedQty);
+            }
+        }
+
         if (importOrder != null && details != null && !details.isEmpty() && "PENDING".equalsIgnoreCase(status)) {
-            importOrder.setTotalAmount(calculateReceiptTotal(details));
+            BigDecimal total = BigDecimal.ZERO;
+            for (ImportOrderDetail detail : details) {
+                int receivedQty = detail.getReceivedQuantity() != null ? detail.getReceivedQuantity() : detail.getQuantity();
+                total = total.add(detail.calculateSubtotal(receivedQty));
+            }
+            importOrder.setTotalAmount(total);
         }
 
         request.setAttribute("importOrder", importOrder);
@@ -448,11 +328,21 @@ public class AdminImportProductController extends HttpServlet {
         request.setAttribute("orderStatus", status);
         request.setAttribute("orderId", orderId);
         request.setAttribute("currentManagerRole", manager == null ? null : manager.getManagerRole());
-        request.setAttribute("importBasePath", isStaffRoute(request)
-                ? request.getContextPath() + "/staff/import-product"
-                : request.getContextPath() + "/admin/import-product");
+        request.setAttribute("importBasePath", importBasePath);
         request.setAttribute("maxImportTotalAmount", MAX_IMPORT_TOTAL_AMOUNT);
         request.setAttribute("importDetailError", detailError);
+    }
+
+    private String toNullIfBlank(String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    private boolean isStaffImportRoute(HttpServletRequest request) {
+        return request.getRequestURI().startsWith(request.getContextPath() + "/staff/");
     }
 
     private String generateImportCode() {

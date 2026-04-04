@@ -55,13 +55,13 @@ public class ForgetPasswordController extends HttpServlet {
                 break;
         }
     }
-
+// show page forgetpassword
     private void showForgetPasswordPage(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         request.getRequestDispatcher("/WEB-INF/views/customer/forgetpassword.jsp")
                 .forward(request, response);
     }
-
+// find email verify
     private void submitForgetPassword(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
@@ -110,7 +110,7 @@ public class ForgetPasswordController extends HttpServlet {
         request.getRequestDispatcher("/WEB-INF/views/customer/forgetpassword.jsp")
                 .forward(request, response);
     }
-
+// show form reset passowrd
     private void showResetPasswordPage(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
@@ -130,7 +130,7 @@ public class ForgetPasswordController extends HttpServlet {
         request.getRequestDispatcher("/WEB-INF/views/customer/resetpassword.jsp")
                 .forward(request, response);
     }
-
+// submit password
     private void submitResetPassword(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
@@ -170,7 +170,7 @@ public class ForgetPasswordController extends HttpServlet {
         );
         response.sendRedirect(request.getContextPath() + "/auth?action=login");
     }
-
+// set message in Login page
     private void setLoginFlashMessage(HttpSession session, String message, String type) {
         if (session == null) {
             return;
