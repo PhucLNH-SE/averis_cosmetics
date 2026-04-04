@@ -2,7 +2,7 @@ package Model;
 
 import java.math.BigDecimal;
 
-public class PurchaseDetail {
+public class ImportOrderDetail {
 
     private int purchaseDetailId;
     private int purchaseOrderId;
@@ -15,10 +15,10 @@ public class PurchaseDetail {
     private String variantName;
     private String brandName;
 
-    public PurchaseDetail() {
+    public ImportOrderDetail() {
     }
 
-    public PurchaseDetail(int purchaseDetailId, int purchaseOrderId, int variantId, int quantity,
+    public ImportOrderDetail(int purchaseDetailId, int purchaseOrderId, int variantId, int quantity,
             BigDecimal importPrice, Integer receivedQuantity, String productName, String variantName, String brandName) {
         this.purchaseDetailId = purchaseDetailId;
         this.purchaseOrderId = purchaseOrderId;
@@ -101,5 +101,14 @@ public class PurchaseDetail {
 
     public void setBrandName(String brandName) {
         this.brandName = brandName;
+    }
+
+    public BigDecimal calculateSubtotal() {
+        return calculateSubtotal(quantity);
+    }
+
+    public BigDecimal calculateSubtotal(int quantityValue) {
+        BigDecimal safeImportPrice = importPrice == null ? BigDecimal.ZERO : importPrice;
+        return safeImportPrice.multiply(BigDecimal.valueOf(quantityValue));
     }
 }
