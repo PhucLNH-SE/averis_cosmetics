@@ -87,20 +87,24 @@ public class ManagerCategoryController extends HttpServlet {
             throws ServletException, IOException {
         String name = trimToNull(request.getParameter("name"));
         boolean status = parseStatus(request.getParameter("status"));
+        Category selectedCategory = buildCategoryFormState(0, name, status);
 
         if (name == null) {
-            response.sendRedirect(request.getContextPath() + ADMIN_LIST_URL + "?error=addFailed");
+            forwardManageCategory(request, response, selectedCategory, "add", "Category name is required.");
             return;
         }
         if (dao.existsByName(name)) {
-            forwardManageCategory(request, response, null, null, "Category name already exists.");
+            forwardManageCategory(request, response, selectedCategory, "add", "Category name already exists.");
             return;
         }
 
         boolean added = dao.insertCategory(name, status);
-        response.sendRedirect(request.getContextPath()
-                + (added ? ADMIN_LIST_URL + "?success=add"
-                        : ADMIN_LIST_URL + "?error=addFailed"));
+        if (added) {
+            response.sendRedirect(request.getContextPath() + ADMIN_LIST_URL + "?success=add");
+            return;
+        }
+
+        forwardManageCategory(request, response, selectedCategory, "add", "Failed to add category.");
     }
 
     private void updateCategory(HttpServletRequest request, HttpServletResponse response, CategoryDAO dao)
@@ -109,24 +113,24 @@ public class ManagerCategoryController extends HttpServlet {
             int id = Integer.parseInt(request.getParameter("id"));
             String name = trimToNull(request.getParameter("name"));
             boolean status = parseStatus(request.getParameter("status"));
+            Category selectedCategory = buildCategoryFormState(id, name, status);
 
             if (name == null) {
-                response.sendRedirect(request.getContextPath() + ADMIN_LIST_URL + "?error=updateFailed");
+                forwardManageCategory(request, response, selectedCategory, "update", "Category name is required.");
                 return;
             }
             if (dao.existsByNameExceptId(name, id)) {
-                Category selectedCategory = new Category();
-                selectedCategory.setCategoryId(id);
-                selectedCategory.setName(name);
-                selectedCategory.setStatus(status);
                 forwardManageCategory(request, response, selectedCategory, "update", "Category name already exists.");
                 return;
             }
 
             boolean updated = dao.updateCategory(id, name, status);
-            response.sendRedirect(request.getContextPath()
-                    + (updated ? ADMIN_LIST_URL + "?success=update"
-                            : ADMIN_LIST_URL + "?error=updateFailed"));
+            if (updated) {
+                response.sendRedirect(request.getContextPath() + ADMIN_LIST_URL + "?success=update");
+                return;
+            }
+
+            forwardManageCategory(request, response, selectedCategory, "update", "Failed to update category.");
         } catch (NumberFormatException e) {
             response.sendRedirect(request.getContextPath() + ADMIN_LIST_URL + "?error=updateFailed");
         }
@@ -179,6 +183,14 @@ public class ManagerCategoryController extends HttpServlet {
 
     private boolean isStaffRoute(HttpServletRequest request) {
         return request.getServletPath() != null && request.getServletPath().startsWith("/staff/");
+    }
+
+    private Category buildCategoryFormState(int categoryId, String name, boolean status) {
+        Category category = new Category();
+        category.setCategoryId(categoryId);
+        category.setName(name);
+        category.setStatus(status);
+        return category;
     }
 
     private String trimToNull(String value) {

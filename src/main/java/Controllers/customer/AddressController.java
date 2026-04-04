@@ -43,9 +43,6 @@ public class AddressController extends HttpServlet {
             case "edit":
                 showEditForm(request, response, customer);
                 break;
-            case "setdefault":
-                setDefaultAddress(request, response, customer);
-                break;
             default:
                 redirectToAddressList(request, response);
                 break;
@@ -78,6 +75,9 @@ public class AddressController extends HttpServlet {
                 break;
             case "delete":
                 deleteAddress(request, response, customer);
+                break;
+            case "setdefault":
+                setDefaultAddress(request, response, customer);
                 break;
             default:
                 redirectToAddressList(request, response);
@@ -233,8 +233,10 @@ public class AddressController extends HttpServlet {
 
             if ("success".equals(result)) {
                 setProfileFlashMessage(session, "Address deleted successfully", "success");
+            } else if ("not_found".equals(result)) {
+                setProfileFlashMessage(session, "Address not found", "error");
             } else {
-                setProfileFlashMessage(session, result, "error");
+                setProfileFlashMessage(session, "Failed to delete address", "error");
             }
 
         } catch (NumberFormatException e) {
@@ -247,9 +249,11 @@ public class AddressController extends HttpServlet {
     private void setDefaultAddress(HttpServletRequest request, HttpServletResponse response, Customer customer)
             throws ServletException, IOException {
 
+        HttpSession session = request.getSession();
         String addressIdStr = request.getParameter("id");
 
         if (addressIdStr == null || addressIdStr.trim().isEmpty()) {
+            setProfileFlashMessage(session, "Invalid address ID", "error");
             redirectToAddressList(request, response);
             return;
         }
@@ -257,9 +261,16 @@ public class AddressController extends HttpServlet {
         try {
             int addressId = Integer.parseInt(addressIdStr);
             AddressDAO addressDAO = new AddressDAO();
-            addressDAO.setDefaultAddress(addressId, customer.getCustomerId());
+            boolean success = addressDAO.setDefaultAddress(addressId, customer.getCustomerId());
+
+            if (success) {
+                setProfileFlashMessage(session, "Default address updated successfully", "success");
+            } else {
+                setProfileFlashMessage(session, "Failed to set default address", "error");
+            }
 
         } catch (NumberFormatException e) {
+            setProfileFlashMessage(session, "Invalid address ID format", "error");
         }
 
         redirectToAddressList(request, response);
