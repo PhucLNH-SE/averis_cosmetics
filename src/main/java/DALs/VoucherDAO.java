@@ -211,17 +211,22 @@ public class VoucherDAO extends DBContext {
             }
             conn.setAutoCommit(false);
 
-            String findVoucherSql = "SELECT * FROM Voucher WHERE UPPER(LTRIM(RTRIM(code))) = UPPER(LTRIM(RTRIM(?))) AND status = 1";
-            Voucher voucher;
+            String findVoucherSql = "SELECT * FROM Voucher "
+                    + "WHERE UPPER(LTRIM(RTRIM(code))) = UPPER(LTRIM(RTRIM(?))) "
+                    + "AND status = 1";
+            Voucher voucher = null;
             try (PreparedStatement ps = conn.prepareStatement(findVoucherSql)) {
                 ps.setString(1, code);
                 try (ResultSet rs = ps.executeQuery()) {
-                    if (!rs.next()) {
-                        conn.rollback();
-                        return "codeNotFound";
+                    if (rs.next()) {
+                        voucher = mapVoucher(rs);
                     }
-                    voucher = mapVoucher(rs);
                 }
+            }
+
+            if (voucher == null) {
+                conn.rollback();
+                return "codeNotFound";
             }
 
             if (voucher.getClaimedQuantity() >= voucher.getQuantity()) {

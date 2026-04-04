@@ -10,6 +10,25 @@ import java.util.List;
 
 public class BrandDAO extends DBContext {
 
+    public List<String> getActiveBrandNames() {
+        List<String> brandNames = new ArrayList<>();
+        String sql = "SELECT name FROM Brand WHERE status = 1 ORDER BY name ASC";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                String brandName = rs.getString("name");
+                if (brandName != null && !brandName.trim().isEmpty()) {
+                    brandNames.add(brandName);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return brandNames;
+    }
+
     public List<Brand> getAllBrands() {
         List<Brand> brands = new ArrayList<>();
         String sql = "SELECT brand_id, name, status FROM Brand ORDER BY brand_id ASC";

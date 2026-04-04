@@ -599,11 +599,13 @@
                                     </div>
                                 </div>
 
-                                <div class="voucher-claim-card">
-                                    <form method="post" action="${pageContext.request.contextPath}/my-voucher" class="voucher-claim-form">
-                                        <input type="text" name="voucherCode" placeholder="Enter voucher code" required>
-                                        <button type="submit">Add Voucher</button>
-                                    </form>
+	                                <div class="voucher-claim-card">
+	                                    <form method="post" action="${pageContext.request.contextPath}/my-voucher" class="voucher-claim-form">
+	                                        <input type="hidden" name="action" value="claim">
+	                                        <input type="hidden" name="source" value="profile">
+	                                        <input type="text" name="voucherCode" placeholder="Enter voucher code" required>
+	                                        <button type="submit">Add Voucher</button>
+	                                    </form>
                                 </div>
 
                                 <c:if test="${param.success == 'claimed'}">

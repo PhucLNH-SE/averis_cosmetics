@@ -1,5 +1,7 @@
 package Controllers.guest;
 
+import DALs.BrandDAO;
+import DALs.CategoryDAO;
 import DALs.FeedbackDAO;
 import DALs.ProductDAO;
 import Model.OrderDetail;
@@ -17,6 +19,8 @@ public class ProductController extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         ProductDAO dao = new ProductDAO();
+        BrandDAO brandDAO = new BrandDAO();
+        CategoryDAO categoryDAO = new CategoryDAO();
         String action = trimToNull(request.getParameter("action"));
 
         if (action == null) {
@@ -28,14 +32,14 @@ public class ProductController extends HttpServlet {
                 handleProductDetail(request, response, dao);
                 break;
             case "topSales":
-                handleTopSalesProductList(request, response, dao);
+                handleTopSalesProductList(request, response, dao, brandDAO, categoryDAO);
                 break;
             case "filter":
-                handleFilteredProductList(request, response, dao);
+                handleFilteredProductList(request, response, dao, brandDAO, categoryDAO);
                 break;
             case "list":
             default:
-                handleDefaultProductList(request, response, dao);
+                handleDefaultProductList(request, response, dao, brandDAO, categoryDAO);
                 break;
         }
     }
@@ -87,10 +91,11 @@ public class ProductController extends HttpServlet {
     }
 
     //NganNK - use to handle product list function
-    private void handleDefaultProductList(HttpServletRequest request, HttpServletResponse response, ProductDAO dao)
+    private void handleDefaultProductList(HttpServletRequest request, HttpServletResponse response,
+            ProductDAO dao, BrandDAO brandDAO, CategoryDAO categoryDAO)
             throws ServletException, IOException {
-        List<String> availableBrands = dao.getAllBrandNames();
-        List<String> availableCategories = dao.getAllCategoryNames();
+        List<String> availableBrands = brandDAO.getActiveBrandNames();
+        List<String> availableCategories = categoryDAO.getActiveCategoryNames();
         setProductListAttributes(request,
                 dao.getFeaturedProductsForGuest(30, 20),
                 availableBrands,
@@ -102,10 +107,11 @@ public class ProductController extends HttpServlet {
         forwardProductListView(request, response);
     }
 
-    private void handleTopSalesProductList(HttpServletRequest request, HttpServletResponse response, ProductDAO dao)
+    private void handleTopSalesProductList(HttpServletRequest request, HttpServletResponse response,
+            ProductDAO dao, BrandDAO brandDAO, CategoryDAO categoryDAO)
             throws ServletException, IOException {
-        List<String> availableBrands = dao.getAllBrandNames();
-        List<String> availableCategories = dao.getAllCategoryNames();
+        List<String> availableBrands = brandDAO.getActiveBrandNames();
+        List<String> availableCategories = categoryDAO.getActiveCategoryNames();
         setProductListAttributes(request,
                 dao.getFeaturedProductsForGuest(30, 20),
                 availableBrands,
@@ -117,7 +123,8 @@ public class ProductController extends HttpServlet {
         forwardProductListView(request, response);
     }
 
-    private void handleFilteredProductList(HttpServletRequest request, HttpServletResponse response, ProductDAO dao)
+    private void handleFilteredProductList(HttpServletRequest request, HttpServletResponse response,
+            ProductDAO dao, BrandDAO brandDAO, CategoryDAO categoryDAO)
             throws ServletException, IOException {
         String keyword = trimToNull(request.getParameter("keyword"));
         String brandFilter = trimToNull(request.getParameter("brand"));
@@ -128,8 +135,8 @@ public class ProductController extends HttpServlet {
             request.setAttribute("searchKeyword", keyword);
         }
 
-        List<String> availableBrands = dao.getAllBrandNames();
-        List<String> availableCategories = dao.getAllCategoryNames();
+        List<String> availableBrands = brandDAO.getActiveBrandNames();
+        List<String> availableCategories = categoryDAO.getActiveCategoryNames();
         setProductListAttributes(
                 request,
                 dao.getActiveProductsForGuest(keyword, brandFilter, categoryFilter, sortBy),
