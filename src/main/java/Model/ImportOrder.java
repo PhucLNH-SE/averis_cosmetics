@@ -3,8 +3,10 @@ package Model;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
-public class PurchaseOrder {
+public class ImportOrder {
 
     private int purchaseOrderId;
     private String importCode;
@@ -18,6 +20,7 @@ public class PurchaseOrder {
     private String status;
     private LocalDateTime receivedAt;
     private Integer receivedBy;
+    private List<ImportOrderDetail> details = new ArrayList<>();
 
     private String managerName;
     private String managerRole;
@@ -27,10 +30,10 @@ public class PurchaseOrder {
     private String supplierPhone;
     private String supplierAddress;
 
-    public PurchaseOrder() {
+    public ImportOrder() {
     }
 
-    public PurchaseOrder(int purchaseOrderId, int brandId, int createdBy, BigDecimal totalAmount, LocalDateTime createdAt, String status, LocalDateTime receivedAt, Integer receivedBy, String managerName, String managerRole, String brandName) {
+    public ImportOrder(int purchaseOrderId, int brandId, int createdBy, BigDecimal totalAmount, LocalDateTime createdAt, String status, LocalDateTime receivedAt, Integer receivedBy, String managerName, String managerRole, String brandName) {
         this.purchaseOrderId = purchaseOrderId;
         this.brandId = brandId;
         this.createdBy = createdBy;
@@ -194,5 +197,37 @@ public class PurchaseOrder {
 
     public void setSupplierAddress(String supplierAddress) {
         this.supplierAddress = supplierAddress;
+    }
+
+    public List<ImportOrderDetail> getDetails() {
+        return details;
+    }
+
+    public void setDetails(List<ImportOrderDetail> details) {
+        this.details = details == null ? new ArrayList<>() : new ArrayList<>(details);
+    }
+
+    public void addDetail(ImportOrderDetail detail) {
+        if (detail != null) {
+            details.add(detail);
+        }
+    }
+
+    public boolean hasDetails() {
+        return details != null && !details.isEmpty();
+    }
+
+    public BigDecimal calculateTotalAmount() {
+        BigDecimal total = BigDecimal.ZERO;
+        if (details == null) {
+            return total;
+        }
+
+        for (ImportOrderDetail detail : details) {
+            if (detail != null) {
+                total = total.add(detail.calculateSubtotal());
+            }
+        }
+        return total;
     }
 }

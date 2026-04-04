@@ -5,9 +5,10 @@ import DALs.ProductDAO;
 import DALs.SupplierDAO;
 import Model.Manager;
 import Model.Product;
-import Model.PurchaseDetail;
-import Model.PurchaseOrder;
+import Model.ImportOrder;
+import Model.ImportOrderDetail;
 import Model.Supplier;
+import Utils.ValidationUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -15,7 +16,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -30,7 +30,6 @@ public class AdminImportProductController extends HttpServlet {
     private static final String STAFF_HISTORY_CONTENT = "/WEB-INF/views/staff/partials/manage-importproduct-content.jsp";
     private static final String IMPORT_DETAIL_VIEW = "/WEB-INF/views/admin/import-detail.jsp";
     private static final BigDecimal MAX_IMPORT_TOTAL_AMOUNT = new BigDecimal("9999999999");
-    private static final BigInteger MAX_QUANTITY_VALUE = BigInteger.valueOf(Integer.MAX_VALUE);
 
     private final ImportProductDAO dao = new ImportProductDAO();
     private final SupplierDAO supplierDAO = new SupplierDAO();
@@ -159,110 +158,78 @@ public class AdminImportProductController extends HttpServlet {
             return;
         }
 
-        int managerId = manager.getManagerId();
-        String[] variantIds = request.getParameterValues("variantId");
-        String[] quantities = request.getParameterValues("quantity");
-        String[] prices = request.getParameterValues("price");
-        String supplierIdRaw = trimToNull(request.getParameter("supplierId"));
-        String invoiceNo = trimToNull(request.getParameter("invoiceNo"));
-        String note = trimToNull(request.getParameter("note"));
-        String importCode = trimToNull(request.getParameter("importCode"));
-
-        BigDecimal total = BigDecimal.ZERO;
-        boolean hasError = false;
-        boolean hasProduct = false;
-        List<Integer> parsedVariantIds = new ArrayList<>();
-        List<Integer> parsedQuantities = new ArrayList<>();
-        List<BigDecimal> parsedPrices = new ArrayList<>();
-
-        if (supplierIdRaw == null) {
-            request.setAttribute("error", "Please select a supplier.");
+        ImportOrder importOrder;
+        try {
+            importOrder = buildImportOrder(request, manager.getManagerId());
+        } catch (IllegalArgumentException ex) {
+            request.setAttribute("error", ex.getMessage());
             showImportProduct(request, response);
             return;
         }
 
-        if (variantIds == null || quantities == null || prices == null) {
-            request.setAttribute("error", "Please add at least one import item.");
-            showImportProduct(request, response);
-            return;
-        }
-
-        Integer supplierId = Integer.valueOf(supplierIdRaw);
-        if (importCode == null) {
-            importCode = generateImportCode();
-        }
-
-        for (int i = 0; i < variantIds.length; i++) {
-            String variantIdRaw = variantIds[i];
-            String quantityRaw = quantities[i];
-            String priceRaw = prices[i];
-
-            if (variantIdRaw == null || variantIdRaw.trim().isEmpty()) {
-                continue;
-            }
-
-            if ((quantityRaw != null && !quantityRaw.trim().isEmpty() && (priceRaw == null || priceRaw.trim().isEmpty()))
-                    || (priceRaw != null && !priceRaw.trim().isEmpty() && (quantityRaw == null || quantityRaw.trim().isEmpty()))) {
-                hasError = true;
-                break;
-            }
-
-            if (quantityRaw == null || quantityRaw.trim().isEmpty()) {
-                continue;
-            }
-
-            int quantity;
-            BigDecimal price;
-            try {
-                quantity = parseQuantityValue(quantityRaw);
-                price = parseImportPrice(priceRaw);
-            } catch (NumberFormatException ex) {
-                hasError = true;
-                break;
-            }
-
-            if (quantity > 0 && price.compareTo(BigDecimal.ZERO) > 0) {
-                hasProduct = true;
-                total = total.add(price.multiply(BigDecimal.valueOf(quantity)));
-                parsedVariantIds.add(Integer.parseInt(variantIdRaw.trim()));
-                parsedQuantities.add(quantity);
-                parsedPrices.add(price);
-                if (total.compareTo(MAX_IMPORT_TOTAL_AMOUNT) > 0) {
-                    request.setAttribute("error", "Total amount cannot exceed 9,999,999,999 VND.");
-                    showImportProduct(request, response);
-                    return;
-                }
-            }
-        }
-
-        if (hasError) {
-            request.setAttribute("error", "Please enter valid quantity and import price for each selected item.");
-            showImportProduct(request, response);
-            return;
-        }
-
-        if (!hasProduct) {
-            request.setAttribute("error", "Please add at least one valid import item.");
-            showImportProduct(request, response);
-            return;
-        }
-
-        int orderId = dao.createPurchaseOrderWithDetails(
-                supplierId,
-                managerId,
-                importCode,
-                invoiceNo,
-                note,
-                parsedVariantIds,
-                parsedQuantities,
-                parsedPrices,
-                total);
+        int orderId = dao.createPurchaseOrderWithDetails(importOrder);
         if (orderId <= 0) {
             request.setAttribute("error", "Failed to create import order.");
             showImportProduct(request, response);
             return;
         }
         response.sendRedirect(request.getContextPath() + "/admin/import-product?action=history&success=import");
+    }
+
+    private ImportOrder buildImportOrder(HttpServletRequest request, int managerId) {
+        String supplierIdRaw = trimToNull(request.getParameter("supplierId"));
+        String[] variantIds = request.getParameterValues("variantId");
+        String[] quantities = request.getParameterValues("quantity");
+        String[] prices = request.getParameterValues("price");
+
+        ValidationUtil.validateImportOrderInput(supplierIdRaw, variantIds, quantities, prices);
+
+        ImportOrder importOrder = new ImportOrder();
+        importOrder.setSupplierId(ValidationUtil.parseImportSupplierId(supplierIdRaw));
+        importOrder.setCreatedBy(managerId);
+        importOrder.setImportCode(resolveImportCode(trimToNull(request.getParameter("importCode"))));
+        importOrder.setInvoiceNo(trimToNull(request.getParameter("invoiceNo")));
+        importOrder.setNote(trimToNull(request.getParameter("note")));
+        importOrder.setStatus("PENDING");
+        importOrder.setDetails(extractImportDetails(variantIds, quantities, prices));
+        importOrder.setTotalAmount(importOrder.calculateTotalAmount());
+
+        ValidationUtil.validateImportOrder(importOrder, MAX_IMPORT_TOTAL_AMOUNT);
+        return importOrder;
+    }
+
+    private List<ImportOrderDetail> extractImportDetails(String[] variantIds, String[] quantities, String[] prices) {
+        List<ImportOrderDetail> details = new ArrayList<>();
+
+        for (int i = 0; i < variantIds.length; i++) {
+            String variantIdRaw = variantIds[i];
+            String quantityRaw = i < quantities.length ? quantities[i] : null;
+            String priceRaw = i < prices.length ? prices[i] : null;
+
+            if (trimToNull(variantIdRaw) == null) {
+                continue;
+            }
+
+            ValidationUtil.validateImportItemInput(variantIdRaw, quantityRaw, priceRaw);
+            if (trimToNull(quantityRaw) == null && trimToNull(priceRaw) == null) {
+                continue;
+            }
+
+            ImportOrderDetail detail = new ImportOrderDetail();
+            detail.setVariantId(ValidationUtil.parseImportVariantId(variantIdRaw));
+            detail.setQuantity(ValidationUtil.parseImportQuantity(quantityRaw));
+            detail.setImportPrice(ValidationUtil.parseImportPrice(priceRaw));
+
+            if (ValidationUtil.isValidImportItem(detail)) {
+                details.add(detail);
+            }
+        }
+
+        return details;
+    }
+
+    private String resolveImportCode(String importCode) {
+        return importCode == null ? generateImportCode() : importCode;
     }
 
     private void addSupplier(HttpServletRequest request, HttpServletResponse response)
@@ -306,8 +273,12 @@ public class AdminImportProductController extends HttpServlet {
     private void showHistory(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         boolean staffRoute = isStaffRoute(request);
-        List<PurchaseOrder> history = staffRoute ? dao.getPendingImportOrders() : dao.getImportHistory();
+        List<ImportOrder> history = dao.getImportHistory();
         request.setAttribute("history", history);
+        request.setAttribute("staffRoute", staffRoute);
+        request.setAttribute("canCreateImportOrder", !staffRoute);
+        request.setAttribute("importBasePath", request.getContextPath()
+                + (staffRoute ? "/staff/import-product" : "/admin/import-product"));
         request.setAttribute("currentView", "import");
         request.setAttribute("contentPage", staffRoute ? STAFF_HISTORY_CONTENT : ADMIN_HISTORY_CONTENT);
         request.getRequestDispatcher(staffRoute ? STAFF_PANEL : ADMIN_PANEL).forward(request, response);
@@ -351,7 +322,7 @@ public class AdminImportProductController extends HttpServlet {
             }
 
             response.sendRedirect(buildHistoryRedirect(request, null, "received"));
-        } catch (NumberFormatException ex) {
+        } catch (IllegalArgumentException ex) {
             response.sendRedirect(buildHistoryRedirect(request, "importFailed", null));
         }
     }
@@ -382,7 +353,7 @@ public class AdminImportProductController extends HttpServlet {
             if (values[i] == null || values[i].trim().isEmpty()) {
                 result[i] = 0;
             } else {
-                result[i] = parseQuantityValue(values[i]);
+                result[i] = ValidationUtil.parseQuantityValue(values[i], "Invalid received quantity.");
             }
         }
         return result;
@@ -392,70 +363,28 @@ public class AdminImportProductController extends HttpServlet {
         return request.getRequestURI().startsWith(request.getContextPath() + "/staff/");
     }
 
-    private BigDecimal parseImportPrice(String rawValue) {
-        if (rawValue == null) {
-            throw new NumberFormatException("Price is required");
-        }
-
-        String cleaned = rawValue.replace(",", "").trim();
-        int decimalIndex = cleaned.indexOf('.');
-        if (decimalIndex >= 0) {
-            String fractional = cleaned.substring(decimalIndex + 1);
-            if (!fractional.replace("0", "").isEmpty()) {
-                throw new NumberFormatException("Price must be a whole number");
-            }
-            cleaned = cleaned.substring(0, decimalIndex);
-        }
-
-        cleaned = cleaned.replaceAll("\\s+", "");
-        if (cleaned.isEmpty() || !cleaned.matches("\\d+")) {
-            throw new NumberFormatException("Price must contain digits only");
-        }
-
-        return new BigDecimal(cleaned);
-    }
-
-    private int parseQuantityValue(String rawValue) {
-        if (rawValue == null) {
-            throw new NumberFormatException("Quantity is required");
-        }
-
-        String cleaned = rawValue.replace(",", "").trim().replaceAll("\\s+", "");
-        if (cleaned.isEmpty() || !cleaned.matches("\\d+")) {
-            throw new NumberFormatException("Quantity must contain digits only");
-        }
-
-        BigInteger quantityValue = new BigInteger(cleaned);
-        if (quantityValue.compareTo(MAX_QUANTITY_VALUE) > 0) {
-            throw new NumberFormatException("Quantity exceeds supported range");
-        }
-
-        return quantityValue.intValue();
-    }
-
     private BigDecimal calculateReceiptTotal(int orderId, int[] variantIds, int[] receivedQuantities) {
-        List<PurchaseDetail> details = dao.getImportOrderDetail(orderId);
+        List<ImportOrderDetail> details = dao.getImportOrderDetail(orderId);
         applyReceivedQuantities(details, variantIds, receivedQuantities);
         return calculateReceiptTotal(details);
     }
 
-    private BigDecimal calculateReceiptTotal(List<PurchaseDetail> details) {
+    private BigDecimal calculateReceiptTotal(List<ImportOrderDetail> details) {
         BigDecimal total = BigDecimal.ZERO;
-        for (PurchaseDetail detail : details) {
+        for (ImportOrderDetail detail : details) {
             int receivedQty = detail.getReceivedQuantity() != null ? detail.getReceivedQuantity() : detail.getQuantity();
-            BigDecimal importPrice = detail.getImportPrice() == null ? BigDecimal.ZERO : detail.getImportPrice();
-            total = total.add(importPrice.multiply(BigDecimal.valueOf(receivedQty)));
+            total = total.add(detail.calculateSubtotal(receivedQty));
         }
 
         return total;
     }
 
-    private void applyReceivedQuantities(List<PurchaseDetail> details, int[] variantIds, int[] receivedQuantities) {
+    private void applyReceivedQuantities(List<ImportOrderDetail> details, int[] variantIds, int[] receivedQuantities) {
         if (details == null || details.isEmpty() || variantIds == null || receivedQuantities == null) {
             return;
         }
 
-        for (PurchaseDetail detail : details) {
+        for (ImportOrderDetail detail : details) {
             detail.setReceivedQuantity(resolveReceivedQuantity(
                     detail.getVariantId(),
                     detail.getQuantity(),
@@ -505,8 +434,8 @@ public class AdminImportProductController extends HttpServlet {
 
     private void populateImportDetailAttributes(HttpServletRequest request, int orderId, Manager manager,
             int[] variantIds, int[] receivedQuantities, String detailError) {
-        PurchaseOrder importOrder = dao.getImportOrderById(orderId);
-        List<PurchaseDetail> details = dao.getImportOrderDetail(orderId);
+        ImportOrder importOrder = dao.getImportOrderById(orderId);
+        List<ImportOrderDetail> details = dao.getImportOrderDetail(orderId);
         String status = dao.getImportOrderStatus(orderId);
 
         applyReceivedQuantities(details, variantIds, receivedQuantities);

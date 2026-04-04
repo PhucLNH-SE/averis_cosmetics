@@ -328,8 +328,10 @@
                     const frameWindow = frame.contentWindow;
                     const doc = frame.contentDocument || frameWindow.document;
                     const frameUrl = new URL(frameWindow.location.href);
+                    const isAddressFormPage = !!doc.querySelector("form[data-address-form='true']");
                     const action = frameUrl.searchParams.get('action');
                     const isAddressListPage = frameUrl.pathname.endsWith('/address')
+                            && !isAddressFormPage
                             && (!action || action === 'view' || action === 'list');
                     const isLegacyProfileAddressPage = frameUrl.pathname.endsWith('/profile')
                             && frameUrl.searchParams.get('action') === 'view'

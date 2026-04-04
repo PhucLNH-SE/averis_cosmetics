@@ -94,7 +94,11 @@
                     <h5 class="modal-title" id="modalTitle">Add Category</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <form id="categoryForm" method="post">
+                <form id="categoryForm" method="post"
+                      data-form-mode="${formMode}"
+                      data-selected-id="${not empty selectedCategory ? selectedCategory.categoryId : ''}"
+                      data-selected-name="<c:out value='${selectedCategory.name}'/>"
+                      data-selected-status="${not empty selectedCategory and selectedCategory.status}">
                     <div class="modal-body">
                         <input type="hidden" id="categoryId" name="id">
                         <input type="hidden" id="action" name="action" value="add">
@@ -129,7 +133,9 @@
 </section>
 
 <script>
-    function openAddModal() {
+    function applyCategoryFormState(mode, categoryId, categoryName, categoryStatus) {
+        const isUpdate = mode === 'update';
+
         document.getElementById('modalTitle').textContent = 'Add Category';
         document.getElementById('submitBtn').innerHTML = '<i class="bi bi-check2-circle"></i> Add';
         document.getElementById('action').value = 'add';
@@ -137,18 +143,41 @@
         document.getElementById('categoryName').value = '';
         document.getElementById('categoryStatus').checked = true;
         document.getElementById('categoryForm').action = '${pageContext.request.contextPath}/admin/add-category';
+
+        if (isUpdate) {
+            document.getElementById('modalTitle').textContent = 'Update Category';
+            document.getElementById('submitBtn').innerHTML = '<i class="bi bi-check2-circle"></i> Update Changes';
+            document.getElementById('action').value = 'update';
+            document.getElementById('categoryId').value = categoryId || '';
+            document.getElementById('categoryName').value = categoryName || '';
+            document.getElementById('categoryStatus').checked = !!categoryStatus;
+            document.getElementById('categoryForm').action = '${pageContext.request.contextPath}/admin/update-category';
+            return;
+        }
+
+        document.getElementById('categoryName').value = categoryName || '';
+        document.getElementById('categoryStatus').checked = categoryStatus !== false;
     }
 
-    <c:if test="${formMode == 'update' and not empty selectedCategory}">
+    function openAddModal() {
+        applyCategoryFormState('add', '', '', true);
+    }
+
     window.addEventListener('load', function () {
-        document.getElementById('modalTitle').textContent = 'Update Category';
-        document.getElementById('submitBtn').innerHTML = '<i class="bi bi-check2-circle"></i> Update Changes';
-        document.getElementById('action').value = 'update';
-        document.getElementById('categoryId').value = '${selectedCategory.categoryId}';
-        document.getElementById('categoryName').value = '${selectedCategory.name}';
-        document.getElementById('categoryStatus').checked = ${selectedCategory.status};
-        document.getElementById('categoryForm').action = '${pageContext.request.contextPath}/admin/update-category';
+        const form = document.getElementById('categoryForm');
+        const formMode = form.getAttribute('data-form-mode');
+
+        if (!formMode) {
+            return;
+        }
+
+        applyCategoryFormState(
+            formMode,
+            form.getAttribute('data-selected-id') || '',
+            form.getAttribute('data-selected-name') || '',
+            form.getAttribute('data-selected-status') === 'true'
+        );
+
         bootstrap.Modal.getOrCreateInstance(document.getElementById('categoryModal')).show();
     });
-    </c:if>
 </script>

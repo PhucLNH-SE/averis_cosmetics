@@ -2,8 +2,8 @@ package DALs;
 
 import Model.Brand;
 import Model.ProductVariant;
-import Model.PurchaseDetail;
-import Model.PurchaseOrder;
+import Model.ImportOrder;
+import Model.ImportOrderDetail;
 import Utils.DBContext;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -65,53 +65,6 @@ public class ImportProductDAO extends DBContext {
         return list;
     }
 
-    public int createPurchaseOrder(Integer supplierId, int adminId, String importCode, String invoiceNo, String note) {
-        int orderId = -1;
-        String sql = "INSERT INTO Import_Order (import_code, supplier_id, created_by, invoice_no, note, created_at, status) "
-                + "VALUES (?, ?, ?, ?, ?, GETDATE(), ?)";
-
-        try {
-            PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-            ps.setString(1, importCode);
-            if (supplierId == null) {
-                ps.setNull(2, java.sql.Types.INTEGER);
-            } else {
-                ps.setInt(2, supplierId);
-            }
-            ps.setInt(3, adminId);
-            ps.setString(4, invoiceNo);
-            ps.setString(5, note);
-            ps.setString(6, "PENDING");
-            ps.executeUpdate();
-
-            ResultSet rs = ps.getGeneratedKeys();
-            if (rs.next()) {
-                orderId = rs.getInt(1);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return orderId;
-    }
-
-    public void insertPurchaseDetail(int orderId, int variantId, int quantity, BigDecimal price) {
-        String sql = "INSERT INTO Import_Order_Detail (import_order_id, variant_id, quantity, import_price, received_quantity) "
-                + "VALUES (?, ?, ?, ?, ?)";
-
-        try {
-            PreparedStatement ps = connection.prepareStatement(sql);
-            ps.setInt(1, orderId);
-            ps.setInt(2, variantId);
-            ps.setInt(3, quantity);
-            ps.setBigDecimal(4, price == null ? BigDecimal.ZERO : price);
-            ps.setNull(5, java.sql.Types.INTEGER);
-            ps.executeUpdate();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
     public void updateStock(int variantId, int quantity, double importPrice) {
         String selectSql = "SELECT stock, avg_cost FROM Product_Variant WHERE variant_id = ?";
         String updateSql = "UPDATE Product_Variant SET stock = ?, avg_cost = ? WHERE variant_id = ?";
@@ -153,79 +106,24 @@ public class ImportProductDAO extends DBContext {
         }
     }
 
-    public void updateTotalAmount(int orderId, BigDecimal total) {
-        String sql = "UPDATE Import_Order SET total_amount = ? WHERE import_order_id = ?";
-
-        try {
-            PreparedStatement ps = connection.prepareStatement(sql);
-            ps.setBigDecimal(1, total == null ? BigDecimal.ZERO : total);
-            ps.setInt(2, orderId);
-            ps.executeUpdate();
-        } catch (Exception e) {
-            e.printStackTrace();
+    public int createPurchaseOrderWithDetails(ImportOrder importOrder) {
+        if (importOrder == null || !importOrder.hasDetails()) {
+            return -1;
         }
-    }
 
-    public int createPurchaseOrderWithDetails(Integer supplierId, int adminId, String importCode, String invoiceNo,
-            String note, List<Integer> variantIds, List<Integer> quantities, List<BigDecimal> prices, BigDecimal total) {
-        int orderId = -1;
         boolean previousAutoCommit = true;
-        String orderSql = "INSERT INTO Import_Order (import_code, supplier_id, created_by, invoice_no, note, created_at, status) "
-                + "VALUES (?, ?, ?, ?, ?, GETDATE(), ?)";
-        String detailSql = "INSERT INTO Import_Order_Detail (import_order_id, variant_id, quantity, import_price, received_quantity) "
-                + "VALUES (?, ?, ?, ?, ?)";
-        String totalSql = "UPDATE Import_Order SET total_amount = ? WHERE import_order_id = ?";
 
         try {
             previousAutoCommit = connection.getAutoCommit();
             connection.setAutoCommit(false);
 
-            try (PreparedStatement orderPs = connection.prepareStatement(orderSql, Statement.RETURN_GENERATED_KEYS)) {
-                orderPs.setString(1, importCode);
-                if (supplierId == null) {
-                    orderPs.setNull(2, java.sql.Types.INTEGER);
-                } else {
-                    orderPs.setInt(2, supplierId);
-                }
-                orderPs.setInt(3, adminId);
-                orderPs.setString(4, invoiceNo);
-                orderPs.setString(5, note);
-                orderPs.setString(6, "PENDING");
-                orderPs.executeUpdate();
-
-                try (ResultSet rs = orderPs.getGeneratedKeys()) {
-                    if (rs.next()) {
-                        orderId = rs.getInt(1);
-                    }
-                }
-            }
-
+            int orderId = insertPurchaseOrder(importOrder);
             if (orderId <= 0) {
                 connection.rollback();
                 return -1;
             }
 
-            try (PreparedStatement detailPs = connection.prepareStatement(detailSql)) {
-                for (int i = 0; i < variantIds.size(); i++) {
-                    detailPs.setInt(1, orderId);
-                    detailPs.setInt(2, variantIds.get(i));
-                    detailPs.setInt(3, quantities.get(i));
-                    detailPs.setBigDecimal(4, prices.get(i) == null ? BigDecimal.ZERO : prices.get(i));
-                    detailPs.setNull(5, java.sql.Types.INTEGER);
-                    detailPs.addBatch();
-                }
-                detailPs.executeBatch();
-            }
-
-            try (PreparedStatement totalPs = connection.prepareStatement(totalSql)) {
-                totalPs.setBigDecimal(1, total == null ? BigDecimal.ZERO : total);
-                totalPs.setInt(2, orderId);
-                int updatedRows = totalPs.executeUpdate();
-                if (updatedRows == 0) {
-                    connection.rollback();
-                    return -1;
-                }
-            }
+            insertPurchaseDetails(orderId, importOrder.getDetails());
 
             connection.commit();
             return orderId;
@@ -246,8 +144,53 @@ public class ImportProductDAO extends DBContext {
         }
     }
 
-    public List<PurchaseOrder> getImportHistory() {
-        List<PurchaseOrder> list = new ArrayList<>();
+    private int insertPurchaseOrder(ImportOrder importOrder) throws SQLException {
+        String sql = "INSERT INTO Import_Order (import_code, supplier_id, created_by, invoice_no, note, total_amount, created_at, status) "
+                + "VALUES (?, ?, ?, ?, ?, ?, GETDATE(), ?)";
+
+        try (PreparedStatement orderPs = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            orderPs.setString(1, importOrder.getImportCode());
+            setNullableInteger(orderPs, 2, importOrder.getSupplierId());
+            orderPs.setInt(3, importOrder.getCreatedBy());
+            orderPs.setString(4, importOrder.getInvoiceNo());
+            orderPs.setString(5, importOrder.getNote());
+            orderPs.setBigDecimal(6, importOrder.getTotalAmount() == null ? BigDecimal.ZERO : importOrder.getTotalAmount());
+            orderPs.setString(7, importOrder.getStatus() == null ? "PENDING" : importOrder.getStatus());
+            orderPs.executeUpdate();
+
+            try (ResultSet rs = orderPs.getGeneratedKeys()) {
+                return rs.next() ? rs.getInt(1) : -1;
+            }
+        }
+    }
+
+    private void insertPurchaseDetails(int orderId, List<ImportOrderDetail> details) throws SQLException {
+        String sql = "INSERT INTO Import_Order_Detail (import_order_id, variant_id, quantity, import_price, received_quantity) "
+                + "VALUES (?, ?, ?, ?, ?)";
+
+        try (PreparedStatement detailPs = connection.prepareStatement(sql)) {
+            for (ImportOrderDetail detail : details) {
+                detailPs.setInt(1, orderId);
+                detailPs.setInt(2, detail.getVariantId());
+                detailPs.setInt(3, detail.getQuantity());
+                detailPs.setBigDecimal(4, detail.getImportPrice() == null ? BigDecimal.ZERO : detail.getImportPrice());
+                detailPs.setNull(5, java.sql.Types.INTEGER);
+                detailPs.addBatch();
+            }
+            detailPs.executeBatch();
+        }
+    }
+
+    private void setNullableInteger(PreparedStatement statement, int parameterIndex, Integer value) throws SQLException {
+        if (value == null) {
+            statement.setNull(parameterIndex, java.sql.Types.INTEGER);
+        } else {
+            statement.setInt(parameterIndex, value);
+        }
+    }
+
+    public List<ImportOrder> getImportHistory() {
+        List<ImportOrder> list = new ArrayList<>();
         String sql = "SELECT po.import_order_id, po.import_code, m.full_name, m.manager_role, "
                 + "s.name AS supplier_name, s.phone AS supplier_phone, s.address AS supplier_address, "
                 + "po.invoice_no, po.note, po.total_amount, po.created_at, po.status, po.received_at, po.received_by, "
@@ -256,14 +199,15 @@ public class ImportProductDAO extends DBContext {
                 + "LEFT JOIN Supplier s ON po.supplier_id = s.supplier_id "
                 + "JOIN Manager m ON po.created_by = m.manager_id "
                 + "LEFT JOIN Manager mr ON po.received_by = mr.manager_id "
-                + "ORDER BY po.import_order_id ASC";
+                + "ORDER BY CASE WHEN po.status = 'PENDING' THEN 0 ELSE 1 END, "
+                + "po.created_at DESC, po.import_order_id DESC";
 
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
             ResultSet rs = ps.executeQuery();
 
             while (rs.next()) {
-                PurchaseOrder po = new PurchaseOrder();
+                ImportOrder po = new ImportOrder();
                 po.setPurchaseOrderId(rs.getInt("import_order_id"));
                 po.setImportCode(rs.getString("import_code"));
                 po.setManagerName(rs.getString("full_name"));
@@ -290,7 +234,7 @@ public class ImportProductDAO extends DBContext {
         return list;
     }
 
-    public PurchaseOrder getImportOrderById(int orderId) {
+    public ImportOrder getImportOrderById(int orderId) {
         String sql = "SELECT po.import_order_id, po.import_code, po.supplier_id, m.full_name, m.manager_role, "
                 + "s.name AS supplier_name, s.phone AS supplier_phone, s.address AS supplier_address, "
                 + "po.invoice_no, po.note, po.total_amount, po.created_at, po.status, po.received_at, po.received_by, "
@@ -305,7 +249,7 @@ public class ImportProductDAO extends DBContext {
             ps.setInt(1, orderId);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    PurchaseOrder po = new PurchaseOrder();
+                    ImportOrder po = new ImportOrder();
                     po.setPurchaseOrderId(rs.getInt("import_order_id"));
                     po.setImportCode(rs.getString("import_code"));
                     po.setSupplierId(rs.getObject("supplier_id", Integer.class));
@@ -334,8 +278,8 @@ public class ImportProductDAO extends DBContext {
         return null;
     }
 
-    public List<PurchaseDetail> getImportOrderDetail(int orderId) {
-        List<PurchaseDetail> list = new ArrayList<>();
+    public List<ImportOrderDetail> getImportOrderDetail(int orderId) {
+        List<ImportOrderDetail> list = new ArrayList<>();
         String sql = "SELECT b.name AS brand_name, p.name AS product_name, pv.variant_name, pod.variant_id, "
                 + "pod.quantity, pod.import_price, pod.received_quantity "
                 + "FROM Import_Order_Detail pod "
@@ -350,7 +294,7 @@ public class ImportProductDAO extends DBContext {
             ResultSet rs = ps.executeQuery();
 
             while (rs.next()) {
-                PurchaseDetail d = new PurchaseDetail();
+                ImportOrderDetail d = new ImportOrderDetail();
                 d.setBrandName(rs.getString("brand_name"));
                 d.setProductName(rs.getString("product_name"));
                 d.setVariantName(rs.getString("variant_name"));
@@ -382,45 +326,6 @@ public class ImportProductDAO extends DBContext {
         return null;
     }
 
-    public List<PurchaseOrder> getPendingImportOrders() {
-        List<PurchaseOrder> list = new ArrayList<>();
-        String sql = "SELECT po.import_order_id, po.import_code, m.full_name, m.manager_role, "
-                + "s.name AS supplier_name, s.phone AS supplier_phone, s.address AS supplier_address, "
-                + "po.invoice_no, po.note, po.total_amount, po.created_at, po.status "
-                + "FROM Import_Order po "
-                + "LEFT JOIN Supplier s ON po.supplier_id = s.supplier_id "
-                + "JOIN Manager m ON po.created_by = m.manager_id "
-                + "WHERE po.status = 'PENDING' "
-                + "ORDER BY po.created_at DESC";
-
-        try {
-            PreparedStatement ps = connection.prepareStatement(sql);
-            ResultSet rs = ps.executeQuery();
-
-            while (rs.next()) {
-                PurchaseOrder po = new PurchaseOrder();
-                po.setPurchaseOrderId(rs.getInt("import_order_id"));
-                po.setImportCode(rs.getString("import_code"));
-                po.setManagerName(rs.getString("full_name"));
-                po.setManagerRole(rs.getString("manager_role"));
-                po.setSupplierName(rs.getString("supplier_name"));
-                po.setSupplierPhone(rs.getString("supplier_phone"));
-                po.setSupplierAddress(rs.getString("supplier_address"));
-                po.setInvoiceNo(rs.getString("invoice_no"));
-                po.setNote(rs.getString("note"));
-                po.setTotalAmount(rs.getBigDecimal("total_amount"));
-                Timestamp createdAt = rs.getTimestamp("created_at");
-                po.setCreatedAt(createdAt == null ? null : createdAt.toLocalDateTime());
-                po.setStatus(rs.getString("status"));
-                list.add(po);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return list;
-    }
-
     public boolean confirmReceipt(int orderId, int staffId, int[] variantIds, int[] receivedQuantities) {
         String selectDetailsSql = "SELECT variant_id, quantity, import_price FROM Import_Order_Detail WHERE import_order_id = ?";
         String updateDetailSql = "UPDATE Import_Order_Detail SET received_quantity = ? WHERE import_order_id = ? AND variant_id = ?";
@@ -428,7 +333,7 @@ public class ImportProductDAO extends DBContext {
 
         boolean previousAutoCommit = true;
         BigDecimal total = BigDecimal.ZERO;
-        List<PurchaseDetail> details = new ArrayList<>();
+        List<ImportOrderDetail> details = new ArrayList<>();
 
         try {
             previousAutoCommit = connection.getAutoCommit();
@@ -438,7 +343,7 @@ public class ImportProductDAO extends DBContext {
                 selectDetailsPs.setInt(1, orderId);
                 try (ResultSet rs = selectDetailsPs.executeQuery()) {
                     while (rs.next()) {
-                        PurchaseDetail detail = new PurchaseDetail();
+                ImportOrderDetail detail = new ImportOrderDetail();
                         detail.setVariantId(rs.getInt("variant_id"));
                         detail.setQuantity(rs.getInt("quantity"));
                         detail.setImportPrice(rs.getBigDecimal("import_price"));
@@ -453,7 +358,7 @@ public class ImportProductDAO extends DBContext {
             }
 
             try (PreparedStatement updateDetailPs = connection.prepareStatement(updateDetailSql)) {
-                for (PurchaseDetail detail : details) {
+        for (ImportOrderDetail detail : details) {
                     int receivedQty = resolveReceivedQuantity(detail.getVariantId(), detail.getQuantity(), variantIds, receivedQuantities);
                     BigDecimal importPrice = detail.getImportPrice() == null ? BigDecimal.ZERO : detail.getImportPrice();
                     updateDetailPs.setInt(1, receivedQty);

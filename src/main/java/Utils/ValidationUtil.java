@@ -1,8 +1,13 @@
 package Utils;
 
+import Model.ImportOrder;
+import Model.ImportOrderDetail;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import org.mindrot.jbcrypt.BCrypt;
 
@@ -21,7 +26,14 @@ public class ValidationUtil {
     private static final String FULL_NAME_REGEX
             = "^[A-Za-zÀ-Ỵà-ỵ]+(?: [A-Za-zÀ-Ỵà-ỵ]+)*$";
 
-    //PhucLNH Login - Vadidate input data when login
+   
+    private static final BigInteger MAX_INTEGER_VALUE = BigInteger.valueOf(Integer.MAX_VALUE);
+    private static final String IMPORT_SUPPLIER_REQUIRED_MESSAGE = "Please select a supplier.";
+    private static final String IMPORT_ITEMS_REQUIRED_MESSAGE = "Please add at least one import item.";
+    private static final String IMPORT_ITEM_INVALID_MESSAGE = "Please enter valid quantity and import price for each selected item.";
+    private static final String IMPORT_VALID_ITEM_REQUIRED_MESSAGE = "Please add at least one valid import item.";
+    private static final String IMPORT_TOTAL_LIMIT_MESSAGE = "Total amount cannot exceed 9,999,999,999 VND.";
+     //PhucLNH Login - Vadidate input data when login
     public static Map<String, String> validateLogin(String username, String password) {
 
         Map<String, String> errors = new HashMap<>();
@@ -303,6 +315,126 @@ public class ValidationUtil {
 
         throw new IllegalArgumentException(
                 "Unsupported order status for a COD order with payment status FAILED: " + orderStatus + ".");
+    }
+
+    public static void validateImportOrderInput(String supplierIdRaw, String[] variantIds, String[] quantities, String[] prices) {
+        if (!hasText(supplierIdRaw)) {
+            throw new IllegalArgumentException(IMPORT_SUPPLIER_REQUIRED_MESSAGE);
+        }
+
+        if (variantIds == null || quantities == null || prices == null) {
+            throw new IllegalArgumentException(IMPORT_ITEMS_REQUIRED_MESSAGE);
+        }
+    }
+
+    public static void validateImportItemInput(String variantIdRaw, String quantityRaw, String priceRaw) {
+        boolean hasVariant = hasText(variantIdRaw);
+        boolean hasQuantity = hasText(quantityRaw);
+        boolean hasPrice = hasText(priceRaw);
+
+        if (!hasQuantity && !hasPrice) {
+            return;
+        }
+
+        if (!hasVariant || hasQuantity != hasPrice) {
+            throw new IllegalArgumentException(IMPORT_ITEM_INVALID_MESSAGE);
+        }
+    }
+
+    public static Integer parseImportSupplierId(String rawValue) {
+        return parseIntegerValue(rawValue, IMPORT_SUPPLIER_REQUIRED_MESSAGE);
+    }
+
+    public static int parseImportVariantId(String rawValue) {
+        return parseIntegerValue(rawValue, IMPORT_ITEM_INVALID_MESSAGE);
+    }
+
+    public static int parseImportQuantity(String rawValue) {
+        return parseQuantityValue(rawValue, IMPORT_ITEM_INVALID_MESSAGE);
+    }
+
+    public static BigDecimal parseImportPrice(String rawValue) {
+        return parseWholeNumberAmount(rawValue, IMPORT_ITEM_INVALID_MESSAGE);
+    }
+
+    public static int parseQuantityValue(String rawValue, String errorMessage) {
+        if (rawValue == null) {
+            throw new IllegalArgumentException(errorMessage);
+        }
+
+        String cleaned = rawValue.replace(",", "").trim().replaceAll("\\s+", "");
+        if (cleaned.isEmpty() || !cleaned.matches("\\d+")) {
+            throw new IllegalArgumentException(errorMessage);
+        }
+
+        BigInteger quantityValue = new BigInteger(cleaned);
+        if (quantityValue.compareTo(MAX_INTEGER_VALUE) > 0) {
+            throw new IllegalArgumentException(errorMessage);
+        }
+
+        return quantityValue.intValue();
+    }
+
+    public static BigDecimal parseWholeNumberAmount(String rawValue, String errorMessage) {
+        if (rawValue == null) {
+            throw new IllegalArgumentException(errorMessage);
+        }
+
+        String cleaned = rawValue.replace(",", "").trim();
+        int decimalIndex = cleaned.indexOf('.');
+        if (decimalIndex >= 0) {
+            String fractional = cleaned.substring(decimalIndex + 1);
+            if (!fractional.replace("0", "").isEmpty()) {
+                throw new IllegalArgumentException(errorMessage);
+            }
+            cleaned = cleaned.substring(0, decimalIndex);
+        }
+
+        cleaned = cleaned.replaceAll("\\s+", "");
+        if (cleaned.isEmpty() || !cleaned.matches("\\d+")) {
+            throw new IllegalArgumentException(errorMessage);
+        }
+
+        return new BigDecimal(cleaned);
+    }
+
+    public static boolean isValidImportItem(ImportOrderDetail detail) {
+        return detail != null
+                && detail.getQuantity() > 0
+                && detail.getImportPrice() != null
+                && detail.getImportPrice().compareTo(BigDecimal.ZERO) > 0;
+    }
+
+    public static void validateImportOrder(ImportOrder importOrder, BigDecimal maxTotalAmount) {
+        if (importOrder == null || importOrder.getSupplierId() == null) {
+            throw new IllegalArgumentException(IMPORT_SUPPLIER_REQUIRED_MESSAGE);
+        }
+
+        List<ImportOrderDetail> details = importOrder.getDetails();
+        if (details == null || details.isEmpty()) {
+            throw new IllegalArgumentException(IMPORT_VALID_ITEM_REQUIRED_MESSAGE);
+        }
+
+        for (ImportOrderDetail detail : details) {
+            if (!isValidImportItem(detail)) {
+                throw new IllegalArgumentException(IMPORT_VALID_ITEM_REQUIRED_MESSAGE);
+            }
+        }
+
+        BigDecimal totalAmount = importOrder.getTotalAmount() == null
+                ? importOrder.calculateTotalAmount()
+                : importOrder.getTotalAmount();
+        if (maxTotalAmount != null && totalAmount.compareTo(maxTotalAmount) > 0) {
+            throw new IllegalArgumentException(IMPORT_TOTAL_LIMIT_MESSAGE);
+        }
+    }
+
+    private static boolean hasText(String value) {
+        return value != null && !value.trim().isEmpty();
+    }
+
+    private static Integer parseIntegerValue(String rawValue, String errorMessage) {
+        return Integer.valueOf(parseQuantityValue(rawValue, errorMessage));
     }
 
     public boolean checkLogin(String inputPassword, String storedPassword) {
