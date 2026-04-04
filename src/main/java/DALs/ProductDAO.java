@@ -17,44 +17,6 @@ import java.util.Map;
 
 public class ProductDAO extends DBContext {
 
-    public List<String> getAllBrandNames() {
-        List<String> brands = new ArrayList<>();
-        String sql = "SELECT DISTINCT name FROM Brand WHERE status = 1 ORDER BY name ASC";
-
-        try (PreparedStatement ps = connection.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) {
-                String brandName = rs.getString("name");
-                if (brandName != null && !brandName.trim().isEmpty()) {
-                    brands.add(brandName);
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return brands;
-    }
-
-    public List<String> getAllCategoryNames() {
-        List<String> categories = new ArrayList<>();
-        String sql = "SELECT DISTINCT name FROM Category WHERE status = 1 ORDER BY name ASC";
-
-        try (PreparedStatement ps = connection.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) {
-                String categoryName = rs.getString("name");
-                if (categoryName != null && !categoryName.trim().isEmpty()) {
-                    categories.add(categoryName);
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return categories;
-    }
-
     public List<Product> getAllProducts() {
         List<Product> list = new ArrayList<>();
         String sql = "SELECT "

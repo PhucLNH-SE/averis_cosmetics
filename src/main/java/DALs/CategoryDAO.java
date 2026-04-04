@@ -9,6 +9,25 @@ import java.util.List;
 
 public class CategoryDAO extends DBContext {
 
+    public List<String> getActiveCategoryNames() {
+        List<String> categoryNames = new ArrayList<>();
+        String sql = "SELECT name FROM Category WHERE status = 1 ORDER BY name ASC";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                String categoryName = rs.getString("name");
+                if (categoryName != null && !categoryName.trim().isEmpty()) {
+                    categoryNames.add(categoryName);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return categoryNames;
+    }
+
     public List<Category> getAllCategories() {
         List<Category> categories = new ArrayList<>();
         String sql = "SELECT category_id, name, status FROM Category ORDER BY category_id ASC";

@@ -184,11 +184,13 @@
                                                     <c:when test="${not empty claimedVoucherIds and claimedVoucherIds[v.voucherId]}">
                                                         <span class="free-voucher-pill">Already in My Voucher</span>
                                                     </c:when>
-                                                    <c:when test="${not empty sessionScope.customer}">
-                                                        <form method="post" action="${pageContext.request.contextPath}/voucher-free" class="free-voucher-claim-form">
-                                                            <input type="hidden" name="voucherCode" value="${v.code}">
-                                                            <button type="submit" class="free-voucher-btn">Claim Voucher</button>
-                                                        </form>
+	                                                    <c:when test="${not empty sessionScope.customer}">
+	                                                        <form method="post" action="${pageContext.request.contextPath}/voucher-free" class="free-voucher-claim-form">
+	                                                            <input type="hidden" name="action" value="claim">
+	                                                            <input type="hidden" name="source" value="voucher-free">
+	                                                            <input type="hidden" name="voucherCode" value="${v.code}">
+	                                                            <button type="submit" class="free-voucher-btn">Claim Voucher</button>
+	                                                        </form>
                                                     </c:when>
                                                     <c:otherwise>
                                                         <a class="free-voucher-login" href="${pageContext.request.contextPath}/login">Login to Claim</a>

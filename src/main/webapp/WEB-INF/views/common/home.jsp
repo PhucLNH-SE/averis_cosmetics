@@ -104,11 +104,12 @@
 
                                     <div class="home-voucher-card__actions">
                                         <c:choose>
-                                            <c:when test="${not empty sessionScope.customer}">
-                                                <form action="${pageContext.request.contextPath}/voucher-free" method="post" class="home-voucher-card__form">
-                                                    <input type="hidden" name="voucherCode" value="${voucher.code}">
-                                                    <input type="hidden" name="source" value="home">
-                                                    <button type="submit" class="home-voucher-card__btn">
+	                                            <c:when test="${not empty sessionScope.customer}">
+	                                                <form action="${pageContext.request.contextPath}/voucher-free" method="post" class="home-voucher-card__form">
+	                                                    <input type="hidden" name="action" value="claim">
+	                                                    <input type="hidden" name="voucherCode" value="${voucher.code}">
+	                                                    <input type="hidden" name="source" value="home">
+	                                                    <button type="submit" class="home-voucher-card__btn">
                                                         Claim now
                                                     </button>
                                                 </form>

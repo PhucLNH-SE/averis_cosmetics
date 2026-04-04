@@ -16,27 +16,60 @@ import java.util.Map;
 
 public class VoucherController extends HttpServlet {
 
-    private VoucherDAO voucherDAO;
-
-    @Override
-    public void init() throws ServletException {
-        voucherDAO = new VoucherDAO();
-    }
-
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        if (isFreeVoucherRoute(request)) {
-            showFreeVoucherPage(request, response);
-            return;
+        VoucherDAO voucherDAO = new VoucherDAO();
+        String action = request.getParameter("action");
+
+        if (action == null || action.trim().isEmpty()) {
+            switch (request.getServletPath()) {
+                case "/voucher-free":
+                    action = "view";
+                    break;
+                case "/my-voucher":
+                default:
+                    action = "redirectProfile";
+                    break;
+            }
+        } else {
+            action = action.trim();
         }
 
-        response.sendRedirect(request.getContextPath() + "/profile?action=view&tab=voucher");
+        switch (action) {
+            case "view":
+                showFreeVoucherPage(request, response, voucherDAO);
+                break;
+            default:
+                response.sendRedirect(request.getContextPath() + "/profile?action=view&tab=voucher");
+                break;
+        }
     }
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        VoucherDAO voucherDAO = new VoucherDAO();
+        String action = request.getParameter("action");
+
+        if (action == null || action.trim().isEmpty()) {
+            action = "claim";
+        } else {
+            action = action.trim();
+        }
+
+        switch (action) {
+            case "claim":
+                handleClaimVoucher(request, response, voucherDAO);
+                break;
+            default:
+                response.sendRedirect(request.getContextPath() + "/profile?action=view&tab=voucher");
+                break;
+        }
+    }
+
+    private void handleClaimVoucher(HttpServletRequest request, HttpServletResponse response, VoucherDAO voucherDAO)
+            throws IOException {
         HttpSession session = request.getSession(false);
         Customer customer = session == null ? null : (Customer) session.getAttribute("customer");
 
@@ -59,7 +92,7 @@ public class VoucherController extends HttpServlet {
         response.sendRedirect(buildVoucherRedirect(request, "error", result));
     }
 
-    private void showFreeVoucherPage(HttpServletRequest request, HttpServletResponse response)
+    private void showFreeVoucherPage(HttpServletRequest request, HttpServletResponse response, VoucherDAO voucherDAO)
             throws ServletException, IOException {
         voucherDAO.expireOutdatedVouchers();
         List<Voucher> freeVouchers = voucherDAO.getFreeVouchers();
@@ -75,26 +108,26 @@ public class VoucherController extends HttpServlet {
         request.getRequestDispatcher("/WEB-INF/views/customer/voucherfree.jsp").forward(request, response);
     }
 
-    private boolean isFreeVoucherRoute(HttpServletRequest request) {
-        return "/voucher-free".equals(request.getServletPath());
-    }
-
     private String buildVoucherRedirect(HttpServletRequest request, String paramName, String value) {
-        String source = request.getParameter("source");
-        String baseUrl;
-        if ("home".equalsIgnoreCase(source)) {
-            baseUrl = request.getContextPath() + "/home";
-        } else if (isFreeVoucherRoute(request)) {
-            baseUrl = request.getContextPath() + "/voucher-free";
-        } else {
-            baseUrl = request.getContextPath() + "/profile?action=view&tab=voucher";
-        }
-
+        String baseUrl = getVoucherRedirectBaseUrl(request);
         return baseUrl
                 + (baseUrl.contains("?") ? "&" : "?")
-                + ("home".equalsIgnoreCase(source) ? "voucherPopup=1&" : "")
                 + paramName
                 + "="
                 + URLEncoder.encode(value, StandardCharsets.UTF_8);
+    }
+
+    private String getVoucherRedirectBaseUrl(HttpServletRequest request) {
+        String source = request.getParameter("source");
+
+        switch (source == null ? "" : source.trim()) {
+            case "home":
+                return request.getContextPath() + "/home?voucherPopup=1";
+            case "voucher-free":
+                return request.getContextPath() + "/voucher-free";
+            case "profile":
+            default:
+                return request.getContextPath() + "/profile?action=view&tab=voucher";
+        }
     }
 }
