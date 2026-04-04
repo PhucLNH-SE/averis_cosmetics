@@ -40,10 +40,10 @@ public class MailUtil {
         return loaded;
     }
 
-    public static void sendVerificationEmail(String toEmail, String verifyLink) {
+    public static boolean sendVerificationEmail(String toEmail, String verifyLink) {
         if (!loaded) {
             System.out.println("MailUtil: mail.properties is not configured (mail.from, mail.password). Skipping email.");
-            return;
+            return false;
         }
         try {
             Session session = Session.getInstance(smtpProps, new Authenticator() {
@@ -65,8 +65,10 @@ public class MailUtil {
                     "UTF-8"
             );
             Transport.send(msg);
+            return true;
         } catch (Exception e) {
             e.printStackTrace();
+            return false;
         }
     }
 

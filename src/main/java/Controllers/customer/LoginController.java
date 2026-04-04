@@ -14,17 +14,11 @@ import org.mindrot.jbcrypt.BCrypt;
 
 public class LoginController extends HttpServlet {
 
-    private CustomerDAO customerDAO;
-
-    @Override
-    public void init() throws ServletException {
-        customerDAO = new CustomerDAO();
-    }
+    private CustomerDAO customerDAO = new CustomerDAO();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        consumeLoginFlashMessage(request.getSession(false), request);
         request.getRequestDispatcher("/WEB-INF/views/customer/auth/login.jsp")
                 .forward(request, response);
     }
@@ -74,27 +68,5 @@ public class LoginController extends HttpServlet {
         request.setAttribute("popupType", "error");
         request.getRequestDispatcher("/WEB-INF/views/customer/auth/login.jsp")
                 .forward(request, response);
-    }
-
-    private void consumeLoginFlashMessage(HttpSession session, HttpServletRequest request) {
-        if (session == null) {
-            return;
-        }
-
-        Object popupMessage = session.getAttribute("loginPopupMessage");
-        if (popupMessage == null) {
-            return;
-        }
-
-        request.setAttribute("popupMessage", popupMessage);
-        request.setAttribute(
-                "popupType",
-                session.getAttribute("loginPopupType") != null
-                        ? session.getAttribute("loginPopupType")
-                        : "success"
-        );
-
-        session.removeAttribute("loginPopupMessage");
-        session.removeAttribute("loginPopupType");
     }
 }

@@ -26,13 +26,14 @@ public class ValidationUtil {
     private static final String FULL_NAME_REGEX
             = "^[A-Za-zÀ-Ỵà-ỵ]+(?: [A-Za-zÀ-Ỵà-ỵ]+)*$";
 
+   
     private static final BigInteger MAX_INTEGER_VALUE = BigInteger.valueOf(Integer.MAX_VALUE);
     private static final String IMPORT_SUPPLIER_REQUIRED_MESSAGE = "Please select a supplier.";
     private static final String IMPORT_ITEMS_REQUIRED_MESSAGE = "Please add at least one import item.";
     private static final String IMPORT_ITEM_INVALID_MESSAGE = "Please enter valid quantity and import price for each selected item.";
     private static final String IMPORT_VALID_ITEM_REQUIRED_MESSAGE = "Please add at least one valid import item.";
     private static final String IMPORT_TOTAL_LIMIT_MESSAGE = "Total amount cannot exceed 9,999,999,999 VND.";
-
+     //PhucLNH Login - Vadidate input data when login
     public static Map<String, String> validateLogin(String username, String password) {
 
         Map<String, String> errors = new HashMap<>();
@@ -48,6 +49,7 @@ public class ValidationUtil {
         return errors;
     }
 
+    //PhucLNH Register - Vadidate input data when register
     public static Map<String, String> validateRegistration(String username,
             String fullName,
             String email,
@@ -117,201 +119,204 @@ public class ValidationUtil {
 
         return errors;
     }
+
     public static Map<String, String> validateEditProfile(
-        String fullName,
-        String gender,
-        String dateOfBirthStr) {
+            String fullName,
+            String gender,
+            String dateOfBirthStr) {
 
-    Map<String, String> errors = new HashMap<>();
+        Map<String, String> errors = new HashMap<>();
 
-    if (fullName == null || fullName.trim().isEmpty()) {
-        errors.put("errorFullName", "Full name is required.");
-    } else if (!fullName.trim().matches(FULL_NAME_REGEX)) {
-        errors.put("errorFullName", "Full name must contain only letters and spaces.");
-    }
-
-    if (gender == null || gender.trim().isEmpty()) {
-        errors.put("errorGender", "Gender is required.");
-    } else {
-        String normalizedGender = gender.trim().toUpperCase();
-        if (!"MALE".equals(normalizedGender)
-                && !"FEMALE".equals(normalizedGender)
-                && !"OTHER".equals(normalizedGender)) {
-            errors.put("errorGender", "Please select a valid gender.");
+        if (fullName == null || fullName.trim().isEmpty()) {
+            errors.put("errorFullName", "Full name is required.");
+        } else if (!fullName.trim().matches(FULL_NAME_REGEX)) {
+            errors.put("errorFullName", "Full name must contain only letters and spaces.");
         }
-    }
 
-    if (dateOfBirthStr == null || dateOfBirthStr.trim().isEmpty()) {
-        errors.put("errorDateOfBirth", "Date of birth is required.");
-    } else {
-        try {
-            LocalDate dob = LocalDate.parse(dateOfBirthStr.trim());
-            LocalDate today = LocalDate.now();
-
-            if (dob.isAfter(today)) {
-                errors.put("errorDateOfBirth", "Date of birth cannot be in the future.");
-            } else if (dob.isBefore(LocalDate.of(1900, 1, 1))) {
-                errors.put("errorDateOfBirth", "Date of birth cannot be earlier than 1900.");
-            } else if (Period.between(dob, today).getYears() < 13) {
-                errors.put("errorDateOfBirth", "You must be at least 13 years old.");
+        if (gender == null || gender.trim().isEmpty()) {
+            errors.put("errorGender", "Gender is required.");
+        } else {
+            String normalizedGender = gender.trim().toUpperCase();
+            if (!"MALE".equals(normalizedGender)
+                    && !"FEMALE".equals(normalizedGender)
+                    && !"OTHER".equals(normalizedGender)) {
+                errors.put("errorGender", "Please select a valid gender.");
             }
-        } catch (Exception e) {
-            errors.put("errorDateOfBirth", "Please enter a valid date of birth.");
         }
+
+        if (dateOfBirthStr == null || dateOfBirthStr.trim().isEmpty()) {
+            errors.put("errorDateOfBirth", "Date of birth is required.");
+        } else {
+            try {
+                LocalDate dob = LocalDate.parse(dateOfBirthStr.trim());
+                LocalDate today = LocalDate.now();
+
+                if (dob.isAfter(today)) {
+                    errors.put("errorDateOfBirth", "Date of birth cannot be in the future.");
+                } else if (dob.isBefore(LocalDate.of(1900, 1, 1))) {
+                    errors.put("errorDateOfBirth", "Date of birth cannot be earlier than 1900.");
+                } else if (Period.between(dob, today).getYears() < 13) {
+                    errors.put("errorDateOfBirth", "You must be at least 13 years old.");
+                }
+            } catch (Exception e) {
+                errors.put("errorDateOfBirth", "Please enter a valid date of birth.");
+            }
+        }
+
+        return errors;
     }
 
-    return errors;
-}
     public static Map<String, String> validateResetPassword(
-        String password,
-        String confirmPassword
-) {
+            String password,
+            String confirmPassword
+    ) {
 
-    Map<String, String> errors = new HashMap<>();
+        Map<String, String> errors = new HashMap<>();
 
-    if (password == null || password.trim().isEmpty()) {
-        errors.put("errorPassword", "Password is required.");
-    } else if (!password.matches(PASSWORD_REGEX)) {
-        errors.put("errorPassword",
-                "Password must be at least 8 characters, include uppercase, lowercase, number and special character.");
+        if (password == null || password.trim().isEmpty()) {
+            errors.put("errorPassword", "Password is required.");
+        } else if (!password.matches(PASSWORD_REGEX)) {
+            errors.put("errorPassword",
+                    "Password must be at least 8 characters, include uppercase, lowercase, number and special character.");
+        }
+
+        return errors;
     }
 
-  
-   return errors;
-}
-public static void validateCodStatus(String paymentMethod, String paymentStatus, String orderStatus) {
-    if (paymentMethod == null || paymentStatus == null || orderStatus == null) {
-        throw new IllegalArgumentException("Unable to validate COD order status because the payment method, payment status, or order status is missing.");
+    public static void validateCodStatus(String paymentMethod, String paymentStatus, String orderStatus) {
+        if (paymentMethod == null || paymentStatus == null || orderStatus == null) {
+            throw new IllegalArgumentException("Unable to validate COD order status because the payment method, payment status, or order status is missing.");
+        }
+
+        String normalizedPaymentMethod = paymentMethod.trim().toUpperCase();
+        String normalizedPaymentStatus = paymentStatus.trim().toUpperCase();
+        String normalizedOrderStatus = normalizeOrderStatus(orderStatus);
+
+        if (!"COD".equals(normalizedPaymentMethod)) {
+            throw new IllegalArgumentException("COD validation rules can only be applied to orders that use the COD payment method.");
+        }
+
+        switch (normalizedPaymentStatus) {
+            case "PENDING":
+                validateCodPending(normalizedOrderStatus);
+                break;
+            case "SUCCESS":
+                validateCodSuccess(normalizedOrderStatus);
+                break;
+            case "FAILED":
+                validateCodFailed(normalizedOrderStatus);
+                break;
+            default:
+                throw new IllegalArgumentException("Unsupported payment status for COD orders: " + normalizedPaymentStatus + ".");
+        }
     }
 
-    String normalizedPaymentMethod = paymentMethod.trim().toUpperCase();
-    String normalizedPaymentStatus = paymentStatus.trim().toUpperCase();
-    String normalizedOrderStatus = normalizeOrderStatus(orderStatus);
+    public static void validateOrderStatusTransition(String currentOrderStatus, String newOrderStatus) {
+        if (currentOrderStatus == null || newOrderStatus == null) {
+            throw new IllegalArgumentException("Unable to update the order because the current status or target status is missing.");
+        }
 
-    if (!"COD".equals(normalizedPaymentMethod)) {
-        throw new IllegalArgumentException("COD validation rules can only be applied to orders that use the COD payment method.");
+        String normalizedCurrentStatus = normalizeOrderStatus(currentOrderStatus);
+        String normalizedNewStatus = normalizeOrderStatus(newOrderStatus);
+
+        if (normalizedCurrentStatus.equals(normalizedNewStatus)) {
+            return;
+        }
+
+        switch (normalizedCurrentStatus) {
+            case "CREATED":
+                if ("PROCESSING".equals(normalizedNewStatus) || "CANCELLED".equals(normalizedNewStatus)) {
+                    return;
+                }
+                throw new IllegalArgumentException("Invalid status transition from CREATED to " + normalizedNewStatus
+                        + ". Orders in CREATED status may only be updated to PROCESSING or CANCELLED.");
+            case "PROCESSING":
+                if ("SHIPPING".equals(normalizedNewStatus) || "CANCELLED".equals(normalizedNewStatus)) {
+                    return;
+                }
+                throw new IllegalArgumentException("Invalid status transition from PROCESSING to " + normalizedNewStatus
+                        + ". Orders in PROCESSING status may only be updated to SHIPPING or CANCELLED.");
+            case "SHIPPING":
+                if ("COMPLETED".equals(normalizedNewStatus) || "CANCELLED".equals(normalizedNewStatus)) {
+                    return;
+                }
+                throw new IllegalArgumentException("Invalid status transition from SHIPPING to " + normalizedNewStatus
+                        + ". Orders in SHIPPING status may only be updated to COMPLETED or CANCELLED.");
+            case "COMPLETED":
+                throw new IllegalArgumentException("The order is already in COMPLETED status. This is a final status and cannot be changed.");
+            case "CANCELLED":
+                throw new IllegalArgumentException("The order is already CANCELLED and cannot be updated to any other status.");
+            default:
+                throw new IllegalArgumentException("Unsupported current order status: " + normalizedCurrentStatus + ".");
+        }
     }
 
-    switch (normalizedPaymentStatus) {
-        case "PENDING":
-            validateCodPending(normalizedOrderStatus);
-            break;
-        case "SUCCESS":
-            validateCodSuccess(normalizedOrderStatus);
-            break;
-        case "FAILED":
-            validateCodFailed(normalizedOrderStatus);
-            break;
-        default:
-            throw new IllegalArgumentException("Unsupported payment status for COD orders: " + normalizedPaymentStatus + ".");
-    }
-}
-
-public static void validateOrderStatusTransition(String currentOrderStatus, String newOrderStatus) {
-    if (currentOrderStatus == null || newOrderStatus == null) {
-        throw new IllegalArgumentException("Unable to update the order because the current status or target status is missing.");
+    private static String normalizeOrderStatus(String orderStatus) {
+        String normalizedOrderStatus = orderStatus.trim().toUpperCase();
+        if ("CANCELED".equals(normalizedOrderStatus)) {
+            return "CANCELLED";
+        }
+        return normalizedOrderStatus;
     }
 
-    String normalizedCurrentStatus = normalizeOrderStatus(currentOrderStatus);
-    String normalizedNewStatus = normalizeOrderStatus(newOrderStatus);
+    private static void validateCodPending(String orderStatus) {
+        if ("CREATED".equals(orderStatus)
+                || "PROCESSING".equals(orderStatus)
+                || "SHIPPING".equals(orderStatus)
+                || "CANCELLED".equals(orderStatus)) {
+            return;
+        }
 
-    if (normalizedCurrentStatus.equals(normalizedNewStatus)) {
-        return;
-    }
+        if ("COMPLETED".equals(orderStatus)) {
+            throw new IllegalArgumentException(
+                    "A COD order with payment status PENDING cannot be marked as COMPLETED because payment has not been received yet.");
+        }
 
-    switch (normalizedCurrentStatus) {
-        case "CREATED":
-            if ("PROCESSING".equals(normalizedNewStatus) || "CANCELLED".equals(normalizedNewStatus)) {
-                return;
-            }
-            throw new IllegalArgumentException("Invalid status transition from CREATED to " + normalizedNewStatus
-                    + ". Orders in CREATED status may only be updated to PROCESSING or CANCELLED.");
-        case "PROCESSING":
-            if ("SHIPPING".equals(normalizedNewStatus) || "CANCELLED".equals(normalizedNewStatus)) {
-                return;
-            }
-            throw new IllegalArgumentException("Invalid status transition from PROCESSING to " + normalizedNewStatus
-                    + ". Orders in PROCESSING status may only be updated to SHIPPING or CANCELLED.");
-        case "SHIPPING":
-            if ("COMPLETED".equals(normalizedNewStatus) || "CANCELLED".equals(normalizedNewStatus)) {
-                return;
-            }
-            throw new IllegalArgumentException("Invalid status transition from SHIPPING to " + normalizedNewStatus
-                    + ". Orders in SHIPPING status may only be updated to COMPLETED or CANCELLED.");
-        case "COMPLETED":
-            throw new IllegalArgumentException("The order is already in COMPLETED status. This is a final status and cannot be changed.");
-        case "CANCELLED":
-            throw new IllegalArgumentException("The order is already CANCELLED and cannot be updated to any other status.");
-        default:
-            throw new IllegalArgumentException("Unsupported current order status: " + normalizedCurrentStatus + ".");
-    }
-}
-
-private static String normalizeOrderStatus(String orderStatus) {
-    String normalizedOrderStatus = orderStatus.trim().toUpperCase();
-    if ("CANCELED".equals(normalizedOrderStatus)) {
-        return "CANCELLED";
-    }
-    return normalizedOrderStatus;
-}
-
-private static void validateCodPending(String orderStatus) {
-    if ("CREATED".equals(orderStatus) ||
-        "PROCESSING".equals(orderStatus) ||
-        "SHIPPING".equals(orderStatus) ||
-        "CANCELLED".equals(orderStatus)) {
-        return;
-    }
-
-    if ("COMPLETED".equals(orderStatus)) {
         throw new IllegalArgumentException(
-                "A COD order with payment status PENDING cannot be marked as COMPLETED because payment has not been received yet.");
+                "Unsupported order status for a COD order with payment status PENDING: " + orderStatus + ".");
     }
 
-    throw new IllegalArgumentException(
-            "Unsupported order status for a COD order with payment status PENDING: " + orderStatus + ".");
-}
+    private static void validateCodSuccess(String orderStatus) {
+        if ("SHIPPING".equals(orderStatus) || "COMPLETED".equals(orderStatus)) {
+            return;
+        }
 
-private static void validateCodSuccess(String orderStatus) {
-    if ("SHIPPING".equals(orderStatus) || "COMPLETED".equals(orderStatus)) {
-        return;
-    }
+        if ("CREATED".equals(orderStatus)) {
+            throw new IllegalArgumentException(
+                    "A COD order with payment status SUCCESS cannot be moved back to CREATED.");
+        }
 
-    if ("CREATED".equals(orderStatus)) {
+        if ("PROCESSING".equals(orderStatus)) {
+            throw new IllegalArgumentException(
+                    "A COD order with payment status SUCCESS cannot remain in PROCESSING.");
+        }
+
+        if ("CANCELLED".equals(orderStatus)) {
+            throw new IllegalArgumentException(
+                    "A COD order with payment status SUCCESS cannot be marked as CANCELLED.");
+        }
+
         throw new IllegalArgumentException(
-                "A COD order with payment status SUCCESS cannot be moved back to CREATED.");
+                "Unsupported order status for a COD order with payment status SUCCESS: " + orderStatus + ".");
     }
 
-    if ("PROCESSING".equals(orderStatus)) {
+    private static void validateCodFailed(String orderStatus) {
+        if ("CANCELLED".equals(orderStatus)) {
+            return;
+        }
+
+        if ("CREATED".equals(orderStatus)
+                || "PROCESSING".equals(orderStatus)
+                || "SHIPPING".equals(orderStatus)
+                || "COMPLETED".equals(orderStatus)) {
+            throw new IllegalArgumentException(
+                    "A COD order with payment status FAILED may only have the CANCELLED order status.");
+        }
+
         throw new IllegalArgumentException(
-                "A COD order with payment status SUCCESS cannot remain in PROCESSING.");
+                "Unsupported order status for a COD order with payment status FAILED: " + orderStatus + ".");
     }
 
-    if ("CANCELLED".equals(orderStatus)) {
-        throw new IllegalArgumentException(
-                "A COD order with payment status SUCCESS cannot be marked as CANCELLED.");
-    }
-
-    throw new IllegalArgumentException(
-            "Unsupported order status for a COD order with payment status SUCCESS: " + orderStatus + ".");
-}
-
-private static void validateCodFailed(String orderStatus) {
-    if ("CANCELLED".equals(orderStatus)) {
-        return;
-    }
-
-    if ("CREATED".equals(orderStatus) ||
-        "PROCESSING".equals(orderStatus) ||
-        "SHIPPING".equals(orderStatus) ||
-        "COMPLETED".equals(orderStatus)) {
-        throw new IllegalArgumentException(
-                "A COD order with payment status FAILED may only have the CANCELLED order status.");
-    }
-
-    throw new IllegalArgumentException(
-            "Unsupported order status for a COD order with payment status FAILED: " + orderStatus + ".");
-}
     public static void validateImportOrderInput(String supplierIdRaw, String[] variantIds, String[] quantities, String[] prices) {
         if (!hasText(supplierIdRaw)) {
             throw new IllegalArgumentException(IMPORT_SUPPLIER_REQUIRED_MESSAGE);
@@ -447,5 +452,5 @@ private static void validateCodFailed(String orderStatus) {
             return false;
         }
     }
-    
+
 }
