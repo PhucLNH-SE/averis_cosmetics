@@ -13,7 +13,7 @@ public class DBContext {
             String url = "jdbc:sqlserver://localhost:1433;"
                     + "databaseName=CosmeticShopDB_v8;"
                     + "user=sa;"
-                    + "password=12345;"
+                    + "password=1234;"
                     + "encrypt=true;"
                     + "trustServerCertificate=true;";
             Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
