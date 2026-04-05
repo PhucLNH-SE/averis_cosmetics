@@ -645,7 +645,9 @@ public class OrderDAO extends DBContext {
                     = !"PROCESSING".equalsIgnoreCase(order.getOrderStatus())
                     && "PROCESSING".equalsIgnoreCase(orderStatus);
 
-            boolean shouldRestoreStock = !"CANCELLED".equalsIgnoreCase(order.getOrderStatus())
+            boolean shouldRestoreStock
+                    = ("PROCESSING".equalsIgnoreCase(order.getOrderStatus())
+                    || "SHIPPING".equalsIgnoreCase(order.getOrderStatus()))
                     && "CANCELLED".equalsIgnoreCase(orderStatus)
                     && ("COD".equalsIgnoreCase(order.getPaymentMethod())
                     || "SUCCESS".equalsIgnoreCase(order.getPaymentStatus())
