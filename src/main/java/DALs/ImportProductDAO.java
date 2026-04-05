@@ -1,6 +1,5 @@
 package DALs;
 
-import Model.Brand;
 import Model.ProductVariant;
 import Model.ImportOrder;
 import Model.ImportOrderDetail;
@@ -16,27 +15,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ImportProductDAO extends DBContext {
-
-    public List<Brand> getAllBrands() {
-        List<Brand> list = new ArrayList<>();
-        String sql = "SELECT brand_id, name FROM Brand";
-
-        try {
-            PreparedStatement ps = connection.prepareStatement(sql);
-            ResultSet rs = ps.executeQuery();
-
-            while (rs.next()) {
-                Brand b = new Brand();
-                b.setBrandId(rs.getInt("brand_id"));
-                b.setName(rs.getString("name"));
-                list.add(b);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return list;
-    }
 
     public List<ProductVariant> getVariantByBrand(int brandId) {
         List<ProductVariant> list = new ArrayList<>();
