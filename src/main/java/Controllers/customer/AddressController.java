@@ -3,6 +3,7 @@ package Controllers.customer;
 import DALs.AddressDAO;
 import Model.Address;
 import Model.Customer;
+import Utils.ValidationUtil;
 import java.io.IOException;
 import java.util.List;
 import jakarta.servlet.ServletException;
@@ -12,8 +13,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
 public class AddressController extends HttpServlet {
-
-    private static final String VIETNAM_PHONE_REGEX = "^(?:0|84|\\+84)(?:3|5|7|8|9)\\d{8}$";
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -141,9 +140,10 @@ public class AddressController extends HttpServlet {
 
         HttpSession session = request.getSession();
         Address address = buildAddressFromRequest(request, customer.getCustomerId(), 0);
-        String validationError = validateAddress(address);
-        if (validationError != null) {
-            request.setAttribute("error", validationError);
+        try {
+            ValidationUtil.validateAddressInput(address);
+        } catch (IllegalArgumentException ex) {
+            request.setAttribute("error", ex.getMessage());
             showAddForm(request, response);
             return;
         }
@@ -152,9 +152,6 @@ public class AddressController extends HttpServlet {
         boolean success = addressDAO.insertAddress(address);
 
         if (success) {
-            if (Boolean.TRUE.equals(address.getIsDefault())) {
-                addressDAO.setDefaultAddress(address.getAddressId(), customer.getCustomerId());
-            }
             setProfileFlashMessage(session, "Address added successfully", "success");
         } else {
             setProfileFlashMessage(session, "Failed to add address", "error");
@@ -187,9 +184,10 @@ public class AddressController extends HttpServlet {
             }
 
             Address address = buildAddressFromRequest(request, customer.getCustomerId(), addressId);
-            String validationError = validateAddress(address);
-            if (validationError != null) {
-                request.setAttribute("error", validationError);
+            try {
+                ValidationUtil.validateAddressInput(address);
+            } catch (IllegalArgumentException ex) {
+                request.setAttribute("error", ex.getMessage());
                 request.setAttribute("address", address);
                 request.getRequestDispatcher("/WEB-INF/views/customer/edit-address.jsp").forward(request, response);
                 return;
@@ -198,9 +196,6 @@ public class AddressController extends HttpServlet {
             boolean success = addressDAO.updateAddress(address);
 
             if (success) {
-                if (Boolean.TRUE.equals(address.getIsDefault())) {
-                    addressDAO.setDefaultAddress(address.getAddressId(), customer.getCustomerId());
-                }
                 setProfileFlashMessage(session, "Address updated successfully", "success");
             } else {
                 setProfileFlashMessage(session, "Failed to update address", "error");
@@ -293,73 +288,22 @@ public class AddressController extends HttpServlet {
     }
 
     private Address buildAddressFromRequest(HttpServletRequest request, int customerId, int addressId) {
-        Address address = new Address();
-        address.setAddressId(addressId);
-        address.setCustomerId(customerId);
-        address.setReceiverName(trimToNull(request.getParameter("receiverName")));
-        address.setPhone(normalizePhone(request.getParameter("phone")));
-        address.setProvince(trimToNull(request.getParameter("province")));
-        address.setDistrict(trimToNull(request.getParameter("district")));
-        address.setWard(trimToNull(request.getParameter("ward")));
-        address.setStreetAddress(trimToNull(request.getParameter("streetAddress")));
-        address.setIsDefault(parseChecked(request.getParameter("isDefault")));
-        return address;
-    }
-
-    private String validateAddress(Address address) {
-        if (address.getReceiverName() == null) {
-            return "Receiver name is required";
-        }
-        if (address.getPhone() == null) {
-            return "Phone is required";
-        }
-        if (!address.getPhone().matches(VIETNAM_PHONE_REGEX)) {
-            return "Please enter a valid Vietnamese phone number.";
-        }
-        if (address.getProvince() == null) {
-            return "Province is required";
-        }
-        if (address.getDistrict() == null) {
-            return "District is required";
-        }
-        if (address.getWard() == null) {
-            return "Ward is required";
-        }
-        if (address.getStreetAddress() == null) {
-            return "Street address is required";
-        }
-        return null;
+        return ValidationUtil.normalizeAddress(
+                customerId,
+                addressId,
+                request.getParameter("receiverName"),
+                request.getParameter("phone"),
+                request.getParameter("province"),
+                request.getParameter("district"),
+                request.getParameter("ward"),
+                request.getParameter("streetAddress"),
+                parseChecked(request.getParameter("isDefault")));
     }
 
     private boolean parseChecked(String value) {
         return "on".equalsIgnoreCase(value)
                 || "1".equals(value)
                 || "true".equalsIgnoreCase(value);
-    }
-
-    private String normalizePhone(String value) {
-        String phone = trimToNull(value);
-        if (phone == null) {
-            return null;
-        }
-
-        phone = phone.replaceAll("[\\s().-]", "");
-
-        if (phone.startsWith("+84")) {
-            return "0" + phone.substring(3);
-        }
-        if (phone.startsWith("84")) {
-            return "0" + phone.substring(2);
-        }
-        return phone;
-    }
-
-    private String trimToNull(String value) {
-        if (value == null) {
-            return null;
-        }
-        String trimmed = value.trim();
-        return trimmed.isEmpty() ? null : trimmed;
     }
 
     private void setProfileFlashMessage(HttpSession session, String message, String type) {

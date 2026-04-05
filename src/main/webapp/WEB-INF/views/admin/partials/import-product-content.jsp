@@ -48,7 +48,7 @@
                         <select name="supplierId" class="form-select" required>
                             <option value="">Select supplier</option>
                             <c:forEach items="${supplierList}" var="supplier">
-                                <option value="${supplier.supplierId}" ${param.supplierId == supplier.supplierId ? 'selected' : ''}>${supplier.name}</option>
+                                <option value="${supplier.supplierId}" ${param.supplierId == supplier.supplierId ? 'selected' : ''}><c:out value="${supplier.name}" /></option>
                             </c:forEach>
                         </select>
                     </div>
@@ -141,7 +141,8 @@
 <div class="modal fade" id="supplierModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form action="${pageContext.request.contextPath}/admin/import-product" method="post">
+            <form action="${pageContext.request.contextPath}/admin/import-product" method="post" id="addSupplierForm"
+                  data-open-modal="${openSupplierModal ? 'true' : 'false'}">
                 <input type="hidden" name="action" value="addsupplier">
                 <div class="modal-header bg-primary text-white">
                     <h5 class="modal-title fw-bold">
@@ -152,15 +153,17 @@
                 <div class="modal-body p-4">
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Supplier Name</label>
-                        <input type="text" class="form-control" name="supplierName" required>
+                        <input type="text" class="form-control" name="supplierName" required
+                               value="<c:out value='${supplierForm.name}'/>">
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Phone</label>
-                        <input type="text" class="form-control" name="supplierPhone" required>
+                        <input type="text" class="form-control" name="supplierPhone" required
+                               value="<c:out value='${supplierForm.phone}'/>">
                     </div>
                     <div class="mb-0">
                         <label class="form-label fw-semibold">Address</label>
-                        <textarea class="form-control" name="supplierAddress" rows="3" required></textarea>
+                        <textarea class="form-control" name="supplierAddress" rows="3" required><c:out value="${supplierForm.address}" /></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -416,6 +419,11 @@
     document.addEventListener('DOMContentLoaded', function () {
         const variantProductMap = buildVariantProductMap();
         restoreSubmittedRows(buildSubmittedItems(), variantProductMap);
+        const supplierForm = document.getElementById('addSupplierForm');
+
+        if (supplierForm && supplierForm.getAttribute('data-open-modal') === 'true') {
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('supplierModal')).show();
+        }
 
         document.getElementById('createImportOrderForm').addEventListener('submit', function (event) {
             let total = 0n;

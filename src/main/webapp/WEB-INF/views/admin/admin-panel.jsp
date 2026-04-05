@@ -60,6 +60,12 @@
                         <i class="bi bi-grid-fill"></i>
                         <span>Manage Categories</span>
                     </a>
+                    <a class="admin-sidebar__link ${currentView == 'suppliers' ? 'active' : ''}"
+                       href="${pageContext.request.contextPath}/admin/manage-supplier"
+                       title="Manage Suppliers">
+                        <i class="bi bi-building-fill"></i>
+                        <span>Manage Suppliers</span>
+                    </a>
                     <a class="admin-sidebar__link ${currentView == 'products' ? 'active' : ''}"
                        href="${pageContext.request.contextPath}/admin/manage-product"
                        title="Manage Products">

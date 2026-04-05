@@ -1,7 +1,6 @@
 ﻿<%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <c:set var="formAddress" value="${not empty requestScope.address ? requestScope.address : address}" />
-<c:set var="formAddress" value="${not empty requestScope.address ? requestScope.address : address}" />
 <!DOCTYPE html>
 <html>
     <head>
@@ -35,27 +34,27 @@
                     <div class="address-form-group">
                         <label class="address-form-label" for="receiverName">Receiver Name *</label>
                         <input type="text" class="form-control" id="receiverName" name="receiverName"
-                               value="${formAddress.receiverName}" required>
+                               value="<c:out value='${formAddress.receiverName}'/>" required>
                     </div>
 
                     <div class="address-form-group">
                         <label class="address-form-label" for="phone">Phone Number *</label>
                         <input type="tel" class="form-control" id="phone" name="phone"
-                               value="${formAddress.phone}" inputmode="numeric"
+                               value="<c:out value='${formAddress.phone}'/>" inputmode="numeric"
                                placeholder="e.g. 0912345678" required>
                         <small class="form-text text-muted">Enter a valid Vietnamese phone number.</small>
                     </div>
 
                     <div class="address-form-group">
                         <label class="address-form-label" for="province">Province/City *</label>
-                        <select class="form-control" id="province" name="province" data-selected="${formAddress.province}" required>
+                        <select class="form-control" id="province" name="province" data-selected="<c:out value='${formAddress.province}'/>" required>
                             <option value="">Select province/city</option>
                         </select>
                     </div>
 
                     <div class="address-form-group">
                         <label class="address-form-label" for="district">District *</label>
-                        <select class="form-control" id="district" name="district" data-selected="${formAddress.district}" required>
+                        <select class="form-control" id="district" name="district" data-selected="<c:out value='${formAddress.district}'/>" required>
                             <option value="">Select district</option>
                         </select>
                         <small id="addressApiStatus" class="form-text text-muted"></small>
@@ -63,7 +62,7 @@
 
                     <div class="address-form-group">
                         <label class="address-form-label" for="ward">Ward *</label>
-                        <select class="form-control" id="ward" name="ward" data-selected="${formAddress.ward}" required>
+                        <select class="form-control" id="ward" name="ward" data-selected="<c:out value='${formAddress.ward}'/>" required>
                             <option value="">Select ward</option>
                         </select>
                     </div>
@@ -71,7 +70,7 @@
                     <div class="address-form-group">
                         <label class="address-form-label" for="streetAddress">Street Address *</label>
                         <input type="text" class="form-control" id="streetAddress" name="streetAddress"
-                               value="${formAddress.streetAddress}"
+                               value="<c:out value='${formAddress.streetAddress}'/>"
                                placeholder="House number, street name, apartment..." required>
                         <small class="form-text text-muted">Enter the specific street address manually.</small>
                     </div>

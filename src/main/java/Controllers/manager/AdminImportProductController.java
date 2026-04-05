@@ -247,25 +247,35 @@ public class AdminImportProductController extends HttpServlet {
             return;
         }
 
-        String name = trimToNull(request.getParameter("supplierName"));
-        String phone = trimToNull(request.getParameter("supplierPhone"));
-        String address = trimToNull(request.getParameter("supplierAddress"));
+        Supplier supplier = ValidationUtil.normalizeSupplier(
+                0,
+                request.getParameter("supplierName"),
+                request.getParameter("supplierPhone"),
+                request.getParameter("supplierAddress"),
+                true);
+        String name = supplier.getName();
 
-        if (name == null || phone == null || address == null) {
-            request.setAttribute("error", "Please enter full supplier information.");
+        request.setAttribute("supplierForm", supplier);
+        request.setAttribute("openSupplierModal", Boolean.TRUE);
+
+        try {
+            ValidationUtil.validateSupplierInput(supplier);
+        } catch (IllegalArgumentException ex) {
+            request.setAttribute("error", ex.getMessage());
             showImportProduct(request, response);
             return;
         }
 
-        Supplier supplier = new Supplier();
-        supplier.setName(name);
-        supplier.setPhone(phone);
-        supplier.setAddress(address);
+        if (supplierDAO.existsByName(name)) {
+            request.setAttribute("error", "Supplier name already exists.");
+            showImportProduct(request, response);
+            return;
+        }
 
-        if (supplierDAO.insert(supplier)) {
+        if (supplierDAO.insertSupplier(supplier)) {
             response.sendRedirect(request.getContextPath() + "/admin/import-product?action=importproduct&success=supplierAdded");
         } else {
-            request.setAttribute("error", "Failed to add supplier. Please check duplicate name.");
+            request.setAttribute("error", "Failed to add supplier.");
             showImportProduct(request, response);
         }
     }

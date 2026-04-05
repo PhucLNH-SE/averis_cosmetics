@@ -2,6 +2,8 @@ package Utils;
 
 import Model.ImportOrder;
 import Model.ImportOrderDetail;
+import Model.Address;
+import Model.Supplier;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
@@ -26,14 +28,29 @@ public class ValidationUtil {
     private static final String FULL_NAME_REGEX
             = "^[A-Za-zÀ-Ỵà-ỵ]+(?: [A-Za-zÀ-Ỵà-ỵ]+)*$";
 
-   
     private static final BigInteger MAX_INTEGER_VALUE = BigInteger.valueOf(Integer.MAX_VALUE);
     private static final String IMPORT_SUPPLIER_REQUIRED_MESSAGE = "Please select a supplier.";
     private static final String IMPORT_ITEMS_REQUIRED_MESSAGE = "Please add at least one import item.";
     private static final String IMPORT_ITEM_INVALID_MESSAGE = "Please enter valid quantity and import price for each selected item.";
     private static final String IMPORT_VALID_ITEM_REQUIRED_MESSAGE = "Please add at least one valid import item.";
     private static final String IMPORT_TOTAL_LIMIT_MESSAGE = "Total amount cannot exceed 9,999,999,999 VND.";
-     //PhucLNH Login - Vadidate input data when login
+    private static final String VIETNAM_PHONE_REGEX = "^0(?:3|5|7|8|9)\\d{8}$";
+    private static final int MAX_SUPPLIER_NAME_LENGTH = 150;
+    private static final int MAX_SUPPLIER_PHONE_LENGTH = 20;
+    private static final int MAX_SUPPLIER_ADDRESS_LENGTH = 255;
+    private static final String SUPPLIER_NAME_REQUIRED_MESSAGE = "Supplier name is required.";
+    private static final String SUPPLIER_PHONE_REQUIRED_MESSAGE = "Phone is required.";
+    private static final String SUPPLIER_PHONE_INVALID_MESSAGE = "Please enter a valid Vietnamese phone number.";
+    private static final String SUPPLIER_ADDRESS_REQUIRED_MESSAGE = "Address is required.";
+    private static final String ADDRESS_RECEIVER_REQUIRED_MESSAGE = "Receiver name is required";
+    private static final String ADDRESS_PHONE_REQUIRED_MESSAGE = "Phone is required";
+    private static final String ADDRESS_PHONE_INVALID_MESSAGE = "Please enter a valid Vietnamese phone number.";
+    private static final String ADDRESS_PROVINCE_REQUIRED_MESSAGE = "Province is required";
+    private static final String ADDRESS_DISTRICT_REQUIRED_MESSAGE = "District is required";
+    private static final String ADDRESS_WARD_REQUIRED_MESSAGE = "Ward is required";
+    private static final String ADDRESS_STREET_REQUIRED_MESSAGE = "Street address is required";
+
+    //PhucLNH Login - Vadidate input data when login
     public static Map<String, String> validateLogin(String username, String password) {
 
         Map<String, String> errors = new HashMap<>();
@@ -427,6 +444,118 @@ public class ValidationUtil {
         if (maxTotalAmount != null && totalAmount.compareTo(maxTotalAmount) > 0) {
             throw new IllegalArgumentException(IMPORT_TOTAL_LIMIT_MESSAGE);
         }
+    }
+
+    public static void validateSupplierInput(String name, String phone, String address) {
+        if (!hasText(name)) {
+            throw new IllegalArgumentException(SUPPLIER_NAME_REQUIRED_MESSAGE);
+        } else if (name.trim().length() > MAX_SUPPLIER_NAME_LENGTH) {
+            throw new IllegalArgumentException("Supplier name cannot exceed 150 characters.");
+        }
+
+        if (!hasText(phone)) {
+            throw new IllegalArgumentException(SUPPLIER_PHONE_REQUIRED_MESSAGE);
+        } else {
+            String normalizedPhone = normalizeVietnamPhone(phone);
+            if (!isValidVietnamPhone(normalizedPhone) || normalizedPhone.length() > MAX_SUPPLIER_PHONE_LENGTH) {
+                throw new IllegalArgumentException(SUPPLIER_PHONE_INVALID_MESSAGE);
+            }
+        }
+
+        if (!hasText(address)) {
+            throw new IllegalArgumentException(SUPPLIER_ADDRESS_REQUIRED_MESSAGE);
+        } else if (address.trim().length() > MAX_SUPPLIER_ADDRESS_LENGTH) {
+            throw new IllegalArgumentException("Address cannot exceed 255 characters.");
+        }
+    }
+
+    public static void validateSupplierInput(Supplier supplier) {
+        if (supplier == null) {
+            throw new IllegalArgumentException(SUPPLIER_NAME_REQUIRED_MESSAGE);
+        }
+        validateSupplierInput(supplier.getName(), supplier.getPhone(), supplier.getAddress());
+    }
+
+    public static Supplier normalizeSupplier(int supplierId, String name, String phone, String address, boolean status) {
+        Supplier supplier = new Supplier();
+        supplier.setSupplierId(supplierId);
+        supplier.setName(normalizeWhitespace(name));
+        supplier.setPhone(normalizeVietnamPhone(phone));
+        supplier.setAddress(normalizeWhitespace(address));
+        supplier.setStatus(status);
+        return supplier;
+    }
+
+    public static void validateAddressInput(Address address) {
+        if (address == null) {
+            throw new IllegalArgumentException(ADDRESS_RECEIVER_REQUIRED_MESSAGE);
+        }
+        if (!hasText(address.getReceiverName())) {
+            throw new IllegalArgumentException(ADDRESS_RECEIVER_REQUIRED_MESSAGE);
+        }
+        if (!hasText(address.getPhone())) {
+            throw new IllegalArgumentException(ADDRESS_PHONE_REQUIRED_MESSAGE);
+        }
+
+        String normalizedPhone = normalizeVietnamPhone(address.getPhone());
+        if (!isValidVietnamPhone(normalizedPhone)) {
+            throw new IllegalArgumentException(ADDRESS_PHONE_INVALID_MESSAGE);
+        }
+        if (!hasText(address.getProvince())) {
+            throw new IllegalArgumentException(ADDRESS_PROVINCE_REQUIRED_MESSAGE);
+        }
+        if (!hasText(address.getDistrict())) {
+            throw new IllegalArgumentException(ADDRESS_DISTRICT_REQUIRED_MESSAGE);
+        }
+        if (!hasText(address.getWard())) {
+            throw new IllegalArgumentException(ADDRESS_WARD_REQUIRED_MESSAGE);
+        }
+        if (!hasText(address.getStreetAddress())) {
+            throw new IllegalArgumentException(ADDRESS_STREET_REQUIRED_MESSAGE);
+        }
+    }
+
+    public static Address normalizeAddress(int customerId, int addressId,
+            String receiverName, String phone, String province,
+            String district, String ward, String streetAddress, boolean isDefault) {
+        Address address = new Address();
+        address.setAddressId(addressId);
+        address.setCustomerId(customerId);
+        address.setReceiverName(normalizeWhitespace(receiverName));
+        address.setPhone(normalizeVietnamPhone(phone));
+        address.setProvince(normalizeWhitespace(province));
+        address.setDistrict(normalizeWhitespace(district));
+        address.setWard(normalizeWhitespace(ward));
+        address.setStreetAddress(normalizeWhitespace(streetAddress));
+        address.setIsDefault(isDefault);
+        return address;
+    }
+
+    public static String normalizeVietnamPhone(String value) {
+        if (!hasText(value)) {
+            return null;
+        }
+
+        String phone = value.trim().replaceAll("[\\s().-]", "");
+        if (phone.startsWith("+84")) {
+            return "0" + phone.substring(3);
+        }
+        if (phone.startsWith("84")) {
+            return "0" + phone.substring(2);
+        }
+        return phone;
+    }
+
+    public static String normalizeWhitespace(String value) {
+        if (!hasText(value)) {
+            return null;
+        }
+        return value.trim().replaceAll("\\s+", " ");
+    }
+
+    public static boolean isValidVietnamPhone(String value) {
+        String normalizedPhone = normalizeVietnamPhone(value);
+        return normalizedPhone != null && normalizedPhone.matches(VIETNAM_PHONE_REGEX);
     }
 
     private static boolean hasText(String value) {
