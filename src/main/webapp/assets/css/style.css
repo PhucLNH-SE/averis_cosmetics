@@ -632,7 +632,7 @@
 .product-quantity-picker {
     display: inline-flex;
     align-items: center;
-    min-width: 200px;
+    min-width: 173px;
     padding: 6px;
     border-radius: 999px;
     border: 1px solid #eadfce;

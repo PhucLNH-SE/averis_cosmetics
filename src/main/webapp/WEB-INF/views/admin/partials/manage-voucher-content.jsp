@@ -374,7 +374,7 @@
       statusInput.setCustomValidity('');
 
 if (statusInput.value === '1') {
-    if (voucherType === 'FIXED_DATE' && endInput.value && endInput.value <= nowValue) {
+    if (voucherType === 'FIXED_END_DATE' && endInput.value && endInput.value <= nowValue) {
         statusInput.setCustomValidity('Cannot set Active when voucher is expired.');
     }
 }
@@ -443,3 +443,4 @@ if (statusInput.value === '1') {
     });
     </c:if>
 </script>
+

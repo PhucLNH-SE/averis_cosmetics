@@ -60,10 +60,6 @@ public final class StatisticUtils {
 
     public static boolean isValidPeriod(int year, Integer month, String periodType) {
         LocalDate now = LocalDate.now();
-        if (year < 2000 || year > 2100) {
-            return false;
-        }
-
         if (isYearPeriod(periodType)) {
             return year <= now.getYear();
         }
