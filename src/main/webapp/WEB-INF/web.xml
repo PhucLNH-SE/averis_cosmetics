@@ -94,6 +94,10 @@
     <servlet-class>Controllers.manager.ManagerCategoryController</servlet-class>
   </servlet>
   <servlet>
+    <servlet-name>AdminSupplierController</servlet-name>
+    <servlet-class>Controllers.manager.AdminSupplierController</servlet-class>
+  </servlet>
+  <servlet>
     <servlet-name>ManagerOrderController</servlet-name>
     <servlet-class>Controllers.manager.ManagerOrderController</servlet-class>
 </servlet>
@@ -169,6 +173,10 @@
     <url-pattern>/admin/update-category</url-pattern>
   </servlet-mapping>
   <servlet-mapping>
+    <servlet-name>AdminSupplierController</servlet-name>
+    <url-pattern>/admin/manage-supplier</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
     <servlet-name>ManagerOrderController</servlet-name>
     <url-pattern>/admin/manage-orders</url-pattern>
 </servlet-mapping>
@@ -191,10 +199,6 @@
   <servlet-mapping>
     <servlet-name>ManagerAuthController</servlet-name>
     <url-pattern>/manager-auth</url-pattern>
-  </servlet-mapping>
-  <servlet-mapping>
-    <servlet-name>GuestController</servlet-name>
-    <url-pattern>/GuestController</url-pattern>
   </servlet-mapping>
   <servlet-mapping>
     <servlet-name>GuestController</servlet-name>
@@ -263,10 +267,6 @@
   <servlet-mapping>
     <servlet-name>PaymentController</servlet-name>
     <url-pattern>/checkout</url-pattern>
-  </servlet-mapping>
-  <servlet-mapping>
-    <servlet-name>ManagerBrandController</servlet-name>
-    <url-pattern>/admin/brand</url-pattern>
   </servlet-mapping>
   <servlet-mapping>
     <servlet-name>ManagerBrandController</servlet-name>
@@ -364,10 +364,6 @@
     <welcome-file-list>
         <welcome-file>home</welcome-file>
     </welcome-file-list>
-    <servlet-mapping>
-        <servlet-name>AdminImportProductController</servlet-name>
-        <url-pattern>/ImportProductController</url-pattern>
-    </servlet-mapping>
     <servlet-mapping>
         <servlet-name>AdminImportProductController</servlet-name>
         <url-pattern>/admin/import-product</url-pattern>

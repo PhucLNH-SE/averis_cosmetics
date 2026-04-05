@@ -9,7 +9,7 @@ import java.util.List;
 import org.mindrot.jbcrypt.BCrypt;
 
 public class ManagerDAO extends DBContext {
-
+// get managers
     public Manager getByEmail(String email) {
         String sql = "SELECT manager_id, full_name, email, password, manager_role, status "
                 + "FROM Manager WHERE email = ?";
@@ -18,7 +18,14 @@ public class ManagerDAO extends DBContext {
             ps.setString(1, email);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    return mapManager(rs);
+                    Manager manager = new Manager();
+                    manager.setManagerId(rs.getInt("manager_id"));
+                    manager.setFullName(rs.getString("full_name"));
+                    manager.setEmail(rs.getString("email"));
+                    manager.setPassword(rs.getString("password"));
+                    manager.setManagerRole(rs.getString("manager_role"));
+                    manager.setStatus(rs.getBoolean("status"));
+                    return manager;
                 }
             }
         } catch (Exception e) {
@@ -27,7 +34,7 @@ public class ManagerDAO extends DBContext {
 
         return null;
     }
-
+// get Manager
     public Manager getById(int managerId) {
         String sql = "SELECT manager_id, full_name, email, password, manager_role, status "
                 + "FROM Manager WHERE manager_id = ?";
@@ -36,7 +43,14 @@ public class ManagerDAO extends DBContext {
             ps.setInt(1, managerId);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    return mapManager(rs);
+                    Manager manager = new Manager();
+                    manager.setManagerId(rs.getInt("manager_id"));
+                    manager.setFullName(rs.getString("full_name"));
+                    manager.setEmail(rs.getString("email"));
+                    manager.setPassword(rs.getString("password"));
+                    manager.setManagerRole(rs.getString("manager_role"));
+                    manager.setStatus(rs.getBoolean("status"));
+                    return manager;
                 }
             }
         } catch (Exception e) {
@@ -54,7 +68,14 @@ public class ManagerDAO extends DBContext {
         try (PreparedStatement ps = connection.prepareStatement(sql);
                 ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
-                list.add(mapManager(rs));
+                Manager manager = new Manager();
+                manager.setManagerId(rs.getInt("manager_id"));
+                manager.setFullName(rs.getString("full_name"));
+                manager.setEmail(rs.getString("email"));
+                manager.setPassword(rs.getString("password"));
+                manager.setManagerRole(rs.getString("manager_role"));
+                manager.setStatus(rs.getBoolean("status"));
+                list.add(manager);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -95,15 +116,15 @@ public class ManagerDAO extends DBContext {
         return false;
     }
 
-    public boolean addManager(Manager manager) {
+    public boolean addManager(String fullName, String email, String password, String role, Boolean status) {
         String sql = "INSERT INTO Manager (full_name, email, password, manager_role, status) VALUES (?, ?, ?, ?, ?)";
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setString(1, manager.getFullName());
-            ps.setString(2, manager.getEmail());
-            ps.setString(3, hashPassword(manager.getPassword()));
-            ps.setString(4, manager.getManagerRole());
-            ps.setBoolean(5, resolveManagerStatus(manager.getStatus(), true));
+            ps.setString(1, fullName);
+            ps.setString(2, email);
+            ps.setString(3, hashPassword(password));
+            ps.setString(4, role);
+            ps.setBoolean(5, status != null ? status : true);
             return ps.executeUpdate() > 0;
         } catch (Exception e) {
             e.printStackTrace();
@@ -112,81 +133,43 @@ public class ManagerDAO extends DBContext {
         return false;
     }
 
-    public boolean updateManager(Manager manager) {
-        boolean changePassword = manager.getPassword() != null && !manager.getPassword().trim().isEmpty();
-        String sql = buildUpdateManagerSql(changePassword);
+    public boolean updateManager(int managerId, String fullName, String email, String role, Boolean status, String password) {
+        boolean changePassword = password != null && !password.trim().isEmpty();
+        if (changePassword) {
+            String sql = "UPDATE Manager SET full_name = ?, email = ?, manager_role = ?, status = ?, password = ? "
+                    + "WHERE manager_id = ?";
 
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setString(1, manager.getFullName());
-            ps.setString(2, manager.getEmail());
-            ps.setString(3, manager.getManagerRole());
-            ps.setBoolean(4, resolveManagerStatus(manager.getStatus(), false));
-
-            int paramIndex = 5;
-            if (changePassword) {
-                ps.setString(paramIndex++, hashPassword(manager.getPassword()));
+            try (PreparedStatement ps = connection.prepareStatement(sql)) {
+                ps.setString(1, fullName);
+                ps.setString(2, email);
+                ps.setString(3, role);
+                ps.setBoolean(4, status != null ? status : false);
+                ps.setString(5, hashPassword(password));
+                ps.setInt(6, managerId);
+                return ps.executeUpdate() > 0;
+            } catch (Exception e) {
+                e.printStackTrace();
             }
+        } else {
+            String sql = "UPDATE Manager SET full_name = ?, email = ?, manager_role = ?, status = ? "
+                    + "WHERE manager_id = ?";
 
-            ps.setInt(paramIndex, manager.getManagerId());
-            return ps.executeUpdate() > 0;
-        } catch (Exception e) {
-            e.printStackTrace();
+            try (PreparedStatement ps = connection.prepareStatement(sql)) {
+                ps.setString(1, fullName);
+                ps.setString(2, email);
+                ps.setString(3, role);
+                ps.setBoolean(4, status != null ? status : false);
+                ps.setInt(5, managerId);
+                return ps.executeUpdate() > 0;
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
 
         return false;
-    }
-
-    public boolean banManager(int id) {
-        String sql = "UPDATE Manager SET status = 0 WHERE manager_id = ?";
-
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setInt(1, id);
-            return ps.executeUpdate() > 0;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return false;
-    }
-
-    public boolean unbanManager(int id) {
-        String sql = "UPDATE Manager SET status = 1 WHERE manager_id = ?";
-
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setInt(1, id);
-            return ps.executeUpdate() > 0;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return false;
-    }
-
-    private Manager mapManager(ResultSet rs) throws Exception {
-        Manager manager = new Manager();
-        manager.setManagerId(rs.getInt("manager_id"));
-        manager.setFullName(rs.getString("full_name"));
-        manager.setEmail(rs.getString("email"));
-        manager.setPassword(rs.getString("password"));
-        manager.setManagerRole(rs.getString("manager_role"));
-        manager.setStatus(rs.getBoolean("status"));
-        return manager;
     }
 
     private String hashPassword(String rawPassword) {
         return BCrypt.hashpw(rawPassword, BCrypt.gensalt());
-    }
-
-    private boolean resolveManagerStatus(Boolean status, boolean defaultValue) {
-        return status != null ? status : defaultValue;
-    }
-
-    private String buildUpdateManagerSql(boolean changePassword) {
-        StringBuilder sql = new StringBuilder("UPDATE Manager SET full_name = ?, email = ?, manager_role = ?, status = ?");
-        if (changePassword) {
-            sql.append(", password = ?");
-        }
-        sql.append(" WHERE manager_id = ?");
-        return sql.toString();
     }
 }

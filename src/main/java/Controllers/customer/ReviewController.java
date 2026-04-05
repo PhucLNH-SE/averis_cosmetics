@@ -25,6 +25,7 @@ public class ReviewController extends HttpServlet {
             int orderDetailId = Integer.parseInt(request.getParameter("orderDetailId"));
             int orderId = Integer.parseInt(request.getParameter("orderId"));
             int rating = Integer.parseInt(request.getParameter("rating"));
+            String redirectTab = request.getParameter("redirectTab");
             String comment = request.getParameter("comment");
             if (comment == null) {
                 comment = "";
@@ -36,7 +37,7 @@ public class ReviewController extends HttpServlet {
             if (oldDetail == null) {
                 session.setAttribute("profileMessage", "The product information for this review could not be found.");
                 session.setAttribute("profileMessageType", "error");
-                response.sendRedirect(request.getContextPath() + "/profile?action=orderDetail&orderId=" + orderId + "&tab=orderDetail");
+                response.sendRedirect(resolveRedirectUrl(request, orderId, redirectTab));
                 return;
             }
 
@@ -48,7 +49,7 @@ public class ReviewController extends HttpServlet {
                 if (oldComment != null && oldComment.contains("[EDITED]")) {
                     session.setAttribute("profileMessage", "You can only edit your review once.");
                     session.setAttribute("profileMessageType", "error");
-                    response.sendRedirect(request.getContextPath() + "/profile?action=orderDetail&orderId=" + orderId + "&tab=orderDetail");
+                    response.sendRedirect(resolveRedirectUrl(request, orderId, redirectTab));
                     return;
                 }
 
@@ -69,11 +70,18 @@ public class ReviewController extends HttpServlet {
                 session.setAttribute("profileMessageType", "error");
             }
 
-            response.sendRedirect(request.getContextPath() + "/profile?action=orderDetail&orderId=" + orderId + "&tab=orderDetail");
+            response.sendRedirect(resolveRedirectUrl(request, orderId, redirectTab));
 
         } catch (NumberFormatException e) {
             e.printStackTrace();
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid review data.");
         }
+    }
+
+    private String resolveRedirectUrl(HttpServletRequest request, int orderId, String redirectTab) {
+        if ("feedback".equalsIgnoreCase(redirectTab)) {
+            return request.getContextPath() + "/profile?action=view&tab=feedback";
+        }
+        return request.getContextPath() + "/profile?action=orderDetail&orderId=" + orderId + "&tab=orderDetail";
     }
 }

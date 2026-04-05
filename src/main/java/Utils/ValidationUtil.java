@@ -1,11 +1,13 @@
 package Utils;
 
+import Model.Address;
 import Model.ImportOrder;
 import Model.ImportOrderDetail;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.Period;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -119,7 +121,7 @@ public class ValidationUtil {
 
         return errors;
     }
-
+    // vaidateEditProdfile
     public static Map<String, String> validateEditProfile(
             String fullName,
             String gender,
@@ -166,6 +168,7 @@ public class ValidationUtil {
         return errors;
     }
 
+    // validation passowrd
     public static Map<String, String> validateResetPassword(
             String password,
             String confirmPassword
@@ -180,37 +183,65 @@ public class ValidationUtil {
                     "Password must be at least 8 characters, include uppercase, lowercase, number and special character.");
         }
 
+        if (confirmPassword == null || confirmPassword.trim().isEmpty()) {
+            errors.put("errorConfirmPassword", "Please confirm your password.");
+        } else if (password != null && !password.equals(confirmPassword)) {
+            errors.put("errorConfirmPassword", "Passwords do not match.");
+        }
+
         return errors;
     }
 
-    public static void validateCodStatus(String paymentMethod, String paymentStatus, String orderStatus) {
-        if (paymentMethod == null || paymentStatus == null || orderStatus == null) {
-            throw new IllegalArgumentException("Unable to validate COD order status because the payment method, payment status, or order status is missing.");
+    // bat loi theo paymentstatus
+    public static void validateCodStatus(
+            String paymentMethod,
+            String currentPaymentStatus,
+            String currentOrderStatus,
+            String newPaymentStatus,
+            String newOrderStatus) {
+
+        if (paymentMethod == null || currentPaymentStatus == null || currentOrderStatus == null
+                || newPaymentStatus == null || newOrderStatus == null) {
+            throw new IllegalArgumentException(
+                    "Unable to validate COD order status because one or more required values are missing.");
         }
 
         String normalizedPaymentMethod = paymentMethod.trim().toUpperCase();
-        String normalizedPaymentStatus = paymentStatus.trim().toUpperCase();
-        String normalizedOrderStatus = normalizeOrderStatus(orderStatus);
+        String normalizedCurrentPaymentStatus = currentPaymentStatus.trim().toUpperCase();
+        String normalizedCurrentOrderStatus = normalizeOrderStatus(currentOrderStatus);
+        String normalizedNewPaymentStatus = newPaymentStatus.trim().toUpperCase();
+        String normalizedNewOrderStatus = normalizeOrderStatus(newOrderStatus);
 
         if (!"COD".equals(normalizedPaymentMethod)) {
-            throw new IllegalArgumentException("COD validation rules can only be applied to orders that use the COD payment method.");
+            throw new IllegalArgumentException(
+                    "COD validation rules can only be applied to orders that use the COD payment method.");
         }
 
-        switch (normalizedPaymentStatus) {
+        if ("FAILED".equals(normalizedCurrentPaymentStatus)
+                && "CANCELLED".equals(normalizedCurrentOrderStatus)
+                && "PENDING".equals(normalizedNewPaymentStatus)
+                && "CANCELLED".equals(normalizedNewOrderStatus)) {
+            throw new IllegalArgumentException(
+                    "A COD order cannot be changed from FAILED + CANCELLED back to PENDING + CANCELLED.");
+        }
+
+        switch (normalizedNewPaymentStatus) {
             case "PENDING":
-                validateCodPending(normalizedOrderStatus);
+                validateCodPending(normalizedNewOrderStatus);
                 break;
             case "SUCCESS":
-                validateCodSuccess(normalizedOrderStatus);
+                validateCodSuccess(normalizedNewOrderStatus);
                 break;
             case "FAILED":
-                validateCodFailed(normalizedOrderStatus);
+                validateCodFailed(normalizedNewOrderStatus);
                 break;
             default:
-                throw new IllegalArgumentException("Unsupported payment status for COD orders: " + normalizedPaymentStatus + ".");
+                throw new IllegalArgumentException(
+                        "Unsupported payment status for COD orders: " + normalizedNewPaymentStatus + ".");
         }
     }
 
+    // bat loi theo luong xu ly don
     public static void validateOrderStatusTransition(String currentOrderStatus, String newOrderStatus) {
         if (currentOrderStatus == null || newOrderStatus == null) {
             throw new IllegalArgumentException("Unable to update the order because the current status or target status is missing.");
@@ -317,7 +348,10 @@ public class ValidationUtil {
                 "Unsupported order status for a COD order with payment status FAILED: " + orderStatus + ".");
     }
 
-    public static void validateImportOrderInput(String supplierIdRaw, String[] variantIds, String[] quantities, String[] prices) {
+    public static ImportOrder buildValidatedImportOrder(String supplierIdRaw, int managerId,
+            String importCode, String invoiceNo, String note,
+            String[] variantIds, String[] quantities, String[] prices,
+            BigDecimal maxTotalAmount) {
         if (!hasText(supplierIdRaw)) {
             throw new IllegalArgumentException(IMPORT_SUPPLIER_REQUIRED_MESSAGE);
         }
@@ -325,36 +359,58 @@ public class ValidationUtil {
         if (variantIds == null || quantities == null || prices == null) {
             throw new IllegalArgumentException(IMPORT_ITEMS_REQUIRED_MESSAGE);
         }
-    }
 
-    public static void validateImportItemInput(String variantIdRaw, String quantityRaw, String priceRaw) {
-        boolean hasVariant = hasText(variantIdRaw);
-        boolean hasQuantity = hasText(quantityRaw);
-        boolean hasPrice = hasText(priceRaw);
+        List<ImportOrderDetail> details = new ArrayList<>();
+        for (int i = 0; i < variantIds.length; i++) {
+            String variantIdRaw = variantIds[i];
+            String quantityRaw = i < quantities.length ? quantities[i] : null;
+            String priceRaw = i < prices.length ? prices[i] : null;
 
-        if (!hasQuantity && !hasPrice) {
-            return;
+            if (!hasText(variantIdRaw)) {
+                continue;
+            }
+
+            boolean hasQuantity = hasText(quantityRaw);
+            boolean hasPrice = hasText(priceRaw);
+            if (!hasQuantity && !hasPrice) {
+                continue;
+            }
+
+            if (hasQuantity != hasPrice) {
+                throw new IllegalArgumentException(IMPORT_ITEM_INVALID_MESSAGE);
+            }
+
+            ImportOrderDetail detail = new ImportOrderDetail();
+            detail.setVariantId(parseIntegerValue(variantIdRaw, IMPORT_ITEM_INVALID_MESSAGE));
+            detail.setQuantity(parseQuantityValue(quantityRaw, IMPORT_ITEM_INVALID_MESSAGE));
+            detail.setImportPrice(parseWholeNumberAmount(priceRaw, IMPORT_ITEM_INVALID_MESSAGE));
+
+            if (detail.getQuantity() > 0
+                    && detail.getImportPrice() != null
+                    && detail.getImportPrice().compareTo(BigDecimal.ZERO) > 0) {
+                details.add(detail);
+            }
         }
 
-        if (!hasVariant || hasQuantity != hasPrice) {
-            throw new IllegalArgumentException(IMPORT_ITEM_INVALID_MESSAGE);
+        if (details.isEmpty()) {
+            throw new IllegalArgumentException(IMPORT_VALID_ITEM_REQUIRED_MESSAGE);
         }
-    }
 
-    public static Integer parseImportSupplierId(String rawValue) {
-        return parseIntegerValue(rawValue, IMPORT_SUPPLIER_REQUIRED_MESSAGE);
-    }
+        ImportOrder importOrder = new ImportOrder();
+        importOrder.setSupplierId(parseIntegerValue(supplierIdRaw, IMPORT_SUPPLIER_REQUIRED_MESSAGE));
+        importOrder.setCreatedBy(managerId);
+        importOrder.setImportCode(importCode);
+        importOrder.setInvoiceNo(invoiceNo);
+        importOrder.setNote(note);
+        importOrder.setStatus("PENDING");
+        importOrder.setDetails(details);
+        importOrder.setTotalAmount(importOrder.calculateTotalAmount());
 
-    public static int parseImportVariantId(String rawValue) {
-        return parseIntegerValue(rawValue, IMPORT_ITEM_INVALID_MESSAGE);
-    }
+        if (maxTotalAmount != null && importOrder.getTotalAmount().compareTo(maxTotalAmount) > 0) {
+            throw new IllegalArgumentException(IMPORT_TOTAL_LIMIT_MESSAGE);
+        }
 
-    public static int parseImportQuantity(String rawValue) {
-        return parseQuantityValue(rawValue, IMPORT_ITEM_INVALID_MESSAGE);
-    }
-
-    public static BigDecimal parseImportPrice(String rawValue) {
-        return parseWholeNumberAmount(rawValue, IMPORT_ITEM_INVALID_MESSAGE);
+        return importOrder;
     }
 
     public static int parseQuantityValue(String rawValue, String errorMessage) {
@@ -398,37 +454,6 @@ public class ValidationUtil {
         return new BigDecimal(cleaned);
     }
 
-    public static boolean isValidImportItem(ImportOrderDetail detail) {
-        return detail != null
-                && detail.getQuantity() > 0
-                && detail.getImportPrice() != null
-                && detail.getImportPrice().compareTo(BigDecimal.ZERO) > 0;
-    }
-
-    public static void validateImportOrder(ImportOrder importOrder, BigDecimal maxTotalAmount) {
-        if (importOrder == null || importOrder.getSupplierId() == null) {
-            throw new IllegalArgumentException(IMPORT_SUPPLIER_REQUIRED_MESSAGE);
-        }
-
-        List<ImportOrderDetail> details = importOrder.getDetails();
-        if (details == null || details.isEmpty()) {
-            throw new IllegalArgumentException(IMPORT_VALID_ITEM_REQUIRED_MESSAGE);
-        }
-
-        for (ImportOrderDetail detail : details) {
-            if (!isValidImportItem(detail)) {
-                throw new IllegalArgumentException(IMPORT_VALID_ITEM_REQUIRED_MESSAGE);
-            }
-        }
-
-        BigDecimal totalAmount = importOrder.getTotalAmount() == null
-                ? importOrder.calculateTotalAmount()
-                : importOrder.getTotalAmount();
-        if (maxTotalAmount != null && totalAmount.compareTo(maxTotalAmount) > 0) {
-            throw new IllegalArgumentException(IMPORT_TOTAL_LIMIT_MESSAGE);
-        }
-    }
-
     private static boolean hasText(String value) {
         return value != null && !value.trim().isEmpty();
     }
@@ -451,6 +476,65 @@ public class ValidationUtil {
         } catch (Exception ex) {
             return false;
         }
+    }
+
+    public static String validateAddressInput(Address address) {
+        if (address.getReceiverName() == null) {
+            return "Receiver name is required";
+        }
+        if (address.getPhone() == null) {
+            return "Phone is required";
+        }
+        if (!address.getPhone().matches("^(?:0|84|\\+84)(?:3|5|7|8|9)\\d{8}$")) {
+            return "Please enter a valid Vietnamese phone number.";
+        }
+        if (address.getProvince() == null) {
+            return "Province is required";
+        }
+        if (address.getDistrict() == null) {
+            return "District is required";
+        }
+        if (address.getWard() == null) {
+            return "Ward is required";
+        }
+        if (address.getStreetAddress() == null) {
+            return "Street address is required";
+        }
+        return null;
+    }
+
+    public static void normalizeAddress(Address address) {
+        address.setReceiverName(trimToNull(address.getReceiverName()));
+        address.setPhone(normalizeVietnamPhone(address.getPhone()));
+        address.setProvince(trimToNull(address.getProvince()));
+        address.setDistrict(trimToNull(address.getDistrict()));
+        address.setWard(trimToNull(address.getWard()));
+        address.setStreetAddress(trimToNull(address.getStreetAddress()));
+    }
+
+    public static String normalizeVietnamPhone(String value) {
+        String phone = trimToNull(value);
+        if (phone == null) {
+            return null;
+        }
+
+        phone = phone.replaceAll("[\\s().-]", "");
+
+        if (phone.startsWith("+84")) {
+            return "0" + phone.substring(3);
+        }
+        if (phone.startsWith("84")) {
+            return "0" + phone.substring(2);
+        }
+        return phone;
+    }
+
+    public static String trimToNull(String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
     }
 
 }

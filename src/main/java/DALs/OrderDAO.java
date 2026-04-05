@@ -425,7 +425,7 @@ public class OrderDAO extends DBContext {
         }
         return null;
     }
-
+// get all order
     public List<Orders> getAllOrders() {
 
         List<Orders> list = new ArrayList<>();
@@ -471,7 +471,7 @@ public class OrderDAO extends DBContext {
 
         return list;
     }
-
+// search order
     public List<Orders> searchOrders(String keyword) {
         String normalizedKeyword = keyword == null ? null : keyword.trim();
         if (normalizedKeyword == null || normalizedKeyword.isEmpty()) {
@@ -526,7 +526,7 @@ public class OrderDAO extends DBContext {
 
         return list;
     }
-
+// get product by id
     public List<OrderDetail> getOrderDetailsByOrderId(int orderId) {
 
         List<OrderDetail> list = new ArrayList<>();
@@ -626,7 +626,6 @@ public class OrderDAO extends DBContext {
 
         return list;
     }
-
     public boolean updateOrderState(int orderId, String paymentStatus, String orderStatus, Integer handledBy) {
         Connection conn = this.connection;
         if (conn == null) {
@@ -753,7 +752,7 @@ public class OrderDAO extends DBContext {
         order.setProvince(rs.getString("province"));
         return order;
     }
-
+// get order
     public List<Orders> getOrdersByCustomerId(int customerId) {
 
         List<Orders> list = new ArrayList<>();
@@ -803,7 +802,7 @@ public class OrderDAO extends DBContext {
 
         return list;
     }
-
+// cancel order by id
     public boolean cancelOrder(int orderId) {
         Connection conn = this.connection;
         if (conn == null) {
@@ -990,8 +989,6 @@ public class OrderDAO extends DBContext {
 
         return null;
     }
-
-    //PhucLNH - Payment
     public boolean updateReview(int orderDetailId, int rating, String comment) {
         String sql = "UPDATE Order_Detail "
                 + "SET rating = ?, review_comment = ?, reviewed_at = GETDATE() "
@@ -1009,7 +1006,7 @@ public class OrderDAO extends DBContext {
 
         return false;
     }
-
+// get order detail
     public List<OrderDetail> getOrderDetailsWithReview(int orderId) {
         List<OrderDetail> list = new ArrayList<>();
 

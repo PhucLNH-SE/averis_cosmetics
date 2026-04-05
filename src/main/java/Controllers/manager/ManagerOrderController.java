@@ -63,6 +63,7 @@ public class ManagerOrderController extends HttpServlet {
                 break;
         }
     }
+// list order
 
     private void listOrders(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -127,8 +128,9 @@ public class ManagerOrderController extends HttpServlet {
         request.setAttribute("contentPage", staffRoute ? STAFF_DETAIL : ADMIN_DETAIL);
         request.getRequestDispatcher(staffRoute ? STAFF_PANEL : ADMIN_PANEL).forward(request, response);
     }
+//update status
 
-     private void updateOrderStatus(HttpServletRequest request, HttpServletResponse response)
+    private void updateOrderStatus(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         HttpSession session = request.getSession(false);
         Manager manager = session == null ? null : (Manager) session.getAttribute("manager");
@@ -186,8 +188,13 @@ public class ManagerOrderController extends HttpServlet {
             try {
                 ValidationUtil.validateOrderStatusTransition(existingOrder.getOrderStatus(), orderStatuses[i]);
                 if (equalsIgnoreCase(existingOrder.getPaymentMethod(), "COD")) {
-                    ValidationUtil.validateCodStatus(existingOrder.getPaymentMethod(),
-                            paymentStatuses[i], orderStatuses[i]);
+                    ValidationUtil.validateCodStatus(
+                            existingOrder.getPaymentMethod(),
+                            existingOrder.getPaymentStatus(),
+                            existingOrder.getOrderStatus(),
+                            paymentStatuses[i],
+                            orderStatuses[i]
+                    );
                 }
             } catch (IllegalArgumentException ex) {
                 if (validationErrorMessage == null) {
@@ -327,5 +334,3 @@ public class ManagerOrderController extends HttpServlet {
         return left.equalsIgnoreCase(right);
     }
 }
-
-

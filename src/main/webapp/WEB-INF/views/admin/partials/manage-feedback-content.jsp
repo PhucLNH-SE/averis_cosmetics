@@ -24,7 +24,7 @@
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-light">
                         <tr>
-                            <th class="ps-4">ID</th>
+                            <th class="ps-4">Product ID</th>
                             <th>Image</th>
                             <th>Product Name</th>
                             <th>Avg. Rating</th>

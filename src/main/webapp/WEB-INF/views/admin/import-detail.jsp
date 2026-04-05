@@ -125,14 +125,7 @@
                         </td>
                         <c:if test="${isAdmin}">
                             <td class="text-end amount import-detail-row-subtotal import-detail-table__subtotal">
-                                <c:choose>
-                                    <c:when test="${orderStatus == 'PENDING'}">
-                                        <fmt:formatNumber value="${(d.receivedQuantity != null ? d.receivedQuantity : d.quantity) * d.importPrice}" pattern="#,##0"/> VND
-                                    </c:when>
-                                    <c:otherwise>
-                                        <fmt:formatNumber value="${(d.receivedQuantity != null ? d.receivedQuantity : d.quantity) * d.importPrice}" pattern="#,##0"/> VND
-                                    </c:otherwise>
-                                </c:choose>
+                                <fmt:formatNumber value="${(d.receivedQuantity != null ? d.receivedQuantity : d.quantity) * d.importPrice}" pattern="#,##0"/> VND
                             </td>
                         </c:if>
                     </tr>
