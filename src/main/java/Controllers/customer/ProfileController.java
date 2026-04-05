@@ -30,6 +30,98 @@ import org.mindrot.jbcrypt.BCrypt;
 
 @MultipartConfig
 public class ProfileController extends HttpServlet {
+    
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
+        HttpSession session = request.getSession(false);
+        if (session == null || session.getAttribute("customer") == null) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
+
+        Customer customer = (Customer) session.getAttribute("customer");
+
+        String action = request.getParameter("action");
+        String tab = request.getParameter("tab");
+
+        if (action == null) {
+            action = "view";
+        }
+
+        if ("view".equals(action) && "address".equals(tab)) {
+            response.sendRedirect(request.getContextPath() + "/address");
+            return;
+        }
+
+        switch (action) {
+
+            case "view":
+                if ("orders".equals(tab)) {
+                    showOrders(request, response, customer);
+                } else if ("feedback".equals(tab)) {
+                    showFeedbacks(request, response, customer);
+                } else if ("voucher".equals(tab)) {
+                    showVouchers(request, response, customer);
+                } else {
+                    showProfilePage(request, response);
+                }
+                break;
+
+            case "edit":
+                showEditForm(request, response, customer);
+                break;
+
+            case "orders":
+                showOrders(request, response, customer);
+                break;
+            case "orderDetail":
+                showOrderDetail(request, response, customer);
+                break;
+            case "voucher":
+                showVouchers(request, response, customer);
+                break;
+            case "feedback":
+                showFeedbacks(request, response, customer);
+                break;
+            case "cancelOrder":
+                cancelOrder(request, response, customer);
+                break;
+            default:
+                response.sendError(HttpServletResponse.SC_NOT_FOUND);
+        }
+
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
+        HttpSession session = request.getSession(false);
+        if (session == null || session.getAttribute("customer") == null) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
+
+        Customer customer = (Customer) session.getAttribute("customer");
+
+        String action = request.getParameter("action");
+        if (action == null) {
+            action = "";
+        }
+
+        switch (action) {
+            case "edit":
+                updateProfile(request, response, customer);
+                break;
+            case "changePassword":
+                changePassword(request, response, customer);
+                break;
+            default:
+                response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+        }
+    }
 
     private void showProfilePage(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -318,98 +410,5 @@ public class ProfileController extends HttpServlet {
             response.sendRedirect(request.getContextPath() + "/profile?action=orders");
         }
     }
-
-    @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-
-        HttpSession session = request.getSession(false);
-        if (session == null || session.getAttribute("customer") == null) {
-            response.sendRedirect(request.getContextPath() + "/login");
-            return;
-        }
-
-        Customer customer = (Customer) session.getAttribute("customer");
-
-        String action = request.getParameter("action");
-        String tab = request.getParameter("tab");
-
-        if (action == null) {
-            action = "view";
-        }
-
-        if ("view".equals(action) && "address".equals(tab)) {
-            response.sendRedirect(request.getContextPath() + "/address");
-            return;
-        }
-
-        switch (action) {
-
-            case "view":
-                if ("orders".equals(tab)) {
-                    showOrders(request, response, customer);
-                } else if ("feedback".equals(tab)) {
-                    showFeedbacks(request, response, customer);
-                } else if ("voucher".equals(tab)) {
-                    showVouchers(request, response, customer);
-                } else {
-                    showProfilePage(request, response);
-                }
-                break;
-
-            case "edit":
-                showEditForm(request, response, customer);
-                break;
-
-            case "orders":
-                showOrders(request, response, customer);
-                break;
-            case "orderDetail":
-                showOrderDetail(request, response, customer);
-                break;
-            case "voucher":
-                showVouchers(request, response, customer);
-                break;
-            case "feedback":
-                showFeedbacks(request, response, customer);
-                break;
-            case "cancelOrder":
-                cancelOrder(request, response, customer);
-                break;
-            default:
-                response.sendError(HttpServletResponse.SC_NOT_FOUND);
-        }
-
-    }
-
-    @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-
-        HttpSession session = request.getSession(false);
-        if (session == null || session.getAttribute("customer") == null) {
-            response.sendRedirect(request.getContextPath() + "/login");
-            return;
-        }
-
-        Customer customer = (Customer) session.getAttribute("customer");
-
-        String action = request.getParameter("action");
-        if (action == null) {
-            action = "";
-        }
-
-        switch (action) {
-            case "edit":
-                updateProfile(request, response, customer);
-                break;
-            case "changePassword":
-                changePassword(request, response, customer);
-                break;
-            default:
-                response.sendError(HttpServletResponse.SC_BAD_REQUEST);
-        }
-    }
-
 }
 

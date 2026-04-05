@@ -23,12 +23,6 @@ public class ManagerVoucherController extends HttpServlet {
     private static final String STAFF_PANEL = "/WEB-INF/views/staff/staff-panel.jsp";
     private static final String ADMIN_CONTENT = "/WEB-INF/views/admin/partials/manage-voucher-content.jsp";
     private static final String STAFF_CONTENT = "/WEB-INF/views/staff/partials/manage-voucher-content.jsp";
-    private VoucherDAO voucherDAO;
-
-    @Override
-    public void init() throws ServletException {
-        voucherDAO = new VoucherDAO();
-    }
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -83,7 +77,7 @@ public class ManagerVoucherController extends HttpServlet {
                 updateVoucher(request, response);
                 break;
             case "toggleHome":
-                toggleVoucherHomeVisibility(request, response);
+                toggleVoucherShowOnHome(request, response);
                 break;
             default:
                 response.sendRedirect(request.getContextPath() + ADMIN_LIST_URL);
@@ -94,7 +88,8 @@ public class ManagerVoucherController extends HttpServlet {
     private void showManageVoucher(HttpServletRequest request, HttpServletResponse response,
             Voucher selectedVoucher, String formMode)
             throws ServletException, IOException {
-        List<Voucher> vouchers = voucherDAO.getAll();
+        VoucherDAO voucherDAO = new VoucherDAO();
+        List<Voucher> vouchers = voucherDAO.getAllVoucher();
         request.setAttribute("vouchers", vouchers);
         request.setAttribute("selectedVoucher", selectedVoucher);
         request.setAttribute("formMode", formMode);
@@ -106,6 +101,7 @@ public class ManagerVoucherController extends HttpServlet {
 
     private void showEditVoucherForm(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        VoucherDAO voucherDAO = new VoucherDAO();
         String idParam = request.getParameter("id");
         if (idParam == null || idParam.trim().isEmpty()) {
             response.sendRedirect(request.getContextPath() + ADMIN_LIST_URL + "?error=notFound");
@@ -114,7 +110,7 @@ public class ManagerVoucherController extends HttpServlet {
 
         try {
             int voucherId = Integer.parseInt(idParam);
-            Voucher selectedVoucher = voucherDAO.getById(voucherId);
+            Voucher selectedVoucher = voucherDAO.getVoucherById(voucherId);
             if (selectedVoucher == null) {
                 response.sendRedirect(request.getContextPath() + ADMIN_LIST_URL + "?error=notFound");
                 return;
@@ -127,33 +123,36 @@ public class ManagerVoucherController extends HttpServlet {
 
     private void createVoucher(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
+        VoucherDAO voucherDAO = new VoucherDAO();
         try {
             Voucher voucher = buildVoucherFromRequest(request, false);
             validateVoucher(voucher);
-            Voucher existed = voucherDAO.getByCode(voucher.getCode());
+            Voucher existed = voucherDAO.getVoucherByCode(voucher.getCode());
             if (existed != null) {
                 response.sendRedirect(request.getContextPath() + ADMIN_LIST_URL + "?error=duplicateCode");
                 return;
             }
 
-            boolean ok = voucherDAO.insert(voucher);
+            boolean ok = voucherDAO.createVoucher(voucher);
             response.sendRedirect(request.getContextPath() + ADMIN_LIST_URL + "?success=" + (ok ? "created" : "failed"));
         } catch (Exception ex) {
+            ex.printStackTrace();
             response.sendRedirect(request.getContextPath() + ADMIN_LIST_URL + "?error=invalidData");
         }
     }
 
     private void updateVoucher(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
+        VoucherDAO voucherDAO = new VoucherDAO();
         try {
             Voucher voucher = buildVoucherFromRequest(request, true);
-            Voucher existed = voucherDAO.getByCode(voucher.getCode());
+            Voucher existed = voucherDAO.getVoucherByCode(voucher.getCode());
             if (existed != null && existed.getVoucherId() != voucher.getVoucherId()) {
                 response.sendRedirect(request.getContextPath() + ADMIN_LIST_URL + "?error=duplicateCode");
                 return;
             }
 
-            Voucher old = voucherDAO.getById(voucher.getVoucherId());
+            Voucher old = voucherDAO.getVoucherById(voucher.getVoucherId());
             if (old == null) {
                 response.sendRedirect(request.getContextPath() + ADMIN_LIST_URL + "?error=notFound");
                 return;
@@ -162,15 +161,17 @@ public class ManagerVoucherController extends HttpServlet {
             voucher.setClaimedQuantity(old.getClaimedQuantity());
             voucher.setCreatedAt(old.getCreatedAt());
             validateVoucher(voucher);
-            boolean ok = voucherDAO.update(voucher);
+            boolean ok = voucherDAO.updateVoucher(voucher);
             response.sendRedirect(request.getContextPath() + ADMIN_LIST_URL + "?success=" + (ok ? "updated" : "failed"));
         } catch (Exception ex) {
+            ex.printStackTrace();
             response.sendRedirect(request.getContextPath() + ADMIN_LIST_URL + "?error=invalidData");
         }
     }
 
-    private void toggleVoucherHomeVisibility(HttpServletRequest request, HttpServletResponse response)
+    private void toggleVoucherShowOnHome(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
+        VoucherDAO voucherDAO = new VoucherDAO();
         String voucherIdRaw = request.getParameter("voucherId");
         if (voucherIdRaw == null || voucherIdRaw.trim().isEmpty()) {
             response.sendRedirect(request.getContextPath() + ADMIN_LIST_URL + "?error=toggleHomeFailed");
@@ -179,7 +180,7 @@ public class ManagerVoucherController extends HttpServlet {
 
         try {
             int voucherId = Integer.parseInt(voucherIdRaw);
-            Voucher voucher = voucherDAO.getById(voucherId);
+            Voucher voucher = voucherDAO.getVoucherById(voucherId);
             if (voucher == null) {
                 response.sendRedirect(request.getContextPath() + ADMIN_LIST_URL + "?error=notFound");
                 return;
@@ -335,6 +336,3 @@ public class ManagerVoucherController extends HttpServlet {
         }
     }
 }
-
-
-

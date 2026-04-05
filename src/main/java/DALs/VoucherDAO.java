@@ -14,7 +14,7 @@ import java.util.Map;
 
 public class VoucherDAO extends DBContext {
 
-    public List<Voucher> getAll() {
+    public List<Voucher> getAllVoucher() {
         String sql = "SELECT * FROM Voucher ORDER BY voucher_id ASC";
         List<Voucher> result = new ArrayList<>();
 
@@ -30,7 +30,7 @@ public class VoucherDAO extends DBContext {
         return result;
     }
 
-    public Voucher getById(int voucherId) {
+    public Voucher getVoucherById(int voucherId) {
         String sql = "SELECT * FROM Voucher WHERE voucher_id = ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, voucherId);
@@ -45,7 +45,7 @@ public class VoucherDAO extends DBContext {
         return null;
     }
 
-    public Voucher getByCode(String code) {
+    public Voucher getVoucherByCode(String code) {
         String sql = "SELECT * FROM Voucher WHERE UPPER(LTRIM(RTRIM(code))) = UPPER(LTRIM(RTRIM(?)))";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setString(1, code);
@@ -60,7 +60,7 @@ public class VoucherDAO extends DBContext {
         return null;
     }
 
-    public boolean insert(Voucher voucher) {
+    public boolean createVoucher(Voucher voucher) {
         String sql = "INSERT INTO Voucher (code, discount_type, discount_value, quantity, expired_at, status, "
                 + "voucher_type, fixed_start_at, fixed_end_at, relative_days, claimed_quantity, created_at) "
                 + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
@@ -73,7 +73,7 @@ public class VoucherDAO extends DBContext {
         }
     }
 
-    public boolean update(Voucher voucher) {
+    public boolean updateVoucher(Voucher voucher) {
         String sql = "UPDATE Voucher SET code = ?, discount_type = ?, discount_value = ?, quantity = ?, expired_at = ?, "
                 + "status = ?, voucher_type = ?, fixed_start_at = ?, fixed_end_at = ?, relative_days = ?, "
                 + "claimed_quantity = ? WHERE voucher_id = ?";
@@ -91,20 +91,14 @@ public class VoucherDAO extends DBContext {
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setBoolean(1, showOnHome);
             ps.setInt(2, voucherId);
-            int updated = ps.executeUpdate();
-            if (updated > 0) {
-                return true;
-            }
-
-            Voucher voucher = getById(voucherId);
-            return voucher != null && Boolean.valueOf(showOnHome).equals(voucher.getShowonfreevoucher());
+            return ps.executeUpdate() > 0;
         } catch (Exception e) {
             e.printStackTrace();
             return false;
         }
     }
 
-    public boolean softDelete(int voucherId) {
+    public boolean softDeleteVoucher(int voucherId) {
         String sql = "UPDATE Voucher SET status = 0 WHERE voucher_id = ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, voucherId);
