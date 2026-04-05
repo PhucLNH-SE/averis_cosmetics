@@ -262,15 +262,15 @@
                                                     <div class="address-card-content">
                                                         <div class="address-receiver">
                                                             <i class="fas fa-user"></i>
-                                                            <span>${addr.receiverName}</span>
+                                                            <span><c:out value="${addr.receiverName}" /></span>
                                                         </div>
                                                         <div class="address-phone">
                                                             <i class="fas fa-phone"></i>
-                                                            <span>${addr.phone}</span>
+                                                            <span><c:out value="${addr.phone}" /></span>
                                                         </div>
                                                         <div class="address-location">
                                                             <i class="fas fa-map-pin"></i>
-                                                            <span>${addr.streetAddress}, ${addr.ward}, ${addr.district}, ${addr.province}</span>
+                                                            <span><c:out value="${addr.streetAddress}" />, <c:out value="${addr.ward}" />, <c:out value="${addr.district}" />, <c:out value="${addr.province}" /></span>
                                                         </div>
                                                     </div>
 
@@ -381,7 +381,7 @@
                                                             <i class="fas fa-user"></i>
                                                             <div>
                                                                 <span class="info-label">Receiver</span>
-                                                                <span class="info-value">${o.receiverName}</span>
+                                                                <span class="info-value"><c:out value="${o.receiverName}" /></span>
                                                             </div>
                                                         </div>
                                                         <div class="order-info-item">
@@ -471,15 +471,15 @@
                                             <h3><i class="fas fa-map-marker-alt"></i> Shipping Address</h3>
                                             <div class="info-row">
                                                 <span class="label">Receiver</span>
-                                                <span class="value">${order.receiverName}</span>
+                                                <span class="value"><c:out value="${order.receiverName}" /></span>
                                             </div>
                                             <div class="info-row">
                                                 <span class="label">Phone</span>
-                                                <span class="value">${order.receiverPhone}</span>
+                                                <span class="value"><c:out value="${order.receiverPhone}" /></span>
                                             </div>
                                             <div class="info-row">
                                                 <span class="label">Address</span>
-                                                <span class="value">${order.streetAddress}, ${order.ward}, ${order.district}, ${order.province}</span>
+                                                <span class="value"><c:out value="${order.streetAddress}" />, <c:out value="${order.ward}" />, <c:out value="${order.district}" />, <c:out value="${order.province}" /></span>
                                             </div>
                                         </div>
                                     </div>

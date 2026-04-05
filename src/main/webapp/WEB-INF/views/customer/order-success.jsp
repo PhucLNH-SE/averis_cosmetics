@@ -86,18 +86,18 @@
                 <div class="order-success-panel">
                     <h2>Delivery information</h2>
                     <p class="order-success-address-name">
-                        ${order.receiverName}
+                        <c:out value="${order.receiverName}" />
                         <c:if test="${not empty order.receiverPhone}">
-                            - ${order.receiverPhone}
+                            - <c:out value="${order.receiverPhone}" />
                         </c:if>
                     </p>
                     <p class="order-success-address-copy">
                         <c:choose>
                             <c:when test="${not empty order.streetAddress}">
-                                ${order.streetAddress}, ${order.ward}, ${order.district}, ${order.province}
+                                <c:out value="${order.streetAddress}" />, <c:out value="${order.ward}" />, <c:out value="${order.district}" />, <c:out value="${order.province}" />
                             </c:when>
                             <c:when test="${not empty address}">
-                                ${address.streetAddress}, ${address.ward}, ${address.district}, ${address.province}
+                                <c:out value="${address.streetAddress}" />, <c:out value="${address.ward}" />, <c:out value="${address.district}" />, <c:out value="${address.province}" />
                             </c:when>
                             <c:otherwise>
                                 Your delivery address has been confirmed in the order.
