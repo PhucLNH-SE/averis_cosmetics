@@ -53,7 +53,7 @@ public class SendVerifyEmailController extends HttpServlet {
         }
 
         String token = MailUtil.generateToken();
-        LocalDateTime expiredAt = LocalDateTime.now().plusHours(24);
+        LocalDateTime expiredAt = LocalDateTime.now().plusHours(1);
         customerDAO.updateAuthTokenForVerification(customer.getCustomerId(), token, expiredAt);
         String verifyLink = buildVerifyLink(request, token);
         boolean emailSent = MailUtil.sendVerificationEmail(customer.getEmail(), verifyLink);

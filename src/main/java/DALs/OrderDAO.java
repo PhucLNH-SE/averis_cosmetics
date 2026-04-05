@@ -651,6 +651,11 @@ public class OrderDAO extends DBContext {
                     || "SUCCESS".equalsIgnoreCase(order.getPaymentStatus())
                     || "SUCCESS".equalsIgnoreCase(paymentStatus));
 
+            boolean shouldReactivateVoucher = !"CANCELLED".equalsIgnoreCase(order.getOrderStatus())
+                    && "CANCELLED".equalsIgnoreCase(orderStatus)
+                    && "COD".equalsIgnoreCase(order.getPaymentMethod())
+                    && order.getVoucherId() != null;
+
             if (shouldDeductStock && !deductStockForOrder(conn, orderId)) {
                 throw new SQLException("Cannot deduct stock for order " + orderId);
             }
@@ -662,6 +667,10 @@ public class OrderDAO extends DBContext {
             if (!applyOrderStateUpdate(conn, order, paymentStatus, orderStatus, handledBy)) {
                 conn.rollback();
                 return false;
+            }
+
+            if (shouldReactivateVoucher) {
+                reactivateVoucherForFailedPayment(conn, orderId);
             }
 
             conn.commit();
@@ -824,6 +833,9 @@ public class OrderDAO extends DBContext {
                     && ("COD".equalsIgnoreCase(order.getPaymentMethod())
                     || "SUCCESS".equalsIgnoreCase(order.getPaymentStatus()));
 
+            boolean shouldReactivateVoucher = "COD".equalsIgnoreCase(order.getPaymentMethod())
+                    && order.getVoucherId() != null;
+
             if (shouldRestoreStock && !restoreStockForOrder(conn, orderId)) {
                 throw new SQLException("Cannot restore stock for cancelled order " + orderId);
             }
@@ -831,6 +843,10 @@ public class OrderDAO extends DBContext {
             if (!applyOrderStateUpdate(conn, order, order.getPaymentStatus(), "CANCELLED", null)) {
                 conn.rollback();
                 return false;
+            }
+
+            if (shouldReactivateVoucher) {
+                reactivateVoucherForFailedPayment(conn, orderId);
             }
 
             conn.commit();
