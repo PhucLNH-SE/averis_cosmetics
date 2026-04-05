@@ -18,7 +18,6 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.List;
 
 public class AdminImportProductController extends HttpServlet {
@@ -124,44 +123,16 @@ public class AdminImportProductController extends HttpServlet {
             String[] quantities = request.getParameterValues("quantity");
             String[] prices = request.getParameterValues("price");
 
-            ValidationUtil.validateImportOrderInput(supplierIdRaw, variantIds, quantities, prices);
-
-            List<ImportOrderDetail> details = new ArrayList<>();
-            for (int i = 0; i < variantIds.length; i++) {
-                String variantIdRaw = variantIds[i];
-                String quantityRaw = i < quantities.length ? quantities[i] : null;
-                String priceRaw = i < prices.length ? prices[i] : null;
-
-                if (toNullIfBlank(variantIdRaw) == null) {
-                    continue;
-                }
-
-                ValidationUtil.validateImportItemInput(variantIdRaw, quantityRaw, priceRaw);
-                if (toNullIfBlank(quantityRaw) == null && toNullIfBlank(priceRaw) == null) {
-                    continue;
-                }
-
-                ImportOrderDetail detail = new ImportOrderDetail();
-                detail.setVariantId(ValidationUtil.parseImportVariantId(variantIdRaw));
-                detail.setQuantity(ValidationUtil.parseImportQuantity(quantityRaw));
-                detail.setImportPrice(ValidationUtil.parseImportPrice(priceRaw));
-
-                if (ValidationUtil.isValidImportItem(detail)) {
-                    details.add(detail);
-                }
-            }
-
-            ImportOrder importOrder = new ImportOrder();
-            importOrder.setSupplierId(ValidationUtil.parseImportSupplierId(supplierIdRaw));
-            importOrder.setCreatedBy(manager.getManagerId());
-            importOrder.setImportCode(importCode == null ? generateImportCode() : importCode);
-            importOrder.setInvoiceNo(invoiceNo);
-            importOrder.setNote(note);
-            importOrder.setStatus("PENDING");
-            importOrder.setDetails(details);
-            importOrder.setTotalAmount(importOrder.calculateTotalAmount());
-
-            ValidationUtil.validateImportOrder(importOrder, MAX_IMPORT_TOTAL_AMOUNT);
+            ImportOrder importOrder = ValidationUtil.buildValidatedImportOrder(
+                    supplierIdRaw,
+                    manager.getManagerId(),
+                    importCode == null ? generateImportCode() : importCode,
+                    invoiceNo,
+                    note,
+                    variantIds,
+                    quantities,
+                    prices,
+                    MAX_IMPORT_TOTAL_AMOUNT);
 
             int orderId = dao.createPurchaseOrderWithDetails(importOrder);
             if (orderId <= 0) {
@@ -216,42 +187,52 @@ public class AdminImportProductController extends HttpServlet {
         HttpSession session = request.getSession(false);
         Manager manager = session == null ? null : (Manager) session.getAttribute("manager");
 
+        // Phai co manager dang nhap thi moi duoc xac nhan nhap hang.
         if (manager == null) {
             response.sendRedirect(request.getContextPath() + "/manager-auth");
             return;
         }
 
-        String orderIdRaw = toNullIfBlank(request.getParameter("orderId"));
-        if (orderIdRaw == null) {
+        // Lay du lieu gui tu form xac nhan nhap hang.
+        String orderIdText = toNullIfBlank(request.getParameter("orderId"));
+        String[] variantIdTexts = request.getParameterValues("variantId");
+        String[] receivedQtyTexts = request.getParameterValues("receivedQuantity");
+
+        if (orderIdText == null) {
             response.sendRedirect(historyRedirect + "&error=importFailed");
             return;
         }
 
-        String[] variantIdRaw = request.getParameterValues("variantId");
-        String[] receivedQtyRaw = request.getParameterValues("receivedQuantity");
-
         try {
-            int orderId = Integer.parseInt(orderIdRaw);
-            int[] variantIds = new int[variantIdRaw == null ? 0 : variantIdRaw.length];
+            // Chuyen du lieu text sang so de xu ly.
+            int orderId = Integer.parseInt(orderIdText);
+
+            int[] variantIds = new int[variantIdTexts == null ? 0 : variantIdTexts.length];
             for (int i = 0; i < variantIds.length; i++) {
-                if (variantIdRaw[i] == null || variantIdRaw[i].trim().isEmpty()) {
+                String variantIdText = variantIdTexts[i];
+                if (variantIdText == null || variantIdText.trim().isEmpty()) {
                     variantIds[i] = 0;
                 } else {
-                    variantIds[i] = Integer.parseInt(variantIdRaw[i].trim());
+                    variantIds[i] = Integer.parseInt(variantIdText.trim());
                 }
             }
 
-            int[] receivedQuantities = new int[receivedQtyRaw == null ? 0 : receivedQtyRaw.length];
+            int[] receivedQuantities = new int[receivedQtyTexts == null ? 0 : receivedQtyTexts.length];
             for (int i = 0; i < receivedQuantities.length; i++) {
-                if (receivedQtyRaw[i] == null || receivedQtyRaw[i].trim().isEmpty()) {
+                String receivedQtyText = receivedQtyTexts[i];
+                if (receivedQtyText == null || receivedQtyText.trim().isEmpty()) {
                     receivedQuantities[i] = 0;
                 } else {
-                    receivedQuantities[i] = ValidationUtil.parseQuantityValue(receivedQtyRaw[i], "Invalid received quantity.");
+                    receivedQuantities[i] = ValidationUtil.parseQuantityValue(
+                            receivedQtyText,
+                            "Invalid received quantity.");
                 }
             }
 
+            // Tinh lai tong tien theo so luong thuc nhan ma nguoi dung vua nhap.
             List<ImportOrderDetail> details = dao.getImportOrderDetail(orderId);
             BigDecimal receivedTotal = BigDecimal.ZERO;
+
             for (ImportOrderDetail detail : details) {
                 int receivedQty = detail.getQuantity();
 
@@ -268,6 +249,7 @@ public class AdminImportProductController extends HttpServlet {
                 receivedTotal = receivedTotal.add(detail.calculateSubtotal(receivedQty));
             }
 
+            // Neu tong tien sau khi nhan hang vuot muc cho phep thi mo lai modal va bao loi.
             if (receivedTotal.compareTo(MAX_IMPORT_TOTAL_AMOUNT) > 0) {
                 setImportOrderDetailAttributes(request, orderId, manager, variantIds, receivedQuantities,
                         "Total amount cannot exceed 9,999,999,999 VND.", importBasePath);
@@ -276,8 +258,9 @@ public class AdminImportProductController extends HttpServlet {
                 return;
             }
 
-            boolean ok = dao.confirmReceipt(orderId, manager.getManagerId(), variantIds, receivedQuantities);
-            if (!ok) {
+            // Luu ket qua nhan hang xuong DB.
+            boolean updated = dao.confirmReceipt(orderId, manager.getManagerId(), variantIds, receivedQuantities);
+            if (!updated) {
                 setImportOrderDetailAttributes(request, orderId, manager, variantIds, receivedQuantities,
                         "Failed to confirm import receipt.", importBasePath);
                 request.setAttribute("autoOpenImportDetail", Boolean.TRUE);
@@ -285,6 +268,7 @@ public class AdminImportProductController extends HttpServlet {
                 return;
             }
 
+            // Thanh cong thi quay ve history va bao success.
             response.sendRedirect(historyRedirect + "&success=received");
         } catch (IllegalArgumentException ex) {
             response.sendRedirect(historyRedirect + "&error=importFailed");
@@ -348,6 +332,7 @@ public class AdminImportProductController extends HttpServlet {
     private String generateImportCode() {
         return "IMP-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
     }
+    
 }
 
 

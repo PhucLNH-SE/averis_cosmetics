@@ -902,76 +902,33 @@ public class ProductDAO extends DBContext {
     */
 
     public List<Product> getProductsForAdminWithImportPrice(String keyword, String brandId, String categoryId, String status) {
-        Integer parsedBrandId = parseNullableInteger(brandId);
-        Integer parsedCategoryId = parseNullableInteger(categoryId);
-        Boolean parsedStatus = parseNullableStatus(status);
-        return getProductsForManagement(keyword, parsedBrandId, parsedCategoryId, parsedStatus, true, false);
+        return getProductsForManagement(true, false);
     }
 
     public List<Product> getProductsForStaff(String keyword, Integer brandId, Integer categoryId, Boolean status) {
-        return getProductsForManagement(keyword, brandId, categoryId, status, false, false);
+        return getProductsForManagement(false, false);
     }
 
-    private List<Product> getProductsForManagement(String keyword, Integer brandId, Integer categoryId,
-                                                   Boolean status, boolean includeImportPrice,
+    private List<Product> getProductsForManagement(boolean includeImportPrice,
                                                    boolean newestFirst) {
         List<Product> list = new ArrayList<>();
-        StringBuilder sql = new StringBuilder();
-        sql.append("SELECT ")
-                .append("  p.product_id, p.name, p.description, p.status, ")
-                .append("  b.brand_id, b.name AS brand_name, b.status AS brand_status, ")
-                .append("  c.category_id, c.name AS category_name, c.status AS category_status, ")
-                .append("  pi.image_id, pi.image_url, pi.is_main, ")
-                .append("  MIN(pv.price) AS min_price, MAX(pv.price) AS max_price ")
-                .append("FROM Product p ")
-                .append("JOIN Brand b ON p.brand_id = b.brand_id ")
-                .append("JOIN Category c ON p.category_id = c.category_id ")
-                .append("LEFT JOIN Product_Image pi ON p.product_id = pi.product_id ")
-                .append("LEFT JOIN Product_Variant pv ON p.product_id = pv.product_id AND pv.status = 1 ")
-                .append("WHERE 1 = 1 ");
+        String sql = "SELECT "
+                + "  p.product_id, p.name, p.description, p.status, "
+                + "  b.brand_id, b.name AS brand_name, b.status AS brand_status, "
+                + "  c.category_id, c.name AS category_name, c.status AS category_status, "
+                + "  pi.image_id, pi.image_url, pi.is_main, "
+                + "  MIN(pv.price) AS min_price, MAX(pv.price) AS max_price "
+                + "FROM Product p "
+                + "JOIN Brand b ON p.brand_id = b.brand_id "
+                + "JOIN Category c ON p.category_id = c.category_id "
+                + "LEFT JOIN Product_Image pi ON p.product_id = pi.product_id "
+                + "LEFT JOIN Product_Variant pv ON p.product_id = pv.product_id AND pv.status = 1 "
+                + "GROUP BY p.product_id, p.name, p.description, p.status, "
+                + "         b.brand_id, b.name, b.status, "
+                + "         c.category_id, c.name, c.status, "
+                + "         pi.image_id, pi.image_url, pi.is_main " ;
 
-        List<Object> params = new ArrayList<>();
-
-        if (keyword != null && !keyword.trim().isEmpty()) {
-            sql.append("AND (p.name LIKE ? ")
-                    .append("OR p.description LIKE ? ")
-                    .append("OR b.name LIKE ? ")
-                    .append("OR c.name LIKE ? ")
-                    .append("OR CAST(p.product_id AS VARCHAR(20)) LIKE ?) ");
-            String searchValue = "%" + keyword.trim() + "%";
-            for (int i = 0; i < 5; i++) {
-                params.add(searchValue);
-            }
-        }
-
-        if (brandId != null) {
-            sql.append("AND b.brand_id = ? ");
-            params.add(brandId);
-        }
-
-        if (categoryId != null) {
-            sql.append("AND c.category_id = ? ");
-            params.add(categoryId);
-        }
-
-        if (status != null) {
-            sql.append("AND p.status = ? ");
-            params.add(status);
-        }
-
-        sql.append("GROUP BY p.product_id, p.name, p.description, p.status, ")
-                .append("         b.brand_id, b.name, b.status, ")
-                .append("         c.category_id, c.name, c.status, ")
-                .append("         pi.image_id, pi.image_url, pi.is_main ")
-                .append(newestFirst
-                        ? "ORDER BY p.product_id DESC, pi.is_main DESC, pi.image_id ASC"
-                        : "ORDER BY p.product_id ASC, pi.is_main DESC, pi.image_id ASC");
-
-        try (PreparedStatement ps = connection.prepareStatement(sql.toString())) {
-            for (int i = 0; i < params.size(); i++) {
-                ps.setObject(i + 1, params.get(i));
-            }
-
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
             try (ResultSet rs = ps.executeQuery()) {
                 Map<Integer, Product> productMap = new LinkedHashMap<>();
 
@@ -989,10 +946,10 @@ public class ProductDAO extends DBContext {
                         productMap.put(productId, product);
                     }
 
-                    addImageFromRow(rs, product, productId);
+            
                 }
 
-                finalizeMainImages(productMap);
+        
                 list.addAll(productMap.values());
             }
         } catch (Exception e) {
