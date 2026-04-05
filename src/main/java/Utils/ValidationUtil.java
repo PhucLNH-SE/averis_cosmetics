@@ -181,97 +181,65 @@ public class ValidationUtil {
                     "Password must be at least 8 characters, include uppercase, lowercase, number and special character.");
         }
 
-  
-   return errors;
-}
-    // bat loi theo paymentstatus
-public static void validateCodStatus(
-        String paymentMethod,
-        String currentPaymentStatus,
-        String currentOrderStatus,
-        String newPaymentStatus,
-        String newOrderStatus) {
+        if (confirmPassword == null || confirmPassword.trim().isEmpty()) {
+            errors.put("errorConfirmPassword", "Please confirm your password.");
+        } else if (password != null && !password.equals(confirmPassword)) {
+            errors.put("errorConfirmPassword", "Passwords do not match.");
+        }
 
-    if (paymentMethod == null || currentPaymentStatus == null || currentOrderStatus == null
-            || newPaymentStatus == null || newOrderStatus == null) {
-        throw new IllegalArgumentException(
-                "Unable to validate COD order status because one or more required values are missing.");
-    }
-
-    String normalizedPaymentMethod = paymentMethod.trim().toUpperCase();
-    String normalizedCurrentPaymentStatus = currentPaymentStatus.trim().toUpperCase();
-    String normalizedCurrentOrderStatus = currentOrderStatus.trim().toUpperCase();
-    String normalizedNewPaymentStatus = newPaymentStatus.trim().toUpperCase();
-    String normalizedNewOrderStatus = newOrderStatus.trim().toUpperCase();
-
-    if (!"COD".equals(normalizedPaymentMethod)) {
-        throw new IllegalArgumentException(
-                "COD validation rules can only be applied to orders that use the COD payment method.");
-    }
-
-
-    if ("FAILED".equals(normalizedCurrentPaymentStatus)
-            && "CANCELLED".equals(normalizedCurrentOrderStatus)
-            && "PENDING".equals(normalizedNewPaymentStatus)
-            && "CANCELLED".equals(normalizedNewOrderStatus)) {
-        throw new IllegalArgumentException(
-                "A COD order cannot be changed from FAILED + CANCELLED back to PENDING + CANCELLED.");
-    }
-
-    switch (normalizedNewPaymentStatus) {
-        case "PENDING":
-            validateCodPending(normalizedNewOrderStatus);
-            break;
-        case "SUCCESS":
-            validateCodSuccess(normalizedNewOrderStatus);
-            break;
-        case "FAILED":
-            validateCodFailed(normalizedNewOrderStatus, normalizedNewPaymentStatus);
-            break;
-        default:
-            throw new IllegalArgumentException(
-                    "Unsupported payment status for COD orders: " + normalizedNewPaymentStatus + ".");
-    }
-}
-// bat loi theo luong xu ly don
-public static void validateOrderStatusTransition(String currentOrderStatus, String newOrderStatus) {
-    if (currentOrderStatus == null || newOrderStatus == null) {
-        throw new IllegalArgumentException("Unable to update the order because the current status or target status is missing.");
-    }
-
-    String normalizedCurrentStatus = currentOrderStatus.trim().toUpperCase();
-    String normalizedNewStatus = newOrderStatus.trim().toUpperCase();
         return errors;
     }
 
-    public static void validateCodStatus(String paymentMethod, String paymentStatus, String orderStatus) {
-        if (paymentMethod == null || paymentStatus == null || orderStatus == null) {
-            throw new IllegalArgumentException("Unable to validate COD order status because the payment method, payment status, or order status is missing.");
+    // bat loi theo paymentstatus
+    public static void validateCodStatus(
+            String paymentMethod,
+            String currentPaymentStatus,
+            String currentOrderStatus,
+            String newPaymentStatus,
+            String newOrderStatus) {
+
+        if (paymentMethod == null || currentPaymentStatus == null || currentOrderStatus == null
+                || newPaymentStatus == null || newOrderStatus == null) {
+            throw new IllegalArgumentException(
+                    "Unable to validate COD order status because one or more required values are missing.");
         }
 
         String normalizedPaymentMethod = paymentMethod.trim().toUpperCase();
-        String normalizedPaymentStatus = paymentStatus.trim().toUpperCase();
-        String normalizedOrderStatus = normalizeOrderStatus(orderStatus);
+        String normalizedCurrentPaymentStatus = currentPaymentStatus.trim().toUpperCase();
+        String normalizedCurrentOrderStatus = normalizeOrderStatus(currentOrderStatus);
+        String normalizedNewPaymentStatus = newPaymentStatus.trim().toUpperCase();
+        String normalizedNewOrderStatus = normalizeOrderStatus(newOrderStatus);
 
         if (!"COD".equals(normalizedPaymentMethod)) {
-            throw new IllegalArgumentException("COD validation rules can only be applied to orders that use the COD payment method.");
+            throw new IllegalArgumentException(
+                    "COD validation rules can only be applied to orders that use the COD payment method.");
         }
 
-        switch (normalizedPaymentStatus) {
+        if ("FAILED".equals(normalizedCurrentPaymentStatus)
+                && "CANCELLED".equals(normalizedCurrentOrderStatus)
+                && "PENDING".equals(normalizedNewPaymentStatus)
+                && "CANCELLED".equals(normalizedNewOrderStatus)) {
+            throw new IllegalArgumentException(
+                    "A COD order cannot be changed from FAILED + CANCELLED back to PENDING + CANCELLED.");
+        }
+
+        switch (normalizedNewPaymentStatus) {
             case "PENDING":
-                validateCodPending(normalizedOrderStatus);
+                validateCodPending(normalizedNewOrderStatus);
                 break;
             case "SUCCESS":
-                validateCodSuccess(normalizedOrderStatus);
+                validateCodSuccess(normalizedNewOrderStatus);
                 break;
             case "FAILED":
-                validateCodFailed(normalizedOrderStatus);
+                validateCodFailed(normalizedNewOrderStatus);
                 break;
             default:
-                throw new IllegalArgumentException("Unsupported payment status for COD orders: " + normalizedPaymentStatus + ".");
+                throw new IllegalArgumentException(
+                        "Unsupported payment status for COD orders: " + normalizedNewPaymentStatus + ".");
         }
     }
 
+    // bat loi theo luong xu ly don
     public static void validateOrderStatusTransition(String currentOrderStatus, String newOrderStatus) {
         if (currentOrderStatus == null || newOrderStatus == null) {
             throw new IllegalArgumentException("Unable to update the order because the current status or target status is missing.");
