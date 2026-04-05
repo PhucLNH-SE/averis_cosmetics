@@ -6,6 +6,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.Period;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -346,7 +347,10 @@ public class ValidationUtil {
                 "Unsupported order status for a COD order with payment status FAILED: " + orderStatus + ".");
     }
 
-    public static void validateImportOrderInput(String supplierIdRaw, String[] variantIds, String[] quantities, String[] prices) {
+    public static ImportOrder buildValidatedImportOrder(String supplierIdRaw, int managerId,
+            String importCode, String invoiceNo, String note,
+            String[] variantIds, String[] quantities, String[] prices,
+            BigDecimal maxTotalAmount) {
         if (!hasText(supplierIdRaw)) {
             throw new IllegalArgumentException(IMPORT_SUPPLIER_REQUIRED_MESSAGE);
         }
@@ -354,36 +358,58 @@ public class ValidationUtil {
         if (variantIds == null || quantities == null || prices == null) {
             throw new IllegalArgumentException(IMPORT_ITEMS_REQUIRED_MESSAGE);
         }
-    }
 
-    public static void validateImportItemInput(String variantIdRaw, String quantityRaw, String priceRaw) {
-        boolean hasVariant = hasText(variantIdRaw);
-        boolean hasQuantity = hasText(quantityRaw);
-        boolean hasPrice = hasText(priceRaw);
+        List<ImportOrderDetail> details = new ArrayList<>();
+        for (int i = 0; i < variantIds.length; i++) {
+            String variantIdRaw = variantIds[i];
+            String quantityRaw = i < quantities.length ? quantities[i] : null;
+            String priceRaw = i < prices.length ? prices[i] : null;
 
-        if (!hasQuantity && !hasPrice) {
-            return;
+            if (!hasText(variantIdRaw)) {
+                continue;
+            }
+
+            boolean hasQuantity = hasText(quantityRaw);
+            boolean hasPrice = hasText(priceRaw);
+            if (!hasQuantity && !hasPrice) {
+                continue;
+            }
+
+            if (hasQuantity != hasPrice) {
+                throw new IllegalArgumentException(IMPORT_ITEM_INVALID_MESSAGE);
+            }
+
+            ImportOrderDetail detail = new ImportOrderDetail();
+            detail.setVariantId(parseIntegerValue(variantIdRaw, IMPORT_ITEM_INVALID_MESSAGE));
+            detail.setQuantity(parseQuantityValue(quantityRaw, IMPORT_ITEM_INVALID_MESSAGE));
+            detail.setImportPrice(parseWholeNumberAmount(priceRaw, IMPORT_ITEM_INVALID_MESSAGE));
+
+            if (detail.getQuantity() > 0
+                    && detail.getImportPrice() != null
+                    && detail.getImportPrice().compareTo(BigDecimal.ZERO) > 0) {
+                details.add(detail);
+            }
         }
 
-        if (!hasVariant || hasQuantity != hasPrice) {
-            throw new IllegalArgumentException(IMPORT_ITEM_INVALID_MESSAGE);
+        if (details.isEmpty()) {
+            throw new IllegalArgumentException(IMPORT_VALID_ITEM_REQUIRED_MESSAGE);
         }
-    }
 
-    public static Integer parseImportSupplierId(String rawValue) {
-        return parseIntegerValue(rawValue, IMPORT_SUPPLIER_REQUIRED_MESSAGE);
-    }
+        ImportOrder importOrder = new ImportOrder();
+        importOrder.setSupplierId(parseIntegerValue(supplierIdRaw, IMPORT_SUPPLIER_REQUIRED_MESSAGE));
+        importOrder.setCreatedBy(managerId);
+        importOrder.setImportCode(importCode);
+        importOrder.setInvoiceNo(invoiceNo);
+        importOrder.setNote(note);
+        importOrder.setStatus("PENDING");
+        importOrder.setDetails(details);
+        importOrder.setTotalAmount(importOrder.calculateTotalAmount());
 
-    public static int parseImportVariantId(String rawValue) {
-        return parseIntegerValue(rawValue, IMPORT_ITEM_INVALID_MESSAGE);
-    }
+        if (maxTotalAmount != null && importOrder.getTotalAmount().compareTo(maxTotalAmount) > 0) {
+            throw new IllegalArgumentException(IMPORT_TOTAL_LIMIT_MESSAGE);
+        }
 
-    public static int parseImportQuantity(String rawValue) {
-        return parseQuantityValue(rawValue, IMPORT_ITEM_INVALID_MESSAGE);
-    }
-
-    public static BigDecimal parseImportPrice(String rawValue) {
-        return parseWholeNumberAmount(rawValue, IMPORT_ITEM_INVALID_MESSAGE);
+        return importOrder;
     }
 
     public static int parseQuantityValue(String rawValue, String errorMessage) {
@@ -425,37 +451,6 @@ public class ValidationUtil {
         }
 
         return new BigDecimal(cleaned);
-    }
-
-    public static boolean isValidImportItem(ImportOrderDetail detail) {
-        return detail != null
-                && detail.getQuantity() > 0
-                && detail.getImportPrice() != null
-                && detail.getImportPrice().compareTo(BigDecimal.ZERO) > 0;
-    }
-
-    public static void validateImportOrder(ImportOrder importOrder, BigDecimal maxTotalAmount) {
-        if (importOrder == null || importOrder.getSupplierId() == null) {
-            throw new IllegalArgumentException(IMPORT_SUPPLIER_REQUIRED_MESSAGE);
-        }
-
-        List<ImportOrderDetail> details = importOrder.getDetails();
-        if (details == null || details.isEmpty()) {
-            throw new IllegalArgumentException(IMPORT_VALID_ITEM_REQUIRED_MESSAGE);
-        }
-
-        for (ImportOrderDetail detail : details) {
-            if (!isValidImportItem(detail)) {
-                throw new IllegalArgumentException(IMPORT_VALID_ITEM_REQUIRED_MESSAGE);
-            }
-        }
-
-        BigDecimal totalAmount = importOrder.getTotalAmount() == null
-                ? importOrder.calculateTotalAmount()
-                : importOrder.getTotalAmount();
-        if (maxTotalAmount != null && totalAmount.compareTo(maxTotalAmount) > 0) {
-            throw new IllegalArgumentException(IMPORT_TOTAL_LIMIT_MESSAGE);
-        }
     }
 
     private static boolean hasText(String value) {

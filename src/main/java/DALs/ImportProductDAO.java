@@ -201,7 +201,7 @@ public class ImportProductDAO extends DBContext {
                 + "LEFT JOIN Manager mr ON po.received_by = mr.manager_id "
                 + "ORDER BY CASE WHEN po.status = 'PENDING' THEN 0 ELSE 1 END, "
                 + "po.created_at DESC, po.import_order_id DESC";
-
+//uu tien don pending len truoc
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
             ResultSet rs = ps.executeQuery();
