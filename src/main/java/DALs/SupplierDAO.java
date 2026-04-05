@@ -9,20 +9,6 @@ import java.util.List;
 
 public class SupplierDAO extends DBContext {
 
-    public boolean insert(Supplier supplier) {
-        String sql = "INSERT INTO Supplier (name, phone, address, status) VALUES (?, ?, ?, 1)";
-
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setString(1, supplier.getName());
-            ps.setString(2, supplier.getPhone());
-            ps.setString(3, supplier.getAddress());
-            return ps.executeUpdate() > 0;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
-
     public List<Supplier> getAllActiveSuppliers() {
         List<Supplier> suppliers = new ArrayList<>();
         String sql = "SELECT supplier_id, name, phone, address, status "
