@@ -34,7 +34,7 @@ public class ManagerDAO extends DBContext {
 
         return null;
     }
-// get Manager
+// get Manager PhucLNH
     public Manager getById(int managerId) {
         String sql = "SELECT manager_id, full_name, email, password, manager_role, status "
                 + "FROM Manager WHERE manager_id = ?";

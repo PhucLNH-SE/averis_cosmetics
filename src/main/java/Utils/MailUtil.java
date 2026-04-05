@@ -60,7 +60,7 @@ public class MailUtil {
                     "Hello,\n\n"
                     + "Please click the link below to verify your email address:\n\n"
                     + verifyLink + "\n\n"
-                    + "This link will expire in 24 hours.\n\n"
+                    + "This link will expire in 1 hour.\n\n"
                     + "Averis Cosmetics",
                     "UTF-8"
             );
