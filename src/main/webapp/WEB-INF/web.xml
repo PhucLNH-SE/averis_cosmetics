@@ -94,6 +94,10 @@
     <servlet-class>Controllers.manager.ManagerCategoryController</servlet-class>
   </servlet>
   <servlet>
+    <servlet-name>AdminSupplierController</servlet-name>
+    <servlet-class>Controllers.manager.AdminSupplierController</servlet-class>
+  </servlet>
+  <servlet>
     <servlet-name>ManagerOrderController</servlet-name>
     <servlet-class>Controllers.manager.ManagerOrderController</servlet-class>
 </servlet>
@@ -167,6 +171,10 @@
   <servlet-mapping>
     <servlet-name>ManagerCategoryController</servlet-name>
     <url-pattern>/admin/update-category</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>AdminSupplierController</servlet-name>
+    <url-pattern>/admin/manage-supplier</url-pattern>
   </servlet-mapping>
   <servlet-mapping>
     <servlet-name>ManagerOrderController</servlet-name>

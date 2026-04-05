@@ -1,7 +1,6 @@
 ﻿<%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <c:set var="formAddress" value="${not empty requestScope.address ? requestScope.address : address}" />
-<c:set var="formAddress" value="${not empty requestScope.address ? requestScope.address : address}" />
 <!DOCTYPE html>
 <html>
     <head>
@@ -35,13 +34,13 @@
                     <div class="address-form-group">
                         <label class="address-form-label" for="receiverName">Receiver Name *</label>
                         <input type="text" class="form-control" id="receiverName" name="receiverName"
-                               value="${formAddress.receiverName}" required>
+                               value="<c:out value='${formAddress.receiverName}' />" required>
                     </div>
 
                     <div class="address-form-group">
                         <label class="address-form-label" for="phone">Phone Number *</label>
                         <input type="tel" class="form-control" id="phone" name="phone"
-                               value="${formAddress.phone}" inputmode="numeric"
+                               value="<c:out value='${formAddress.phone}' />" inputmode="numeric"
                                placeholder="e.g. 0912345678" required>
                         <small class="form-text text-muted">Enter a valid Vietnamese phone number.</small>
                     </div>
@@ -71,7 +70,7 @@
                     <div class="address-form-group">
                         <label class="address-form-label" for="streetAddress">Street Address *</label>
                         <input type="text" class="form-control" id="streetAddress" name="streetAddress"
-                               value="${formAddress.streetAddress}"
+                               value="<c:out value='${formAddress.streetAddress}' />"
                                placeholder="House number, street name, apartment..." required>
                         <small class="form-text text-muted">Enter the specific street address manually.</small>
                     </div>

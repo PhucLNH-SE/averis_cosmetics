@@ -1,5 +1,6 @@
 package Utils;
 
+import Model.Address;
 import Model.ImportOrder;
 import Model.ImportOrderDetail;
 import java.math.BigDecimal;
@@ -475,6 +476,65 @@ public class ValidationUtil {
         } catch (Exception ex) {
             return false;
         }
+    }
+
+    public static String validateAddressInput(Address address) {
+        if (address.getReceiverName() == null) {
+            return "Receiver name is required";
+        }
+        if (address.getPhone() == null) {
+            return "Phone is required";
+        }
+        if (!address.getPhone().matches("^(?:0|84|\\+84)(?:3|5|7|8|9)\\d{8}$")) {
+            return "Please enter a valid Vietnamese phone number.";
+        }
+        if (address.getProvince() == null) {
+            return "Province is required";
+        }
+        if (address.getDistrict() == null) {
+            return "District is required";
+        }
+        if (address.getWard() == null) {
+            return "Ward is required";
+        }
+        if (address.getStreetAddress() == null) {
+            return "Street address is required";
+        }
+        return null;
+    }
+
+    public static void normalizeAddress(Address address) {
+        address.setReceiverName(trimToNull(address.getReceiverName()));
+        address.setPhone(normalizeVietnamPhone(address.getPhone()));
+        address.setProvince(trimToNull(address.getProvince()));
+        address.setDistrict(trimToNull(address.getDistrict()));
+        address.setWard(trimToNull(address.getWard()));
+        address.setStreetAddress(trimToNull(address.getStreetAddress()));
+    }
+
+    public static String normalizeVietnamPhone(String value) {
+        String phone = trimToNull(value);
+        if (phone == null) {
+            return null;
+        }
+
+        phone = phone.replaceAll("[\\s().-]", "");
+
+        if (phone.startsWith("+84")) {
+            return "0" + phone.substring(3);
+        }
+        if (phone.startsWith("84")) {
+            return "0" + phone.substring(2);
+        }
+        return phone;
+    }
+
+    public static String trimToNull(String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
     }
 
 }

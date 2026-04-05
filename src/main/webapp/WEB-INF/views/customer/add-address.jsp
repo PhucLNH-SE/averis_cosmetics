@@ -32,13 +32,13 @@
                     <div class="address-form-group">
                         <label class="address-form-label" for="receiverName">Receiver Name *</label>
                         <input type="text" class="form-control" id="receiverName" name="receiverName"
-                               value="${param.receiverName}" required>
+                               value="<c:out value='${param.receiverName}' />" required>
                     </div>
 
                     <div class="address-form-group">
                         <label class="address-form-label" for="phone">Phone Number *</label>
                         <input type="tel" class="form-control" id="phone" name="phone"
-                               value="${param.phone}" inputmode="numeric"
+                               value="<c:out value='${param.phone}' />" inputmode="numeric"
                                placeholder="e.g. 0912345678" required>
                         <small class="form-text text-muted">Enter a valid Vietnamese phone number.</small>
                     </div>
@@ -68,7 +68,7 @@
                     <div class="address-form-group">
                         <label class="address-form-label" for="streetAddress">Street Address *</label>
                         <input type="text" class="form-control" id="streetAddress" name="streetAddress"
-                               value="${param.streetAddress}"
+                               value="<c:out value='${param.streetAddress}' />"
                                placeholder="House number, street name, apartment..." required>
                         <small class="form-text text-muted">Enter the specific street address manually.</small>
                     </div>

@@ -48,9 +48,9 @@
                                     <label class="address-item ${addr.isDefault ? 'selected' : ''}">
                                         <input type="radio" name="addressId" value="${addr.addressId}" ${addr.isDefault ? 'checked' : ''}>
                                         <div class="address-details">
-                                            <div class="address-name">${addr.receiverName} - ${addr.phone}</div>
+                                            <div class="address-name"><c:out value="${addr.receiverName}" /> - <c:out value="${addr.phone}" /></div>
                                             <div class="address-text">
-                                                ${addr.streetAddress}, ${addr.ward}, ${addr.district}, ${addr.province}
+                                                <c:out value="${addr.streetAddress}" />, <c:out value="${addr.ward}" />, <c:out value="${addr.district}" />, <c:out value="${addr.province}" />
                                             </div>
                                             <c:if test="${addr.isDefault}">
                                                 <span class="address-default">Default</span>
