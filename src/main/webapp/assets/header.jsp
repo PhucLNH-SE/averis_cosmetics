@@ -7,7 +7,7 @@
       <div class="menu">
         <a href="${pageContext.request.contextPath}/">Home</a>
         <div class="products-menu" id="productsMenu">
-          <a href="${pageContext.request.contextPath}/products" class="products-trigger">Products</a>
+          <a href="${pageContext.request.contextPath}/products?action=list" class="products-trigger">Products</a>
           <div class="products-dropdown" id="productsDropdown">
             <div class="products-dropdown-left">
               <button type="button" class="products-tab active" data-tab="category">Category</button>
@@ -59,7 +59,7 @@
           <a class="icon" href="${pageContext.request.contextPath}/logout">Logout</a>
         </c:when>
         <c:otherwise>
-          <a class="icon" href="${pageContext.request.contextPath}/auth">Register/Login</a>
+          <a class="icon" href="${pageContext.request.contextPath}/login">Register/Login</a>
         </c:otherwise>
       </c:choose>
     </div>
@@ -112,7 +112,7 @@
 
     if (topSalesBtn) {
       topSalesBtn.addEventListener('click', function () {
-        window.location.href = '${pageContext.request.contextPath}/products?sort=top_sales';
+        window.location.href = '${pageContext.request.contextPath}/products?action=topSales';
       });
     }
 
@@ -168,11 +168,11 @@
         const keyword = this.value.trim();
 
         if (keyword === '') {
-          window.location.href = '${pageContext.request.contextPath}/products';
+          window.location.href = '${pageContext.request.contextPath}/products?action=list';
           return;
         }
 
-        window.location.href = '${pageContext.request.contextPath}/products?keyword=' + encodeURIComponent(keyword);
+        window.location.href = '${pageContext.request.contextPath}/products?action=filter&keyword=' + encodeURIComponent(keyword);
       });
     }
 
@@ -203,7 +203,7 @@
         const link = document.createElement('a');
         link.className = 'products-filter-link';
         link.textContent = item.name;
-        link.href = '${pageContext.request.contextPath}/products?' + type + '=' + encodeURIComponent(item.name);
+        link.href = '${pageContext.request.contextPath}/products?action=filter&' + type + '=' + encodeURIComponent(item.name);
         panel.appendChild(link);
       });
     }
@@ -256,7 +256,7 @@
       products.forEach(product => {
         const item = document.createElement('a');
         item.className = 'search-item';
-        item.href = '${pageContext.request.contextPath}/products?id=' + product.productId;
+        item.href = '${pageContext.request.contextPath}/products?action=detail&id=' + product.productId;
 
         let imageUrl = '${pageContext.request.contextPath}/assets/img/default-product.jpg';
         let targetImage = product.mainImage || (product.images && product.images.length > 0 ? product.images[0].image : null);

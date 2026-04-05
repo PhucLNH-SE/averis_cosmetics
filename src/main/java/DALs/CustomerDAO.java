@@ -16,7 +16,7 @@ import org.mindrot.jbcrypt.BCrypt;
 
 public class CustomerDAO extends DBContext {
 
-    private static final String TYPE_EMAIL_VERIFY = "EMAIL_VERIFY";
+    public static final String TYPE_EMAIL_VERIFY = "EMAIL_VERIFY";
 
     public Customer getCustomerByUsername(String username) {
         String sql = "SELECT * FROM Customers WHERE username = ?";
@@ -26,7 +26,21 @@ public class CustomerDAO extends DBContext {
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    return mapResultSetToCustomer(rs);
+                    Customer customer = new Customer();
+                    customer.setCustomerId(rs.getInt("customer_id"));
+                    customer.setUsername(rs.getString("username"));
+                    customer.setFullName(rs.getString("full_name"));
+                    customer.setEmail(rs.getString("email"));
+                    customer.setPassword(rs.getString("password"));
+                    customer.setGender(rs.getString("gender"));
+                    customer.setDateOfBirth(rs.getObject("date_of_birth", LocalDate.class));
+                    customer.setStatus(rs.getBoolean("status"));
+                    customer.setEmailVerified(rs.getBoolean("email_verified"));
+                    customer.setAuthToken(rs.getString("auth_token"));
+                    customer.setAuthTokenType(rs.getString("auth_token_type"));
+                    customer.setAuthTokenExpiredAt(rs.getObject("auth_token_expired_at", LocalDateTime.class));
+                    customer.setAuthTokenUsed(rs.getBoolean("auth_token_used"));
+                    return customer;
                 }
             }
         } catch (Exception e) {
@@ -53,6 +67,7 @@ public class CustomerDAO extends DBContext {
 
         return null;
     }
+    //PhucLNH - Insert new customer when register
     public boolean insertCustomer(Customer customer) {
         String sql = "INSERT INTO Customers (username, full_name, email, password, gender, date_of_birth, status, email_verified) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
@@ -126,6 +141,7 @@ public class CustomerDAO extends DBContext {
 
         return customer;
     }
+    //PhucLNH - check username is exits
     public boolean checkUsernameExists(String username) {
         String sql = "SELECT COUNT(*) FROM Customers WHERE username = ?";
 
@@ -142,7 +158,7 @@ public class CustomerDAO extends DBContext {
 
         return false;
     }
-
+    //PhucLNH - check email is exits
     public boolean checkEmailExists(String email) {
         String sql = "SELECT COUNT(*) FROM Customers WHERE email = ?";
 
@@ -181,7 +197,21 @@ public class CustomerDAO extends DBContext {
             ps.setString(2, type);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    return mapResultSetToCustomer(rs);
+                    Customer customer = new Customer();
+                    customer.setCustomerId(rs.getInt("customer_id"));
+                    customer.setUsername(rs.getString("username"));
+                    customer.setFullName(rs.getString("full_name"));
+                    customer.setEmail(rs.getString("email"));
+                    customer.setPassword(rs.getString("password"));
+                    customer.setGender(rs.getString("gender"));
+                    customer.setDateOfBirth(rs.getObject("date_of_birth", LocalDate.class));
+                    customer.setStatus(rs.getBoolean("status"));
+                    customer.setEmailVerified(rs.getBoolean("email_verified"));
+                    customer.setAuthToken(rs.getString("auth_token"));
+                    customer.setAuthTokenType(rs.getString("auth_token_type"));
+                    customer.setAuthTokenExpiredAt(rs.getObject("auth_token_expired_at", LocalDateTime.class));
+                    customer.setAuthTokenUsed(rs.getBoolean("auth_token_used"));
+                    return customer;
                 }
             }
         } catch (Exception e) {

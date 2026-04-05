@@ -201,6 +201,7 @@ public class VoucherDAO extends DBContext {
         return claimedVoucherIds;
     }
 
+    //PhucLNH - Payment
     public String claimVoucherWithReason(int customerId, String code) {
         Connection conn = null;
         try {
@@ -210,17 +211,22 @@ public class VoucherDAO extends DBContext {
             }
             conn.setAutoCommit(false);
 
-            String findVoucherSql = "SELECT * FROM Voucher WHERE UPPER(LTRIM(RTRIM(code))) = UPPER(LTRIM(RTRIM(?))) AND status = 1";
-            Voucher voucher;
+            String findVoucherSql = "SELECT * FROM Voucher "
+                    + "WHERE UPPER(LTRIM(RTRIM(code))) = UPPER(LTRIM(RTRIM(?))) "
+                    + "AND status = 1";
+            Voucher voucher = null;
             try (PreparedStatement ps = conn.prepareStatement(findVoucherSql)) {
                 ps.setString(1, code);
                 try (ResultSet rs = ps.executeQuery()) {
-                    if (!rs.next()) {
-                        conn.rollback();
-                        return "codeNotFound";
+                    if (rs.next()) {
+                        voucher = mapVoucher(rs);
                     }
-                    voucher = mapVoucher(rs);
                 }
+            }
+
+            if (voucher == null) {
+                conn.rollback();
+                return "codeNotFound";
             }
 
             if (voucher.getClaimedQuantity() >= voucher.getQuantity()) {
@@ -296,6 +302,7 @@ public class VoucherDAO extends DBContext {
         }
     }
 
+    //PhucLNH - Payment
     public CustomerVoucher getActiveVoucherForCheckout(int customerId, String code) {
         String sql = "SELECT TOP 1 cv.customer_voucher_id, cv.customer_id, cv.voucher_id, cv.claimed_at, cv.effective_from, "
                 + "cv.effective_to, cv.status AS customer_voucher_status, cv.used_at, "
@@ -321,6 +328,7 @@ public class VoucherDAO extends DBContext {
         return null;
     }
 
+    //PhucLNH - Payment
     public boolean markVoucherUsed(int customerVoucherId) {
         String sql = "UPDATE Customer_Voucher SET status = 'USED', used_at = GETDATE() "
                 + "WHERE customer_voucher_id = ? AND status = 'ACTIVE'";
@@ -333,6 +341,7 @@ public class VoucherDAO extends DBContext {
         }
     }
 
+    //PhucLNH - Payment
     public int expireOutdatedVouchers() {
         String sql = "UPDATE Customer_Voucher SET status = 'EXPIRED' "
                 + "WHERE status = 'ACTIVE' AND effective_to < GETDATE()";

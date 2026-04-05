@@ -9,6 +9,25 @@ import java.util.List;
 
 public class CategoryDAO extends DBContext {
 
+    public List<String> getActiveCategoryNames() {
+        List<String> categoryNames = new ArrayList<>();
+        String sql = "SELECT name FROM Category WHERE status = 1 ORDER BY name ASC";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                String categoryName = rs.getString("name");
+                if (categoryName != null && !categoryName.trim().isEmpty()) {
+                    categoryNames.add(categoryName);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return categoryNames;
+    }
+
     public List<Category> getAllCategories() {
         List<Category> categories = new ArrayList<>();
         String sql = "SELECT category_id, name, status FROM Category ORDER BY category_id ASC";
@@ -42,15 +61,12 @@ public class CategoryDAO extends DBContext {
         return null;
     }
 
-    public boolean insertCategory(String name) {
-        return insertCategory(name, true);
-    }
-
     public boolean insertCategory(String name, boolean status) {
         String sql = "INSERT INTO Category(name, status) VALUES(?, ?)";
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            fillCategoryStatement(ps, name, status, null);
+            ps.setString(1, name);
+            ps.setBoolean(2, status);
             return ps.executeUpdate() > 0;
         } catch (Exception e) {
             e.printStackTrace();
@@ -63,7 +79,9 @@ public class CategoryDAO extends DBContext {
         String sql = "UPDATE Category SET name = ?, status = ? WHERE category_id = ?";
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            fillCategoryStatement(ps, name, status, categoryId);
+            ps.setString(1, name);
+            ps.setBoolean(2, status);
+            ps.setInt(3, categoryId);
             return ps.executeUpdate() > 0;
         } catch (Exception e) {
             e.printStackTrace();
@@ -88,14 +106,6 @@ public class CategoryDAO extends DBContext {
         category.setName(rs.getString("name"));
         category.setStatus(rs.getBoolean("status"));
         return category;
-    }
-
-    private void fillCategoryStatement(PreparedStatement ps, String name, boolean status, Integer categoryId) throws Exception {
-        ps.setString(1, name);
-        ps.setBoolean(2, status);
-        if (categoryId != null) {
-            ps.setInt(3, categoryId);
-        }
     }
 
     private boolean existsByName(String sql, String name, Integer excludeId) {

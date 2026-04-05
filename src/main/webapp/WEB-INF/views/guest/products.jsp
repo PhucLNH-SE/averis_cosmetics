@@ -45,6 +45,7 @@
                     </div>
 
                     <form class="catalog-filter-form" method="get" action="${pageContext.request.contextPath}/products">
+                        <input type="hidden" name="action" value="filter">
                         <c:if test="${not empty searchKeyword}">
                             <input type="hidden" name="keyword" value="${searchKeyword}">
                         </c:if>
@@ -77,6 +78,7 @@
                                 <option value="price_desc" <c:if test="${sortBy == 'price_desc'}">selected</c:if>>Price: High to Low</option>
                                 <option value="name_asc" <c:if test="${sortBy == 'name_asc'}">selected</c:if>>Name: A to Z</option>
                                 <option value="name_desc" <c:if test="${sortBy == 'name_desc'}">selected</c:if>>Name: Z to A</option>
+                                <option value="top_sales" <c:if test="${sortBy == 'top_sales'}">selected</c:if>>Top Sales</option>
                             </select>
                         </div>
 
@@ -84,10 +86,10 @@
                             <button type="submit" class="catalog-filter-btn">Apply filters</button>
                             <c:choose>
                                 <c:when test="${not empty searchKeyword}">
-                                    <a class="catalog-reset-btn" href="${pageContext.request.contextPath}/products?keyword=${searchKeyword}">Reset</a>
+                                    <a class="catalog-reset-btn" href="${pageContext.request.contextPath}/products?action=filter&keyword=${searchKeyword}">Reset</a>
                                 </c:when>
                                 <c:otherwise>
-                                    <a class="catalog-reset-btn" href="${pageContext.request.contextPath}/products">Reset</a>
+                                    <a class="catalog-reset-btn" href="${pageContext.request.contextPath}/products?action=list">Reset</a>
                                 </c:otherwise>
                             </c:choose>
                         </div>
@@ -99,7 +101,7 @@
                         <c:when test="${not empty products and products.size() > 0}">
                             <div class="catalog-grid">
                                 <c:forEach items="${products}" var="product">
-                                    <a href="${pageContext.request.contextPath}/products?id=${product.productId}" class="catalog-card">
+                                    <a href="${pageContext.request.contextPath}/products?action=detail&id=${product.productId}" class="catalog-card">
                                         <div class="catalog-image-wrap">
                                             <c:choose>
                                                 <c:when test="${not empty product.mainImage}">
@@ -153,7 +155,7 @@
                             <div class="catalog-empty-state">
                                 <h3>No products found</h3>
                                 <p>Try a different keyword or adjust your filter options.</p>
-                                <a href="${pageContext.request.contextPath}/products" class="catalog-filter-btn">Browse all products</a>
+                                <a href="${pageContext.request.contextPath}/products?action=list" class="catalog-filter-btn">Browse all products</a>
                             </div>
                         </c:otherwise>
                     </c:choose>

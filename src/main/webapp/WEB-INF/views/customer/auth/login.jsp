@@ -27,7 +27,20 @@
             <c:set var="popupType" scope="request" value="success" />
         </c:if>
 
-        <form action="${pageContext.request.contextPath}/auth?action=login"
+        <c:if test="${empty popupMessage and not empty sessionScope.loginPopupMessage}">
+            <c:set var="popupMessage" scope="request" value="${sessionScope.loginPopupMessage}" />
+            <c:set var="popupType" scope="request" value="${not empty sessionScope.loginPopupType ? sessionScope.loginPopupType : 'success'}" />
+            <c:remove var="loginPopupMessage" scope="session" />
+            <c:remove var="loginPopupType" scope="session" />
+        </c:if>
+
+        <c:if test="${not empty popupMessage}">
+            <div class="${popupType == 'error' ? 'error-message' : 'success-message'}">
+                ${popupMessage}
+            </div>
+        </c:if>
+
+        <form action="${pageContext.request.contextPath}/login"
               method="post" novalidate>
 
             <div class="form-group">
@@ -60,7 +73,7 @@
         <div class="auth-links">
             <p>
                 Don't have an account?
-                <a href="${pageContext.request.contextPath}/auth?action=register">
+                <a href="${pageContext.request.contextPath}/register">
                     Register here
                 </a>
             </p>

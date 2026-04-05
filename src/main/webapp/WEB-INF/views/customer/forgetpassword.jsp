@@ -55,7 +55,7 @@
         <div class="auth-links">
             <p>
                 Back to login?
-                <a href="${pageContext.request.contextPath}/auth">
+                <a href="${pageContext.request.contextPath}/login">
                     Sign in
                 </a>
             </p>

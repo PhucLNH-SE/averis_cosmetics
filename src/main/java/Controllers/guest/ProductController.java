@@ -1,5 +1,7 @@
 package Controllers.guest;
 
+import DALs.BrandDAO;
+import DALs.CategoryDAO;
 import DALs.FeedbackDAO;
 import DALs.ProductDAO;
 import Model.OrderDetail;
@@ -12,25 +14,32 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
 
 public class ProductController extends HttpServlet {
-    
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-
         ProductDAO dao = new ProductDAO();
-
+        BrandDAO brandDAO = new BrandDAO();
+        CategoryDAO categoryDAO = new CategoryDAO();
         String action = trimToNull(request.getParameter("action"));
+
         if (action == null) {
-            action = request.getParameter("id") != null ? "detail" : "list";
+            action = "list";
         }
 
         switch (action) {
             case "detail":
-                handleDetail(request, response, dao);
+                handleProductDetail(request, response, dao);
+                break;
+            case "topSales":
+                handleTopSalesProductList(request, response, dao, brandDAO, categoryDAO);
+                break;
+            case "filter":
+                handleFilteredProductList(request, response, dao, brandDAO, categoryDAO);
                 break;
             case "list":
             default:
-                handleListOrSearch(request, response, dao);
+                handleDefaultProductList(request, response, dao, brandDAO, categoryDAO);
                 break;
         }
     }
@@ -43,6 +52,8 @@ public class ProductController extends HttpServlet {
         return trimmed.isEmpty() ? null : trimmed;
     }
 
+    
+    //NganNK - use to ser product list to display for customer
     private void setProductListAttributes(HttpServletRequest request,
                                           List<Product> products,
                                           List<String> availableBrands,
@@ -60,7 +71,8 @@ public class ProductController extends HttpServlet {
         request.setAttribute("isTopSalesLanding", topSalesLanding);
     }
 
-    private void handleDetail(HttpServletRequest request, HttpServletResponse response, ProductDAO dao)
+    //NganNK - use to handle product detail function
+    private void handleProductDetail(HttpServletRequest request, HttpServletResponse response, ProductDAO dao)
             throws ServletException, IOException {
         try {
             int productId = Integer.parseInt(request.getParameter("id"));
@@ -78,7 +90,41 @@ public class ProductController extends HttpServlet {
         response.sendRedirect(request.getContextPath() + "/products");
     }
 
-    private void handleListOrSearch(HttpServletRequest request, HttpServletResponse response, ProductDAO dao)
+    //NganNK - use to handle product list function
+    private void handleDefaultProductList(HttpServletRequest request, HttpServletResponse response,
+            ProductDAO dao, BrandDAO brandDAO, CategoryDAO categoryDAO)
+            throws ServletException, IOException {
+        List<String> availableBrands = brandDAO.getActiveBrandNames();
+        List<String> availableCategories = categoryDAO.getActiveCategoryNames();
+        setProductListAttributes(request,
+                dao.getFeaturedProductsForGuest(30, 20),
+                availableBrands,
+                availableCategories,
+                null,
+                null,
+                null,
+                false);
+        forwardProductListView(request, response);
+    }
+
+    private void handleTopSalesProductList(HttpServletRequest request, HttpServletResponse response,
+            ProductDAO dao, BrandDAO brandDAO, CategoryDAO categoryDAO)
+            throws ServletException, IOException {
+        List<String> availableBrands = brandDAO.getActiveBrandNames();
+        List<String> availableCategories = categoryDAO.getActiveCategoryNames();
+        setProductListAttributes(request,
+                dao.getFeaturedProductsForGuest(30, 20),
+                availableBrands,
+                availableCategories,
+                null,
+                null,
+                "top_sales",
+                true);
+        forwardProductListView(request, response);
+    }
+
+    private void handleFilteredProductList(HttpServletRequest request, HttpServletResponse response,
+            ProductDAO dao, BrandDAO brandDAO, CategoryDAO categoryDAO)
             throws ServletException, IOException {
         String keyword = trimToNull(request.getParameter("keyword"));
         String brandFilter = trimToNull(request.getParameter("brand"));
@@ -89,36 +135,17 @@ public class ProductController extends HttpServlet {
             request.setAttribute("searchKeyword", keyword);
         }
 
-        List<String> availableBrands = dao.getAllBrandNames();
-        List<String> availableCategories = dao.getAllCategoryNames();
-
-        boolean isDefaultLanding = keyword == null
-                && brandFilter == null
-                && categoryFilter == null
-                && sortBy == null;
-        boolean isTopSalesLanding = keyword == null
-                && brandFilter == null
-                && categoryFilter == null
-                && "top_sales".equalsIgnoreCase(sortBy);
-
-        List<Product> products;
-        if (isDefaultLanding) {
-            products = dao.getFeaturedProductsForGuest(30, 20);
-        } else if (isTopSalesLanding) {
-            products = dao.getFeaturedProductsForGuest(30, 20);
-        } else {
-            products = dao.getActiveProductsForGuest(keyword, brandFilter, categoryFilter, sortBy);
-        }
-
+        List<String> availableBrands = brandDAO.getActiveBrandNames();
+        List<String> availableCategories = categoryDAO.getActiveCategoryNames();
         setProductListAttributes(
                 request,
-                products,
+                dao.getActiveProductsForGuest(keyword, brandFilter, categoryFilter, sortBy),
                 availableBrands,
                 availableCategories,
                 brandFilter,
                 categoryFilter,
                 sortBy,
-                isTopSalesLanding
+                false
         );
         forwardProductListView(request, response);
     }

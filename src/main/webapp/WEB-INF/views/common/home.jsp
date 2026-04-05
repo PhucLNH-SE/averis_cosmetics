@@ -104,17 +104,18 @@
 
                                     <div class="home-voucher-card__actions">
                                         <c:choose>
-                                            <c:when test="${not empty sessionScope.customer}">
-                                                <form action="${pageContext.request.contextPath}/voucher-free" method="post" class="home-voucher-card__form">
-                                                    <input type="hidden" name="voucherCode" value="${voucher.code}">
-                                                    <input type="hidden" name="source" value="home">
-                                                    <button type="submit" class="home-voucher-card__btn">
+	                                            <c:when test="${not empty sessionScope.customer}">
+	                                                <form action="${pageContext.request.contextPath}/voucher-free" method="post" class="home-voucher-card__form">
+	                                                    <input type="hidden" name="action" value="claim">
+	                                                    <input type="hidden" name="voucherCode" value="${voucher.code}">
+	                                                    <input type="hidden" name="source" value="home">
+	                                                    <button type="submit" class="home-voucher-card__btn">
                                                         Claim now
                                                     </button>
                                                 </form>
                                             </c:when>
                                             <c:otherwise>
-                                                <a href="${pageContext.request.contextPath}/auth?action=login"
+                                                <a href="${pageContext.request.contextPath}/login"
                                                    class="home-voucher-card__btn">
                                                     Login to claim
                                                 </a>
@@ -143,7 +144,7 @@
                         modern lifestyles, trusted quality, and everyday confidence.
                     </p>
                     <div class="hero-actions">
-                        <a class="hero-btn primary" href="${pageContext.request.contextPath}/products">Shop now</a>
+                        <a class="hero-btn primary" href="${pageContext.request.contextPath}/products?action=list">Shop now</a>
                         <button type="button" class="hero-btn voucher" onclick="openHomeVoucherModal()">GET FREE VOUCHER!!</button>
                     </div>
                 </div>
@@ -184,7 +185,7 @@
                                             <c:otherwise>New</c:otherwise>
                                         </c:choose>
                                     </div>
-                                    <a class="featured-image" href="${pageContext.request.contextPath}/products?id=${p.productId}">
+                                    <a class="featured-image" href="${pageContext.request.contextPath}/products?action=detail&id=${p.productId}">
                                         <c:choose>
                                             <c:when test="${not empty p.imageUrl}">
                                                 <c:choose>
@@ -225,7 +226,7 @@
                                                     <c:otherwise>Contact</c:otherwise>
                                                 </c:choose>
                                             </div>
-                                            <a class="featured-btn" href="${pageContext.request.contextPath}/products?id=${p.productId}">View</a>
+                                            <a class="featured-btn" href="${pageContext.request.contextPath}/products?action=detail&id=${p.productId}">View</a>
                                         </div>
                                     </div>
                                 </article>
@@ -243,7 +244,7 @@
                                     <h3 class="featured-name">Top Products Coming Soon</h3>
                                     <div class="featured-meta">
                                         <div class="featured-price">Contact</div>
-                                        <a class="featured-btn" href="${pageContext.request.contextPath}/products">Browse</a>
+                                        <a class="featured-btn" href="${pageContext.request.contextPath}/products?action=list">Browse</a>
                                     </div>
                                 </div>
                             </article>
@@ -265,7 +266,7 @@
                     <c:choose>
                         <c:when test="${not empty featuredCategories}">
                             <c:forEach items="${featuredCategories}" var="cat" varStatus="loop">
-                                <a class="category-card" href="${pageContext.request.contextPath}/products?category=${cat.name}">
+                                <a class="category-card" href="${pageContext.request.contextPath}/products?action=filter&category=${cat.name}">
                                     <div class="category-image category-image--featured-${loop.index + 1}"></div>
                                     <div class="category-overlay"></div>
                                     <div class="category-content">
@@ -276,7 +277,7 @@
                             </c:forEach>
                         </c:when>
                         <c:otherwise>
-                            <a class="category-card" href="${pageContext.request.contextPath}/products">
+                            <a class="category-card" href="${pageContext.request.contextPath}/products?action=list">
                                 <div class="category-image category-image--featured-1"></div>
                                 <div class="category-overlay"></div>
                                 <div class="category-content">
@@ -284,7 +285,7 @@
                                     <div class="category-link">Shop now</div>
                                 </div>
                             </a>
-                            <a class="category-card" href="${pageContext.request.contextPath}/products">
+                            <a class="category-card" href="${pageContext.request.contextPath}/products?action=list">
                                 <div class="category-image category-image--featured-2"></div>
                                 <div class="category-overlay"></div>
                                 <div class="category-content">
@@ -292,7 +293,7 @@
                                     <div class="category-link">Shop now</div>
                                 </div>
                             </a>
-                            <a class="category-card" href="${pageContext.request.contextPath}/products">
+                            <a class="category-card" href="${pageContext.request.contextPath}/products?action=list">
                                 <div class="category-image category-image--featured-3"></div>
                                 <div class="category-overlay"></div>
                                 <div class="category-content">
@@ -300,7 +301,7 @@
                                     <div class="category-link">Shop now</div>
                                 </div>
                             </a>
-                            <a class="category-card" href="${pageContext.request.contextPath}/products">
+                            <a class="category-card" href="${pageContext.request.contextPath}/products?action=list">
                                 <div class="category-image category-image--featured-4"></div>
                                 <div class="category-overlay"></div>
                                 <div class="category-content">

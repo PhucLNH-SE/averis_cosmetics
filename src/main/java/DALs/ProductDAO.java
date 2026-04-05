@@ -17,44 +17,7 @@ import java.util.Map;
 
 public class ProductDAO extends DBContext {
 
-    public List<String> getAllBrandNames() {
-        List<String> brands = new ArrayList<>();
-        String sql = "SELECT DISTINCT name FROM Brand WHERE status = 1 ORDER BY name ASC";
-
-        try (PreparedStatement ps = connection.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) {
-                String brandName = rs.getString("name");
-                if (brandName != null && !brandName.trim().isEmpty()) {
-                    brands.add(brandName);
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return brands;
-    }
-
-    public List<String> getAllCategoryNames() {
-        List<String> categories = new ArrayList<>();
-        String sql = "SELECT DISTINCT name FROM Category WHERE status = 1 ORDER BY name ASC";
-
-        try (PreparedStatement ps = connection.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) {
-                String categoryName = rs.getString("name");
-                if (categoryName != null && !categoryName.trim().isEmpty()) {
-                    categories.add(categoryName);
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return categories;
-    }
-
+    /*
     public List<Product> getAllProducts() {
         List<Product> list = new ArrayList<>();
         String sql = "SELECT "
@@ -123,6 +86,7 @@ public class ProductDAO extends DBContext {
 
         return ids;
     }
+    */
 
     public Product getProductById(int productId) {
         String sql = "SELECT "
@@ -251,6 +215,7 @@ public class ProductDAO extends DBContext {
         return null;
     }
 
+    /*
     public List<Product> searchProducts(String keyword) {
         String sql = "SELECT "
                 + "  p.product_id, p.name, p.description, p.status, "
@@ -271,6 +236,7 @@ public class ProductDAO extends DBContext {
                 + "ORDER BY p.product_id DESC, pi.is_main DESC, pi.image_id ASC";
         return searchProductsByKeyword(keyword, sql, false);
     }
+    */
 
     public List<Product> searchProductsForAutoSuggest(String keyword) {
         String sql = "SELECT TOP 10 "
@@ -375,26 +341,6 @@ public class ProductDAO extends DBContext {
         params.add(topLimit);
         params.add(randomLimit);
         return getGuestProducts(sql, params);
-    }
-
-    public List<Brand> getAllBrands() {
-        List<Brand> list = new ArrayList<>();
-        String sql = "SELECT * FROM Brand";
-
-        try (PreparedStatement ps = connection.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) {
-                Brand brand = new Brand();
-                brand.setBrandId(rs.getInt("brand_id"));
-                brand.setName(rs.getString("name"));
-                brand.setStatus(rs.getBoolean("status"));
-                list.add(brand);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return list;
     }
 
     public List<Category> getAllCategories() {
@@ -534,6 +480,7 @@ public class ProductDAO extends DBContext {
         return false;
     }
 
+    /*
     public void deleteProduct(int id) {
         String deleteCartDetailSql = "DELETE FROM Cart_Detail WHERE variant_id IN "
                 + "(SELECT variant_id FROM Product_Variant WHERE product_id = ?)";
@@ -588,6 +535,7 @@ public class ProductDAO extends DBContext {
             }
         }
     }
+    */
 
   
    
@@ -660,32 +608,6 @@ public class ProductDAO extends DBContext {
         }
 
         return list;
-    }
-
-    private Product getGuestProductDetail(int productId, String sql) {
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setInt(1, productId);
-
-            try (ResultSet rs = ps.executeQuery()) {
-                Product product = null;
-                Map<Integer, ProductImage> imageMap = new HashMap<>();
-
-                while (rs.next()) {
-                    if (product == null) {
-                        product = mapGuestDetailProduct(rs, productId);
-                    }
-
-                    addImageToMap(rs, productId, imageMap);
-                }
-
-                applyProductImages(product, imageMap);
-                return product;
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return null;
     }
 
     private Product mapGuestListProduct(ResultSet rs, int productId) throws Exception {
@@ -925,9 +847,32 @@ public class ProductDAO extends DBContext {
                 + "WHERE p.product_id = ? AND p.status = 1 " //
                 + "ORDER BY pi.is_main DESC, pi.image_id ASC";
 
-        return getGuestProductDetail(productId, sql);
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, productId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                Product product = null;
+                Map<Integer, ProductImage> imageMap = new HashMap<>();
+
+                while (rs.next()) {
+                    if (product == null) {
+                        product = mapGuestDetailProduct(rs, productId);
+                    }
+
+                    addImageToMap(rs, productId, imageMap);
+                }
+
+                applyProductImages(product, imageMap);
+                return product;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return null;
     }
 
+    /*
     public List<Product> getAllProductsWithImportPrice() {
         List<Product> list = new ArrayList<>();
         String sql = "SELECT "
@@ -974,6 +919,7 @@ public class ProductDAO extends DBContext {
 
         return list;
     }
+    */
 
     public List<Product> getProductsForAdminWithImportPrice(String keyword, String brandId, String categoryId, String status) {
         Integer parsedBrandId = parseNullableInteger(brandId);

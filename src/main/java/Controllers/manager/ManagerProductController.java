@@ -1,5 +1,7 @@
 package Controllers.manager;
 
+import DALs.BrandDAO;
+import DALs.CategoryDAO;
 import DALs.ProductDAO;
 import Model.Brand;
 import Model.Category;
@@ -100,6 +102,8 @@ public class ManagerProductController extends HttpServlet {
     private void loadProductPage(HttpServletRequest request, HttpServletResponse response,
                                  ProductDAO dao, HttpSession session)
             throws ServletException, IOException {
+        BrandDAO brandDAO = new BrandDAO();
+        CategoryDAO categoryDAO = new CategoryDAO();
 
         if (session.getAttribute("successMsg") != null) {
             request.setAttribute("successMsg", session.getAttribute("successMsg"));
@@ -112,8 +116,8 @@ public class ManagerProductController extends HttpServlet {
         }
 
         List<Product> listP;
-        List<Brand> listB = dao.getAllBrands();
-        List<Category> listC = dao.getAllCategories();
+        List<Brand> listB = brandDAO.getAllBrands();
+        List<Category> listC = categoryDAO.getAllCategories();
         int activeCount;
         int inactiveCount;
 

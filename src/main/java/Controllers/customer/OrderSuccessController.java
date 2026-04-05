@@ -14,14 +14,8 @@ import java.io.IOException;
 
 public class OrderSuccessController extends HttpServlet {
 
-    private OrderDAO orderDAO;
-    private AddressDAO addressDAO;
-
-    @Override
-    public void init() throws ServletException {
-        orderDAO = new OrderDAO();
-        addressDAO = new AddressDAO();
-    }
+    private OrderDAO orderDAO = new OrderDAO();
+    private AddressDAO addressDAO = new AddressDAO();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -31,7 +25,7 @@ public class OrderSuccessController extends HttpServlet {
         Customer customer = (Customer) session.getAttribute("customer");
         
         if (customer == null) {
-            response.sendRedirect(request.getContextPath() + "/auth?action=login");
+            response.sendRedirect(request.getContextPath() + "/login");
             return;
         }
 

@@ -166,7 +166,7 @@
                                 <c:otherwise>
                                     <p>
                                         You are not logged in.
-                                        <a href="${pageContext.request.contextPath}/auth">Please login</a>.
+                                        <a href="${pageContext.request.contextPath}/login">Please login</a>.
                                     </p>
                                 </c:otherwise>
                             </c:choose>
@@ -232,23 +232,22 @@
 
                                                     <div class="address-card-actions">
                                                         <c:if test="${!addr.isDefault}">
-                                                            <a href="${pageContext.request.contextPath}/address?action=setdefault&id=${addr.addressId}"
-                                                               class="action-btn set-default"
-                                                               title="Set as default">
-                                                                <i class="fas fa-check"></i> Set Default
-                                                            </a>
+                                                            <form action="${pageContext.request.contextPath}/address"
+                                                                  method="post"
+                                                                  class="address-delete-form">
+                                                                <input type="hidden" name="action" value="setdefault">
+                                                                <input type="hidden" name="id" value="${addr.addressId}">
+                                                                <button type="submit"
+                                                                        class="action-btn set-default"
+                                                                        title="Set as default">
+                                                                    <i class="fas fa-check"></i> Set Default
+                                                                </button>
+                                                            </form>
                                                         </c:if>
                                                         <button type="button"
                                                                 class="action-btn edit"
                                                                 title="Edit address"
                                                                 data-address-id="${addr.addressId}"
-                                                                data-receiver-name="<c:out value='${addr.receiverName}'/>"
-                                                                data-phone="<c:out value='${addr.phone}'/>"
-                                                                data-province="<c:out value='${addr.province}'/>"
-                                                                data-district="<c:out value='${addr.district}'/>"
-                                                                data-ward="<c:out value='${addr.ward}'/>"
-                                                                data-street-address="<c:out value='${addr.streetAddress}'/>"
-                                                                data-is-default="${addr.isDefault}"
                                                                 onclick="openAddressPopup('edit', this)">
                                                             <i class="fas fa-pen"></i> Edit
                                                         </button>
@@ -600,11 +599,13 @@
                                     </div>
                                 </div>
 
-                                <div class="voucher-claim-card">
-                                    <form method="post" action="${pageContext.request.contextPath}/my-voucher" class="voucher-claim-form">
-                                        <input type="text" name="voucherCode" placeholder="Enter voucher code" required>
-                                        <button type="submit">Add Voucher</button>
-                                    </form>
+	                                <div class="voucher-claim-card">
+	                                    <form method="post" action="${pageContext.request.contextPath}/my-voucher" class="voucher-claim-form">
+	                                        <input type="hidden" name="action" value="claim">
+	                                        <input type="hidden" name="source" value="profile">
+	                                        <input type="text" name="voucherCode" placeholder="Enter voucher code" required>
+	                                        <button type="submit">Add Voucher</button>
+	                                    </form>
                                 </div>
 
                                 <c:if test="${param.success == 'claimed'}">
@@ -917,8 +918,10 @@
                                                             const frameWindow = frame.contentWindow;
                                                             const doc = frame.contentDocument || frameWindow.document;
                                                             const frameUrl = new URL(frameWindow.location.href);
+                                                            const isAddressFormPage = !!doc.querySelector("form[data-address-form='true']");
                                                             const action = frameUrl.searchParams.get('action');
                                                             const isAddressListPage = frameUrl.pathname.endsWith('/address')
+                                                                    && !isAddressFormPage
                                                                     && (!action || action === 'view' || action === 'list');
                                                             const isLegacyProfileAddressPage = frameUrl.pathname.endsWith('/profile')
                                                                     && frameUrl.searchParams.get('action') === 'view'

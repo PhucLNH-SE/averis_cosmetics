@@ -1,6 +1,7 @@
 package Controllers.customer;
 
 import DALs.OrderDAO;
+import Model.Customer;
 import Model.Orders;
 import Services.MomoService;
 import jakarta.servlet.ServletException;
@@ -13,24 +14,18 @@ public class MomoPaymentController extends HttpServlet {
 
     private static final Logger LOGGER = Logger.getLogger(MomoPaymentController.class.getName());
 
-    private OrderDAO orderDAO;
-    private MomoService momoService;
-
-    @Override
-    public void init() {
-        orderDAO = new OrderDAO();
-        momoService = new MomoService();
-    }
+    private OrderDAO orderDAO = new OrderDAO();
+    private MomoService momoService = new MomoService();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
         HttpSession session = request.getSession();
-        Model.Customer customer = (Model.Customer) session.getAttribute("customer");
+        Customer customer = (Customer) session.getAttribute("customer");
 
         if (customer == null) {
-            response.sendRedirect(request.getContextPath() + "/auth?action=login");
+            response.sendRedirect(request.getContextPath() + "/login");
             return;
         }
 
@@ -60,9 +55,19 @@ public class MomoPaymentController extends HttpServlet {
             return;
         }
 
+        if (!"MOMO".equalsIgnoreCase(order.getPaymentMethod())) {
+            response.sendRedirect(request.getContextPath() + "/cart");
+            return;
+        }
 
         if (!"PENDING".equalsIgnoreCase(order.getPaymentStatus())) {
             response.sendRedirect(request.getContextPath() + "/cart");
+            return;
+        }
+
+        if (order.getTotalAmount() == null || order.getTotalAmount().compareTo(java.math.BigDecimal.ZERO) <= 0) {
+            response.sendRedirect(request.getContextPath()
+                    + "/checkout?error=Invalid payment amount&paymentMethod=MOMO");
             return;
         }
 
