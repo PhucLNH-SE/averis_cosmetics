@@ -11,9 +11,6 @@
             <p class="text-muted small mb-0">Create one import order with multiple products and variants from the current catalog.</p>
         </div>
         <div class="d-flex gap-2">
-            <button type="button" class="btn btn-outline-primary px-3" data-bs-toggle="modal" data-bs-target="#supplierModal">
-                <i class="bi bi-building-add"></i> Add Supplier
-            </button>
             <a class="btn btn-outline-secondary px-3" href="${pageContext.request.contextPath}/admin/import-product?action=history">
                 <i class="bi bi-arrow-left"></i> Back to History
             </a>
@@ -23,10 +20,6 @@
     <c:if test="${not empty error}">
         <c:set var="popupMessage" scope="request" value="${error}" />
         <c:set var="popupType" scope="request" value="error" />
-    </c:if>
-    <c:if test="${param.success == 'supplierAdded'}">
-        <c:set var="popupMessage" scope="request" value="Supplier added successfully." />
-        <c:set var="popupType" scope="request" value="success" />
     </c:if>
 
     <form action="${pageContext.request.contextPath}/admin/import-product" method="post" id="createImportOrderForm">
@@ -136,40 +129,6 @@
             </c:forEach>
         </select>
     </c:forEach>
-</div>
-
-<div class="modal fade" id="supplierModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <form action="${pageContext.request.contextPath}/admin/import-product" method="post">
-                <input type="hidden" name="action" value="addsupplier">
-                <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title fw-bold">
-                        <i class="bi bi-building-add me-2"></i>Add Supplier
-                    </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body p-4">
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Supplier Name</label>
-                        <input type="text" class="form-control" name="supplierName" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Phone</label>
-                        <input type="text" class="form-control" name="supplierPhone" required>
-                    </div>
-                    <div class="mb-0">
-                        <label class="form-label fw-semibold">Address</label>
-                        <textarea class="form-control" name="supplierAddress" rows="3" required></textarea>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary px-4">Save Supplier</button>
-                </div>
-            </form>
-        </div>
-    </div>
 </div>
 
 <script>

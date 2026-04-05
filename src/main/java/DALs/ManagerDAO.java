@@ -9,7 +9,7 @@ import java.util.List;
 import org.mindrot.jbcrypt.BCrypt;
 
 public class ManagerDAO extends DBContext {
-
+// get managers
     public Manager getByEmail(String email) {
         String sql = "SELECT manager_id, full_name, email, password, manager_role, status "
                 + "FROM Manager WHERE email = ?";
@@ -27,7 +27,7 @@ public class ManagerDAO extends DBContext {
 
         return null;
     }
-
+// get Manager
     public Manager getById(int managerId) {
         String sql = "SELECT manager_id, full_name, email, password, manager_role, status "
                 + "FROM Manager WHERE manager_id = ?";

@@ -13,12 +13,12 @@ import java.io.IOException;
 public class ManagerAuthController extends HttpServlet {
 
     private ManagerDAO managerDAO;
-
+// contrutor
     @Override
     public void init() throws ServletException {
         managerDAO = new ManagerDAO();
     }
-
+// get manager if login
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -33,7 +33,7 @@ public class ManagerAuthController extends HttpServlet {
 
         request.getRequestDispatcher("/WEB-INF/views/common/manager-login.jsp").forward(request, response);
     }
-
+// check validation 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -41,7 +41,7 @@ public class ManagerAuthController extends HttpServlet {
         String password = request.getParameter("password");
 
         if (email == null || email.trim().isEmpty() || password == null || password.isEmpty()) {
-            request.setAttribute("errorMessage", "Email va password khong duoc de trong.");
+            request.setAttribute("errorMessage", "Email and password must not be left blank..");
             request.getRequestDispatcher("/WEB-INF/views/common/manager-login.jsp").forward(request, response);
             return;
         }
@@ -49,13 +49,13 @@ public class ManagerAuthController extends HttpServlet {
         ValidationUtil util = new ValidationUtil();
         Manager manager = managerDAO.getByEmail(email.trim());
         if (manager == null || !util.checkLogin(password, manager.getPassword())) {
-            request.setAttribute("errorMessage", "Sai email hoac password.");
+            request.setAttribute("errorMessage", "Incorrect email or password.");
             request.getRequestDispatcher("/WEB-INF/views/common/manager-login.jsp").forward(request, response);
             return;
         }
 
         if (manager.getStatus() == null || !manager.getStatus()) {
-            request.setAttribute("errorMessage", "Tai khoan da bi khoa.");
+            request.setAttribute("errorMessage", "The account has been locked..");
             request.getRequestDispatcher("/WEB-INF/views/common/manager-login.jsp").forward(request, response);
             return;
         }
@@ -65,7 +65,7 @@ public class ManagerAuthController extends HttpServlet {
         session.setAttribute("managerRole", manager.getManagerRole());
         redirectByRole(manager.getManagerRole(), request, response);
     }
-
+// redicrect role
     private void redirectByRole(String role, HttpServletRequest request, HttpServletResponse response)
             throws IOException, ServletException {
         String normalizedRole = role == null ? "" : role.toUpperCase();
@@ -77,7 +77,7 @@ public class ManagerAuthController extends HttpServlet {
                 response.sendRedirect(request.getContextPath() + "/staff/dashboard");
                 break;
             default:
-                request.setAttribute("errorMessage", "Role khong hop le.");
+                request.setAttribute("errorMessage", "Invalid role.");
                 request.getRequestDispatcher("/WEB-INF/views/common/manager-login.jsp").forward(request, response);
                 break;
         }

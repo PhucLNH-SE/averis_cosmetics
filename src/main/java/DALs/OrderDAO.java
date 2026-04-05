@@ -425,7 +425,7 @@ public class OrderDAO extends DBContext {
         }
         return null;
     }
-
+// get all order
     public List<Orders> getAllOrders() {
 
         List<Orders> list = new ArrayList<>();
@@ -471,7 +471,7 @@ public class OrderDAO extends DBContext {
 
         return list;
     }
-
+// search order
     public List<Orders> searchOrders(String keyword) {
         String normalizedKeyword = keyword == null ? null : keyword.trim();
         if (normalizedKeyword == null || normalizedKeyword.isEmpty()) {
@@ -526,7 +526,7 @@ public class OrderDAO extends DBContext {
 
         return list;
     }
-
+// get product by id
     public List<OrderDetail> getOrderDetailsByOrderId(int orderId) {
 
         List<OrderDetail> list = new ArrayList<>();
@@ -622,6 +622,69 @@ public class OrderDAO extends DBContext {
             }
         } catch (Exception e) {
             e.printStackTrace();
+        }
+
+        return list;
+    }
+// update trang thai don
+    public boolean updateOrderState(int orderId, String paymentStatus, String orderStatus, Integer handledBy) {
+        Connection conn = null;
+
+        try {
+            conn = this.connection;
+            if (conn == null) {
+                return false;
+            }
+
+            conn.setAutoCommit(false);
+
+            Orders order = getOrder(conn, orderId);
+            if (order == null) {
+                conn.rollback();
+                return false;
+            }
+// xu ly -kho khi ma k phai processing -> processing
+            boolean shouldDeductStock
+                    = !"PROCESSING".equalsIgnoreCase(order.getOrderStatus())
+                    && "PROCESSING".equalsIgnoreCase(orderStatus);
+
+            boolean shouldRestoreStock = !"CANCELLED".equalsIgnoreCase(order.getOrderStatus())
+                    && "CANCELLED".equalsIgnoreCase(orderStatus)
+                    && ("COD".equalsIgnoreCase(order.getPaymentMethod())
+                    || "SUCCESS".equalsIgnoreCase(order.getPaymentStatus())
+                    || "SUCCESS".equalsIgnoreCase(paymentStatus));
+
+            if (shouldDeductStock && !deductStockForOrder(conn, orderId)) {
+                throw new SQLException("Cannot deduct stock for order " + orderId);
+            }
+
+            if (shouldRestoreStock && !restoreStockForOrder(conn, orderId)) {
+                throw new SQLException("Cannot restore stock for order " + orderId);
+            }
+
+            if (!applyOrderStateUpdate(conn, orderId, paymentStatus, orderStatus, handledBy)) {
+                conn.rollback();
+                return false;
+            }
+
+            conn.commit();
+            return true;
+
+        } catch (Exception e) {
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                } catch (SQLException ignored) {
+                }
+            }
+            e.printStackTrace();
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.setAutoCommit(true);
+                } catch (SQLException ignored) {
+                }
+            }
         }
 
         return list;
@@ -753,7 +816,7 @@ public class OrderDAO extends DBContext {
         order.setProvince(rs.getString("province"));
         return order;
     }
-
+// get order
     public List<Orders> getOrdersByCustomerId(int customerId) {
 
         List<Orders> list = new ArrayList<>();
@@ -803,7 +866,7 @@ public class OrderDAO extends DBContext {
 
         return list;
     }
-
+// cancel order by id
     public boolean cancelOrder(int orderId) {
         Connection conn = this.connection;
         if (conn == null) {
@@ -990,8 +1053,94 @@ public class OrderDAO extends DBContext {
 
         return null;
     }
+//-ton kho
+    private boolean deductStockForOrder(Connection conn, int orderId) throws SQLException {
+        int expectedRows = countOrderDetailRows(conn, orderId);
+        if (expectedRows <= 0) {
+            throw new SQLException("Order has no details");
+        }
 
-    //PhucLNH - Payment
+        String sql = "UPDATE pv "
+                + "SET pv.stock = pv.stock - od.quantity "
+                + "FROM Product_Variant pv "
+                + "JOIN Order_Detail od ON pv.variant_id = od.variant_id "
+                + "WHERE od.order_id = ? AND pv.stock >= od.quantity";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, orderId);
+            int rows = ps.executeUpdate();
+
+            if (rows != expectedRows) {
+                throw new SQLException("Stock not enough");
+            }
+
+            return true;
+        }
+    }
+// restorStock
+    private boolean restoreStockForOrder(Connection conn, int orderId) throws SQLException {
+        String sql = "UPDATE pv "
+                + "SET pv.stock = pv.stock + od.quantity "
+                + "FROM Product_Variant pv "
+                + "JOIN Order_Detail od ON pv.variant_id = od.variant_id "
+                + "WHERE od.order_id = ?";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, orderId);
+            return ps.executeUpdate() > 0;
+        }
+    }
+
+    private Orders getOrder(Connection conn, int orderId) throws SQLException {
+        String sql = "SELECT payment_method, payment_status, order_status "
+                + "FROM Orders WHERE order_id = ?";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, orderId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    Orders order = new Orders();
+                    order.setOrderId(orderId);
+                    order.setPaymentMethod(rs.getString("payment_method"));
+                    order.setPaymentStatus(rs.getString("payment_status"));
+                    order.setOrderStatus(rs.getString("order_status"));
+                    return order;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private int countOrderDetailRows(Connection conn, int orderId) throws SQLException {
+        String sql = "SELECT COUNT(*) AS total_rows FROM Order_Detail WHERE order_id = ?";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, orderId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("total_rows");
+                }
+            }
+        }
+
+        return 0;
+    }
+
+    private void reactivateVoucherForFailedPayment(Connection conn, int orderId) throws SQLException {
+        String sql = "UPDATE cv "
+                + "SET cv.status = 'ACTIVE', cv.used_at = NULL "
+                + "FROM Customer_Voucher cv "
+                + "JOIN Orders o ON o.customer_id = cv.customer_id AND o.voucher_id = cv.voucher_id "
+                + "WHERE o.order_id = ? "
+                + "AND cv.status = 'USED'";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, orderId);
+            ps.executeUpdate();
+        }
+    }
+
     public boolean updateReview(int orderDetailId, int rating, String comment) {
         String sql = "UPDATE Order_Detail "
                 + "SET rating = ?, review_comment = ?, reviewed_at = GETDATE() "
@@ -1009,7 +1158,7 @@ public class OrderDAO extends DBContext {
 
         return false;
     }
-
+// get order detail
     public List<OrderDetail> getOrderDetailsWithReview(int orderId) {
         List<OrderDetail> list = new ArrayList<>();
 

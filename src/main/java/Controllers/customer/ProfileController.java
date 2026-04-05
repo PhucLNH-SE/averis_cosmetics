@@ -30,7 +30,7 @@ import org.mindrot.jbcrypt.BCrypt;
 
 @MultipartConfig
 public class ProfileController extends HttpServlet {
-
+// showProfilePage(): Retrieves the profile information of the current user and returns it to the Profile page/interface for display.
     private void showProfilePage(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
@@ -60,7 +60,7 @@ public class ProfileController extends HttpServlet {
         request.getRequestDispatcher("/WEB-INF/views/customer/profile.jsp")
                 .forward(request, response);
     }
-
+// Show edit form to customer edit profile
     private void showEditForm(HttpServletRequest request,
             HttpServletResponse response,
             Customer customer)
@@ -70,7 +70,7 @@ public class ProfileController extends HttpServlet {
         request.getRequestDispatcher("/WEB-INF/views/customer/editprofile.jsp")
                 .forward(request, response);
     }
-
+// updateProfile to customer
     private void updateProfile(HttpServletRequest request,
         HttpServletResponse response,
         Customer customer)
@@ -121,7 +121,7 @@ public class ProfileController extends HttpServlet {
                 .forward(request, response);
     }
 }
-
+// show orders customer order
     private void showOrders(HttpServletRequest request, HttpServletResponse response,
             Customer customer) throws ServletException, IOException {
 
@@ -137,7 +137,7 @@ public class ProfileController extends HttpServlet {
         request.getRequestDispatcher("/WEB-INF/views/customer/profile.jsp")
                 .forward(request, response);
     }
-
+// show order detail
     private void showOrderDetail(HttpServletRequest request,
             HttpServletResponse response,
             Customer customer)
@@ -188,7 +188,7 @@ public class ProfileController extends HttpServlet {
         request.getRequestDispatcher("/WEB-INF/views/customer/profile.jsp")
                 .forward(request, response);
     }
-
+// Retrieve a one-time notification from the session to display on the profile page, then delete it.
     private void consumeProfileFlashMessage(HttpSession session, HttpServletRequest request) {
         if (session != null && session.getAttribute("profileMessage") != null) {
             request.setAttribute("profileMessage", session.getAttribute("profileMessage"));
@@ -199,7 +199,7 @@ public class ProfileController extends HttpServlet {
             session.removeAttribute("profileMessage");
         }
     }
-
+// set message to show in profile
     private void setProfileFlashMessage(HttpSession session, String message, String type) {
         if (session == null) {
             return;
@@ -208,7 +208,7 @@ public class ProfileController extends HttpServlet {
         session.setAttribute("profileMessage", message);
         session.setAttribute("profileMessageType", type);
     }
-
+// customer change Password
     private void changePassword(HttpServletRequest request,
             HttpServletResponse response,
             Customer customer) throws ServletException, IOException {
@@ -293,7 +293,7 @@ public class ProfileController extends HttpServlet {
                     .forward(request, response);
         }
     }
-
+// cancel order
     private void cancelOrder(HttpServletRequest request,
             HttpServletResponse response,
             Customer customer)

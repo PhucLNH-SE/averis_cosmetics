@@ -242,7 +242,7 @@ public class CustomerDAO extends DBContext {
             e.printStackTrace();
         }
     }
-
+// getCustomerById is a function used to retrieve customer information by ID.
     public Customer getCustomerById(int customerId) {
         String sql = "SELECT * FROM Customers WHERE customer_id = ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -272,7 +272,7 @@ public class CustomerDAO extends DBContext {
 
         return customers;
     }
-
+// update Profile 
     public boolean updateProfile(Customer customer) {
         String sql
                 = "UPDATE Customers "
@@ -305,7 +305,7 @@ public class CustomerDAO extends DBContext {
             return false;
         }
     }
-
+// update password
     public boolean updatePassword(int customerId, String newPassword) {
         String sql = "UPDATE Customers "
                 + "SET password = ? "
@@ -320,7 +320,7 @@ public class CustomerDAO extends DBContext {
             return false;
         }
     }
-
+// get old password
     public String getPasswordByCustomerId(int customerId) {
 
         String sql = "SELECT password FROM Customers WHERE customer_id = ?";
@@ -341,7 +341,7 @@ public class CustomerDAO extends DBContext {
 
         return null;
     }
-
+// get find customer form email
     public Customer findByEmailAndVerified(String email) {
         String sql = "SELECT * FROM Customers "
                 + "WHERE email = ? AND email_verified = 1";
@@ -359,7 +359,7 @@ public class CustomerDAO extends DBContext {
 
         return null;
     }
-
+// save token
     public boolean saveResetPasswordToken(String email,
             String token,
             Timestamp expiredAt) {
@@ -385,7 +385,7 @@ public class CustomerDAO extends DBContext {
 
         return false;
     }
-
+// find token
     public Customer findByResetToken(String token) {
         String sql = "SELECT * FROM Customers "
                 + "WHERE auth_token = ? "
@@ -406,7 +406,7 @@ public class CustomerDAO extends DBContext {
 
         return null;
     }
-
+// set password and token = 1
     public boolean updatePasswordByToken(String token, String newPassword) {
         String sql = "UPDATE Customers SET password = ?, auth_token_used = 1 "
                 + "WHERE auth_token = ? "
@@ -455,7 +455,7 @@ public class CustomerDAO extends DBContext {
 
         return false;
     }
-
+// hashpassword
     private String hashPassword(String rawPassword) {
         return BCrypt.hashpw(rawPassword, BCrypt.gensalt());
     }
