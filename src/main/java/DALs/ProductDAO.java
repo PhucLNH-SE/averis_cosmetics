@@ -343,26 +343,6 @@ public class ProductDAO extends DBContext {
         return getGuestProducts(sql, params);
     }
 
-    public List<Category> getAllCategories() {
-        List<Category> list = new ArrayList<>();
-        String sql = "SELECT * FROM Category";
-
-        try (PreparedStatement ps = connection.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) {
-                Category category = new Category();
-                category.setCategoryId(rs.getInt("category_id"));
-                category.setName(rs.getString("name"));
-                category.setStatus(rs.getBoolean("status"));
-                list.add(category);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return list;
-    }
-
     public boolean insertProduct(String name, String description, int brandId, int categoryId,
                               boolean status, String imageName, double price, int stock) {
         String insertProductSql = "INSERT INTO Product (name, description, brand_id, category_id, status) "

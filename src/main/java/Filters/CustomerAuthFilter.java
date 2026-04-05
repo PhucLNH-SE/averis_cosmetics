@@ -1,5 +1,7 @@
 package Filters;
 
+import DALs.CustomerDAO;
+import Model.Customer;
 import jakarta.servlet.*;
 import jakarta.servlet.annotation.WebFilter;
 import jakarta.servlet.http.HttpServletRequest;
@@ -19,6 +21,8 @@ import java.io.IOException;
         })
 public class CustomerAuthFilter implements Filter {
 
+    private CustomerDAO customerDAO = new CustomerDAO();
+
     @Override
     public void doFilter(ServletRequest request,
                          ServletResponse response,
@@ -29,12 +33,24 @@ public class CustomerAuthFilter implements Filter {
         HttpServletResponse resp = (HttpServletResponse) response;
 
         HttpSession session = req.getSession(false);
+        Customer customer = session == null ? null : (Customer) session.getAttribute("customer");
 
-        if (session == null || session.getAttribute("customer") == null) {
+        if (customer == null) {
+            resp.sendRedirect(req.getContextPath() + "/login");
+            return;
+        }
+
+        Customer currentCustomer = customerDAO.getCustomerById(customer.getCustomerId());
+        if (currentCustomer == null
+                || currentCustomer.getStatus() == null
+                || !currentCustomer.getStatus()) {
+            session.invalidate();
 
             resp.sendRedirect(req.getContextPath() + "/login");
             return;
         }
+
+        session.setAttribute("customer", currentCustomer);
 
         chain.doFilter(request, response);
     }

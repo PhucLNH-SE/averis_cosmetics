@@ -1,5 +1,6 @@
 package Filters;
 
+import DALs.ManagerDAO;
 import Model.Manager;
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
@@ -12,6 +13,8 @@ import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 
 public class ManagerAuthFilter implements Filter {
+
+    private ManagerDAO managerDAO = new ManagerDAO();
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
@@ -29,14 +32,31 @@ public class ManagerAuthFilter implements Filter {
 
         HttpSession session = req.getSession(false);
         Manager manager = session == null ? null : (Manager) session.getAttribute("manager");
-        String role = manager == null || manager.getManagerRole() == null
-                ? "GUEST"
-                : manager.getManagerRole().toUpperCase();
-
-        if (!requiredRole.equals(role)) {
+        if (manager == null) {
             resp.sendRedirect(req.getContextPath() + "/manager-auth");
             return;
         }
+
+        Manager currentManager = managerDAO.getById(manager.getManagerId());
+        if (currentManager == null
+                || currentManager.getStatus() == null
+                || !currentManager.getStatus()
+                || currentManager.getManagerRole() == null) {
+            session.invalidate();
+            resp.sendRedirect(req.getContextPath() + "/manager-auth");
+            return;
+        }
+
+        String role = currentManager.getManagerRole().toUpperCase();
+
+        if (!requiredRole.equals(role)) {
+            session.invalidate();
+            resp.sendRedirect(req.getContextPath() + "/manager-auth");
+            return;
+        }
+
+        session.setAttribute("manager", currentManager);
+        session.setAttribute("managerRole", currentManager.getManagerRole());
 
         chain.doFilter(request, response);
     }
