@@ -11,6 +11,50 @@
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <title>Profile - Averis Cosmetics</title>
         <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css">
+        <style>
+            .feedback-history__header--with-filter {
+                display: flex;
+                align-items: flex-start;
+                justify-content: space-between;
+                gap: 16px;
+                flex-wrap: wrap;
+            }
+
+            .feedback-history__filters {
+                display: flex;
+                gap: 10px;
+                flex-wrap: wrap;
+            }
+
+            .feedback-history__filter-btn {
+                border: 1px solid #f1c27d;
+                background: #fff7ec;
+                color: #8a4b08;
+                border-radius: 999px;
+                padding: 10px 16px;
+                font-size: 14px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.2s ease;
+            }
+
+            .feedback-history__filter-btn.is-active {
+                background: linear-gradient(135deg, #ffedd2, #ffd089);
+                color: #7a3e00;
+                box-shadow: 0 8px 18px rgba(241, 194, 125, 0.28);
+            }
+
+            .feedback-history__filter-empty {
+                display: none;
+                margin-top: 18px;
+                padding: 28px 24px;
+                border-radius: 20px;
+                background: #fffaf4;
+                border: 1px dashed #f1c27d;
+                text-align: center;
+                color: #8a6a42;
+            }
+        </style>
     </head>
     <body class="profile-page">
         <jsp:include page="/assets/header.jsp" />
@@ -482,12 +526,14 @@
                                                                 <c:when test="${empty d.rating || d.rating == 0}">
                                                                     <button type="button" class="btn-feedback btn-feedback--primary"
                                                                             data-id="${d.orderDetailId}"
+                                                                            data-order-id="${order.orderId}"
                                                                             data-name="${fn:escapeXml(d.productName)}"
                                                                             data-variant="${fn:escapeXml(d.variantName)}"
                                                                             data-brand="${fn:escapeXml(d.brandName)}"
                                                                             data-category="${fn:escapeXml(d.categoryName)}"
                                                                             data-rating="5"
                                                                             data-comment=""
+                                                                            data-redirect-tab="orderDetail"
                                                                             onclick="openFeedbackPopup(this)">
                                                                         <i class="fas fa-star"></i> Feedback
                                                                     </button>
@@ -514,12 +560,14 @@
                                                                         <c:if test="${!isEdited}">
                                                                             <button type="button" class="btn-edit-feedback btn-edit-feedback--secondary"
                                                                                     data-id="${d.orderDetailId}"
+                                                                                    data-order-id="${order.orderId}"
                                                                                     data-name="${fn:escapeXml(d.productName)}"
                                                                                     data-variant="${fn:escapeXml(d.variantName)}"
                                                                                     data-brand="${fn:escapeXml(d.brandName)}"
                                                                                     data-category="${fn:escapeXml(d.categoryName)}"
                                                                                     data-rating="${d.rating}"
                                                                                     data-comment="${fn:escapeXml(displayComment)}"
+                                                                                    data-redirect-tab="orderDetail"
                                                                                     onclick="openFeedbackPopup(this)">
                                                                                 <i class="fas fa-pen"></i> Edit Feedback
                                                                             </button>
@@ -561,7 +609,8 @@
 
                                     <form action="${pageContext.request.contextPath}/review" method="POST" id="feedbackForm">
                                         <input type="hidden" name="orderDetailId" id="feedbackOrderDetailId">
-                                        <input type="hidden" name="orderId" value="${order.orderId}">
+                                        <input type="hidden" name="orderId" id="feedbackOrderId" value="${order.orderId}">
+                                        <input type="hidden" name="redirectTab" id="feedbackRedirectTab" value="orderDetail">
 
                                         <p id="feedbackProductName" class="feedback-product-name"></p>
                                         <p id="feedbackProductMeta" class="feedback-product-meta"></p>
@@ -689,10 +738,24 @@
                         <c:when test="${tab == 'feedback'}">
 
                             <div class="feedback-history">
-                                <div class="feedback-history__header">
+                                <div class="feedback-history__header feedback-history__header--with-filter">
                                     <div>
                                         <h2>My Feedback</h2>
-                                        <p class="feedback-history__subtitle">View all reviews you have submitted for products.</p>
+                                        <p class="feedback-history__subtitle">Review the products you bought and revisit the feedback you already submitted.</p>
+                                    </div>
+                                    <div class="feedback-history__filters">
+                                        <button type="button"
+                                                class="feedback-history__filter-btn is-active"
+                                                data-filter-btn="reviewed"
+                                                onclick="applyFeedbackFilter('reviewed')">
+                                            Reviewed
+                                        </button>
+                                        <button type="button"
+                                                class="feedback-history__filter-btn"
+                                                data-filter-btn="pending"
+                                                onclick="applyFeedbackFilter('pending')">
+                                            Not Yet Reviewed
+                                        </button>
                                     </div>
                                 </div>
 
@@ -702,8 +765,8 @@
                                             <div class="feedback-history__empty-icon">
                                                 <i class="fas fa-star-half-alt"></i>
                                             </div>
-                                            <h3>No feedback yet</h3>
-                                            <p>You have not submitted any product reviews yet.</p>
+                                            <h3>No products ready for feedback yet</h3>
+                                            <p>Complete an order first, then your purchased products will appear here for review.</p>
                                             <a href="${pageContext.request.contextPath}/products" class="btn-shop-now">
                                                 <i class="fas fa-shopping-bag"></i> Explore Products
                                             </a>
@@ -714,7 +777,8 @@
                                             <c:forEach items="${myFeedbacks}" var="fb">
                                                 <c:set var="reviewedAtStr" value="${fb.reviewedAt != null ? fn:replace(fb.reviewedAt, 'T', ' ') : ''}" />
                                                 <c:set var="respondedAtStr" value="${fb.respondedAt != null ? fn:replace(fb.respondedAt, 'T', ' ') : ''}" />
-                                                <div class="feedback-history__card">
+                                                <div class="feedback-history__card"
+                                                     data-feedback-status="${empty fb.rating || fb.rating == 0 ? 'pending' : 'reviewed'}">
                                                     <div class="feedback-history__product">
                                                         <img
                                                             src="${pageContext.request.contextPath}/assets/img/${not empty fb.imageUrl ? fb.imageUrl : 'Logo.png'}"
@@ -731,46 +795,113 @@
                                                                 <c:if test="${not empty reviewedAtStr}">
                                                                     • Reviewed ${fn:length(reviewedAtStr) > 16 ? fn:substring(reviewedAtStr, 0, 16) : reviewedAtStr}
                                                                 </c:if>
+                                                                <c:if test="${empty reviewedAtStr}">
+                                                                    • Waiting for your feedback
+                                                                </c:if>
                                                             </div>
                                                         </div>
                                                     </div>
 
-                                                    <div class="feedback-history__rating">
-                                                        <div class="feedback-history__stars">
-                                                            <c:forEach begin="1" end="5" var="star">
-                                                                <i class="fas fa-star ${star <= fb.rating ? 'is-filled' : ''}"></i>
-                                                            </c:forEach>
-                                                        </div>
-                                                        <span class="feedback-history__rating-value">${fb.rating}/5</span>
-                                                    </div>
+                                                    <c:choose>
+                                                        <c:when test="${empty fb.rating || fb.rating == 0}">
+                                                            <div class="feedback-history__comment">
+                                                                You have not reviewed this product yet.
+                                                            </div>
+                                                            <div class="feedback-history__reply">
+                                                                <button type="button"
+                                                                        class="btn-feedback btn-feedback--primary"
+                                                                        data-id="${fb.orderDetailId}"
+                                                                        data-order-id="${fb.orderId}"
+                                                                        data-name="${fn:escapeXml(fb.productName)}"
+                                                                        data-variant="${fn:escapeXml(fb.variantName)}"
+                                                                        data-brand="${fn:escapeXml(fb.brandName)}"
+                                                                        data-category="${fn:escapeXml(fb.categoryName)}"
+                                                                        data-rating="5"
+                                                                        data-comment=""
+                                                                        data-redirect-tab="feedback"
+                                                                        onclick="openFeedbackPopup(this)">
+                                                                    <i class="fas fa-star"></i> Leave Feedback
+                                                                </button>
+                                                            </div>
+                                                        </c:when>
+                                                        <c:otherwise>
+                                                            <div class="feedback-history__rating">
+                                                                <div class="feedback-history__stars">
+                                                                    <c:forEach begin="1" end="5" var="star">
+                                                                        <i class="fas fa-star ${star <= fb.rating ? 'is-filled' : ''}"></i>
+                                                                    </c:forEach>
+                                                                </div>
+                                                                <span class="feedback-history__rating-value">${fb.rating}/5</span>
+                                                            </div>
 
-                                                    <div class="feedback-history__comment">
-                                                        <c:choose>
-                                                            <c:when test="${not empty fb.reviewComment}">
-                                                                <c:out value="${fn:replace(fb.reviewComment, '[EDITED]', '')}" />
-                                                            </c:when>
-                                                            <c:otherwise>
-                                                                No written comment.
-                                                            </c:otherwise>
-                                                        </c:choose>
-                                                    </div>
+                                                            <div class="feedback-history__comment">
+                                                                <c:choose>
+                                                                    <c:when test="${not empty fb.reviewComment}">
+                                                                        <c:out value="${fn:replace(fb.reviewComment, '[EDITED]', '')}" />
+                                                                    </c:when>
+                                                                    <c:otherwise>
+                                                                        No written comment.
+                                                                    </c:otherwise>
+                                                                </c:choose>
+                                                            </div>
 
-                                                    <c:if test="${not empty fb.responseContent}">
-                                                        <div class="feedback-history__reply">
-                                                            <div class="feedback-history__reply-label">Shop reply</div>
-                                                            <div class="feedback-history__reply-content"><c:out value="${fb.responseContent}" /></div>
-                                                            <c:if test="${not empty respondedAtStr}">
-                                                                <div class="feedback-history__reply-time">
-                                                                    Replied ${fn:length(respondedAtStr) > 16 ? fn:substring(respondedAtStr, 0, 16) : respondedAtStr}
+                                                            <c:if test="${not empty fb.responseContent}">
+                                                                <div class="feedback-history__reply">
+                                                                    <div class="feedback-history__reply-label">Shop reply</div>
+                                                                    <div class="feedback-history__reply-content"><c:out value="${fb.responseContent}" /></div>
+                                                                    <c:if test="${not empty respondedAtStr}">
+                                                                        <div class="feedback-history__reply-time">
+                                                                            Replied ${fn:length(respondedAtStr) > 16 ? fn:substring(respondedAtStr, 0, 16) : respondedAtStr}
+                                                                        </div>
+                                                                    </c:if>
                                                                 </div>
                                                             </c:if>
-                                                        </div>
-                                                    </c:if>
+                                                        </c:otherwise>
+                                                    </c:choose>
                                                 </div>
                                             </c:forEach>
                                         </div>
+                                        <div class="feedback-history__filter-empty" id="feedbackFilterEmpty">
+                                            Không có sản phẩm nào trong nhóm lọc này.
+                                        </div>
                                     </c:otherwise>
                                 </c:choose>
+                            </div>
+                            <div class="feedback-popup-overlay" id="feedbackPopupOverlay">
+                                <div class="feedback-popup-card">
+                                    <div class="feedback-popup-header">
+                                        <h3 class="feedback-popup-title">Product Review</h3>
+                                        <button type="button" class="feedback-popup-close" onclick="closeFeedbackPopup()">&times;</button>
+                                    </div>
+
+                                    <form action="${pageContext.request.contextPath}/review" method="POST" id="feedbackForm">
+                                        <input type="hidden" name="orderDetailId" id="feedbackOrderDetailId">
+                                        <input type="hidden" name="orderId" id="feedbackOrderId">
+                                        <input type="hidden" name="redirectTab" id="feedbackRedirectTab" value="feedback">
+
+                                        <p id="feedbackProductName" class="feedback-product-name"></p>
+                                        <p id="feedbackProductMeta" class="feedback-product-meta"></p>
+
+                                        <div class="feedback-rating-block">
+                                            <input type="hidden" name="rating" id="feedbackRating" value="5">
+                                            <div class="star-rating-select">
+                                                <i class="fas fa-star" data-val="1"></i>
+                                                <i class="fas fa-star" data-val="2"></i>
+                                                <i class="fas fa-star" data-val="3"></i>
+                                                <i class="fas fa-star" data-val="4"></i>
+                                                <i class="fas fa-star" data-val="5"></i>
+                                            </div>
+                                            <div id="ratingText" class="feedback-rating-text">Excellent</div>
+                                        </div>
+
+                                        <textarea name="comment" rows="4" class="feedback-comment-input" placeholder="Share your thoughts about this product... (max 500 characters)" maxlength="500"></textarea>
+
+                                        <div class="feedback-popup-actions">
+                                            <button type="button" class="feedback-action-btn feedback-action-btn--secondary" onclick="closeFeedbackPopup()">Cancel</button>
+                                            <button type="submit" class="feedback-action-btn feedback-action-btn--primary">Submit Review</button>
+                                        </div>
+                                    </form>
+                                </div>
                             </div>
 
                         </c:when>
@@ -961,21 +1092,37 @@
                                                 function openFeedbackPopup(buttonElement) {
                                                     const overlay = document.getElementById('feedbackPopupOverlay');
                                                     const form = document.getElementById('feedbackForm');
+                                                    const orderIdField = document.getElementById('feedbackOrderId');
+                                                    const redirectTabField = document.getElementById('feedbackRedirectTab');
+
+                                                    if (!overlay || !form) {
+                                                        return;
+                                                    }
 
                                                     // Read data from the clicked button's data attributes
                                                     const orderDetailId = buttonElement.getAttribute('data-id');
+                                                    const orderId = buttonElement.getAttribute('data-order-id')
+                                                            || (orderIdField ? orderIdField.value : '');
                                                     const productName = buttonElement.getAttribute('data-name');
                                                     const variantName = buttonElement.getAttribute('data-variant') || '';
                                                     const brandName = buttonElement.getAttribute('data-brand') || '';
                                                     const categoryName = buttonElement.getAttribute('data-category') || '';
                                                     const existingRating = parseInt(buttonElement.getAttribute('data-rating')) || 5;
                                                     const existingComment = buttonElement.getAttribute('data-comment') || '';
+                                                    const redirectTab = buttonElement.getAttribute('data-redirect-tab')
+                                                            || (redirectTabField ? redirectTabField.value : 'orderDetail');
                                                     const productMeta = variantName
                                                             ? `Classification: ${variantName}`
                                                             : [brandName, categoryName].filter(Boolean).join(' | ');
 
                                                     // Fill the form with existing data
                                                     document.getElementById('feedbackOrderDetailId').value = orderDetailId;
+                                                    if (orderIdField) {
+                                                        orderIdField.value = orderId;
+                                                    }
+                                                    if (redirectTabField) {
+                                                        redirectTabField.value = redirectTab;
+                                                    }
                                                     document.getElementById('feedbackProductName').textContent = productName;
                                                     document.getElementById('feedbackProductMeta').textContent = productMeta;
 
@@ -997,6 +1144,29 @@
                                                     overlay.style.display = 'flex';
                                                 }
 
+                                                function applyFeedbackFilter(filter) {
+                                                    const cards = document.querySelectorAll('.feedback-history__card[data-feedback-status]');
+                                                    const filterButtons = document.querySelectorAll('[data-filter-btn]');
+                                                    const emptyState = document.getElementById('feedbackFilterEmpty');
+                                                    let visibleCount = 0;
+
+                                                    filterButtons.forEach(button => {
+                                                        button.classList.toggle('is-active', button.getAttribute('data-filter-btn') === filter);
+                                                    });
+
+                                                    cards.forEach(card => {
+                                                        const isMatch = card.getAttribute('data-feedback-status') === filter;
+                                                        card.style.display = isMatch ? '' : 'none';
+                                                        if (isMatch) {
+                                                            visibleCount++;
+                                                        }
+                                                    });
+
+                                                    if (emptyState) {
+                                                        emptyState.style.display = visibleCount === 0 ? 'block' : 'none';
+                                                    }
+                                                }
+
 
 
                                                 function updateStars(value) {
@@ -1006,20 +1176,33 @@
                                                     stars.forEach(s => {
                                                         s.classList.toggle('is-active', parseInt(s.getAttribute('data-val')) <= value);
                                                     });
-                                                    ratingText.textContent = ratingTexts[value - 1];
+                                                    if (ratingText) {
+                                                        ratingText.textContent = ratingTexts[value - 1];
+                                                    }
                                                 }
 
                                                 document.querySelectorAll('.star-rating-select .fa-star').forEach(star => {
                                                     star.addEventListener('click', function () {
                                                         const value = parseInt(this.getAttribute('data-val'));
-                                                        document.getElementById('feedbackRating').value = value;
+                                                        const ratingField = document.getElementById('feedbackRating');
+                                                        if (ratingField) {
+                                                            ratingField.value = value;
+                                                        }
                                                         updateStars(value);
                                                     });
                                                 });
                                                 function closeFeedbackPopup() {
                                                     const overlay = document.getElementById('feedbackPopupOverlay');
-                                                    overlay.style.display = 'none';
+                                                    if (overlay) {
+                                                        overlay.style.display = 'none';
+                                                    }
                                                 }
+
+                                                document.addEventListener('DOMContentLoaded', function () {
+                                                    if (document.querySelector('.feedback-history__card[data-feedback-status]')) {
+                                                        applyFeedbackFilter('reviewed');
+                                                    }
+                                                });
 
 
 

@@ -179,7 +179,7 @@ public class ProfileController extends HttpServlet {
             Customer customer) throws ServletException, IOException {
 
         FeedbackDAO dao = new FeedbackDAO();
-        List<OrderDetail> feedbacks = dao.getFeedbacksByCustomerId(customer.getCustomerId());
+        List<OrderDetail> feedbacks = dao.getFeedbackItemsByCustomerId(customer.getCustomerId());
 
         request.setAttribute("myFeedbacks", feedbacks);
         consumeProfileFlashMessage(request.getSession(false), request);
