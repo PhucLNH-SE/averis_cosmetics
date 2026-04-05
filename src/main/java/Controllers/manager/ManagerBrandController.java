@@ -11,17 +11,12 @@ import java.util.List;
 
 public class ManagerBrandController extends HttpServlet {
 
-    private BrandDAO brandDAO;
+    private BrandDAO brandDAO = new BrandDAO();
     private static final String ADMIN_LIST_URL = "/admin/manage-brand";
     private static final String ADMIN_PANEL = "/WEB-INF/views/admin/admin-panel.jsp";
     private static final String STAFF_PANEL = "/WEB-INF/views/staff/staff-panel.jsp";
     private static final String ADMIN_CONTENT = "/WEB-INF/views/admin/partials/manage-brand-content.jsp";
     private static final String STAFF_CONTENT = "/WEB-INF/views/staff/partials/manage-brand-content.jsp";
-
-    @Override
-    public void init() throws ServletException {
-        brandDAO = new BrandDAO();
-    }
 
     private void listBrands(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {

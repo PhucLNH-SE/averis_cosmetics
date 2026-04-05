@@ -68,25 +68,10 @@
                                                 <i class="fas fa-eye"></i> View
                                             </a>
 
-                                            <a class="btn btn-primary btn-sm me-1"
+                                            <a class="btn btn-primary btn-sm"
                                                href="${pageContext.request.contextPath}/admin/manage-staff?action=edit&managerId=${s.managerId}">
                                                 <i class="fas fa-edit"></i> Edit
                                             </a>
-
-                                            <c:choose>
-                                                <c:when test="${s.status}">
-                                                    <button type="button" class="btn btn-danger btn-sm" title="Ban Account"
-                                                            onclick="openDeleteModal('${s.managerId}')">
-                                                        <i class="fas fa-ban"></i> Ban
-                                                    </button>
-                                                </c:when>
-                                                <c:otherwise>
-                                                    <button type="button" class="btn btn-success btn-sm" title="Unlock Account"
-                                                            onclick="openUnbanModal('${s.managerId}')">
-                                                        <i class="fas fa-unlock"></i> Unlock
-                                                    </button>
-                                                </c:otherwise>
-                                            </c:choose>
                                         </td>
                                     </tr>
                                 </c:forEach>
@@ -187,68 +172,9 @@
         </div>
     </div>
 
-    <div class="modal fade" id="deleteModal" tabindex="-1">
-        <div class="modal-dialog modal-sm modal-dialog-centered">
-            <div class="modal-content text-center border-0 shadow">
-                <form action="${pageContext.request.contextPath}/admin/manage-staff" method="post">
-                    <input type="hidden" name="action" value="ban">
-                    <input type="hidden" name="managerId" id="deleteId">
-                    <div class="modal-body p-4">
-                        <i class="fas fa-user-slash text-danger mb-3 staff-modal-icon"></i>
-                        <h5 class="fw-bold mb-3">Ban Account?</h5>
-                        <p class="text-muted small mb-4">Are you sure you want to deactivate staff account <strong id="deleteName" class="text-dark"></strong>? They will no longer be able to log in.</p>
-                        <div class="d-flex justify-content-center gap-2">
-                            <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">
-                                <i class="bi bi-x-circle"></i> Cancel
-                            </button>
-                            <button type="submit" class="btn btn-danger px-4">
-                                <i class="fas fa-ban"></i> Yes, Ban
-                            </button>
-                        </div>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal fade" id="unbanModal" tabindex="-1">
-        <div class="modal-dialog modal-sm modal-dialog-centered">
-            <div class="modal-content text-center border-0 shadow">
-                <form action="${pageContext.request.contextPath}/admin/manage-staff" method="post">
-                    <input type="hidden" name="action" value="unban">
-                    <input type="hidden" name="managerId" id="unbanId">
-                    <div class="modal-body p-4">
-                        <i class="fas fa-unlock text-success mb-3 staff-modal-icon"></i>
-                        <h5 class="fw-bold mb-3">Unlock Account?</h5>
-                        <p class="text-muted small mb-4">Are you sure you want to restore access for staff account <strong id="unbanName" class="text-dark"></strong>? They will be able to log in again.</p>
-                        <div class="d-flex justify-content-center gap-2">
-                            <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">
-                                <i class="bi bi-x-circle"></i> Cancel
-                            </button>
-                            <button type="submit" class="btn btn-success px-4">
-                                <i class="fas fa-unlock"></i> Yes, Unlock
-                            </button>
-                        </div>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
 </section>
 
 <script>
-    function openDeleteModal(id) {
-        document.getElementById('deleteId').value = id;
-        document.getElementById('deleteName').innerText = '#' + id;
-        new bootstrap.Modal(document.getElementById('deleteModal')).show();
-    }
-
-    function openUnbanModal(id) {
-        document.getElementById('unbanId').value = id;
-        document.getElementById('unbanName').innerText = '#' + id;
-        new bootstrap.Modal(document.getElementById('unbanModal')).show();
-    }
-
     <c:if test="${formMode == 'update' and not empty selectedStaff}">
     window.addEventListener('load', function () {
         bootstrap.Modal.getOrCreateInstance(document.getElementById('editModal')).show();
