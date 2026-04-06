@@ -290,10 +290,10 @@
                                                         </c:if>
                                                         <button type="button"
                                                                 class="action-btn edit"
-                                                                title="Edit address"
+                                                                title="Update address"
                                                                 data-address-id="${addr.addressId}"
-                                                                onclick="openAddressPopup('edit', this)">
-                                                            <i class="fas fa-pen"></i> Edit
+                                                                onclick="openAddressPopup('update', this)">
+                                                            <i class="fas fa-pen"></i> Update
                                                         </button>
                                                         <form action="${pageContext.request.contextPath}/address"
                                                               method="post"
@@ -1007,10 +1007,10 @@
                                                         return;
                                                     }
 
-                                                    if (mode === 'edit' && trigger) {
-                                                        title.textContent = 'Edit Address';
+                                                    if (mode === 'update' && trigger) {
+                                                        title.textContent = 'Update Address';
                                                         subtitle.textContent = 'Update your delivery address details';
-                                                        frame.src = '${pageContext.request.contextPath}/address?action=edit&id='
+                                                        frame.src = '${pageContext.request.contextPath}/address?action=update&id='
                                                                 + encodeURIComponent(trigger.getAttribute('data-address-id') || '');
                                                     } else {
                                                         title.textContent = 'Add New Address';

@@ -39,8 +39,8 @@ public class AddressController extends HttpServlet {
             case "add":
                 showAddForm(request, response);
                 break;
-            case "edit":
-                showEditForm(request, response, customer);
+            case "update":
+                showUpdateForm(request, response, customer);
                 break;
             default:
                 redirectToAddressList(request, response);
@@ -69,7 +69,7 @@ public class AddressController extends HttpServlet {
             case "add":
                 addAddress(request, response, customer);
                 break;
-            case "edit":
+            case "update":
                 updateAddress(request, response, customer);
                 break;
             case "delete":
@@ -106,7 +106,7 @@ public class AddressController extends HttpServlet {
         request.getRequestDispatcher("/WEB-INF/views/customer/add-address.jsp").forward(request, response);
     }
 
-    private void showEditForm(HttpServletRequest request, HttpServletResponse response, Customer customer)
+    private void showUpdateForm(HttpServletRequest request, HttpServletResponse response, Customer customer)
             throws ServletException, IOException {
         HttpSession session = request.getSession(false);
         String addressIdStr = request.getParameter("id");
@@ -128,7 +128,7 @@ public class AddressController extends HttpServlet {
             }
 
             request.setAttribute("address", address);
-            request.getRequestDispatcher("/WEB-INF/views/customer/edit-address.jsp").forward(request, response);
+            request.getRequestDispatcher("/WEB-INF/views/customer/update-address.jsp").forward(request, response);
         } catch (NumberFormatException e) {
             setProfileFlashMessage(session, "Invalid address ID format", "error");
             redirectToAddressList(request, response);
@@ -187,7 +187,7 @@ public class AddressController extends HttpServlet {
             if (validationError != null) {
                 request.setAttribute("error", validationError);
                 request.setAttribute("address", address);
-                request.getRequestDispatcher("/WEB-INF/views/customer/edit-address.jsp").forward(request, response);
+                request.getRequestDispatcher("/WEB-INF/views/customer/update-address.jsp").forward(request, response);
                 return;
             }
 
