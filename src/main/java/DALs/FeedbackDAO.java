@@ -10,34 +10,6 @@ import java.util.List;
 
 public class FeedbackDAO extends DBContext {
 
-    public List<OrderDetail> getAllFeedbacks() {
-        List<OrderDetail> list = new ArrayList<>();
-        String sql = "SELECT od.order_detail_id, od.order_id, od.rating, od.review_comment, od.reviewed_at, "
-                   + "od.manager_response, od.response_content, od.responded_at, "
-                   + "p.name AS product_name, "
-                   + "c.full_name AS customer_name, "
-                   + "m.full_name AS manager_name "
-                   + "FROM Order_Detail od "
-                   + "JOIN Orders o ON od.order_id = o.order_id "
-                   + "JOIN Customers c ON o.customer_id = c.customer_id "
-                   + "JOIN Product_Variant pv ON od.variant_id = pv.variant_id "
-                   + "JOIN Product p ON pv.product_id = p.product_id "
-                   + "LEFT JOIN Manager m ON od.manager_response = m.manager_id "
-                   + "WHERE od.rating IS NOT NULL "
-                   + "ORDER BY od.reviewed_at DESC";
-
-        try (PreparedStatement ps = connection.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-
-            while (rs.next()) {
-                list.add(mapResultSetToOrderDetail(rs));
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return list;
-    }
-
     public OrderDetail getFeedbackDetail(int orderDetailId) {
         String sql = "SELECT od.order_detail_id, od.order_id, od.rating, od.review_comment, od.reviewed_at, "
                    + "od.manager_response, od.response_content, od.responded_at, "
@@ -168,53 +140,6 @@ public class FeedbackDAO extends DBContext {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return list;
-    }
-
-    public List<OrderDetail> getFeedbacksByCustomerId(int customerId) {
-        List<OrderDetail> list = new ArrayList<>();
-        String sql = "SELECT od.order_detail_id, od.order_id, od.rating, od.review_comment, od.reviewed_at, "
-                   + "od.response_content, od.responded_at, "
-                   + "p.name AS product_name, "
-                   + "pv.variant_name, "
-                   + "(SELECT TOP 1 image_url FROM Product_Image pi "
-                   + " WHERE pi.product_id = p.product_id "
-                   + " ORDER BY pi.is_main DESC, pi.image_id ASC) AS image_url "
-                   + "FROM Order_Detail od "
-                   + "JOIN Orders o ON od.order_id = o.order_id "
-                   + "JOIN Product_Variant pv ON od.variant_id = pv.variant_id "
-                   + "JOIN Product p ON pv.product_id = p.product_id "
-                   + "WHERE o.customer_id = ? AND od.rating IS NOT NULL "
-                   + "ORDER BY od.reviewed_at DESC, od.order_detail_id DESC";
-
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setInt(1, customerId);
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    OrderDetail od = new OrderDetail();
-                    od.setOrderDetailId(rs.getInt("order_detail_id"));
-                    od.setOrderId(rs.getInt("order_id"));
-                    od.setRating(rs.getInt("rating"));
-                    od.setReviewComment(rs.getString("review_comment"));
-                    od.setProductName(rs.getString("product_name"));
-                    od.setVariantName(rs.getString("variant_name"));
-                    od.setImageUrl(rs.getString("image_url"));
-                    od.setResponseContent(rs.getString("response_content"));
-
-                    if (rs.getTimestamp("reviewed_at") != null) {
-                        od.setReviewedAt(rs.getTimestamp("reviewed_at").toLocalDateTime());
-                    }
-                    if (rs.getTimestamp("responded_at") != null) {
-                        od.setRespondedAt(rs.getTimestamp("responded_at").toLocalDateTime());
-                    }
-
-                    list.add(od);
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
         return list;
     }
 

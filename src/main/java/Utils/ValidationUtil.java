@@ -15,9 +15,6 @@ import org.mindrot.jbcrypt.BCrypt;
 
 public class ValidationUtil {
 
-    public ValidationUtil() {
-    }
-
     private static final String USERNAME_REGEX = "^[A-Za-z0-9_]{3,20}$";
 
     private static final String PASSWORD_REGEX
@@ -462,7 +459,7 @@ public class ValidationUtil {
         return Integer.valueOf(parseQuantityValue(rawValue, errorMessage));
     }
 
-    public boolean checkLogin(String inputPassword, String storedPassword) {
+    public static boolean checkLogin(String inputPassword, String storedPassword) {
         if (inputPassword == null || storedPassword == null) {
             return false;
         }
@@ -538,3 +535,4 @@ public class ValidationUtil {
     }
 
 }
+

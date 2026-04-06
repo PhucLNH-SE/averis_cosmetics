@@ -1,7 +1,6 @@
 package DALs;
 
 import Model.MonthlyStatisticSummary;
-import Model.ProductVariant;
 import Utils.DBContext;
 import Utils.StatisticUtils;
 import java.math.BigDecimal;
@@ -18,10 +17,6 @@ import java.util.List;
 import java.util.Map;
 
 public class StatisticDAO extends DBContext {
-
-    public MonthlyStatisticSummary getMonthlySummary(int year, int month) {
-        return getSummary(year, month, StatisticUtils.PERIOD_MONTH);
-    }
 
     public List<Map<String, Object>> getRevenueProfitChartData(int year, int month) {
         return getRevenueProfitChartData(year, Integer.valueOf(month), StatisticUtils.PERIOD_MONTH);
@@ -363,46 +358,6 @@ public class StatisticDAO extends DBContext {
         }
 
         return products;
-    }
-
-    public List<ProductVariant> getLowStockProducts(int threshold, int limit) {
-        List<ProductVariant> variants = new ArrayList<>();
-        String sql = "SELECT TOP (?) "
-                + "pv.variant_id, pv.product_id, pv.variant_name, pv.price, pv.stock, pv.status, pv.avg_cost, "
-                + "p.name AS product_name, "
-                + "(SELECT TOP 1 pi.image_url "
-                + " FROM Product_Image pi "
-                + " WHERE pi.product_id = p.product_id "
-                + " ORDER BY pi.is_main DESC, pi.image_id ASC) AS image_url "
-                + "FROM Product_Variant pv "
-                + "JOIN Product p ON pv.product_id = p.product_id "
-                + "WHERE pv.status = 1 AND p.status = 1 AND pv.stock <= ? "
-                + "ORDER BY pv.stock ASC, pv.variant_id ASC";
-
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setInt(1, limit);
-            ps.setInt(2, threshold);
-
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    ProductVariant variant = new ProductVariant();
-                    variant.setVariantId(rs.getInt("variant_id"));
-                    variant.setProductId(rs.getInt("product_id"));
-                    variant.setVariantName(rs.getString("variant_name"));
-                    variant.setPrice(rs.getBigDecimal("price"));
-                    variant.setStock(rs.getInt("stock"));
-                    variant.setStatus(rs.getBoolean("status"));
-                    variant.setImportPrice(rs.getBigDecimal("avg_cost"));
-                    variant.setProductName(rs.getString("product_name"));
-                    variant.setImageUrl(normalizeProductImageUrl(rs.getString("image_url")));
-                    variants.add(variant);
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return variants;
     }
 
     private void bindPeriodParameters(PreparedStatement ps, int year, Integer month, String periodType) throws Exception {

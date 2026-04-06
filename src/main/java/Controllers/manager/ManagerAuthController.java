@@ -46,9 +46,8 @@ public class ManagerAuthController extends HttpServlet {
             return;
         }
 
-        ValidationUtil util = new ValidationUtil();
         Manager manager = managerDAO.getByEmail(email.trim());
-        if (manager == null || !util.checkLogin(password, manager.getPassword())) {
+        if (manager == null || !ValidationUtil.checkLogin(password, manager.getPassword())) {
             request.setAttribute("errorMessage", "Incorrect email or password.");
             request.getRequestDispatcher("/WEB-INF/views/common/manager-login.jsp").forward(request, response);
             return;
@@ -83,4 +82,5 @@ public class ManagerAuthController extends HttpServlet {
         }
     }
 }
+
 
