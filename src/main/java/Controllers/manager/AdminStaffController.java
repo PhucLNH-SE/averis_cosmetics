@@ -234,11 +234,6 @@ public class AdminStaffController extends HttpServlet {
             return;
         }
 
-        if (managerDAO.isNameExist(name, 0)) {
-            session.setAttribute("errorMsg", "Staff name already exists! Please choose another name.");
-            return;
-        }
-
         if (managerDAO.addManager(name, email, password, role, status)) {
             session.setAttribute("successMsg", "Staff added successfully!");
         } else {
@@ -258,10 +253,6 @@ public class AdminStaffController extends HttpServlet {
 
         if (managerDAO.isEmailExist(selectedStaff.getEmail(), selectedStaff.getManagerId())) {
             return "Email already exists in another account!";
-        }
-
-        if (managerDAO.isNameExist(selectedStaff.getFullName(), selectedStaff.getManagerId())) {
-            return "Staff name already exists in another account!";
         }
 
         return null;

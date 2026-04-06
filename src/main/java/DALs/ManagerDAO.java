@@ -100,22 +100,6 @@ public class ManagerDAO extends DBContext {
         return false;
     }
 
-    public boolean isNameExist(String name, int excludeId) {
-        String sql = "SELECT 1 FROM Manager WHERE full_name = ? AND manager_id != ?";
-
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setString(1, name);
-            ps.setInt(2, excludeId);
-            try (ResultSet rs = ps.executeQuery()) {
-                return rs.next();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return false;
-    }
-
     public boolean addManager(String fullName, String email, String password, String role, Boolean status) {
         String sql = "INSERT INTO Manager (full_name, email, password, manager_role, status) VALUES (?, ?, ?, ?, ?)";
 
