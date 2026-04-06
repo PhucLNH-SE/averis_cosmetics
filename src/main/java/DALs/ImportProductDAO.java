@@ -16,34 +16,7 @@ import java.util.List;
 
 public class ImportProductDAO extends DBContext {
 
-    public List<ProductVariant> getVariantByBrand(int brandId) {
-        List<ProductVariant> list = new ArrayList<>();
-        String sql = "SELECT pv.variant_id, p.name AS product_name, pv.variant_name, pv.stock "
-                + "FROM Product_Variant pv "
-                + "JOIN Product p ON pv.product_id = p.product_id "
-                + "WHERE p.brand_id = ?";
-
-        try {
-            PreparedStatement ps = connection.prepareStatement(sql);
-            ps.setInt(1, brandId);
-            ResultSet rs = ps.executeQuery();
-
-            while (rs.next()) {
-                ProductVariant v = new ProductVariant();
-                v.setVariantId(rs.getInt("variant_id"));
-                v.setProductName(rs.getString("product_name"));
-                v.setVariantName(rs.getString("variant_name"));
-                v.setStock(rs.getInt("stock"));
-                list.add(v);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return list;
-    }
-
-    public void updateStock(int variantId, int quantity, double importPrice) {
+    private void updateStock(int variantId, int quantity, double importPrice) {
         String selectSql = "SELECT stock, avg_cost FROM Product_Variant WHERE variant_id = ?";
         String updateSql = "UPDATE Product_Variant SET stock = ?, avg_cost = ? WHERE variant_id = ?";
 

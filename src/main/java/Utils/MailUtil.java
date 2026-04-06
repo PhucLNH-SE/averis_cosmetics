@@ -36,10 +36,6 @@ public class MailUtil {
         }
     }
 
-    public static boolean isConfigured() {
-        return loaded;
-    }
-
     public static boolean sendVerificationEmail(String toEmail, String verifyLink) {
         if (!loaded) {
             System.out.println("MailUtil: mail.properties is not configured (mail.from, mail.password). Skipping email.");

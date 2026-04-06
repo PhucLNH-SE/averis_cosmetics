@@ -66,7 +66,7 @@ public class ManagerFeedbackController extends HttpServlet {
             return;
         }
 
-        handleReply(request, response, session, dao(), manager);
+        handleReply(request, response, session, new FeedbackDAO(), manager);
     }
 
     private void loadFeedbackPage(HttpServletRequest request, HttpServletResponse response,
@@ -146,9 +146,6 @@ public class ManagerFeedbackController extends HttpServlet {
         response.sendRedirect(buildFeedbackRedirect(request));
     }
 
-    private FeedbackDAO dao() {
-        return new FeedbackDAO();
-    }
 
     private void moveFlashMessage(HttpSession session, HttpServletRequest request, String key) {
         Object value = session.getAttribute(key);
@@ -167,5 +164,6 @@ public class ManagerFeedbackController extends HttpServlet {
         return request.getContextPath() + (isStaffRoute(request) ? STAFF_URL : ADMIN_URL) + "?action=list";
     }
 }
+
 
 
