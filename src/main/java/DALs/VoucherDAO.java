@@ -98,17 +98,6 @@ public class VoucherDAO extends DBContext {
         }
     }
 
-    public boolean softDeleteVoucher(int voucherId) {
-        String sql = "UPDATE Voucher SET status = 0 WHERE voucher_id = ?";
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setInt(1, voucherId);
-            return ps.executeUpdate() > 0;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
-
     public List<CustomerVoucher> getByCustomerId(int customerId) {
         String sql = "SELECT cv.customer_voucher_id, cv.customer_id, cv.voucher_id, cv.claimed_at, cv.effective_from, "
                 + "cv.effective_to, cv.status AS customer_voucher_status, cv.used_at, "

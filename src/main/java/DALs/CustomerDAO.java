@@ -50,23 +50,6 @@ public class CustomerDAO extends DBContext {
         return null;
     }
 
-    public Customer getCustomerByEmail(String email) {
-        String sql = "SELECT * FROM Customers WHERE email = ?";
-
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setString(1, email);
-
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return mapResultSetToCustomer(rs);
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return null;
-    }
     //PhucLNH - Insert new customer when register
     public boolean insertCustomer(Customer customer) {
         String sql = "INSERT INTO Customers (username, full_name, email, password, gender, date_of_birth, status, email_verified) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
@@ -88,19 +71,6 @@ public class CustomerDAO extends DBContext {
                 }
                 return true;
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return false;
-    }
-
-    public boolean updateCustomer(Customer customer) {
-        String sql = "UPDATE Customers SET username = ?, full_name = ?, email = ?, password = ?, gender = ?, date_of_birth = ?, status = ?, email_verified = ? WHERE customer_id = ?";
-
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            fillCustomerStatement(ps, customer, true);
-            return ps.executeUpdate() > 0;
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -174,17 +144,6 @@ public class CustomerDAO extends DBContext {
         }
 
         return false;
-    }
-
-    public boolean checkUsernameExistsExceptId(String username, int customerId) {
-        return existsByFieldExceptId("username", username, customerId);
-    }
-
-    public boolean checkEmailExistsExceptId(String email, int customerId) {
-        if (email == null || email.trim().isEmpty()) {
-            return false;
-        }
-        return existsByFieldExceptId("email", email, customerId);
     }
 
     public Customer getCustomerByAuthToken(String token, String type) {

@@ -17,76 +17,6 @@ import java.util.Map;
 
 public class ProductDAO extends DBContext {
 
-    /*
-    public List<Product> getAllProducts() {
-        List<Product> list = new ArrayList<>();
-        String sql = "SELECT "
-                + "  p.product_id, p.name, p.description, p.status, "
-                + "  b.brand_id, b.name AS brand_name, b.status AS brand_status, "
-                + "  c.category_id, c.name AS category_name, c.status AS category_status, "
-                + "  pi.image_id, pi.image_url, pi.is_main, "
-                + "  MIN(pv.price) AS min_price, MAX(pv.price) AS max_price "
-                + "FROM Product p "
-                + "JOIN Brand b ON p.brand_id = b.brand_id "
-                + "JOIN Category c ON p.category_id = c.category_id "
-                + "LEFT JOIN Product_Image pi ON p.product_id = pi.product_id "
-                + "LEFT JOIN Product_Variant pv ON p.product_id = pv.product_id AND pv.status = 1 "
-                + "GROUP BY p.product_id, p.name, p.description, p.status, "
-                + "         b.brand_id, b.name, b.status, "
-                + "         c.category_id, c.name, c.status, "
-                + "         pi.image_id, pi.image_url, pi.is_main "
-                + "ORDER BY p.product_id DESC, pi.is_main DESC, pi.image_id ASC";
-
-        try (PreparedStatement ps = connection.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-            Map<Integer, Product> productMap = new HashMap<>();
-
-            while (rs.next()) {
-                int productId = rs.getInt("product_id");
-                Product product = productMap.get(productId);
-
-                if (product == null) {
-                    product = mapBaseProduct(rs, productId, true);
-                    product.setPrice(rs.getDouble("min_price"));
-                    product.setMaxPrice(rs.getDouble("max_price"));
-                    productMap.put(productId, product);
-                }
-
-                addImageFromRow(rs, product, productId);
-            }
-
-            finalizeMainImages(productMap);
-            list.addAll(productMap.values());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return list;
-    }
-
-    public List<Integer> getTopSellingProductIds() {
-        List<Integer> ids = new ArrayList<>();
-        String sql = "SELECT p.product_id, SUM(od.quantity) AS total_sold "
-        + "FROM Orders o "
-        + "JOIN Order_Detail od ON o.order_id = od.order_id "
-        + "JOIN Product_Variant pv ON od.variant_id = pv.variant_id "
-        + "JOIN Product p ON pv.product_id = p.product_id "
-        + "WHERE o.order_status <> 'CANCELLED' AND p.status = 1 " // <-- ĐÃ THÊM Ở ĐÂY
-        + "GROUP BY p.product_id "
-        + "ORDER BY total_sold DESC, p.product_id DESC";
-
-        try (PreparedStatement ps = connection.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) {
-                ids.add(rs.getInt("product_id"));
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return ids;
-    }
-    */
 
     public Product getProductById(int productId) {
         String sql = "SELECT "
@@ -181,62 +111,6 @@ public class ProductDAO extends DBContext {
         return variants;
     }
 
-    public ProductVariant getVariantById(int variantId) {
-        String sql = "SELECT v.variant_id, v.product_id, v.variant_name, v.price, v.stock, v.status, v.avg_cost, "
-                + "       p.name AS product_name, "
-                + "       (SELECT TOP 1 image_url FROM Product_Image pi "
-                + "        WHERE pi.product_id = p.product_id AND pi.is_main = 1) AS image_url "
-                + "FROM Product_Variant v "
-                + "JOIN Product p ON v.product_id = p.product_id "
-                + "WHERE v.variant_id = ?";
-
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setInt(1, variantId);
-
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    ProductVariant variant = new ProductVariant();
-                    variant.setVariantId(rs.getInt("variant_id"));
-                    variant.setProductId(rs.getInt("product_id"));
-                    variant.setVariantName(rs.getString("variant_name"));
-                    variant.setPrice(rs.getBigDecimal("price"));
-                    variant.setStock(rs.getInt("stock"));
-                    variant.setStatus(rs.getBoolean("status"));
-                    variant.setImportPrice(rs.getBigDecimal("avg_cost"));
-                    variant.setProductName(rs.getString("product_name"));
-                    variant.setImageUrl(rs.getString("image_url"));
-                    return variant;
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return null;
-    }
-
-    /*
-    public List<Product> searchProducts(String keyword) {
-        String sql = "SELECT "
-                + "  p.product_id, p.name, p.description, p.status, "
-                + "  b.brand_id, b.name AS brand_name, b.status AS brand_status, "
-                + "  c.category_id, c.name AS category_name, c.status AS category_status, "
-                + "  pi.image_id, pi.image_url, pi.is_main, "
-                + "  MIN(pv.price) AS min_price, MAX(pv.price) AS max_price "
-                + "FROM Product p "
-                + "JOIN Brand b ON p.brand_id = b.brand_id "
-                + "JOIN Category c ON p.category_id = c.category_id "
-                + "LEFT JOIN Product_Image pi ON p.product_id = pi.product_id "
-                + "LEFT JOIN Product_Variant pv ON p.product_id = pv.product_id AND pv.status = 1 "
-                + "WHERE (p.name LIKE ? OR b.name LIKE ? OR c.name LIKE ?) AND p.status = 1 " // <-- ĐÃ SỬA
-                + "GROUP BY p.product_id, p.name, p.description, p.status, "
-                + "         b.brand_id, b.name, b.status, "
-                + "         c.category_id, c.name, c.status, "
-                + "         pi.image_id, pi.image_url, pi.is_main "
-                + "ORDER BY p.product_id DESC, pi.is_main DESC, pi.image_id ASC";
-        return searchProductsByKeyword(keyword, sql, false);
-    }
-    */
 
     public List<Product> searchProductsForAutoSuggest(String keyword) {
         String sql = "SELECT TOP 10 "
@@ -460,62 +334,6 @@ public class ProductDAO extends DBContext {
         return false;
     }
 
-    /*
-    public void deleteProduct(int id) {
-        String deleteCartDetailSql = "DELETE FROM Cart_Detail WHERE variant_id IN "
-                + "(SELECT variant_id FROM Product_Variant WHERE product_id = ?)";
-        String deleteOrderDetailSql = "DELETE FROM Order_Detail WHERE variant_id IN "
-                + "(SELECT variant_id FROM Product_Variant WHERE product_id = ?)";
-        String deleteImageSql = "DELETE FROM Product_Image WHERE product_id = ?";
-        String deleteVariantSql = "DELETE FROM Product_Variant WHERE product_id = ?";
-        String deleteProductSql = "DELETE FROM Product WHERE product_id = ?";
-
-        try {
-            connection.setAutoCommit(false);
-
-            try (PreparedStatement ps = connection.prepareStatement(deleteCartDetailSql)) {
-                ps.setInt(1, id);
-                ps.executeUpdate();
-            }
-            try (PreparedStatement ps = connection.prepareStatement(deleteOrderDetailSql)) {
-                ps.setInt(1, id);
-                ps.executeUpdate();
-            }
-            try (PreparedStatement ps = connection.prepareStatement(deleteImageSql)) {
-                ps.setInt(1, id);
-                ps.executeUpdate();
-            }
-            try (PreparedStatement ps = connection.prepareStatement(deleteVariantSql)) {
-                ps.setInt(1, id);
-                ps.executeUpdate();
-            }
-            try (PreparedStatement ps = connection.prepareStatement(deleteProductSql)) {
-                ps.setInt(1, id);
-                ps.executeUpdate();
-            }
-
-            connection.commit();
-        } catch (Exception e) {
-            try {
-                if (connection != null) {
-                    connection.rollback();
-                }
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
-            e.printStackTrace();
-            System.out.println("Error deleting product ID " + id + ": " + e.getMessage());
-        } finally {
-            try {
-                if (connection != null) {
-                    connection.setAutoCommit(true);
-                }
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
-        }
-    }
-    */
 
   
    
@@ -852,67 +670,30 @@ public class ProductDAO extends DBContext {
         return null;
     }
 
-    /*
-    public List<Product> getAllProductsWithImportPrice() {
-        List<Product> list = new ArrayList<>();
-        String sql = "SELECT "
-                + "  p.product_id, p.name, p.description, p.status, "
-                + "  b.brand_id, b.name AS brand_name, b.status AS brand_status, "
-                + "  c.category_id, c.name AS category_name, c.status AS category_status, "
-                + "  pi.image_id, pi.image_url, pi.is_main, "
-                + "  MIN(pv.price) AS min_price, MAX(pv.price) AS max_price "
-                + "FROM Product p "
-                + "JOIN Brand b ON p.brand_id = b.brand_id "
-                + "JOIN Category c ON p.category_id = c.category_id "
-                + "LEFT JOIN Product_Image pi ON p.product_id = pi.product_id "
-                + "LEFT JOIN Product_Variant pv ON p.product_id = pv.product_id AND pv.status = 1 "
-                + "GROUP BY p.product_id, p.name, p.description, p.status, "
-                + "         b.brand_id, b.name, b.status, "
-                + "         c.category_id, c.name, c.status, "
-                + "         pi.image_id, pi.image_url, pi.is_main "
-                + "ORDER BY p.product_id DESC, pi.is_main DESC, pi.image_id ASC";
-
-        try (PreparedStatement ps = connection.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-            Map<Integer, Product> productMap = new HashMap<>();
-
-            while (rs.next()) {
-                int productId = rs.getInt("product_id");
-                Product product = productMap.get(productId);
-
-                if (product == null) {
-                    product = mapBaseProduct(rs, productId, true);
-                    product.setPrice(rs.getDouble("min_price"));
-                    product.setMaxPrice(rs.getDouble("max_price"));
-                    product.setVariants(getProductVariantsWithImportPrice(productId)); 
-                    productMap.put(productId, product);
-                }
-
-                addImageFromRow(rs, product, productId);
-            }
-
-            finalizeMainImages(productMap);
-            list.addAll(productMap.values());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return list;
-    }
-    */
 
     public List<Product> getProductsForAdminWithImportPrice(String keyword, String brandId, String categoryId, String status) {
-        return getProductsForManagement(true, false);
+        return getProductsForManagement(
+                trimToNull(keyword),
+                parseNullableInteger(brandId),
+                parseNullableInteger(categoryId),
+                parseNullableStatus(status),
+                true,
+                false
+        );
     }
 
     public List<Product> getProductsForStaff(String keyword, Integer brandId, Integer categoryId, Boolean status) {
-        return getProductsForManagement(false, false);
+        return getProductsForManagement(trimToNull(keyword), brandId, categoryId, status, false, false);
     }
 
-    private List<Product> getProductsForManagement(boolean includeImportPrice,
+    private List<Product> getProductsForManagement(String keyword,
+                                                   Integer brandId,
+                                                   Integer categoryId,
+                                                   Boolean status,
+                                                   boolean includeImportPrice,
                                                    boolean newestFirst) {
         List<Product> list = new ArrayList<>();
-        String sql = "SELECT "
+        StringBuilder sql = new StringBuilder("SELECT "
                 + "  p.product_id, p.name, p.description, p.status, "
                 + "  b.brand_id, b.name AS brand_name, b.status AS brand_status, "
                 + "  c.category_id, c.name AS category_name, c.status AS category_status, "
@@ -923,12 +704,21 @@ public class ProductDAO extends DBContext {
                 + "JOIN Category c ON p.category_id = c.category_id "
                 + "LEFT JOIN Product_Image pi ON p.product_id = pi.product_id "
                 + "LEFT JOIN Product_Variant pv ON p.product_id = pv.product_id AND pv.status = 1 "
-                + "GROUP BY p.product_id, p.name, p.description, p.status, "
-                + "         b.brand_id, b.name, b.status, "
-                + "         c.category_id, c.name, c.status, "
-                + "         pi.image_id, pi.image_url, pi.is_main " ;
+                + "WHERE 1 = 1 ");
+        List<Object> params = new ArrayList<>();
 
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        appendManagementFilters(sql, params, keyword, brandId, categoryId, status);
+
+        sql.append("GROUP BY p.product_id, p.name, p.description, p.status, ")
+                .append("         b.brand_id, b.name, b.status, ")
+                .append("         c.category_id, c.name, c.status, ")
+                .append("         pi.image_id, pi.image_url, pi.is_main ")
+                .append(newestFirst
+                        ? "ORDER BY p.product_id DESC, pi.is_main DESC, pi.image_id ASC"
+                        : "ORDER BY p.name ASC, p.product_id DESC, pi.is_main DESC, pi.image_id ASC");
+
+        try (PreparedStatement ps = connection.prepareStatement(sql.toString())) {
+            setParameters(ps, params);
             try (ResultSet rs = ps.executeQuery()) {
                 Map<Integer, Product> productMap = new LinkedHashMap<>();
 
@@ -946,10 +736,10 @@ public class ProductDAO extends DBContext {
                         productMap.put(productId, product);
                     }
 
-            
+                    addImageFromRow(rs, product, productId);
                 }
 
-        
+                finalizeMainImages(productMap);
                 list.addAll(productMap.values());
             }
         } catch (Exception e) {
@@ -985,6 +775,41 @@ public class ProductDAO extends DBContext {
         }
 
         return null;
+    }
+
+    private String trimToNull(String value) {
+        if (value == null) {
+            return null;
+        }
+
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    private void appendManagementFilters(StringBuilder sql, List<Object> params,
+                                         String keyword, Integer brandId, Integer categoryId, Boolean status) {
+        if (keyword != null) {
+            sql.append("AND (p.name LIKE ? OR b.name LIKE ? OR c.name LIKE ?) ");
+            String searchParam = "%" + keyword + "%";
+            params.add(searchParam);
+            params.add(searchParam);
+            params.add(searchParam);
+        }
+
+        if (brandId != null) {
+            sql.append("AND p.brand_id = ? ");
+            params.add(brandId);
+        }
+
+        if (categoryId != null) {
+            sql.append("AND p.category_id = ? ");
+            params.add(categoryId);
+        }
+
+        if (status != null) {
+            sql.append("AND p.status = ? ");
+            params.add(status);
+        }
     }
 
     public int countAllProducts() {

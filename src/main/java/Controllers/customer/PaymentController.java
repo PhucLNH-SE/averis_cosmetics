@@ -3,7 +3,7 @@ package Controllers.customer;
 import DALs.AddressDAO;
 import DALs.CartDetailDAO;
 import DALs.OrderDAO;
-import DALs.ProductDAO;
+import DALs.ProductVariantDAO;
 import DALs.VoucherDAO;
 import Model.Address;
 import Model.CartItem;
@@ -28,7 +28,7 @@ import java.util.Map;
 public class PaymentController extends HttpServlet {
 
     private AddressDAO addressDAO = new AddressDAO();
-    private ProductDAO productDAO = new ProductDAO();
+    private ProductVariantDAO productVariantDAO = new ProductVariantDAO();
     private OrderDAO orderDAO = new OrderDAO();
     private CartDetailDAO cartDetailDAO = new CartDetailDAO();
     private VoucherDAO voucherDAO = new VoucherDAO();
@@ -325,7 +325,7 @@ public class PaymentController extends HttpServlet {
     //PhucLNH - Payment
     private String validateCartStock(Map<Integer, CartItem> cart) {
         for (CartItem item : cart.values()) {
-            ProductVariant variant = productDAO.getVariantById(item.getVariant().getVariantId());
+            ProductVariant variant = productVariantDAO.getVariantById(item.getVariant().getVariantId());
 
             if (variant == null) {
                 return "Product not found";
@@ -392,7 +392,7 @@ public class PaymentController extends HttpServlet {
         }
 
         for (Map.Entry<Integer, CartItem> e : cart.entrySet()) {
-            ProductVariant variant = productDAO.getVariantById(e.getKey());
+            ProductVariant variant = productVariantDAO.getVariantById(e.getKey());
             if (variant != null) {
                 result.put(e.getKey(), new CartItem(variant, e.getValue().getQuantity()));
             }
