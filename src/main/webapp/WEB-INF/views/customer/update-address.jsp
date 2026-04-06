@@ -5,7 +5,7 @@
 <html>
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        <title>Edit Address</title>
+        <title>Update Address</title>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
         <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
         <link href="${pageContext.request.contextPath}/assets/css/style.css" rel="stylesheet">
@@ -16,7 +16,7 @@
         <div class="container">
             <div class="address-form-container">
                 <div class="address-form-header">
-                    <h2><i class="fas fa-edit"></i> Edit Address</h2>
+                    <h2><i class="fas fa-edit"></i> Update Address</h2>
                     <p>Update your delivery address details</p>
                 </div>
 
@@ -28,7 +28,7 @@
                 <form action="${pageContext.request.contextPath}/address" method="POST"
                       data-address-form="true"
                       data-address-api-url="${pageContext.request.contextPath}/address-api">
-                    <input type="hidden" name="action" value="edit">
+                    <input type="hidden" name="action" value="update">
                     <input type="hidden" name="id" value="${formAddress.addressId}">
 
                     <div class="address-form-group">
